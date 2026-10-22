@@ -42,6 +42,35 @@ Raw CBOR remains the default. An optional experimental Zstd transport is describ
 below. Columns, numeric buffers, dynamic dictionaries, chunks, partial loading,
 external URI integration and quantization remain outside this candidate.
 
+## Next investigation
+
+The [provisional standalone CAD scope](ifccad-document-lifecycle.md#provisional-standalone-cad-scope--2026-10-21)
+keeps this experiment focused on the supported drawing document. A full IFCX
+source snapshot beside CBOR, a general fragment encoding and mixed-document
+writeback are deferred. CAD semantic coverage and qualified exchange remain
+the main development priority; each semantic slice keeps the single mutable
+revision-1 mapping, shared validation and production readback aligned.
+
+A useful next optional measurement is a bounded whole-document comparison of
+compact IFCX JSON, raw CBOR and the native Rust CBOR + Zstd route at default
+level 3. Agree the exact inputs, retained content, dependency configuration and
+reference hardware before a separately requested run. Record full opening and
+writing, separating filesystem IO, decompression, parsing/composition, shared
+validation and mandatory writer readback where observable, plus peak/resident
+memory. Keep CAD conversion costs separate. JSON source-graph retention and
+projection-only binary retention must be disclosed; an equal-content encoding
+comparison must not treat discarded source context as a compression gain.
+
+The existing external compression probes do not measure this native end-to-end
+route. Retain their reports and matching results with their original scope;
+they neither qualify later revisions nor authorize reruns. A production host's
+full load/convert/save costs require separate evidence from codec-only timings.
+
+This is a proposed follow-up, not an approved corpus, implementation task or
+measurement run. It selects no chunks, columns, dictionaries or new revisions.
+Reconsider those only against a concrete workload and measured remaining cost,
+following the [roadmap](../../ROADMAP.md#later-physical-encodings-and-performance).
+
 ## Core API
 
 ```rust,no_run

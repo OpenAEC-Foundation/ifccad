@@ -100,10 +100,16 @@ when actual workloads and profiling show enough remaining preparation cost.
 
 ## Reproduction
 
+The commands below describe the historical measurement configuration. OCDraw is
+now parked; the linked example is frozen reference source and may include later
+changes. Reproduction requires this report's original source/dependency
+configuration, not an active-workspace build of the archived example. See the
+[archive restoration boundary](../../legacy/ocdraw/README.md).
+
 Build `cargo build -p ocdraw-convert --example placement_inventory`, then run
 `placement_inventory INPUT OUTPUT_JSON` for each original file. Exclude
 `converted/`; record relative paths and file SHA-256 values. The recorded sweep
 used separate processes with a 30-second reader timeout; none timed out. The
-[example](../../crates/ocdraw-convert/examples/placement_inventory.rs) counts
+[archived example](../../legacy/ocdraw/crates/ocdraw-convert/examples/placement_inventory.rs) counts
 raw normal/elevation tuples by exact equality, treating signed zeros as equal.
 No source CAD files are copied into this repository.

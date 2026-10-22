@@ -3,7 +3,50 @@
 `IfccadDocument` is the owned logical CAD projection used by validation,
 encoding and direct CAD conversion. It contains typed entities, ordered owner
 contents, layers, layouts, shared blocks, named patterns, units and allocation
-history. It remains independent of `OcdrawDocument` and opencadcodec.
+history. The active root package exports these types directly from `ifccad`;
+implementation lives under `src/ifccad`. The core remains independent of
+opencadcodec. OCDraw is [parked](../ocdraw-parking.md).
+
+## Provisional standalone CAD scope — 2026-10-21
+
+Near-term development targets standalone CAD-profile documents in IFCX: one
+supported drawing with its geometry, tables, styles, layouts, workspace state,
+required IFCX envelope/schema context and approved preservation content. IFCX
+remains the logical foundation; the typed drawing API and physical encodings
+represent the same supported drawing semantics. This is a development-scope
+decision, not a new reader restriction or a published compatibility guarantee.
+
+Native editing and fresh encoding target that supported drawing content.
+Projection output does not promise the original fragment distribution,
+overwritten contributions, JSON spelling or a complete mixed IFCX source graph.
+Unchanged original IFCX download continues to retain source bytes. Existing
+fragment composition, immutable source retention, source-aware conversion
+audits and Allow/Reject loss policies remain in place. Mixed input must not
+silently be presented as a lossless edited source document; projection export
+has its existing narrower scope. Unknown core fields remain rejected.
+
+General editing of CAD inside a broader IFCX document is deferred until a
+concrete application supplies source examples, non-CAD relationships and
+required edits. That design must address contribution targeting, identity,
+ownership, deletion, foreign references, origin/import context and validation.
+No full-source-plus-CAD-cache container, general IFCX CBOR mapping, fragment
+authoring system or source-graph writeback is required for current CAD work.
+Reading existing fragments does not imply these editing capabilities.
+
+CAD semantic coverage and qualified exchange retain the sequence in
+[ROADMAP.md](../../ROADMAP.md). Keep JSON, CBOR and shared validation aligned as
+semantics evolve, with production readback. The next optional storage
+investigation is a separately requested, bounded comparison of whole-document
+JSON, CBOR and native CBOR + Zstd; see [CBOR follow-up](ifccad-cbor.md#next-investigation).
+This decision neither starts measurements nor changes mapping/transport revisions.
+
+Indexed chunks, columnar encoding and partial save remain evidence-driven
+follow-ups. A host that fully loads IFCCAD, converts the complete drawing to
+`CadDocument` and reconstructs it on save does not itself exploit partial
+access or establish source-preserving updates. Revisit chunking when a named
+consumer can use selected content or local updates, or full-document profiling
+demonstrates another benefit sufficient to justify its costs. Complete drawing
+validation remains distinct from independent chunk decoding.
 
 ## Complete source and CAD projection
 
@@ -61,10 +104,10 @@ allocation history. It runs without an encoding/readback bridge or CAD runtime.
 The reader separately checks JSON token/field backings, envelope and schema
 requirements, node paths, CAD attribute combinations and graph relationships.
 After projection it calls the same logical validator used by encoding and
-direct conversion. Existing geometry and unit-registry sharing with OCDraw
-continues; the drawing models and encoding routes stay separate.
+direct conversion. Neutral geometry and unit helpers belong to the active core;
+the parked OCDraw implementation is not an active dependency.
 
-The five uint64 allocation watermarks must exceed existing IDs in their domains.
+The uint64 allocation watermarks must exceed existing IDs in their domains.
 Editors retain them when deleting content, including when a domain becomes empty.
 See [ID management](ifccad-id-management.md).
 
@@ -74,9 +117,20 @@ See [ID management](ifccad-id-management.md).
 the current IFCX CAD profile, and requires strict production-reader readback
 with semantic equivalence, returning `EncodedIfccad`. Its `bytes()` and
 `into_bytes()` accessors expose the encoding; `write_file()` creates a new file
-and refuses to overwrite an existing one. Existing paths, uint64 values, ordered entities and supported native
-Paper semantics are retained. Paper collections normalize by explicit tab index, independently of IDs; Model is tab 0 and Paper tabs are contiguous from 1. Paper coordinate units are distinct from optional physical medium units. Missing metadata in older experimental files is rejected; examples are migrated directly without a version layer. Definition collections retain their existing
-unordered/readback normalization rules.
+and refuses to overwrite an existing one. Existing paths, uint64 values,
+ordered entities and supported native Paper semantics are retained. Paper
+collections normalize by explicit tab index, independently of IDs; Model is tab
+0 and Paper tabs are contiguous from 1. Effective plot mappings determine Paper
+coordinate meaning independently of optional medium dimensions; see
+[layout output](../layout-output.md). Missing required metadata in earlier
+experimental files is rejected; examples migrate directly without a version
+layer. Definition collections retain their documented readback normalizations.
+
+`EncodedIfccad`, `EncodedIfccadCbor` and feature-enabled `EncodedIfccadCborZstd`
+implement `AsRef<[u8]>`, `PartialEq` and `Eq`. Equality compares exact encoded
+bytes; different encodings can represent equivalent logical drawings. Only
+validated encoding constructs these values. Replacement, backup and editor-session
+save policies belong to applications.
 
 Encoding creates a **new CAD-profile file** with its normal schema import.
 It receives no original source graph. Foreign nodes, extra imports/schemas,
@@ -114,8 +168,72 @@ rounds during projection remains detectable there even when the projected f64
 value alone looks valid. Full-width allocation integers remain exact in typed
 state and native output.
 
-The paperspace slice extends conversion coverage; existing source recoveries and appearance adaptations remain in force. Fresh CAD imports allocate fresh native IDs; a CAD-runtime
-roundtrip does not preserve native allocation history automatically. Multiple authored Paper layouts, supported geometry, tab order and optional media convert. Paper viewport camera, perspective, depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping now convert with explicit codec development repairs; full plot settings remain deferred with located loss diagnostics.
+Fresh CAD imports allocate fresh native IDs; a CAD-runtime roundtrip does not
+preserve native allocation history automatically. Multiple authored Paper
+layouts, tab order, optional media, supported effective plot settings and
+viewport state have their own qualified mappings. See the
+[converter contract](../../crates/ifccad-convert/README.md),
+[workspace state](../workspace-state.md) and [layout output](../layout-output.md)
+for current coverage and codec limits. A historical viewport repair or practice
+conversion does not establish coverage for a later dependency.
+
+## Responsibilities and public API conventions
+
+| Responsibility | Active owner |
+| --- | --- |
+| Owned drawing and shared semantic validation | Core `logical/`, `IfccadDocument` and checked ID allocators |
+| IFCX composition and immutable source | Core `source/`, `LoadedIfccadGraph` |
+| Physical mapping and backing validation | Core `codec/json/`, `codec/cbor/` and the separate Zstd transport |
+| Validation, encoding and production readback | Core `encode.rs` |
+| Encoded bytes and standalone file IO | Core `storage.rs` and `storage/` |
+| CAD orchestration, identities and source audits | Companion `ifccad-convert` |
+| CAD numerical, text, dimension, presentation, workspace and snapshot preparation | The corresponding `cad-*` companions |
+
+Keep construction, logical validation, conversion, physical encoding and file
+storage distinct. Public mutable records permit editing but do not certify
+validity. No encode/load bridge or CAD runtime is required for logical validation.
+No deprecated OCDraw or former `IfcxCad*` facade is exported.
+
+The four converter routes name both direction and backing explicitly:
+
+| Route | Result and scope |
+| --- | --- |
+| `cad_document_to_ifccad_document` | Validated logical drawing, diagnostics and identity mappings |
+| `cad_document_to_encoded_ifccad` | Logical conversion followed by production-checked IFCX encoding |
+| `ifccad_document_to_cad_document` | Validated drawing projection to CAD |
+| `ifccad_source_to_cad_document` | Loaded IFCX source to CAD, including foreign-content and numeric-source audits |
+
+CAD-to-IFCCAD metadata is supplied through `IfccadTargetMetadata`. Both
+directions require their own options: `CadToIfccadOptions` and
+`IfccadToCadOptions`; `Default::default()` selects Allow. Outcomes expose
+`document()`/`into_document()` or `encoded()`/`into_encoded()`, diagnostics and
+mappings. Directional coverage remains in the converter's
+[FROM-CAD](../../crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md) and
+[TO-CAD](../../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) inventories.
+Located recovery, certified rounding and semantic loss remain distinct.
+Unit-aware hard numerical limits are explained in
+[shared geometry](../geometry/shared-geometry.md).
+
+CBOR uses `load_ifccad_cbor_bytes`, `load_ifccad_cbor_file` and
+`encode_ifccad_cbor_document`, with `ValidatedIfccadCbor` and `EncodedIfccadCbor`.
+The optional Zstd transport unwraps to that same validated CBOR document. These
+routes have no IFCX source graph; their byte/file error types and limits remain
+separate from the JSON route. The [CBOR guide](ifccad-cbor.md) documents the
+mutable revision-1 mapping, optional transport and exact API signatures.
+
+Entity construction uses `IfccadEntity::Native(IfccadNativeEntity { ... })` or
+`IfccadEntity::Opaque(IfccadOpaqueEntity { ... })`. `id()`, `as_native[_mut]()`
+and `as_opaque[_mut]()` expose the appropriate variant. Preservation records,
+text/dimension styles, symbol sources, UCS and Model windows have their own ID
+domains and persistent watermarks. Whole workspace attributes compose as IFCX
+values; omitted choices and dormant authored state are retained.
+
+Concrete/symbolic colors, typed line-pattern markers and active/dormant Hatch
+gradients have their own construction constraints. Use
+[presentation](../presentation.md#foreground-color),
+[line patterns](../line-patterns.md), [Hatch](../hatch.md) and
+[preservation](../preservation.md) for those values rather than treating prior
+API migration examples as an alternative current contract.
 
 ## Editing viewport references
 

@@ -2,7 +2,7 @@
 
 OCDraw and IFCCAD coordinate units use the same 25 symbolic values. Their
 physical definitions are in the
-[OCDraw logical contract](../../schemas/ocdraw/logical-contract-0.1.0.md).
+[historical OCDraw logical contract](../../legacy/ocdraw/schemas/ocdraw/logical-contract-0.1.0.md).
 The converter maps CAD codes 0–24 explicitly; core enum discriminants have no
 CAD meaning. Unknown CAD codes retain the existing unsupported-unit diagnostic.
 Neither the unit mapping nor block insertion metadata rescales stored points.

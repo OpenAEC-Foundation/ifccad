@@ -86,7 +86,41 @@ The inspector's Spline-brongegevens bewaren option applies to the IFCCAD
 CAD route. It reports opaque counts, source provenance, unavailable bounds and
 separate capture/restoration evidence. The CLI supports --preserve-splines for
 cad/export-cad. Native opening and IFCCAD conversion do not require this option.
-## Independent IFCCAD mapping
+## Implemented IFCCAD spline pilot
+
+This is the active route. The earlier OCDraw pilot above records historical
+architecture and qualification; it does not establish current IFCCAD coverage.
+The authoritative serialized contract is the
+[IFCCAD profile](../schemas/ifccad/experimental-contract-0.1.0.md), with current
+conversion limits in the converter's
+[FROM-CAD](../crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md) and
+[TO-CAD](../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) inventories.
+
+The independent IFCCAD pilot verifies all supported owners, nested/unused block
+definitions, optional exact common state, unknown-provider storage, uint64
+identities/counters, atomic composition, bounds incompleteness and clip rules.
+Restoration tests recheck source/context/reference requirements after durable
+storage, including Paper5inch=127mm equivalence and change/reversion of coordinate
+meaning. Eight native-edit cases exercise actual DXF/AC1032 DWG restoration
+against independent control-point oracles; create-new filesystem coverage saves,
+reopens and restores to a fresh DWG. See
+[capture](../crates/ifccad-convert/tests/spline_capture.rs),
+[restore](../crates/ifccad-convert/tests/spline_restore.rs),
+[native-edit exchange](../crates/ifccad-convert/tests/spline_edit_exchange.rs) and
+[record-order](../crates/ifccad-convert/tests/spline_record_order.rs) tests.
+
+The 2026-10-07 delivery checkpoint used codec `063c106` plus the explicit
+viewport-off repair. It recorded 772 passing Rust tests, one existing ignored
+test, 68 passing browser tests with four skips, and release-WASM/smoke checks.
+Review was by the author, without a separate reviewer. A wrapper temporary-path
+denial was resolved using the existing matching wasm-bindgen 0.2.129; source
+dependency selection was unchanged. This is historical scoped evidence, not a
+fresh verification result. Selected execution material remains in the ignored
+`.superpowers/worktree-archives/ifccad-spline-preservation/` task archive.
+The old fit-only DXF parameterization limitation was subsequently requalified
+as described below; no size/performance measurement is implied.
+
+### IFCCAD mapping and restoration conditions
 
 IFCCAD owns its envelopes, paths, validation and restore predicates. Its ordered
 owner vectors contain `IfccadEntity::Native(IfccadNativeEntity)` or

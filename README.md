@@ -12,6 +12,9 @@ The profile and its encodings are still experimental, not a published standard.
 See the [vision](docs/vision.md) for the long-term direction and the
 [roadmap](ROADMAP.md) for development priorities.
 
+Use the [documentation reading routes](docs/README.md) to find guides, contracts,
+topic explanations and retained research evidence.
+
 ## Try it in your browser
 
 The **[IFCCAD Explorer](https://ifccad-explorer.open-aec.com/)** lets you inspect
@@ -59,6 +62,11 @@ The Explorer uses this same conversion route. For IFCX / JSON input, the matchin
 native download retains original source bytes. Experimental CBOR and CBOR + Zstd
 downloads encode the validated IFCCAD drawing projection.
 
+Development provisionally focuses on standalone CAD-profile documents in IFCX.
+Editing CAD within a broader IFCX graph waits for a concrete application; existing
+source retention and loss diagnostics remain unchanged. See the
+[scope decision](docs/experiments/ifccad-document-lifecycle.md#provisional-standalone-cad-scope--2026-10-21).
+
 ## Development sequence
 
 [ROADMAP.md](ROADMAP.md) is authoritative. The current order is:
@@ -75,11 +83,27 @@ downloads encode the validated IFCCAD drawing projection.
    Dimension and its wide `_ArchTick` marker as an acceptance case.
 6. Continue remaining Dimension kinds/selectors and later joint annotation support
    according to their dependencies.
-7. Expand semantic coverage and assess physical storage using representative evidence.
+7. Expand supported CAD semantics; assess whole-document storage/performance
+   using representative evidence.
 
 Hatch B stays paused until migration integration. The xformop experiment stays
 separate. One broad cross-cutting task runs at a time; independent narrow work
 can proceed with focused checks and coordinated integration verification.
+
+The [October 2026 requirements review](docs/user-research-2026-10-review.md)
+checks all 30 recommendations in issue #17 against current support. Within this
+sequence, prioritize visible exchange/conformance evidence, construction
+annotations, resource/library workflows and selected missing drawing semantics,
+then qualified plotting and external drawing exchange. Large-file targets need
+representative evidence; measurements remain explicitly requested work. The
+[detailed priorities](ROADMAP.md#construction-workflow-priorities-from-the-october-2026-review)
+separate core, converter, codec and host-application responsibilities.
+
+CAD coverage and qualified exchange remain the priority. The next optional
+storage investigation compares whole-document JSON, CBOR and native CBOR + Zstd
+on agreed inputs; indexed chunks and columnar encoding await a demonstrated
+need. See the [CBOR follow-up](docs/experiments/ifccad-cbor.md#next-investigation).
+Measurements still require a separate explicit request.
 
 ## Repository layout
 
@@ -106,8 +130,7 @@ cargo run -p viewer -- export-ifccad examples/ifccad/house.ifcx dxf
 
 CAD input defaults to IFCCAD. `--drawing-format ifccad` remains accepted;
 `--drawing-format ocdraw` reports `OCDRAW_PARKED` before reading the input.
-See [model IO conventions](docs/model-io-conventions.md), the
-[IFCCAD lifecycle](docs/experiments/ifccad-document-lifecycle.md),
+See the [IFCCAD lifecycle and API conventions](docs/experiments/ifccad-document-lifecycle.md),
 [experimental contract](schemas/ifccad/experimental-contract-0.1.0.md) and
 [CBOR experiment](docs/experiments/ifccad-cbor.md).
 

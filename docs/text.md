@@ -1,20 +1,14 @@
-# OCDraw and IFCCAD Text and MText
+# IFCCAD Text and MText
 
-IFCCAD is the active track. OCDraw descriptions below retain historical context;
-its implementation and fixtures are parked. See [parking](ocdraw-parking.md).
-Only IFCCAD code, schemas and current converter coverage define active behavior.
+IFCCAD supports authored Text/MText, drawing-local text styles, typed rich
+content and strict native readback without a CAD or font runtime in the core.
+The active schemas, code/tests and directional converter coverage define the
+implemented contract. OCDraw is [parked](ocdraw-parking.md).
 
 Current dependency qualification (2026-10-16): codec `325fa98d2b881f48e106a830d5cf161624f63131`
 plus the explicit Dimension text-position repair; viewport repairs are upstream.
 The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated
 pin/transport limitations below, including paper grid and DXF ShadePlot gates.
-
-OCDraw supports standalone authored Text/MText, local text styles, typed rich
-content and strict native readback. Its core needs neither IFCX nor a CAD or font
-runtime. IFCCAD independently supports the same authored text values through its
-own identities, IFCX payloads, strict reader/writer and CAD adapters. Shared
-helpers do not establish route coverage; each route has its own native and
-actual-file tests.
 
 Text has four distinct layouts: anchored, whole-text middle, aligned and fit.
 Placement, rotation, independent mirrors, shear and signed thickness remain
@@ -33,15 +27,6 @@ Font requests are symbolic, including family/CAD/big-font selectors and face,
 charset and pitch requests. Styles are not resolved or embedded. Unused records,
 local zero-valid IDs and deletion watermarks survive native IO. Styles do not
 introduce a current-style workspace requirement.
-
-`DrawingTextEntity`, `DrawingMTextEntity` and `OcdrawTextStyleId` have their own
-OCDraw identities and reference checks; text does not masquerade as a curve.
-`OcdrawBuilder::add_text_style`, `add_text` and `add_mtext` allocate atomically and
-use the existing shared entity counter and ordered scope ownership. Reader
-accessors expose typed records. The registered `textStream` and `mTextStream`
-use ordinary row columns for common values and closed nested rows for layout and
-content. The [logical contract](../legacy/ocdraw/schemas/ocdraw/logical-contract-0.1.0.md#text),
-registry, JSON mapping and active schema define the provisional wire contract.
 
 IFCCAD uses `IfccadTextStyleId(u64)`, `IfccadTextStyle`, `IfccadText` and
 `IfccadMText`, with Text/MText variants in its own native entity enum. The style
@@ -64,6 +49,51 @@ Glyph estimates are never verified enclosures; known primitive subsets and
 numeric failures remain checked even when bounds are absent or a neighbour is
 opaque. Empty glyphs do not invent insertion-point geometry for a nonempty block.
 
+## Shared text value and extent preparation
+
+`ifccad::text` provides format-independent authored values, intrinsic validation,
+property-wise inheritance and fontless extent preparation. These values carry
+no drawing IDs, ownership, CAD runtime, loaded font or physical encoding. Native
+adapters use the same intrinsic checks rather than duplicating them.
+
+The character chain is style -> MText basis -> paragraph -> inline. Properties
+replace inherited values rather than multiplying them. Relative heights refer
+to nominal MText height; absolute heights retain their scope distances.
+Paragraph layout uses a separate basis independent of the preceding paragraph.
+Tabs, breaks and stacks remain typed structural content. Explicit false, valid
+zero and empty tab-stop resets remain distinct from absent overrides.
+
+Full-context validation uses the authored entity-wide paragraph basis and the
+actual effective character formats. Empty lines use their paragraph basis;
+fully overridden unused values do not invent geometry. Resolving a format
+neither loads fonts nor rewrites authored records.
+
+### Fontless estimates
+
+`estimate_text_extent` and `estimate_mtext_extent` return local and owning-scope
+estimated boxes, status and reasons. Nonempty font-dependent results are
+`Estimated`; a missing contribution such as an unknown physical frame stroke
+gives `Unavailable` with only a known subset box. They cannot certify glyph
+enclosure or negative spatial queries.
+
+The heuristic counts Unicode scalars, including combining and bidi characters,
+at two effective heights per scalar advance. It includes width/tracking/shear,
+greedy word/atomic-tab-field wrapping, stacks, explicit breaks, paragraph spacing
+and stored column state. It neither clips overflow nor inserts authored breaks,
+changes column counts or allocates an array of generated columns.
+
+Alignment, mirrors, rotation and Text thickness preserve the active anchor.
+Placement uses the shared outward transform kernel. Vertical flow has an
+explicit estimate profile rather than an authored 90-degree rotation.
+Relative background padding uses nominal height. Frame stroke must already be
+expressed in scope coordinates; medium size alone supplies no conversion.
+Arithmetic overflow or positive-height underflow returns a typed error.
+
+`CoordinateFrame3::try_from_normal_arbitrary_axis` explicitly constructs a frame
+from a normal using scaled normalization and the strict normalized-normal 1/64
+branch. Native loading and `try_new` preserve supplied axes without normalization.
+This construction helper does not itself certify CAD conversion accuracy.
+
 ## Bounds and evidence
 
 Explicit recomputation produces enclosing primitive bounds, estimated bounds
@@ -79,7 +109,7 @@ Missing quality with a box means enclosing. Partial is derived, never a stored
 box quality; quality without a box is invalid. Encoding retains a valid supplied
 declaration. A fontless reader cannot confirm enclosing glyph claims or require
 them to match its heuristic box. Proven primitive contributions remain checked.
-`assess_ocdraw_document_bounds` returns independent coverage and enclosure evidence;
+`assess_ifccad_document_bounds` returns independent coverage and enclosure evidence;
 the Explorer displays that separately from the producer declaration. Estimated
 or partial results cannot justify negative spatial queries or safe glyph culling.
 
@@ -91,7 +121,7 @@ without a scale. The estimator neither loads fonts nor claims letter contours.
 
 ## Qualified CAD subset
 
-Both OCDraw directions use the pinned `cad-text` helper and the same loss policy,
+Both IFCCAD directions use the pinned `cad-text` helper and the same loss policy,
 strict native readback and hard per-coordinate-domain numerical checks as other
 entities. They preserve mapped text styles, including unused definitions, and
 mixed draw order in Model, Paper and blocks. Text uses active OCS anchors;
@@ -126,17 +156,12 @@ refuses the loss. See the [qualification and evidence](text/mtext-manual-column-
 Simple Text/MText pass production native IO and actual DXF/DWG exchange tests.
 Placement/content/style/column/background tests qualify a bounded profile;
 they do not establish a font engine, application rendering, every file version
-or full CAD/native parity. See both OCDraw converter coverage contracts and
-[cad-text](../crates/cad-text/README.md). Evidence uses base revision
-`063c10671fe7833d562f772159771318c7a0ebb9` with the explicitly selected existing
-viewport-off-state repair; it is not evidence for an unmodified dependency.
-No size/exchange measurement was run for this slice.
+or full CAD/native parity. See the converter's
+[FROM-CAD](../crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md) and
+[TO-CAD](../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) inventories and
+[cad-text](../crates/cad-text/README.md). Fonts remain requested rather than bundled.
 
-Generate the [Explorer example](../legacy/ocdraw/examples/ocdraw/text.ocdraw.json) with
-`cargo run --example write_text -- <new-output.ocdraw.json>`. The producer strictly
-reads its output and refuses overwrite. Fonts remain requested rather than bundled.
-
-The independent [IFCCAD example](../examples/ifccad/text.ifcx) includes
+The [IFCCAD example](../examples/ifccad/text.ifcx) includes
 Text/MText in Model, Paper and a local block, explicit paragraph colour and
 estimated bounds. Generate it with `cargo run --example write_ifccad_text --
 <output.ifcx>`. That producer uses strict native readback before writing.
@@ -152,12 +177,11 @@ geometry. Loaded-source conversion compares closed text payloads and their
 defaults without changing source bytes; exact numeric projection loss is hard
 under both policies. The integrated IFCCAD qualification uses the main dependency
 base `325fa98d2b881f48e106a830d5cf161624f63131` and its explicit Dimension
-text-position repair; the earlier OCDraw slice evidence above records its original base.
+text-position repair. Earlier OCDraw slice evidence remains historical.
 See the two IFCCAD converter coverage contracts for limits.
 
-IFCCAD concrete character/background colors now use IfccadColor with RGB fallback
-and optional indexed/named metadata rather than hexadecimal strings, independently
-of OCDraw's DrawingColor. Qualified RGB/ACI text identity passes through the shared
+IFCCAD concrete character/background colors use IfccadColor with RGB fallback
+and optional indexed/named metadata. Qualified RGB/ACI text identity passes through the shared
 CAD color rules; richer/unqualified text color metadata still obeys the bounded
 whole-text restriction. Scalar color support does not certify glyph appearance.
 See [presentation](presentation.md) for migration and numerical policy.

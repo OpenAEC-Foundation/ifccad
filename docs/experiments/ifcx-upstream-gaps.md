@@ -187,16 +187,76 @@ additional schema language or private IFCX syntax.
 
 ## Profile choices to keep separate
 
-`ifccad::geom::*`, layer 0, ByLayer/ByBlock/explicit appearance, block transforms, drawing and paper units, Paper layout metadata, and the right-handed local XYZ convention are currently CAD-profile semantics. Shared block coordinates use drawing units, while direct paper coordinates use the paper unit; instance scale explicitly includes any conversion. These choices demonstrate the need for reusable geometry and unit vocabulary, but do not by themselves justify changing IFCX core. Compare their meaning with published IFCX geometry definitions when available. The [IFCCAD benchmark issue #6](https://github.com/OpenAEC-Foundation/ifccad/issues/6) overlaps future physical-encoding comparisons; it does not settle this node-model experiment. CBOR is only a proposed probe, not a feature used by the current reader or writer.
+`ifccad::geom::*`, layer 0, ByLayer/ByBlock/explicit appearance, block transforms,
+Paper layout metadata and the right-handed local XYZ convention are CAD-profile
+semantics. Shared block coordinates use drawing units; effective plot mappings
+determine physical Paper meaning. Instance scales retain authored conversion
+where applicable. These choices motivate reusable geometry/unit vocabulary but
+do not by themselves justify changes to IFCX core. A future shared geometry key
+can replace a local key only after units, placement and roundtrip meaning agree;
+CAD ownership, order and appearance still require their profile rules.
+
+The [standalone CBOR mapping](ifccad-cbor.md) is implemented for the typed CAD
+document and has production readback. It is not a serialization of arbitrary
+IFCX graphs. The original node-model probe predates that implementation and
+does not define its capabilities. The [current lifecycle and scope](ifccad-document-lifecycle.md)
+retain source composition and auditing while deferring mixed-document writeback.
 
 ## Suggested order of investigation
 
 1. Follow up the [completed G1/G3 composition probe](ifcx-composition-probe.md) with a full upstream expansion check for G2 using the current unwrapped CAD paths. The TypeSpec still requires old-style brackets while the issue discussion recommends removing them; record actual implementation differences before drafting an upstream proposal.
-2. Nested blocks and two Paper layouts now have semantic readback evidence for G2/G4, including distinct units, shared definitions, draw order and rejected duplicate ownership. Extend this to a paper viewport referencing model space before claiming complete layout exchange; define its view, clipping and scale semantics explicitly.
-3. Test one non-CAD reference to a local CAD path across a second IFCX document. This turns the broader G1 motivation into evidence and exposes import/identity requirements in G5.
-4. Only after the semantic model survives these cases, compare matched JSON, compressed JSON, and an implemented binary candidate. Keep the physical-encoding work aligned with [IFCCAD issue #6](https://github.com/OpenAEC-Foundation/ifccad/issues/6).
+2. Use the current [viewport contract](../../schemas/ifccad/experimental-contract-0.1.0.md#paper-viewports) and qualified converter tests for CAD layout coverage. Native nested-block/Paper readback and CAD exchange do not establish compatibility with the upstream IFCX composer or a general IFCX viewer.
+3. When a concrete mixed-document application is selected, test non-CAD references to CAD paths across documents. That later investigation must address import/identity requirements in G1/G5; it is not a prerequisite for standalone CAD development.
+4. Keep physical-encoding research aligned with [IFCCAD issue #6](https://github.com/OpenAEC-Foundation/ifccad/issues/6) and the current roadmap. Existing CBOR evidence has its own scope; additional measurements require an explicit request.
 
 Before contacting buildingSMART, split each candidate into a minimal domain-neutral question, a reproducible IFCX example, observed upstream behavior, and an IFCCAD use case. Link any resulting upstream issue or decision back to its G-number.
+
+## Historical native CAD proof (2026-10-01)
+
+The initial IFCX-native proof established addressable entity paths, ordinary
+`children` ownership and numeric child-key draw order, explicit CAD attributes
+and shared nested definitions without using `inherits` for block instances.
+One Model and two Paper layouts retained separate ownership/order, shared
+definitions, explicit scales and media. A foreign node could reference a CAD
+path. Strict readback rejected duplicate ownership, child-key gaps, invalid
+units, missing schema/placement, unsupported geometry and unused-definition
+cycles. The reader resolved its one bundled experimental schema import; it was
+not a general IFCX validator or remote import resolver.
+
+Direct `CadDocument` conversion already used no IFCDR/OCDraw intermediate.
+The bounded primitive/nested-block exchange used unmodified codec
+`d96e3fa2fe5acbeac966f1db4c01142618bf9c79` and DXF/AC1032 DWG, including nonzero
+block bases, unused declarations, signed nonuniform scales and large u64 maps.
+See the [current native tests](../../tests/ifccad_native.rs),
+[block fixture](../../tests/fixtures/ifccad/hello-nested-blocks.ifcx) and
+[Paper fixture](../../tests/fixtures/ifccad/hello-paper-layouts.ifcx); later
+versions of those fixtures do not reproduce every original probe unchanged.
+
+The funderingsherstel DWG/DXF originals identified in the
+[historical layout qualification](../conversion-diagnostics.md#historical-five-file-qualification-2026-10-05)
+were also checked through IFCX -> CAD -> DXF -> IFCX. That initial partial result
+retained 21 layers, 127 definitions, 1,574 lines, 207 circles, 164 INSERTs, three
+LWPOLYLINEs and seven named patterns across Model/definitions. Unsupported text,
+dimensions, hatches, arcs, images, viewports and Paper content were diagnosed as
+omitted at that checkpoint. Compared semantics excluded regenerated identities.
+One additional rotation step of `2.220446049250313e-16` radians at Model index
+778 matched the codec's degree/radian conversion; it was not exact numerical
+roundtrip or an added tolerance. A finite Hidden-pattern period mismatch was
+diagnosed and derived from elements. These observations are not today's
+coverage inventory or complete drawing fidelity.
+
+The 2026-09-30 upstream viewer check used a temporary bracketed fixture with
+inlined schemas and no imports. It showed only the artificial root until paths
+and references were temporarily changed to slashless aliases, matching the
+[composition probe](ifcx-composition-probe.md). Those aliases violated the local
+CAD profile; the temporary files were removed. This historical incompatibility
+does not establish failure of the current strict reader, nor success against a
+later upstream viewer. Local circle/IFC4-circle alignment was a semantic intent;
+a finite line segment is not unbounded `IfcLine`, and no general IFC geometry
+equivalence follows from the proof. Original one-off size/debug-read observations
+were exploratory and did not qualify a controlled performance comparison; use
+the retained [measurement reports](../benchmarks/ifccad-cbor-results-summary-v1.md)
+with their own input/configuration provenance.
 
 ## Line-pattern evidence (2026-10-01)
 

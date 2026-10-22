@@ -28,7 +28,8 @@ The accepted CBOR revision-2/native-Zstd checkpoint precedes this migration.
    follow-up, not a completion gate for the bounded graphics slice.
 6. Continue remaining Dimension kinds/selectors and later joint annotation support
    according to their dependencies.
-7. Expand semantics and investigate storage/performance as described below.
+7. Expand supported CAD semantics; assess whole-document storage/performance
+   using representative evidence as described below.
 
 The independent xformop worktree remains separate. One broad structural task runs
 at a time. Independent narrow work can use focused checks; coordinate expensive
@@ -79,6 +80,76 @@ opaque SPLINE preservation pilot now uses this output boundary, including exact
 Paper coordinate-meaning predicates, durable IFCX transport and qualified fresh
 CAD restoration. It does not depend on workspace state, add native spline geometry,
 freeze the profile or expand raw/private/shared storage; see [preservation](docs/preservation.md).
+
+## Construction-workflow priorities from the October 2026 review
+
+[Issue #17](https://github.com/OpenAEC-Foundation/ifccad/issues/17) proposes
+30 CAD requirements. The [item-by-item review](docs/user-research-2026-10-review.md)
+records implemented subsets, evidence, gaps, ownership and relative effort.
+Its Must/Should ordering is an unvalidated market proposal, not a replacement
+for the dependencies in the current sequence. The following priorities refine
+that sequence without resuming paused work or changing current contracts.
+
+1. **Make qualified exchange visible.** Alongside existing work, publish a
+   development compatibility matrix by feature, DXF/DWG version and named reader.
+   Distinguish internal codec readback from independently verified opening,
+   repair/audit behavior and display. Record candidate, codec pin/patch, fixture
+   identity and redistribution provenance; untested cells remain untested.
+   Extend existing conversion diagnostics into an accessible retained/changed/
+   omitted/preserved/unassessed summary. Retain the explicit fatal boundary for
+   codec parsing and shared structure despite entity-local partial opening.
+   These are correctness/reporting tasks, not automatic performance measurements.
+2. **Finish construction annotations in the queued order.** Keep SOLID/TRACE,
+   bounded Dimension graphics and polyline widths before the remaining kinds.
+   Within those kinds, prioritize radius, diameter and angular dimensions using
+   representative construction drawings. Follow with joint Text/MText/Dimension
+   annotation contexts, assessing Hatch participation and drawing scale lists
+   explicitly across mm, m and inch. Viewport/trans-space selectors and automatic
+   dependent updates need their later contract; stored relations alone are not
+   an update engine ([#13](https://github.com/OpenAEC-Foundation/ifccad/issues/13)).
+   Hatch changes must respect the paused Hatch B boundary and its migration
+   dependency; this review does not authorize resuming it.
+3. **Add resource and library workflows, then selected missing semantics.** Use
+   [#15](https://github.com/OpenAEC-Foundation/ifccad/issues/15) for font/symbol
+   identity, application-owned resolution and explicit missing/substitute status.
+   A bounded PAT importer or supported NLCS-library subset can proceed separately
+   where current semantics suffice; select exact source/version and diagnose gaps.
+   After queued annotation work, prioritize block attributes and multileaders as
+   separate [#2](https://github.com/OpenAEC-Foundation/ifccad/issues/2) slices,
+   ahead of tables and dynamic-block authoring. Layer states/groups/filters need
+   their own contract. Upstream codec #108 was completed in `8d995b8` on
+   2026-10-20; upright line-pattern rotation now needs an audited dependency
+   adoption and native mapping, including explicit older-DXF restrictions.
+   Existing relative/absolute markers remain implemented.
+4. **Qualify plot fidelity and external drawing exchange.** Work out CTB/STB
+   authority, table resources and color-index behavior under
+   [#16](https://github.com/OpenAEC-Foundation/ifccad/issues/16), including indices
+   251–255. PDF output and batch publishing belong to a selected host/integration
+   after fonts, line/fill rendering, Dimension display and plot styles are
+   qualified; stored page settings alone do not prove scale-correct output.
+   Xrefs build on resource identity but additionally require referenced-document
+   ownership, origin, cycles, reload/bind and archive rules. Dynamic-block retention
+   needs an approved dependency-preservation design and qualified codec support;
+   the spline pilot does not provide it. These are separate later slices, not
+   prerequisites for completing current annotation work.
+5. **Establish large-drawing targets from representative evidence.** Under
+   [#6](https://github.com/OpenAEC-Foundation/ifccad/issues/6), define licensed
+   workloads, reference hardware, retained content and separate parsing,
+   conversion, validation, display and peak/resident-memory costs. The proposed
+   15-second and 20-times-file-size figures remain hypotheses. Measurements run
+   only on explicit request, without automatic timing gates. Consider indexed
+   access ([#3](https://github.com/OpenAEC-Foundation/ifccad/issues/3)) only when
+   the workload justifies it; do not promote deferred placement/proof tuning
+   solely from this issue.
+
+Keep command/script migration, DWT selection, desktop packaging/parity, dynamic
+authoring and MCP/dry-run UI in the selected application's backlog or a separately
+approved integration. Public compatibility/release evidence can build on the
+development matrix. Review calendar package versioning
+([#19](https://github.com/OpenAEC-Foundation/ifccad/issues/19)) independently of
+profile and physical-encoding revisions. No weekly release, general CAD editor,
+universal recovery or byte-identical regenerated DWG-section contract is adopted.
+Every future slice still needs its own bounded design and relevant verification.
 
 ## Later semantic coverage and exchange
 
@@ -188,6 +259,22 @@ replacement of the marker satisfies this acceptance case.
 
 ## Later physical encodings and performance
 
+Provisional decision on 2026-10-21: focus on standalone CAD-profile documents
+within IFCX; see the [scope and lifecycle boundary](docs/experiments/ifccad-document-lifecycle.md#provisional-standalone-cad-scope--2026-10-21).
+Mixed IFCX editing/writeback, full-source-plus-CAD-cache storage and a general
+IFCX fragment encoding wait for a concrete application. Existing source
+retention, composition and conversion-loss behavior remain unchanged.
+
+CAD semantic coverage and qualified exchange retain the sequence above. Keep
+CBOR/Zstd correct as those semantics evolve. The next optional storage step is
+a separately requested whole-document JSON/CBOR/native-Zstd comparison of
+opening/writing time and peak/resident memory on agreed inputs and hardware;
+see the [bounded proposal](docs/experiments/ifccad-cbor.md#next-investigation).
+This records no measurement authorization. Indexed chunks and partial save wait
+for a consumer that can exploit partial access/updates or profiling that shows
+another sufficient benefit. Full conversion through `CadDocument` alone does
+not establish such a need. Columnar encoding remains a later measured choice.
+
 IFCCAD has an [experimental base-CBOR candidate](docs/experiments/ifccad-cbor.md)
 with local fixed numeric field codes, a separate mapping revision, production
 readback and shared document validation. It is a standalone CAD-document encoding,
@@ -229,7 +316,7 @@ completion gates, including after relevant code or dependency changes.
   require a separate explicit request.
 
 The implemented lifecycle API conventions and provisional caller migration are
-documented in [model IO conventions](docs/model-io-conventions.md). This
+documented in the [IFCCAD lifecycle and API conventions](docs/experiments/ifccad-document-lifecycle.md). This
 organization refinement does not change milestone order or semantic coverage.
 
 The complex line-pattern slice extends the existing drawing model and converter

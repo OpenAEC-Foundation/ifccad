@@ -82,6 +82,64 @@ or sampling substitute. Dormant references retain owner/exclusivity requirements
 but need not use an active-eligible family. No new winding, area or
 self-intersection restriction is introduced.
 
+## CAD block boundary
+
+Local definitions and ordinary INSERTs retain separate ownership, base-point
+subtraction and occurrence transforms. Present BLOCK name/owner/base data must
+agree with its block record; contradictory structure is an error under both
+loss policies. A missing marker is distinct from a present zero base point.
+The converter does not repair contradictory markers by renaming anonymous
+definitions. Native-to-CAD construction creates consistent records and markers.
+
+CAD insertion parameters must be interpreted in the codec's OCS convention.
+Copying an oblique `insert_point` directly into an owning-scope origin loses
+that meaning. Rotation/scale and block-base subtraction are separate operations.
+Target setter changes are checked even for empty definitions; a small signed
+scale clamped by the codec is not an exact native value. Non-neutral native
+frames can require an explicitly diagnosed parameterization change. The
+occurrence proof carries correlated source-minus-target intervals through each
+nested transform, with instance path and leaf evidence. Local rounding can
+therefore fail after a large outer scale; it is never assumed acceptable from
+an extracted angle or a definition-local result alone.
+
+The current qualification is recorded by the
+[dependency audit](opencadcodec-update-2026-10-16.md),
+[block tests](../../crates/ifccad-convert/tests/blocks.rs) and the converter's
+[directional coverage](../../crates/ifccad-convert/README.md#supported-slice).
+These checks concern retained codec semantics, not every downstream CAD host
+or source information already lost before `CadDocument` construction.
+
+### Historical codec qualification (2026-10-02)
+
+The earlier `block_codec_boundary` probe used unmodified opencadcodec
+`d96e3fa2fe5acbeac966f1db4c01142618bf9c79`. Its `Door` definition had base
+`(2,0,0)`, line `(2,0,0)..(3,0,0)`, all insertion-unit codes 0..24 and an
+anonymous flag independent of name. INSERTs used position `(3,4,5)`, normal
+`(1,2,3)`, angle `0.7`, and scales `(2,3,-4)` or `(-2,-2,-2)`.
+
+That checkpoint resolved nonzero DWG BLOCK bases (#52), anonymous BLOCK_CONTROL
+ordinals including unresolved slots (#55), and DXF description group 4 (#49).
+The synthetic AutoCAD 2025 anonymous-name fixture qualified marker agreement and
+INSERT naming, with attributed INSERTs still diagnosed; its original
+[provenance](../../legacy/ocdraw/crates/ocdraw-convert/tests/fixtures/README.md)
+remains with the frozen checkpoint. At that pin an extra Paper DWG marker could
+still carry the primary Paper owner (#78), and scale setters replaced magnitudes
+below `1e-12` with positive `1e-12`, including decoded values. Those are dated
+dependency observations, not a list of current unresolved codec defects.
+
+Both writers serialized the insertion point directly; DXF wrote degrees and
+DWG radians, while the public transform helper evaluated OCS * translation *
+rotation * scale. Independent sampled assertions used
+`u=(-2,1,0)/sqrt(5)`, `v=(-3,-6,5)/sqrt(70)`, `w=(1,2,3)/sqrt(14)` and
+reference sin/cos literals. Empty-definition tests exposed already-clamped
+scales. Marker, explodable and uniform-scale checks, actual DXF/DWG exchange
+and production native readback bounded this evidence. The old IFCCAD slice
+diagnosed block descriptions; later metadata support must be assessed from the
+current tests/coverage rather than this historical restriction. The later
+correlated occurrence regression includes locally acceptable rounding rejected
+under `1e9` outer scaling. Sampled codec checks and certified whole-domain
+conversion proof remain separate claims.
+
 ## Provisional version and qualification
 
 This revises experimental IFCCAD 0.1.0 under the existing schema URI. It does not

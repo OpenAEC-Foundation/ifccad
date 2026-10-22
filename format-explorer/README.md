@@ -54,7 +54,38 @@ be disabled before opening. Capture, opaque native geometry and qualified fresh
 CAD restoration have separate evidence. This does not add native spline geometry,
 font geometry, evaluated Hatch fill or complete Dimension display.
 
+Overview and the enlarged Contents, Conversion/checks and Drawing workspaces reuse
+the same selection, applied settings and CAD session. Expand/restore changes the
+pane arrangement without reopening the source. Splitters support pointer and
+keyboard resizing. Desktop panes scroll internally; narrow screens stack the
+main panes and retain accessible controls.
+
+The contents pane has independently scrolling structure, item-list and inspector
+columns. A singleton appears directly under its owner; collections of 2–10
+members stay inline, and larger collections open the searchable middle list.
+That list stays open until closed and can then show later small selections too.
+Search matches identity, label, type, layer and short geometry description;
+the layer filter intersects the search. Source order remains unchanged and
+opening another source resets collection/filter state. Arrow keys, Home/End
+and Page Up/Down select and reveal list items. Large ownership sequences remain
+browsable in Draw order. There is no 150-item truncation or Show more step.
+
+Contents columns initially share the available width; a resize makes widths
+user-selected. The inspector can collapse and is automatically hidden below
+850px pane width when a list is open, or below 520px in any contents mode,
+unless explicitly overridden. Below 520px it opens over contents. Source
+changes initially open the first property nesting level; deeper objects start
+collapsed. Later explicit expansion/collapse persists across selection and
+inspector-tab changes. Plain property labels do not change record selection;
+typed references remain navigable. Selecting a navigation group of up to ten
+members opens it inline, while layouts and block definitions keep their own
+explicit expansion controls.
+
 ## Development and checks
+
+The [browser and inspection architecture](../docs/architecture/browser-processing.md)
+describes source ownership, composition, request cancellation, separate conversion
+evidence and readback-qualified CAD selection.
 
 On an entity-local CAD conversion failure the Explorer first shows the normal
 error, then offers **Open partially / Gedeeltelijk openen**. Recovery is explicit

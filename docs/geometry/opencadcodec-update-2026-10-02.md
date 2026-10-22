@@ -51,7 +51,7 @@ descriptions (#49) are resolved. The old anonymous-name repair is removed;
 conflicting present names remain fatal with or without a name collision. An
 unchanged synthetic AutoCAD fixture checks actual anonymous-name decoding and
 strict OCDraw conversion. Nested/shared nonzero-base block exchanges now pass
-for both native models. See the [block boundary qualification](block-cad-boundary.md)
+for both native models. See the [historical block boundary qualification](shared-geometry.md#historical-codec-qualification-2026-10-02)
 for remaining extra-paper marker ownership, scale clamping and numerical limits.
 
 The primitive [size/exchange experiment](../benchmarks/ocdraw-size-exchange-v1.md)

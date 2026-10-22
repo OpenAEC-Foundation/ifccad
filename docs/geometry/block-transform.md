@@ -52,5 +52,5 @@ definition rows, instances, iterative graph validation and evaluated leaf bounds
 share the reader/writer logical contract. Definitions stay resource-local;
 IFCX model/paper layouts select scopes but do not own block definitions.
 Ordinary CAD block conversion and its dependency limits are described in the
-[codec boundary qualification](block-cad-boundary.md). Presentation, viewports,
+[codec boundary qualification](shared-geometry.md#cad-block-boundary). Presentation, viewports,
 plot settings, arrays and external references remain separate future work.

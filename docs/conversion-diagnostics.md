@@ -97,6 +97,57 @@ explains the 267 noncoplanar-reference failures, the implemented native XYZ
 reference/XY dimension-line contract, and the complete original-file recheck.
 Other source failures and explicitly diagnosed conversion losses remain visible.
 
+## Layout reference recovery
+
+The converter resolves `ACAD_LAYOUT` through the root named dictionary and
+checks dictionary identity, exact membership, ownership and layout/block
+relationships. A stale derived `header.acad_layout_dict_handle` receives a
+located Recovery diagnostic only when one unambiguous, structurally consistent
+named relationship establishes the role. A conflicting existing dictionary,
+duplicate membership or contradictory non-null owner remains an error. A missing
+owner is recoverable only from one exact dictionary membership. The original
+`CadDocument` is unchanged; residual comparison uses the resolved role.
+
+Model VPORT table references and Paper VIEWPORT entity references are checked
+against their distinct roles. Paper references must resolve in their own owner;
+unsupported Model selection remains diagnosed rather than becoming invented
+native state. The exact current missing-reference and loss boundaries are in
+[layout-reference tests](../crates/ifccad-convert/tests/layout_references.rs),
+the [source resolver](../crates/ifccad-convert/src/source/layouts.rs) and
+[workspace coverage](workspace-state.md). This recovery is not geometric repair
+and does not relax either semantic loss policy or hard numeric limits.
+
+### Historical five-file qualification (2026-10-05)
+
+The following original inputs converted under Allow and passed production
+strict native readback at the correction checkpoint. Counts describe that
+supported-subset conversion, not complete source or rendering fidelity.
+
+| Original | SHA-256 | Model entities | Local definitions | Paper layouts |
+| --- | --- | ---: | ---: | ---: |
+| 3bm funderingsherstel DXF | `054317ae053be20d9c0f9c8650b5070f76826a7eede9690cd9c572700ea6149c` | 1070 | 127 | 2 |
+| 3bm funderingsherstel DWG | `24c225ffffae53f779646f824f4230799cbf39c475c0eb14f365997a453301b5` | 1070 | 127 | 2 |
+| sample_AC1032.dwg | `0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528` | 54 | 7 | 3 |
+| sample_AC1032_ascii.dxf | `c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2` | 54 | 7 | 3 |
+| sample_AC1032_binary.dxf | `e2c59abecc7bc0fd0ace7b9b6f083d2a16d36077b7a7d7ceccd2aa7edfb348e1` | 54 | 7 | 3 |
+
+The exact 3bm basename was `2705_model Funderingsherstel - Constructie - Sheet -
+CP-21 - Constructietekening`. The codec was
+`fe69506cb99dea6f4c4a73b690a27fdf04403ea0` with the existing three-patch
+[viewport development configuration](../patches/opencadcodec-viewports/README.md).
+Those repaired results did not qualify the unmodified dependency. No dependency
+change or size/performance measurement was part of the correction.
+
+On main basis `c26ce87`, the adapted correction recorded formatting, strict
+workspace Clippy and workspace tests passing: 496 passed, one existing ignored.
+Seven regression groups included relocated-dictionary DXF, Model-VPORT DWG,
+logical/encoded agreement, source immutability and invalid-reference policies;
+four positive cases had failed with the original structural errors before the
+repair. Review was by the author. All five files also passed the host-side
+production viewer adapter; no new browser WASM build or deployment was performed.
+These are historical results, not newly executed verification or current
+full-file coverage claims.
+
 
 The [coincident-polyline follow-up](geometry/coincident-polyline.md) checks the
 same complete test.dxf after retaining source-coincident planar segments:

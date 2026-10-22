@@ -28,9 +28,11 @@ converter and all numbered conformance collections are unchanged.
   capture/restoration and geometry completeness evidence. Known file origin/version
   is supplied by the file adapter; library-only inputs use cadDocument provenance.
 
-The detailed [payload, field and qualification contract](../crates/ocdraw-convert/docs/SPLINE-SNAPSHOT-V1.md)
+The detailed [archived payload, field and qualification contract](../legacy/ocdraw/crates/ocdraw-convert/docs/SPLINE-SNAPSHOT-V1.md)
 and both converter coverage contracts record the supported behavior. Core storage
 remains independent of opencadcodec. Unknown geometry is not assessed as exact.
+The archived contract includes later carrier revisions; the qualification below
+remains tied to this report's recorded baseline and dependency configuration.
 
 ## Qualified CAD exchange
 

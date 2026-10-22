@@ -29,4 +29,4 @@ for those assets.
 
 The synthetic AutoCAD anonymous-block regression fixture is copied unchanged
 from pinned opencadcodec, under its MPL-2.0 license. Its source and generation
-details are recorded in the [fixture provenance](crates/ocdraw-convert/tests/fixtures/README.md).
+details are recorded in the [parked fixture provenance](legacy/ocdraw/crates/ocdraw-convert/tests/fixtures/README.md).
