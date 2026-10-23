@@ -46,17 +46,19 @@
  <div id="custom-tolerance" hidden><label><span data-i18n="toleranceBasis">Express in</span><select id="tolerance-basis"><option value="drawing" data-i18n="coordinateBasis">Coordinates of each space</option><option value="physical" data-i18n="physicalBasis">Physical length</option></select></label><div class="tolerance-value-row"><label><span data-i18n="maximum">Maximum deviation</span><input id="tolerance-value" type="number" min="0" step="any" value="1e-9"></label><label id="tolerance-physical-unit" hidden><span data-i18n="toleranceUnit">Tolerance unit</span><select id="tolerance-unit"><option value="mm">mm</option><option value="m">m</option></select></label><span id="tolerance-coordinate-unit" data-i18n="coordinateShort">coordinate</span></div><p id="tolerance-basis-help" class="secondary"></p><div id="tolerance-fallback-control" hidden><label><span data-i18n="withoutPhysicalScale">Without physical scale</span><input id="tolerance-fallback" type="number" min="0" step="any" value="1e-9"></label><span data-i18n="spaceCoordinate">coordinate of that space</span><p data-i18n="coordinateFallbackHelp" class="secondary"></p></div></div>
  <p id="tolerance-error" role="alert" hidden></p><details id="tolerance-domains"><summary data-i18n="effectiveTolerances">Effective tolerances per space</summary><p id="tolerance-domain-note" class="secondary"></p><div id="tolerance-domain-list"></div><p id="tolerance-domain-empty" class="secondary" data-i18n="tolerancesAfterConversion"></p></details>
  </section></div><button id="tolerance-popup-apply" data-i18n="apply">Apply settings</button></dialog>
-<dialog id="feedback-dialog" aria-labelledby="feedback-title" aria-describedby="feedback-intro">
- <div class="dialog-heading"><h2 id="feedback-title" data-i18n="feedbackTitle">Give feedback</h2><button type="button" data-close-dialog data-i18n="close">Close</button></div>
- <p id="feedback-intro" data-i18n="feedbackIntro">Your feedback is received privately in Open Feedback Studio. No account is needed.</p>
+<dialog id="feedback-dialog" aria-labelledby="feedback-heading" aria-describedby="feedback-intro">
+ <div class="dialog-heading"><h2 id="feedback-heading" data-i18n="feedbackTitle">Give feedback</h2><button type="button" data-close-dialog data-i18n="close">Close</button></div>
+ <p id="feedback-intro" data-i18n="feedbackIntro">Your report becomes a public GitHub issue in OpenAEC-Foundation/ifccad. Do not include anything you do not want to share. No account is needed.</p>
  <form id="feedback-form">
   <label><span data-i18n="feedbackCategory">Category</span><select id="feedback-category" required><option value="" data-i18n="feedbackChoose">Choose a category</option><option value="bug" data-i18n="feedbackBug">Report a problem</option><option value="feature" data-i18n="feedbackFeature">Suggest an idea</option><option value="general" data-i18n="feedbackGeneral">Ask a question</option></select></label>
-  <label><span data-i18n="feedbackMessage">Message</span><textarea id="feedback-message" rows="5" minlength="10" maxlength="5000" required aria-describedby="feedback-message-help"></textarea></label>
-  <p id="feedback-message-help" class="secondary" data-i18n="feedbackMessageHelp">Use 10–5,000 characters.</p>
+  <label><span data-i18n="feedbackSubject">Title</span><input id="feedback-title" type="text" maxlength="200" required></label>
+  <label><span data-i18n="feedbackMessage">Description</span><textarea id="feedback-message" rows="5" minlength="10" maxlength="4500" required aria-describedby="feedback-message-help"></textarea></label>
+  <p id="feedback-message-help" class="secondary" data-i18n="feedbackMessageHelp">Use 10–4,500 characters.</p>
   <label><span data-i18n="feedbackEmail">Email address (optional, for a reply)</span><input id="feedback-email" type="email" maxlength="254" autocomplete="email"></label>
   <label hidden aria-hidden="true">Website<input id="feedback-website" name="website" type="text" tabindex="-1" autocomplete="off"></label>
-  <p class="secondary" data-i18n="feedbackPrivacy">Only this form is sent. Drawings, file names and screenshots stay on your device.</p>
+  <p class="secondary" data-i18n="feedbackPrivacy">Only this form is sent. Your email address is not included in the GitHub issue. Drawings, file names and screenshots stay on your device.</p>
   <p id="feedback-status" role="status" aria-live="polite" hidden></p>
+  <a id="feedback-issue" target="_blank" rel="noopener noreferrer" data-i18n="feedbackViewIssue" hidden>View on GitHub</a>
   <button id="feedback-send" type="submit" data-i18n="feedbackSend">Send feedback</button>
  </form>
 </dialog>

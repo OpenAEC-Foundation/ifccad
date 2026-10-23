@@ -14,24 +14,30 @@ override this with Nederlands or English, or return to Automatic. Saved explicit
 choices remain in effect; changing the theme does not pin an automatic language.
 About links to the OpenAEC IFCCAD web page at https://open-aec.com/ifccad/.
 
-Feedback opens a local dialog with category, message (10–5,000 characters) and an
-optional reply email. It sends only these fields and the `IFCCAD` app identifier
-to Open Feedback Studio's `/api/private-feedback` endpoint on its `pages.dev`
-host. Drawings, file names and screenshots are never attached. A message is
-cleared only after the service confirms private receipt; failed requests retain
-the draft in the dialog. Drafts are not saved across page reloads.
+Feedback opens a local dialog with category, title (up to 200 characters),
+description (10–4,500 characters) and an optional reply email. As on the OpenAEC
+website, the dialog explains before sending that the report becomes a public
+GitHub issue in `OpenAEC-Foundation/ifccad`. It sends only the explicit form
+fields, with the title on the first message line and `app: "ifccad"`, to Open
+Feedback Studio's `/api/feedback` endpoint on its `pages.dev` host. Reply email
+is stored by the service and is not included in the issue. Drawings, file names
+and screenshots are never attached.
 
-Deploy the private endpoint in Open Feedback Studio before publishing this
-Explorer integration. It must store IFCCAD feedback for authenticated dashboard
-review without automatically creating GitHub issues, even if an app/repository
-mapping is enabled. The client requires the `visibility: "private"`
-acknowledgement and never falls back to the ordinary submission endpoint or
-email. The separate public feedback page uses the same private API for every
-selected tool; its deployment does not publish the Cloudflare API.
-No mail delivery to an individual recipient
-is configured by this integration. Existing service spam checks remain in force;
-if Turnstile is enabled there, its client integration must be configured before
-launch. No secret or admin key belongs in the Explorer bundle.
+A confirmed issue shows a link to its IFCCAD GitHub page. If the service stores
+the feedback without returning an issue URL, the dialog confirms receipt without
+claiming that an issue exists. Failed requests retain the draft; successful
+receipt clears it. Closing the dialog cancels the pending client request, and a
+late response cannot overwrite a reopened draft. Drafts are not saved across
+page reloads.
+
+Deploy the matching Open Feedback Studio Functions and apply its
+`migrations/006_enable_ifccad_issues.sql` repository mapping before publishing
+this Explorer integration. The ordinary route must allow IFCCAD automatic
+issues. Its explicit `/api/private-feedback` route remains private for older
+clients and other forms; existing private feedback is unchanged. Existing spam
+checks remain in force; if Turnstile is enabled there, its client integration
+must be configured before launch. No secret or admin key belongs in the
+Explorer bundle. No mail delivery is configured by this integration.
 
 Start with Overview: IFCCAD contents, Open CAD Studio and conversion evidence
 share resizable panes. Document structure groups entities by type within their
