@@ -1,6 +1,6 @@
 # IFCCAD
 
-**[Web page](https://open-aec.com/ifccad/) · [Open the Explorer](https://ifccad-explorer.open-aec.com/)**
+**[Web page](https://open-aec.com/ifccad/) · [Open the Explorer](https://ifccad-explorer.open-aec.com/) · [Discussions](https://github.com/OpenAEC-Foundation/ifccad/discussions)**
 
 IFCCAD is an experimental, open CAD drawing profile built on IFCX. It describes
 geometry, layers, blocks, layouts and drawing styles as typed,
