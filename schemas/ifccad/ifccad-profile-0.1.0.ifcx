@@ -1180,6 +1180,73 @@
                   "dataType": "Real"
                 }
               }
+            },
+            "widths": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "kind": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "constant",
+                        "perVertex",
+                        "defaulted"
+                      ]
+                    }
+                  },
+                  "width": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "widths": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Array",
+                        "arrayRestrictions": {
+                          "min": 2,
+                          "max": 2,
+                          "value": {
+                            "dataType": "Real"
+                          }
+                        }
+                      }
+                    },
+                    "optional": true
+                  },
+                  "defaultStartWidth": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "defaultEndWidth": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "overrides": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Object",
+                        "objectRestrictions": {
+                          "values": {
+                            "start": {
+                              "dataType": "Real",
+                              "optional": true
+                            },
+                            "end": {
+                              "dataType": "Real",
+                              "optional": true
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "optional": true
+                  }
+                }
+              }
             }
           }
         }

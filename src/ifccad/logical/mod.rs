@@ -3,6 +3,10 @@ pub use crate::geometry_kernel::hatch::{
     HatchBoundaryConstruction, HatchClassicFill, HatchClassicSettings, HatchCreationType,
     HatchLoopProvenance,
 };
+pub use crate::geometry_kernel::{
+    PlanarPolylineWidths as IfccadPlanarPolylineWidths,
+    PolylineVertexWidthOverride as IfccadPolylineVertexWidthOverride,
+};
 mod allocation;
 mod dimension;
 mod dimension_graphics;
@@ -38,7 +42,8 @@ pub use viewports::*;
 pub use bounds::{
     assess_ifccad_document_bounds, derive_ifccad_geometry_completeness,
     recompute_ifccad_document_bounds, IfccadBoundsAssessment, IfccadBoundsQuality,
-    IfccadGeometryCompleteness, IfccadScopeBoundsAssessment, IfccadScopeId,
+    IfccadGeometryCompleteness, IfccadPolylineWidthBoundsIssue, IfccadScopeBoundsAssessment,
+    IfccadScopeId,
 };
 
 mod preservation;

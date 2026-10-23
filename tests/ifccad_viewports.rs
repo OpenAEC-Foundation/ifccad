@@ -138,6 +138,7 @@ fn circle_clip_checks_complete_curve_and_plane() {
 fn active_boundary_accepts_eligible_polylines_and_circles() {
     let frame = viewport().frame;
     let poly = |vertices: Vec<[f64; 2]>, closed| IfccadEntityKind::PlanarPolyline {
+        widths: Default::default(),
         bulges: vec![0.; vertices.len()],
         vertices,
         closed,

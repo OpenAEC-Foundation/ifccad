@@ -26,12 +26,14 @@ struct Candidate {
 }
 fn combine(pairs: Vec<GeometryPair>) -> GeometryPair {
     let mut out = GeometryPair {
+        bands: vec![],
         points: vec![],
         curves: vec![],
     };
     for p in pairs {
         out.points.extend(p.points);
         out.curves.extend(p.curves);
+        out.bands.extend(p.bands);
     }
     out
 }

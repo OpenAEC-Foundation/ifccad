@@ -15,6 +15,7 @@ pub(crate) struct PendingHatchRecipe {
 }
 pub(crate) fn combine(pairs: &[GeometryPair]) -> GeometryPair {
     GeometryPair {
+        bands: pairs.iter().flat_map(|p| p.bands.clone()).collect(),
         points: pairs.iter().flat_map(|p| p.points.clone()).collect(),
         curves: pairs.iter().flat_map(|p| p.curves.clone()).collect(),
     }
@@ -67,6 +68,13 @@ pub(crate) fn resolve_hatch_recipes(
                         .state
                         .assessment
                         .check_interval(&source(p), index, &lo, &hi)
+                        .map_err(|e| geometry.numerical_failure(e))?;
+                }
+                for band in &pair.bands {
+                    geometry
+                        .state
+                        .assessment
+                        .check_band(&source(p), band)
                         .map_err(|e| geometry.numerical_failure(e))?;
                 }
                 for curve in &pair.curves {

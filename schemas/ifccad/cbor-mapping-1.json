@@ -3338,6 +3338,18 @@
                 "variant": "PerSegment"
               },
               "omit": "exact"
+            },
+            {
+              "code": 5,
+              "name": "widths",
+              "type": "IfccadPlanarPolylineWidths",
+              "presence": "default",
+              "default": {
+                "Constant": {
+                  "width": 0.0
+                }
+              },
+              "omit": "exact"
             }
           ]
         },
@@ -3500,7 +3512,8 @@
         "bool",
         "f64",
         "u64",
-        "IfccadFilledQuadrilateral"
+        "IfccadFilledQuadrilateral",
+        "IfccadPlanarPolylineWidths"
       ]
     },
     "IfccadEntityAppearance": {
@@ -9943,6 +9956,18 @@
                 "variant": "PerSegment"
               },
               "omit": "exact"
+            },
+            {
+              "code": 5,
+              "name": "widths",
+              "type": "IfccadPlanarPolylineWidths",
+              "presence": "default",
+              "default": {
+                "Constant": {
+                  "width": 0.0
+                }
+              },
+              "omit": "exact"
             }
           ]
         },
@@ -10077,7 +10102,8 @@
         "bool",
         "f64",
         "u64",
-        "IfccadFilledQuadrilateral"
+        "IfccadFilledQuadrilateral",
+        "IfccadPlanarPolylineWidths"
       ]
     },
     "HatchClassicFill": {
@@ -10320,6 +10346,97 @@
       ],
       "dependencies": [
         "Vec<HatchPatternDefinitionLine>"
+      ]
+    },
+    "IfccadPlanarPolylineWidths": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "Constant",
+          "code": 0,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "width",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "PerVertex",
+          "code": 1,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "widths",
+              "type": "Vec<[f64;2]>",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Defaulted",
+          "code": 2,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "default_start_width",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "default_end_width",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "overrides",
+              "type": "Vec<IfccadPolylineVertexWidthOverride>",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "f64",
+        "Vec<[f64;2]>",
+        "Vec<IfccadPolylineVertexWidthOverride>"
+      ]
+    },
+    "IfccadPolylineVertexWidthOverride": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "start",
+          "type": "Option<f64>",
+          "presence": "optional"
+        },
+        {
+          "code": 1,
+          "name": "end",
+          "type": "Option<f64>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "Option<f64>"
+      ]
+    },
+    "Vec<IfccadPolylineVertexWidthOverride>": {
+      "kind": "list",
+      "items": [
+        "IfccadPolylineVertexWidthOverride"
+      ],
+      "dependencies": [
+        "IfccadPolylineVertexWidthOverride"
       ]
     }
   }

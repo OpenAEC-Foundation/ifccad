@@ -18,6 +18,7 @@ use opencadcodec::{EntityType, Handle};
 pub struct GeometryPair {
     pub points: Vec<(PairedPoint, BigRational)>,
     pub curves: Vec<PairedCurve>,
+    pub bands: Vec<geometry::polyline_width::PairedPolylineBand>,
 }
 impl GeometryPair {
     /// Join parameter-compatible native source and actual CAD target operands.
@@ -25,10 +26,23 @@ impl GeometryPair {
         a: &Self,
         b: &Self,
     ) -> Result<Self, CadPreparationError> {
-        if a.points.len() != b.points.len() || a.curves.len() != b.curves.len() {
+        if a.points.len() != b.points.len()
+            || a.curves.len() != b.curves.len()
+            || a.bands.len() != b.bands.len()
+        {
             return Err(CadPreparationError::InvalidGeometry);
         }
         Ok(Self {
+            bands: a
+                .bands
+                .iter()
+                .zip(&b.bands)
+                .map(|(a, b)| {
+                    geometry::polyline_width::PairedPolylineBand::from_prepared_source_and_target(
+                        a, b,
+                    )
+                })
+                .collect::<Result<Vec<_>, _>>()?,
             points: a
                 .points
                 .iter()
@@ -52,7 +66,10 @@ impl GeometryPair {
     /// Callers must retain the same primitive kind, parameterization and sample
     /// ordering. Both complete curve envelopes and all point samples are kept.
     pub fn from_prepared_sources(a: &Self, b: &Self) -> Result<Self, CadPreparationError> {
-        if a.points.len() != b.points.len() || a.curves.len() != b.curves.len() {
+        if a.points.len() != b.points.len()
+            || a.curves.len() != b.curves.len()
+            || a.bands.len() != b.bands.len()
+        {
             return Err(CadPreparationError::InvalidGeometry);
         }
         let points = a
@@ -71,7 +88,18 @@ impl GeometryPair {
             .zip(&b.curves)
             .map(|(a, b)| PairedCurve::from_prepared_sources(a, b))
             .collect();
-        Ok(Self { points, curves })
+        Ok(Self {
+            points,
+            curves,
+            bands: a
+                .bands
+                .iter()
+                .zip(&b.bands)
+                .map(|(a, b)| {
+                    geometry::polyline_width::PairedPolylineBand::from_prepared_sources(a, b)
+                })
+                .collect::<Result<Vec<_>, _>>()?,
+        })
     }
     /// Place the two evaluated sides independently, preserving occurrence proof.
     pub fn apply(
@@ -82,6 +110,9 @@ impl GeometryPair {
         for (p, d) in &mut self.points {
             p.apply(source, target);
             *d = p.squared_deviation().1;
+        }
+        for b in &mut self.bands {
+            b.apply(source, target);
         }
         for c in &mut self.curves {
             c.apply(source, target);
@@ -112,6 +143,7 @@ impl GeometryPair {
             .collect();
         Ok(Self {
             points,
+            bands: vec![],
             curves: Vec::new(),
         })
     }
@@ -121,6 +153,7 @@ impl GeometryPair {
                 .into_iter()
                 .map(|p| (PairedPoint::exact(p), BigRational::from_integer(0.into())))
                 .collect(),
+            bands: vec![],
             curves: vec![],
         }
     }
@@ -130,6 +163,7 @@ impl GeometryPair {
     ) -> Result<Self, CadPreparationError> {
         Ok(Self {
             points: points.ok_or(CadPreparationError::OutOfRange)?,
+            bands: vec![],
             curves: vec![curve.ok_or(CadPreparationError::OutOfRange)?],
         })
     }
@@ -416,6 +450,7 @@ pub fn prepare_from_cad(
             {
                 return Err(CadPreparationError::InvalidGeometry);
             }
+            let widths = geometry::polyline_width::from_cad_polyline_widths(entity)?;
             let (placement, _, changed) = geometry::from_cad(p, &mut preparation_assessment())?;
             normalized = changed;
             let points = geometry::blocks::polyline_pairs(p, placement)
@@ -431,19 +466,37 @@ pub fn prepare_from_cad(
                 .map(|v| [v.location.x, v.location.y, v.bulge])
                 .collect::<Vec<_>>();
             let curves = planar_curves(placement, &vertices, p.is_closed, p, true)?;
+            let bands = geometry::polyline_width::pair_polyline_bands(
+                &geometry::polyline_width::cad_operands(p)?,
+                &geometry::polyline_width::native_operands(
+                    placement,
+                    &vertices,
+                    &widths,
+                    p.is_closed,
+                )?,
+            )?;
             (
                 OwnedGeometry::PlanarPolyline {
+                    widths,
                     placement,
                     vertices,
                     closed: p.is_closed,
                 },
-                GeometryPair { points, curves },
+                GeometryPair {
+                    points,
+                    curves,
+                    bands,
+                },
             )
         }
         EntityType::Polyline2D(p) => {
             if p.vertices.iter().any(|v| v.location.z != 0.) {
                 return Err(CadPreparationError::UnsupportedGeometry);
             }
+            let widths = geometry::polyline_width::from_cad_polyline_widths(entity)?;
+            let effective = widths
+                .effective_widths(p.vertices.len())
+                .map_err(|_| CadPreparationError::InvalidGeometry)?;
             let mut converted = opencadcodec::LwPolyline::from_points(
                 p.vertices
                     .iter()
@@ -457,7 +510,15 @@ pub fn prepare_from_cad(
             for (a, b) in converted.vertices.iter_mut().zip(&p.vertices) {
                 a.bulge = b.bulge;
             }
-            return prepare_from_cad(&EntityType::LwPolyline(converted));
+            for (v, w) in converted.vertices.iter_mut().zip(effective) {
+                v.start_width = w[0];
+                v.end_width = w[1];
+            }
+            let mut prepared = prepare_from_cad(&EntityType::LwPolyline(converted))?;
+            if let OwnedGeometry::PlanarPolyline { widths: stored, .. } = &mut prepared.geometry {
+                *stored = widths;
+            }
+            return Ok(prepared);
         }
         EntityType::Polyline3D(p) => {
             let v = p
@@ -600,6 +661,7 @@ pub fn prepare_to_cad(g: GeometryRef<'_>) -> Result<PreparedCadGeometry, CadPrep
             (EntityType::Ellipse(e), pair)
         }
         GeometryRef::PlanarPolyline {
+            widths,
             placement,
             vertices,
             closed,
@@ -616,13 +678,14 @@ pub fn prepare_to_cad(g: GeometryRef<'_>) -> Result<PreparedCadGeometry, CadPrep
                     &separate
                 }
             };
-            let (p, _, parameterization) = geometry::to_cad_parts(
+            let (mut p, _, parameterization) = geometry::to_cad_parts(
                 placement,
                 v,
                 closed,
                 PreparationSource,
                 &mut preparation_assessment(),
             )?;
+            geometry::polyline_width::apply_lw_widths(widths, &mut p)?;
             changed = parameterization;
             let count = if closed {
                 p.vertices.len()
@@ -645,7 +708,18 @@ pub fn prepare_to_cad(g: GeometryRef<'_>) -> Result<PreparedCadGeometry, CadPrep
                 })
                 .collect();
             let curves = planar_curves(placement, v, closed, &p, false)?;
-            (EntityType::LwPolyline(p), GeometryPair { points, curves })
+            let bands = geometry::polyline_width::pair_polyline_bands(
+                &geometry::polyline_width::native_operands(placement, v, widths, closed)?,
+                &geometry::polyline_width::cad_operands(&p)?,
+            )?;
+            (
+                geometry::polyline_width::entity_for_widths(widths, p)?,
+                GeometryPair {
+                    points,
+                    curves,
+                    bands,
+                },
+            )
         }
         GeometryRef::SpatialPolyline { vertices, closed } => {
             let mut p = opencadcodec::entities::Polyline3D::from_points(

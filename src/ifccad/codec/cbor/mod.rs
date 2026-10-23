@@ -16,6 +16,7 @@ mod geometry;
 mod geometry_kinds;
 mod hatch;
 mod plot;
+mod polyline_width;
 mod presentation;
 mod preservation;
 mod record;

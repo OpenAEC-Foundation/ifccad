@@ -2,6 +2,7 @@ pub mod blocks;
 pub mod circular;
 pub mod filled;
 pub mod numeric;
+pub mod polyline_width;
 use num_rational::BigRational;
 use opencadcodec::types::Matrix3;
 use opencadcodec::Vector3;

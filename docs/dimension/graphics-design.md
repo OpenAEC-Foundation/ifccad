@@ -1,5 +1,10 @@
 # Dimension graphics mapping
 
+Current follow-up: [native polyline widths](../geometry/polyline-widths.md) now extend
+the historical zero-width boundary below. The original red source passes storage
+acceptance and bounded unchanged-host comparison. Historical slice scope and earlier
+evidence below do not override the current width contract.
+
 Implementation contract, 21 October 2026. The active experimental IFCCAD profile
 stores optional worked-out graphics; schemas and conformance remain authoritative.
 This slice targets IFCCAD only. Polyline widths remain a separate follow-up,
@@ -346,7 +351,7 @@ entity-ID map as a synthetic scope entity.
 | POINT | Point, Display or ReferencePoint | Existing finite position/normal/orientation and zero-thickness profile; output POINT under the purpose rules below |
 | CIRCLE / ARC | Circle / Arc | Existing radius/sweep qualification; output corresponding primitive |
 | ELLIPSE | Ellipse or EllipseArc | Existing full/partial parameter qualification; output ELLIPSE |
-| LWPOLYLINE / supported classic 2D polyline | PlanarPolyline | Existing straight/bulged, zero-width/zero-thickness, non-fitted profile; output current qualified polyline form |
+| LWPOLYLINE / supported classic 2D polyline | PlanarPolyline | Straight/bulged, non-fitted; native Constant/PerVertex/Defaulted widths via the separate width contract, zero extrusion thickness; wide stored pictures qualified at AC1032 |
 | Supported 3D polyline | SpatialPolyline | Straight segments, no fitted/mesh state; ordinary nested geometry rules |
 | TEXT / MTEXT | Text / MText | Existing typed content, stack, placement and styles; output corresponding text type, including wrap width zero |
 | INSERT | BlockInstance | Local non-dynamic block, existing qualified base/transform/unit behavior and complete eligible closure; output INSERT |
@@ -557,26 +562,20 @@ Control SHA-256: `10fa89d584ab7e63d2fbf5242709ef71f529b3a875bd18670126febdb2a59b
 The original source/link provenance remains in the earlier retained repair archive.
 These read-only inventories are design evidence, not passing implementation tests.
 
-Further field inspection shows that `_ArchTick` entity 4A6 has LWPOLYLINE constant
-width group 43 = 0.15. Both INSERTs in the red *D8 use that block. Counting its
-entity family without checking widths was insufficient to establish eligibility.
-The zero-width polyline profile in this design cannot capture that complete
-representation, even after native SOLID/TRACE is implemented. Do not drop width,
-attach a partial picture, silently substitute SOLID or claim that the sample gate
-passes. The approved scope now assigns complete red-picture capture/reuse to the
-separate polyline-width follow-up. This slice tests the located unsupported-width
-diagnostic and all-or-nothing capture behavior on that source. A valid definition
-may remain under Allow when its own profile/resources permit; Reject refuses
-diagnosed loss under the existing policy. No incomplete `graphics` is attached.
-Width support does not block this bounded implementation plan.
+The original `_ArchTick` entity `4A6` has LWPOLYLINE constant width 0.15.
+The initial bounded graphics slice retained this as a documented zero-width
+boundary. The separate [native width slice](../geometry/polyline-widths.md) now
+qualifies the actual linked `527 -> *D8` source from both original DWG and ASCII
+DXF, all nine picture parts and both marker INSERTs. Strict IFCX/CBOR/Zstd and
+AC1032 ASCII/binary DXF/DWG readback preserve the marker and text semantics;
+bounded unchanged-host observations match both red ticks and the stacked label.
+No marker is zeroed, narrowed, substituted or replaced by a partial picture.
+The earlier detached-link control remains historical inventory evidence only.
 
-Positive full-picture acceptance for this slice uses independent literal
-linear/aligned fixtures with complete eligible parts: zero-width paths, native
-Solid/Trace markers and qualified Text/MText. Include wrap width zero, literal
-spaces, stacked fractions and real pictureblock linking in ASCII DXF, binary DXF
-and AC1032 DWG, under the existing placement/owner qualifications. Text-only checks
-on the red sample do not count as successful capture of its complete picture.
-The original red marker width/content remains unchanged as follow-up evidence.
+The independent zero-width/Solid/Trace/Text fixtures still exercise the original
+bounded graphics profile. Unsupported nonzero extrusion or conflicting width
+controls retain whole-picture loss/rejection and transactional rollback. Width
+support does not broaden arbitrary cache transforms, regeneration or glyph claims.
 
 At implementation time, update active IFCX/supplemental schemas, profile rules,
 the single CBOR register and conformance/next, strict reader/writer readback,

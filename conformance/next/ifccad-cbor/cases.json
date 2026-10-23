@@ -427,6 +427,34 @@
       "valid": false,
       "diagnostic": "invalid/line-pattern-upright-float32-angle.ifccad.cbor.diag",
       "errorClass": "Malformed"
+    },
+    {
+      "file": "valid/polyline-widths.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/polyline-widths.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/polyline-defaults-overrides.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/polyline-defaults-overrides.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/polyline-width-integer.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/polyline-width-integer.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/polyline-width-null-override.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/polyline-width-null-override.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/polyline-width-count.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/polyline-width-count.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
     }
   ]
 }

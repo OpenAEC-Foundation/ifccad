@@ -102,6 +102,7 @@ fn cad_points(s: &Solid) -> Result<Vec<[Q; 3]>, Error> {
 }
 fn pair(a: Vec<[Q; 3]>, b: Vec<[Q; 3]>) -> GeometryPair {
     GeometryPair {
+        bands: vec![],
         points: a
             .into_iter()
             .zip(b)

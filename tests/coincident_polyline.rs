@@ -9,6 +9,7 @@ fn coincident_bulges_are_points_with_exact_bounds_and_retained_native_parameters
         let next_x = if x == 0. { 0. } else { x };
         let vertices = [[x, 3., bulge], [next_x, 3., -0.]];
         let g = GeometryRef::PlanarPolyline {
+            widths: &Default::default(),
             placement: CoordinateFrame3::default(),
             vertices: PlanarVertices::Packed(&vertices),
             closed: true,
@@ -24,6 +25,7 @@ fn coincident_bulges_are_points_with_exact_bounds_and_retained_native_parameters
         .into_document();
         d.model.bounds = None;
         d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::PlanarPolyline {
+            widths: Default::default(),
             vertices: vec![[x, 3.], [next_x, 3.]],
             bulges: vec![bulge, -0.],
             closed: true,
@@ -56,6 +58,7 @@ fn coincident_bulges_are_points_with_exact_bounds_and_retained_native_parameters
 fn coincident_bulges_do_not_supply_curvature_for_two_point_contours() {
     let vertices = [[0., 0., 1.], [0., 0., 0.], [1., 0., 0.]];
     let g = GeometryRef::PlanarPolyline {
+        widths: &Default::default(),
         placement: CoordinateFrame3::default(),
         vertices: PlanarVertices::Packed(&vertices),
         closed: true,
@@ -74,6 +77,7 @@ fn coincident_bulges_do_not_supply_curvature_for_two_point_contours() {
     assert!(validate_hatch_boundaries([&boundary], 1e-9).is_err());
     let vertices = [[0., 0., 1.], [0., 0., 0.], [1., 0., 0.], [0., 1., 0.]];
     let g = GeometryRef::PlanarPolyline {
+        widths: &Default::default(),
         placement: CoordinateFrame3::default(),
         vertices: PlanarVertices::Packed(&vertices),
         closed: true,

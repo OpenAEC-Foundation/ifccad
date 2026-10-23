@@ -176,6 +176,7 @@ pub fn primitives() -> IfccadDocument {
             kind: {
                 let vertices: Vec<[f64; 2]> = vec![[0., 0.], [2., 0.], [2., 4.]];
                 IfccadEntityKind::PlanarPolyline {
+                    widths: Default::default(),
                     line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
                     bulges: vec![0.; vertices.len()],
                     vertices,

@@ -34,6 +34,7 @@ fn bounds_equal(a: &IfccadEntityKind, b: &IfccadEntityKind) {
 fn path_equal(a: &IfccadEntityKind, b: &IfccadEntityKind) {
     if let (
         IfccadEntityKind::PlanarPolyline {
+            widths: aw,
             vertices: a,
             bulges: ab,
             closed: ac,
@@ -41,6 +42,7 @@ fn path_equal(a: &IfccadEntityKind, b: &IfccadEntityKind) {
             placement: af,
         },
         IfccadEntityKind::PlanarPolyline {
+            widths: bw,
             vertices: b,
             bulges: bb,
             closed: bc,
@@ -50,6 +52,10 @@ fn path_equal(a: &IfccadEntityKind, b: &IfccadEntityKind) {
     ) = (a, b)
     {
         assert_eq!((ab, ac, ag), (bb, bc, bg));
+        assert_eq!(
+            aw.effective_widths(a.len()).unwrap(),
+            bw.effective_widths(b.len()).unwrap()
+        );
         assert_eq!(a.len(), b.len());
         for (a, b) in a.iter().zip(b) {
             for i in 0..3 {
@@ -90,6 +96,7 @@ fn expanded_families_exchange_through_actual_dxf_and_dwg_readers() {
             sweep_parameter: 1.,
         },
         IfccadEntityKind::PlanarPolyline {
+            widths: Default::default(),
             placement: frame,
             vertices: vec![[-1., 0.], [1., 0.], [2., 2.]],
             bulges: vec![1., -0.25, 7.],
@@ -168,6 +175,7 @@ fn ellipse_and_bulged_clip_identity_survives_real_file_exchange() {
         let frame = common::placement([100., 75., 0.]);
         d.paper_layouts[0].entities[2].as_native_mut().unwrap().kind = if bulged {
             IfccadEntityKind::PlanarPolyline {
+                widths: Default::default(),
                 placement: frame,
                 vertices: vec![[-50., 0.], [50., 0.]],
                 bulges: vec![1., 1.],
@@ -270,16 +278,20 @@ fn classic_and_generic_polyline_sources_use_the_same_native_geometry() {
         };
         assert_eq!(vertices, &[[0.; 3], [1., 2., 3.]]);
     }
-    classic.vertices[0].start_width = 2.;
+    classic.vertices[0].start_width = Some(2.);
     let mut cad = common::cad();
     cad.add_entity(EntityType::Polyline2D(classic)).unwrap();
-    let omitted =
+    let retained =
         cad_document_to_encoded_ifccad(&cad, common::metadata(), Default::default()).unwrap();
-    assert!(omitted
-        .validated_source()
-        .document()
-        .model
-        .entities
-        .is_empty());
-    assert!(omitted.diagnostics().iter().any(|d| d.is_semantic_loss()));
+    let entity = retained.validated_source().document().model.entities[0]
+        .as_native()
+        .unwrap();
+    let IfccadEntityKind::PlanarPolyline { widths, .. } = &entity.kind else {
+        panic!("wide classic path lost")
+    };
+    let IfccadPlanarPolylineWidths::Defaulted { overrides, .. } = widths else {
+        panic!("classic dependencies lost")
+    };
+    assert_eq!(overrides[0].start, Some(2.));
+    assert!(overrides[0].end.is_none());
 }

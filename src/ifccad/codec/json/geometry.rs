@@ -75,6 +75,8 @@ struct EllipseArcValue {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct PlanarValue {
+    #[serde(default)]
+    widths: IfccadPlanarPolylineWidths,
     vertices: Vec<[f64; 2]>,
     #[serde(default)]
     closed: bool,
@@ -84,6 +86,8 @@ struct PlanarValue {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct PlanarWithBulges {
+    #[serde(default)]
+    widths: IfccadPlanarPolylineWidths,
     vertices: Vec<[f64; 2]>,
     bulges: Vec<f64>,
     #[serde(default)]
@@ -204,15 +208,23 @@ pub(super) fn decode_kind(
             }
         }
         "ifccad::geom::planarPolyline" => {
-            let (vertices, bulges, closed, line_pattern_generation) = if v.get("bulges").is_some() {
-                let p: PlanarWithBulges = decode(v, path)?;
-                (p.vertices, p.bulges, p.closed, p.line_pattern_generation)
-            } else {
-                let p: PlanarValue = decode(v, path)?;
-                let b = vec![0.; p.vertices.len()];
-                (p.vertices, b, p.closed, p.line_pattern_generation)
-            };
+            let (vertices, bulges, closed, line_pattern_generation, widths) =
+                if v.get("bulges").is_some() {
+                    let p: PlanarWithBulges = decode(v, path)?;
+                    (
+                        p.vertices,
+                        p.bulges,
+                        p.closed,
+                        p.line_pattern_generation,
+                        p.widths,
+                    )
+                } else {
+                    let p: PlanarValue = decode(v, path)?;
+                    let b = vec![0.; p.vertices.len()];
+                    (p.vertices, b, p.closed, p.line_pattern_generation, p.widths)
+                };
             IfccadEntityKind::PlanarPolyline {
+                widths,
                 vertices,
                 bulges,
                 closed,
@@ -298,6 +310,7 @@ pub(super) fn encode_kind(kind: &IfccadEntityKind, attrs: &mut Map<String, Value
             Some(placement),
         ),
         IfccadEntityKind::PlanarPolyline {
+            widths,
             vertices,
             bulges,
             closed,
@@ -305,6 +318,9 @@ pub(super) fn encode_kind(kind: &IfccadEntityKind, attrs: &mut Map<String, Value
             line_pattern_generation,
         } => {
             let mut value = json!({"vertices":vertices,"closed":closed,"linePatternGeneration":line_pattern_generation});
+            if !widths.is_intrinsic_default() {
+                value["widths"] = json!(widths);
+            }
             if bulges.iter().any(|v| *v != 0.) {
                 value["bulges"] = json!(bulges);
             }

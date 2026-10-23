@@ -5,6 +5,9 @@ edition = "2021"
 license = "MPL-2.0"
 description = "Experimental exact IFCCAD and CadDocument conversion"
 
+[features]
+ifccad-cbor-zstd = ["ifccad/ifccad-cbor-zstd"]
+
 [dependencies]
 cad-dimension = { path = "../cad-dimension" }
 cad-presentation-convert = { path = "../cad-presentation-convert" }

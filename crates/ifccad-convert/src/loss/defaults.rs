@@ -16,6 +16,12 @@ pub(super) fn expand_attributes(attrs: &mut Map<String, Value>) {
             fill(v, &[("thickness", json!(0.))]);
         }
     }
+    if let Some(polyline) = attrs.get_mut("ifccad::geom::planarPolyline") {
+        fill(
+            polyline,
+            &[("widths", json!({"kind":"constant","width":0.}))],
+        );
+    }
     for key in ["ifccad::entity", "ifccad::dimensionGraphicsPart"] {
         if let Some(entity) = attrs.get_mut(key) {
             fill(

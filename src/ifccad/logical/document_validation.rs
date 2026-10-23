@@ -201,6 +201,18 @@ fn validate_document_inner(
             pattern_reference(id, &patterns, &path)?;
         }
         crate::ifccad::logical::patterns::scale(entity.line_pattern_scale, &path)?;
+        if let IfccadEntityKind::PlanarPolyline {
+            widths, vertices, ..
+        } = &entity.kind
+        {
+            widths.validate(vertices.len()).map_err(|e| {
+                crate::ifccad::diagnostics::failure(
+                    "IFCCAD-POLYLINE-WIDTH-001",
+                    &path,
+                    e.to_string(),
+                )
+            })?;
+        }
         match &entity.kind {
             IfccadEntityKind::Dimension(_) => {}
             IfccadEntityKind::Hatch(h) => super::hatch::validate_hatch(h, &path)?,

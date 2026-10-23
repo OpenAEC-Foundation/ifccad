@@ -156,6 +156,7 @@ fn conversion_evidence_retains_domains_and_large_ids() {
     let mut e = d.paper_layouts[0].entities[0].clone();
     e.as_native_mut().unwrap().id = 9_007_199_254_740_993;
     e.as_native_mut().unwrap().kind = IfccadEntityKind::PlanarPolyline {
+        widths: Default::default(),
         vertices: vec![[1., 0.], [2., 0.]],
         bulges: vec![0., 0.],
         closed: false,

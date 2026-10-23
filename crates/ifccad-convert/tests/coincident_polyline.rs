@@ -140,6 +140,7 @@ fn coincident_source_parameters_survive_native_and_three_real_cad_formats() {
 
 fn native_path(origin: [f64; 3], vertices: Vec<[f64; 2]>) -> IfccadEntityKind {
     IfccadEntityKind::PlanarPolyline {
+        widths: Default::default(),
         bulges: vec![1., 0.],
         vertices,
         closed: false,

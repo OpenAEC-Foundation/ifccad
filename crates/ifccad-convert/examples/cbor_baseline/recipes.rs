@@ -92,6 +92,7 @@ pub fn drawing(family: &str, count: usize) -> Result<IfccadDocument> {
             "polylines" => {
                 let closed = i % 2 == 0;
                 IfccadEntityKind::PlanarPolyline {
+                    widths: Default::default(),
                     vertices: vec![[x, y], [x + 8., y], [x + 8., y + 4.], [x, y + 4.]],
                     bulges: vec![0.; 4],
                     closed,

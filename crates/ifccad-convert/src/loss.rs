@@ -297,6 +297,33 @@ pub(crate) fn precision(
             _ => crate::source::same_graph(actual, expected),
         }
     }
+    fn width_numbers(
+        actual: &Value,
+        expected: &Value,
+        path: &str,
+        issues: &mut Vec<IfccadDiagnostic>,
+    ) {
+        match expected {
+            Value::Object(fields) => {
+                for (key, value) in fields {
+                    width_numbers(&actual[key], value, &format!("{path}/{key}"), issues)
+                }
+            }
+            Value::Array(values) => {
+                for (index, value) in values.iter().enumerate() {
+                    width_numbers(&actual[index], value, &format!("{path}/{index}"), issues)
+                }
+            }
+            Value::Number(_) if !crate::source::same_graph(actual, expected) => {
+                issues.push(diagnostic(
+                    "precision",
+                    path,
+                    "typed polyline width projection changes an exact source number",
+                ));
+            }
+            _ => {}
+        }
+    }
     let expected: std::collections::BTreeMap<_, _> = canonical["data"]
         .as_array()
         .unwrap()
@@ -314,6 +341,19 @@ pub(crate) fn precision(
             continue;
         };
         for (key, value) in attrs {
+            let before_width = issues.len();
+            if key == "ifccad::geom::planarPolyline" {
+                if let Some(widths) = value.get("widths") {
+                    width_numbers(
+                        &node["attributes"][key]["widths"],
+                        widths,
+                        &format!("{path}.{key}.widths"),
+                        issues,
+                    );
+                }
+            }
+            let width_precision = issues.len() != before_width;
+
             if key == "ifccad::layout" {
                 for field in ["bounds", "paper"] {
                     if let Some(expected) = value.get(field) {
@@ -353,7 +393,16 @@ pub(crate) fn precision(
                         | "ifccad::paperCanvas"
                         | "ifccad::viewportWorkspace"
                 ))
-                && !projected(&node["attributes"][key], value)
+                && !(if width_precision {
+                    value.as_object().is_some_and(|fields| {
+                        fields
+                            .iter()
+                            .filter(|(name, _)| name.as_str() != "widths")
+                            .all(|(name, value)| projected(&node["attributes"][key][name], value))
+                    })
+                } else {
+                    projected(&node["attributes"][key], value)
+                })
             {
                 issues.push(diagnostic("precision", format!("{path}.{key}"), "typed native projection changes an exact source value; scalar approximation is rejected under both policies"));
             }

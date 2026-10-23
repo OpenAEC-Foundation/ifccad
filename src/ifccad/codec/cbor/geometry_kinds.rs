@@ -118,6 +118,7 @@ impl CborValue for IfccadEntityKind {
             }
             (
                 Self::PlanarPolyline {
+                    widths,
                     placement,
                     vertices,
                     bulges,
@@ -125,6 +126,7 @@ impl CborValue for IfccadEntityKind {
                     line_pattern_generation,
                 },
                 Self::PlanarPolyline {
+                    widths: widths_other,
                     placement: placement_other,
                     vertices: vertices_other,
                     bulges: bulges_other,
@@ -132,7 +134,8 @@ impl CborValue for IfccadEntityKind {
                     line_pattern_generation: line_pattern_generation_other,
                 },
             ) => {
-                placement.exact(placement_other)
+                widths.exact(widths_other)
+                    && placement.exact(placement_other)
                     && vertices.exact(vertices_other)
                     && bulges.exact(bulges_other)
                     && closed.exact(closed_other)
@@ -506,6 +509,7 @@ impl IfccadEntityKind {
                 Ok(())
             }
             Self::PlanarPolyline {
+                widths,
                 placement,
                 vertices,
                 bulges,
@@ -549,7 +553,7 @@ impl IfccadEntityKind {
                 {
                     __cbor_fields += 1;
                 }
-                w.map(__cbor_fields)?;
+                w.map(__cbor_fields + u64::from(!widths.is_intrinsic_default()))?;
                 if placement.present()
                     && (None as Option<IfccadPlacement>)
                         .as_ref()
@@ -590,6 +594,10 @@ impl IfccadEntityKind {
                 {
                     w.u64(4)?;
                     line_pattern_generation.encode(w)?;
+                }
+                if !widths.is_intrinsic_default() {
+                    w.u64(5)?;
+                    widths.encode(w)?;
                 }
                 Ok(())
             }
@@ -889,6 +897,7 @@ impl IfccadEntityKind {
                         (2, "bulges"),
                         (3, "closed"),
                         (4, "line_pattern_generation"),
+                        (5, "widths"),
                     ],
                 )?;
                 let placement: IfccadPlacement = b.take(0, None)?;
@@ -897,8 +906,10 @@ impl IfccadEntityKind {
                 let closed: bool = b.take(3, Some(false))?;
                 let line_pattern_generation: IfccadLinePatternGeneration =
                     b.take(4, Some(IfccadLinePatternGeneration::PerSegment))?;
+                let widths: IfccadPlanarPolylineWidths = b.take(5, Some(Default::default()))?;
                 b.finish()?;
                 Ok(Self::PlanarPolyline {
+                    widths,
                     placement,
                     vertices,
                     bulges,

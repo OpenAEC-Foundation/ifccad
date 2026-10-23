@@ -12,10 +12,19 @@ pub(crate) enum GeometryNodeKey {
     DimensionGraphicsPart { dimension: u64, index: usize },
     DimensionGraphicsOccurrence(u64),
 }
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct VerifiedPolylineBandProof {
+    pub domain: IfccadGeometryDomain,
+    pub source: IfccadGeometryEntitySource,
+    pub segments: Vec<(usize, IfccadDistanceInterval)>,
+    key: GeometryNodeKey,
+    path: Vec<GeometryNodeKey>,
+}
 pub(crate) struct GeometryContext {
     pub state: cad_geometry_convert::ExchangeState<GeometryNodeKey, IfccadGeometryEntitySource>,
     pub owner: IfccadGeometryOwner,
     pub preparation_error: Option<cad_geometry_convert::CadPreparationError>,
+    verified_polyline_bands: Vec<VerifiedPolylineBandProof>,
     pub pending_hatch_recipes: Vec<crate::to_cad::hatch_recipes::PendingHatchRecipe>,
     stored: BTreeMap<IfccadGeometryDomain, Assessment>,
     pub graphics_members: BTreeMap<GeometryNodeKey, Vec<GeometryNodeKey>>,
@@ -40,6 +49,7 @@ impl GeometryContext {
             owner: IfccadGeometryOwner::ModelLayout(model_id),
             preparation_error: None,
             pending_hatch_recipes: Vec::new(),
+            verified_polyline_bands: Vec::new(),
             stored: BTreeMap::new(),
             graphics_members: BTreeMap::new(),
             graphics_owners: BTreeMap::new(),
@@ -176,10 +186,44 @@ impl GeometryContext {
         pair: cad_geometry_convert::GeometryPair,
         issues: &mut Vec<IfccadDiagnostic>,
     ) -> Result<(), IfccadConversionError> {
+        let mut segments = Vec::new();
+        for band in &pair.bands {
+            let upper = self
+                .state
+                .assessment
+                .check_band(&source, band)
+                .map_err(|e| self.numerical_failure(e))?;
+            let lower = band
+                .squared_deviation()
+                .and_then(|(lo, _)| cad_geometry_convert::geometry::numeric::sqrt_interval(&lo))
+                .ok_or_else(|| {
+                    self.numerical_failure(self.state.assessment.failure(
+                        &source,
+                        Some(band.segment_index()),
+                        IfccadGeometryStage::DeviationAssessment,
+                        IfccadGeometryFailureReason::DeviationBoundOutOfRange,
+                    ))
+                })?
+                .0;
+            segments.push((
+                band.segment_index(),
+                IfccadDistanceInterval { lower, upper },
+            ));
+        }
         let bound = self
             .state
             .record_geometry(key, source.clone(), pair)
             .map_err(|e| self.numerical_failure(e))?;
+        if !segments.is_empty() {
+            self.verified_polyline_bands
+                .push(VerifiedPolylineBandProof {
+                    domain: self.owner.domain(),
+                    source: source.clone(),
+                    segments,
+                    key,
+                    path: vec![],
+                });
+        }
         if bound > 0. {
             issues.push(crate::diagnostics::geometry_rounding(
                 &source,
@@ -233,15 +277,25 @@ impl GeometryContext {
         }
         self.state.assessment = assessment;
         for record in records {
+            let source = IfccadGeometryEntitySource::BlockOccurrence {
+                path: record
+                    .path
+                    .iter()
+                    .map(|key| self.state.identity(*key).clone())
+                    .collect(),
+                leaf: Box::new(record.leaf),
+            };
+            if !record.bands.is_empty() {
+                self.verified_polyline_bands
+                    .push(VerifiedPolylineBandProof {
+                        domain: self.owner.domain(),
+                        source: source.clone(),
+                        segments: record.bands,
+                        key: record.leaf_key,
+                        path: record.path,
+                    });
+            }
             if record.deviation.upper() > 0. {
-                let source = IfccadGeometryEntitySource::BlockOccurrence {
-                    path: record
-                        .path
-                        .iter()
-                        .map(|key| self.state.identity(*key).clone())
-                        .collect(),
-                    leaf: Box::new(record.leaf),
-                };
                 issues.push(crate::diagnostics::geometry_rounding(
                     &source,
                     self.owner.domain(),
@@ -286,6 +340,15 @@ impl GeometryContext {
         );
     }
     pub fn discard_entity(&mut self, id: u64) {
+        let affected = |key: GeometryNodeKey| match key {
+            GeometryNodeKey::Entity(v)
+            | GeometryNodeKey::DimensionGraphicsGroup(v)
+            | GeometryNodeKey::DimensionGraphicsOccurrence(v) => v == id,
+            GeometryNodeKey::DimensionGraphicsPart { dimension, .. } => dimension == id,
+            GeometryNodeKey::BlockDefinition(_) => false,
+        };
+        self.verified_polyline_bands
+            .retain(|p| !affected(p.key) && !p.path.iter().copied().any(affected));
         self.state.discard_entity(GeometryNodeKey::Entity(id));
         if let Some(parts) = self
             .graphics_members
@@ -358,6 +421,8 @@ impl GeometryContext {
             .insert(self.owner.domain(), self.state.assessment);
         IfccadGeometryAssessment {
             filled_surfaces: vec![],
+            polyline_widths: vec![],
+            verified_polyline_bands: self.verified_polyline_bands,
             unassessed: vec![],
             domains: self
                 .stored
@@ -476,5 +541,134 @@ mod graphics_occurrence_tests {
                 ));
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod polyline_width_trials {
+    use super::*;
+    use cad_geometry_convert::geometry::{
+        blocks::EvaluatedBlock,
+        numeric::exact,
+        polyline_width::{pair_polyline_bands, PolylineBandOperands},
+    };
+    use ifccad::geometry_kernel::{BlockTransform, CoordinateFrame3, Point3, Scale3, Vector3};
+    fn frame() -> CoordinateFrame3 {
+        CoordinateFrame3::try_new(
+            Point3::new(0., 0., 0.),
+            Vector3::new(1., 0., 0.),
+            Vector3::new(0., 1., 0.),
+        )
+        .unwrap()
+    }
+    fn setup(error: bool) -> (GeometryContext, BTreeMap<u64, Vec<u64>>) {
+        let mut c =
+            GeometryContext::new(IfccadGeometryTolerance::default(), "unitless", 1).unwrap();
+        let a = PolylineBandOperands {
+            origin: [0., 0., 0.].map(exact),
+            x_axis: [1., 0., 0.].map(exact),
+            y_axis: [0., 1., 0.].map(exact),
+            vertices: vec![[0., 0., 0.], [1., 0., 0.]],
+            effective_widths: vec![[1.; 2], [0.; 2]],
+            closed: false,
+        };
+        let mut b = a.clone();
+        if error {
+            b.y_axis = [0., 2., 0.].map(exact)
+        }
+        let leaf = IfccadGeometryEntitySource::NativeEntity {
+            owner: IfccadGeometryOwner::BlockDefinition(9),
+            entity_id: 1,
+        };
+        c.state.register_geometry(
+            GeometryNodeKey::Entity(1),
+            leaf,
+            cad_geometry_convert::GeometryPair {
+                points: vec![],
+                curves: vec![],
+                bands: pair_polyline_bands(&a, &b).unwrap(),
+            },
+        );
+        let map = EvaluatedBlock::native(
+            BlockTransform::try_new(frame(), 0., Scale3::new(1., 1., 1.)).unwrap(),
+            [0.; 3],
+        );
+        c.register_identity(
+            2,
+            IfccadGeometryEntitySource::NativeEntity {
+                owner: c.owner,
+                entity_id: 2,
+            },
+        );
+        c.record_instance_parts(2, 9, map.clone(), map);
+        (c, BTreeMap::from([(9, vec![1])]))
+    }
+    #[test]
+    fn hatch_trial_does_not_commit_width_evidence() {
+        let (mut c, members) = setup(false);
+        let before = c.state.assessment.clone();
+        c.trial_roots(&members, &[2]).unwrap();
+        assert_eq!(c.state.assessment, before);
+        assert!(c.verified_polyline_bands.is_empty());
+        c.assess_roots(&members, &[2], &mut vec![]).unwrap();
+        assert_eq!(c.verified_polyline_bands.len(), 1);
+        assert_eq!(c.verified_polyline_bands[0].segments.len(), 1);
+        c.discard_entity(2);
+        assert!(c.verified_polyline_bands.is_empty());
+    }
+    #[test]
+    fn non_hatch_band_failure_never_selects_hatch_fallback() {
+        use ifccad::geometry_kernel::hatch::{HatchAreaRule, HatchBoundary2, HatchFill};
+        let (mut c, members) = setup(true);
+        let boundaries = [HatchBoundary2::Polyline {
+            vertices: vec![[0., 0.], [1., 0.], [1., 1.], [0., 1.]],
+            bulges: vec![0.; 4],
+        }];
+        let mut preferred = cad_geometry_convert::hatch::prepare_hatch_to_cad(
+            frame(),
+            &boundaries,
+            HatchAreaRule::Normal,
+            1e-9,
+            &HatchFill::Solid,
+            None,
+        )
+        .unwrap();
+        preferred.hatch.pattern.name = "PREFERRED".into();
+        let mut fallback = preferred.clone();
+        fallback.hatch.pattern.name = "FALLBACK".into();
+        let mut document = opencadcodec::CadDocument::new();
+        let handle = document
+            .add_entity(opencadcodec::EntityType::Hatch(Box::new(
+                preferred.hatch.clone(),
+            )))
+            .unwrap();
+        let mut maps = IfccadMappings::default();
+        maps.entities.insert(3, handle);
+        let pending = crate::to_cad::hatch_recipes::PendingHatchRecipe {
+            entity_id: 3,
+            owner: c.owner,
+            preferred,
+            fallback,
+        };
+        let mut issues = vec![];
+        let error = crate::to_cad::hatch_recipes::resolve_hatch_recipes(
+            vec![pending],
+            &mut document,
+            &maps,
+            &members,
+            &[(c.owner, vec![2])],
+            &mut c,
+            &mut issues,
+        )
+        .unwrap_err();
+        assert!(matches!(error, IfccadConversionError::Geometry(_)));
+        assert!(!issues
+            .iter()
+            .any(|d| d.code == "hatch-classic-settings-loss"));
+        assert!(c.verified_polyline_bands.is_empty());
+        let opencadcodec::EntityType::Hatch(h) = document.get_entity(handle).unwrap() else {
+            panic!()
+        };
+        assert_eq!(h.pattern.name, "PREFERRED");
     }
 }

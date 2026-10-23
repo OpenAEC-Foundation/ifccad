@@ -12,12 +12,12 @@ pub use cad_geometry_convert::{
 use opencadcodec::Handle;
 use IfccadGeometryCoordinateMeaning as GeometryCoordinateMeaning;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IfccadGeometryDomain {
     Drawing,
     PaperLayout(u64),
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum IfccadGeometryOwner {
     ModelLayout(u64),
     PaperLayout(u64),
@@ -31,7 +31,7 @@ impl IfccadGeometryOwner {
         }
     }
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum IfccadGeometryEntitySource {
     CadEntity {
         handle: Handle,
@@ -104,11 +104,17 @@ impl IfccadGeometryDomainAssessment {
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadGeometryAssessment {
+    pub(crate) polyline_widths: Vec<crate::IfccadPolylineWidthAssessment>,
+    pub(crate) verified_polyline_bands: Vec<crate::geometry_context::VerifiedPolylineBandProof>,
     pub(crate) filled_surfaces: Vec<crate::IfccadFilledSurfaceAssessment>,
     pub(crate) domains: Vec<IfccadGeometryDomainAssessment>,
     pub(crate) unassessed: Vec<IfccadGeometryEntitySource>,
 }
 impl IfccadGeometryAssessment {
+    pub fn polyline_widths(&self) -> &[crate::IfccadPolylineWidthAssessment] {
+        &self.polyline_widths
+    }
+
     pub fn filled_surfaces(&self) -> &[crate::IfccadFilledSurfaceAssessment] {
         &self.filled_surfaces
     }
@@ -201,6 +207,17 @@ impl IfccadGeometryAssessment {
                 .iter()
                 .filter(|s| s.coverage() == crate::IfccadFilledSurfaceCoverage::Unassessed)
                 .map(|s| s.source().clone()),
+        );
+        self.unassessed.extend(
+            self.polyline_widths
+                .iter()
+                .filter(|p| {
+                    p.surface_coverage == crate::IfccadPolylineWidthSurfaceCoverage::Unassessed
+                        || p.segments.iter().any(|s| {
+                            s.band_coverage == crate::IfccadPolylineWidthBandCoverage::Unassessed
+                        })
+                })
+                .map(|p| p.source.clone()),
         );
         crate::mapping::marker_coverage::record(d, &mut self.unassessed);
         self

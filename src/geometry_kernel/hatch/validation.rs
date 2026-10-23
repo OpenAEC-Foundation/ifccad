@@ -88,6 +88,7 @@ pub(super) fn parameters(boundary: &HatchBoundary2, index: usize) -> Result<(), 
                 Err(Reason::InvalidParameters)
             } else {
                 primitive(GeometryRef::PlanarPolyline {
+                    widths: &super::super::PlanarPolylineWidths::Constant { width: 0.0 },
                     placement: CoordinateFrame3::default(),
                     vertices: PlanarVertices::Separate {
                         xy: vertices,

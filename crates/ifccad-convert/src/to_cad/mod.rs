@@ -316,6 +316,13 @@ fn convert_document(
         &mappings,
         crate::filled_surface_assessment::FilledSourceDirection::ToCad,
     )?;
+    assessment.polyline_widths = crate::polyline_width_assessment::collect_polyline_widths(
+        drawing,
+        &document,
+        &mappings,
+        crate::polyline_width_assessment::PolylineWidthSourceDirection::ToCad,
+        &assessment,
+    )?;
     Ok(IfccadToCadOutcome {
         dimension: crate::IfccadDimensionAssessment::new(
             drawing,

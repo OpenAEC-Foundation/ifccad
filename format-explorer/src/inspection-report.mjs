@@ -28,3 +28,8 @@ export function dimensionGraphicsSummary(assessment,language){
  const count=state=>rows.filter(r=>r.graphicsCoverage?.state===state).length;
  return translate(language,'dimension.graphicsTransfer',{transferred:count('transferred'),empty:count('explicitEmpty'),absent:count('absent'),omitted:count('notTransferred')});
 }
+
+export function polylineWidthEvidenceSummary(assessment,language){
+ const rows=assessment?.polylineWidths||[];if(!rows.length)return '';
+ return [translate(language,'width.band'),translate(language,'width.summary',{proven:rows.flatMap(r=>r.segments||[]).filter(s=>s.bandCoverage==='Proven').length,unassessed:rows.flatMap(r=>r.segments||[]).filter(s=>s.bandCoverage==='Unassessed').length}),translate(language,'width.display')].join(' ');
+}

@@ -92,6 +92,13 @@ pub struct EvaluatedBlock {
     pub constant: [[Q; 3]; 3],
 }
 impl EvaluatedBlock {
+    /// Linear part only: transverse vectors must not acquire insertion translation.
+    pub fn vector_map(&self) -> Self {
+        let mut result = self.clone();
+        result.origin = std::array::from_fn(|_| Q::zero());
+        result.base = std::array::from_fn(|_| Q::zero());
+        result
+    }
     pub fn native(transform: ifccad::geometry_kernel::BlockTransform, base: [f64; 3]) -> Self {
         let (o, u, v) = super::components(transform.placement());
         let u = u.map(exact);
@@ -140,8 +147,7 @@ impl EvaluatedBlock {
             }),
         }
     }
-    #[cfg(test)]
-    fn identity() -> Self {
+    pub(crate) fn identity() -> Self {
         Self {
             origin: std::array::from_fn(|_| Q::zero()),
             base: std::array::from_fn(|_| Q::zero()),
@@ -187,6 +193,23 @@ pub struct PairedPoint {
     residual: [Range; 3],
 }
 impl PairedPoint {
+    pub(crate) fn offset_pair(
+        center: &Self,
+        vector: &Self,
+        source_scale: &Q,
+        target_scale: &Q,
+    ) -> Self {
+        Self {
+            target: std::array::from_fn(|i| {
+                center.target[i].add(&vector.target[i].scale(target_scale))
+            }),
+            residual: std::array::from_fn(|i| {
+                center.residual[i]
+                    .add(&vector.residual[i].scale(source_scale))
+                    .add(&vector.target[i].scale(&(source_scale - target_scale)))
+            }),
+        }
+    }
     /// Internally certified source-minus-target residual and target enclosure.
     /// Keep the latter for unequal enclosing block maps; a residual alone does
     /// not suffice to propagate occurrence-space error.
@@ -699,6 +722,25 @@ pub struct PairedCurve {
     span: f64,
 }
 impl PairedCurve {
+    pub(crate) fn from_paired_coefficients(center: PairedPoint, axes: [PairedPoint; 2]) -> Self {
+        let [a, b] = axes;
+        Self {
+            center,
+            cosine: PairedVector {
+                target: a.target,
+                residual: a.residual,
+            },
+            sine: PairedVector {
+                target: b.target,
+                residual: b.residual,
+            },
+            angular_drift: Q::zero(),
+            span: std::f64::consts::TAU,
+        }
+    }
+    pub(crate) fn target_coefficient_upper_squared(&self) -> Q {
+        self.cosine.target_upper_squared() + self.sine.target_upper_squared()
+    }
     pub fn new(
         source_center: [Q; 3],
         source_axes: [[Range; 3]; 2],

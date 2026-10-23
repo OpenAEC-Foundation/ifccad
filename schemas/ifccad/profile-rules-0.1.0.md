@@ -383,3 +383,22 @@ duplicates/outside points; pixelSize is finite nonnegative (0). A fully default
 record is invalid. These values never regenerate geometry or set provenance.
 Closed IFCX members reject null/unknown keys; LaterWins replaces the whole Hatch.
 Shared typed validation applies equally to IFCX, CBOR and Zstd readback.
+
+## Planar polyline widths
+
+IFCCAD-POLYLINE-WIDTH-001: optional planarPolyline.widths is a closed Constant,
+PerVertex or Defaulted value. Omission means Constant positive zero. Every stored
+full width is finite and nonnegative; signed zero is valid. PerVertex has exactly
+N complete [start,end] pairs. Defaulted requires both defaults and exactly N
+closed override objects with independent optional start/end leaves. Null is not
+absence. Absent leaves inherit only the matching header default; explicit zero
+and explicit equal-to-default values remain explicit. Validate unused defaults
+and dormant final records. The final outgoing record is inactive while open.
+
+IFCCAD-POLYLINE-WIDTH-002: ordinary and Dimension graphics use the same neutral
+value, validation and derived view in packed and separate geometry backings.
+Native IFCX/CBOR retain modes, defaults, presence and all binary64 bits. Only
+Constant exact positive zero may be omitted; no equality/zero normalization of
+PerVertex or Defaulted is allowed. Widths do not alter Hatch/viewport centerline
+contours or add extrusion-thickness semantics. Whole attribute replacement
+applies; override arrays are never merged by index.

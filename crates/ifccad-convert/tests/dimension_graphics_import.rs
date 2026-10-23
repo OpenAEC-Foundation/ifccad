@@ -159,8 +159,19 @@ fn helpers_and_layer_context_are_retained() {
     assert_eq!(*end, [40., 0., 0.]);
 }
 #[test]
-fn red_wide_marker_does_not_become_partial_graphics() {
-    let cad = support::picture(true);
+fn unsupported_dual_width_controls_do_not_leave_partial_graphics() {
+    let mut cad = support::picture(true);
+    // Constant width is now supported; independent nondefault controls remain unsupported.
+    let handle = *cad
+        .block_records
+        .get("*DimensionPicture")
+        .unwrap()
+        .entity_handles
+        .last()
+        .unwrap();
+    if let opencadcodec::EntityType::LwPolyline(p) = cad.get_entity_mut(handle).unwrap() {
+        p.vertices[0].start_width = 1.;
+    }
     let out = cad_document_to_encoded_ifccad(&cad, common::metadata(), Default::default()).unwrap();
     assert!(dimensions(out.validated_source().document())[0]
         .graphics
@@ -233,6 +244,7 @@ fn complete_pictures_in_empty_unused_and_nested_marker_contexts_are_distinct() {
     // An unsupported sibling in the nested marker removes the whole picture.
     let mut wide = LwPolyline::new();
     wide.constant_width = 0.15;
+    wide.thickness = 1.; // Extrusion thickness remains outside this slice.
     wide.add_vertex(entities::LwVertex::new(Vector2::new(0., 0.)));
     wide.add_vertex(entities::LwVertex::new(Vector2::new(1., 1.)));
     wide.common.owner_handle = cad.block_records.get("Arrow").unwrap().handle;

@@ -2,10 +2,13 @@
 export function hatchExportState(presentation,{format,version,lossPolicy='allow',stale=false}={}){
  const hatch=presentation?.hatchExportPreflight?.find(e=>e.format===format&&e.version===version)?.restrictions??[];
  const linePattern=presentation?.linePatternExportPreflight?.find(e=>e.format===format&&e.version===version)?.restrictions??[];
- const restrictions=linePattern.length?[...hatch,...linePattern]:hatch;
+ const widths=presentation?.polylineWidthExportPreflight?.find(e=>e.format===format&&e.version===version)?.restrictions??[];
+ const restrictions=linePattern.length||widths.length?[...hatch,...linePattern,...widths]:hatch;
  return {restrictions,blocked:stale||restrictions.some(r=>r.policyEffect==='block'||lossPolicy==='reject'&&r.policyEffect==='loss')};
 }
 const messages={
+ "polyline-width-dependency":"widthRestrictionDependency",
+ "polyline-width-target":"widthRestrictionTarget",
  TARGET_CODEC_LINE_PATTERN_UPRIGHT_LOSS:'linePatternRestrictionUpright',
  HATCH_PREFLIGHT_UNAVAILABLE:'hatchRestrictionCheck',
  HATCH_RECIPE_PREFLIGHT_CHECK:'hatchRestrictionRecipeCheck',

@@ -20,3 +20,5 @@ pub(crate) mod viewport_overrides;
 pub(crate) mod dimension_graphics;
 
 pub(crate) mod dimension_graphics_target;
+
+pub(crate) mod polyline_width;

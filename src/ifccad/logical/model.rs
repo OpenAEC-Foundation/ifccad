@@ -1,3 +1,4 @@
+use super::IfccadPlanarPolylineWidths;
 use super::IfccadViewport;
 use serde::{Deserialize, Serialize};
 
@@ -247,6 +248,7 @@ pub enum IfccadEntityKind {
         end: [f64; 3],
     },
     PlanarPolyline {
+        widths: IfccadPlanarPolylineWidths,
         vertices: Vec<[f64; 2]>,
         bulges: Vec<f64>,
         closed: bool,

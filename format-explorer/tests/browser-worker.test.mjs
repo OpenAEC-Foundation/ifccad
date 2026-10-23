@@ -59,3 +59,11 @@ test('IFCCAD spline capture forwards the option and requires an advertised capab
  const result=processBrowserRequest(request,wasm);assert.equal(selected.preserveSplines,true);assert.equal(result.presentation.opaqueEntityCount,1);
  assert.throws(()=>processBrowserRequest(request,{...wasm,conversion_capabilities(){return JSON.stringify({ifccad:{adjustableTolerance:true}});}}),/preservation|processor/i);
 });
+
+test('selected loss policy reaches the physical exporter and cannot fall back to Allow',()=>{
+ let selected,legacyCalled=false;const wasm={open_ifccad(){return JSON.stringify({validation:{strictAvailable:true}});},export_ifccad(){legacyCalled=true;return '{}';},export_ifccad_with_options(...args){selected=JSON.parse(args.at(-1));return JSON.stringify({failure:{code:'CAD_EXCHANGE_LOSS_REJECTED'}});}};
+ const request={kind:'ifccad',name:'widths.ifcx',files:[{path:'widths.ifcx',bytes}],exportConversionOptions:{lossPolicy:'reject'},export:{format:'dwg',version:'AC1032'}};
+ const result=processBrowserRequest(request,wasm);assert.equal(selected.lossPolicy,'reject');assert.equal(result.failure.code,'CAD_EXCHANGE_LOSS_REJECTED');assert.equal(legacyCalled,false);
+ assert.throws(()=>processBrowserRequest(request,{...wasm,export_ifccad_with_options:undefined}),/loss|reject|processor/i);assert.equal(legacyCalled,false);
+ assert.throws(()=>processBrowserRequest({...request,exportConversionOptions:{lossPolicy:'guess'}},wasm),/loss policy/i);
+});

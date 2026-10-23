@@ -9,6 +9,8 @@ pub struct OccurrenceAssessment<K, S> {
     pub root: K,
     pub path: Vec<K>,
     pub leaf: S,
+    pub leaf_key: K,
+    pub bands: Vec<(usize, crate::DistanceInterval)>,
     pub deviation: crate::DistanceInterval,
 }
 #[derive(Clone)]
@@ -21,6 +23,7 @@ pub struct ExchangeState<K, S> {
     pub assessment: GeometryAssessment<S>,
     points: BTreeMap<K, Vec<PairedPoint>>,
     curves: BTreeMap<K, Vec<PairedCurve>>,
+    bands: BTreeMap<K, Vec<crate::geometry::polyline_width::PairedPolylineBand>>,
     instances: BTreeMap<K, Instance<K>>,
     identities: BTreeMap<K, S>,
 }
@@ -30,6 +33,7 @@ impl<K: Copy + Ord, S: crate::GeometrySource> ExchangeState<K, S> {
             assessment,
             points: BTreeMap::new(),
             curves: BTreeMap::new(),
+            bands: BTreeMap::new(),
             instances: BTreeMap::new(),
             identities: BTreeMap::new(),
         }
@@ -40,6 +44,7 @@ impl<K: Copy + Ord, S: crate::GeometrySource> ExchangeState<K, S> {
     pub fn discard_entity(&mut self, key: K) {
         self.points.remove(&key);
         self.curves.remove(&key);
+        self.bands.remove(&key);
         self.instances.remove(&key);
         self.identities.remove(&key);
     }
@@ -83,12 +88,16 @@ impl<K: Copy + Ord, S: crate::GeometrySource> ExchangeState<K, S> {
         for curve in &pair.curves {
             maximum = maximum.max(self.assessment.check_curve(&source, curve)?);
         }
+        for band in &pair.bands {
+            maximum = maximum.max(self.assessment.check_band(&source, band)?);
+        }
         self.assessment
             .record(source.clone(), pair.points.len(), maximum);
         self.identities.insert(key, source);
         self.points
             .insert(key, pair.points.into_iter().map(|(p, _)| p).collect());
         self.curves.insert(key, pair.curves);
+        self.bands.insert(key, pair.bands);
         Ok(maximum)
     }
     /// Register operands that will be assessed through an enclosing occurrence.
@@ -98,6 +107,7 @@ impl<K: Copy + Ord, S: crate::GeometrySource> ExchangeState<K, S> {
         self.points
             .insert(key, pair.points.into_iter().map(|(p, _)| p).collect());
         self.curves.insert(key, pair.curves);
+        self.bands.insert(key, pair.bands);
     }
     pub fn affected_instances(
         &self,
@@ -204,6 +214,7 @@ impl<K: Copy + Ord, S: crate::GeometrySource> ExchangeState<K, S> {
                         );
                         let mut maximum = 0.0_f64;
                         let mut lower = 0.0_f64;
+                        let mut band_deviations = Vec::new();
                         for (index, p) in points.iter().enumerate() {
                             let mut p = p.clone();
                             for key in path.iter().rev() {
@@ -227,11 +238,43 @@ impl<K: Copy + Ord, S: crate::GeometrySource> ExchangeState<K, S> {
                                 maximum = maximum.max(assessment.check_curve(&identity, &curve)?);
                             }
                         }
+                        if let Some(bands) = self.bands.get(&leaf) {
+                            for band in bands {
+                                let mut band = band.clone();
+                                for key in path.iter().rev() {
+                                    let pair = &self.instances[key];
+                                    band.apply(&pair.source, &pair.target);
+                                }
+                                let upper = assessment.check_band(&identity, &band)?;
+                                maximum = maximum.max(upper);
+                                let lo = band
+                                    .squared_deviation()
+                                    .and_then(|(lo, _)| {
+                                        crate::geometry::numeric::sqrt_interval(&lo)
+                                    })
+                                    .ok_or_else(|| {
+                                        assessment.failure(
+                                            &identity,
+                                            Some(band.segment_index()),
+                                            Stage::DeviationAssessment,
+                                            Reason::DeviationBoundOutOfRange,
+                                        )
+                                    })?
+                                    .0;
+                                lower = lower.max(lo);
+                                band_deviations.push((
+                                    band.segment_index(),
+                                    crate::DistanceInterval { lower: lo, upper },
+                                ));
+                            }
+                        }
                         assessment.record(identity, points.len(), maximum);
                         records.push(OccurrenceAssessment {
                             root,
                             path: path.clone(),
                             leaf: self.identities[&leaf].clone(),
+                            leaf_key: leaf,
+                            bands: band_deviations,
                             deviation: crate::DistanceInterval {
                                 lower,
                                 upper: maximum,

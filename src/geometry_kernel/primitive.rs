@@ -1,4 +1,4 @@
-use super::CoordinateFrame3;
+use super::{CoordinateFrame3, PlanarPolylineWidths};
 
 /// Two native storage layouts for the same outgoing-bulge planar vertices.
 #[derive(Clone, Copy, Debug)]
@@ -77,6 +77,7 @@ pub enum GeometryRef<'a> {
         arc: Option<(f64, f64)>,
     },
     PlanarPolyline {
+        widths: &'a PlanarPolylineWidths,
         placement: CoordinateFrame3,
         vertices: PlanarVertices<'a>,
         closed: bool,
@@ -119,6 +120,7 @@ pub enum OwnedGeometry {
         arc: Option<(f64, f64)>,
     },
     PlanarPolyline {
+        widths: PlanarPolylineWidths,
         placement: CoordinateFrame3,
         vertices: Vec<[f64; 3]>,
         closed: bool,
@@ -174,10 +176,12 @@ impl OwnedGeometry {
                 arc: *arc,
             },
             Self::PlanarPolyline {
+                widths,
                 placement,
                 vertices,
                 closed,
             } => GeometryRef::PlanarPolyline {
+                widths,
                 placement: *placement,
                 vertices: PlanarVertices::Packed(vertices),
                 closed: *closed,

@@ -1,6 +1,11 @@
 use super::{Bounds3d, GeometryRef, GeometryValidationError as Error, PaperFrame, Point2, Point3};
 
+/// Centerline/primitive enclosure. Use width-aware display bounds for scope display queries.
 pub fn geometry_bounds(g: GeometryRef<'_>) -> Result<Bounds3d, Error> {
+    geometry_centerline_bounds(g)
+}
+/// Explicit centerline access for contour validity, selectors and Hatch/viewport boundaries.
+pub fn geometry_centerline_bounds(g: GeometryRef<'_>) -> Result<Bounds3d, Error> {
     super::validation::validate_parameters(g)?;
     let mut min = [f64::INFINITY; 3];
     let mut max = [f64::NEG_INFINITY; 3];
@@ -58,6 +63,7 @@ pub fn geometry_bounds(g: GeometryRef<'_>) -> Result<Bounds3d, Error> {
             placement,
             vertices,
             closed,
+            ..
         } => {
             for i in 0..if closed {
                 vertices.len()

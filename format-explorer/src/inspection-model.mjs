@@ -90,6 +90,9 @@ export function createInspection(result,sourceText=''){
 
   if(n.derived?.effectiveSettings)dimensionRefs(n.key,n.derived.effectiveSettings,'derived.effectiveSettings',format==='ifccad');
  }
+ for(const row of p.polylineWidths||[]){const n=nodes.get(row.path);if(n)n.polylineWidths=row.widths;}
+ const widthNode=source=>{if(source?.kind==='NativeEntity')return nodes.get(drawingPrefix+'/e'+source.entityId);if(source?.kind==='DimensionGraphicsPart'&&source.dimension?.kind==='NativeEntity')return nodes.get(drawingPrefix+'/e'+source.dimension.entityId+'/graphics/p'+source.partIndex);};
+ for(const row of (result.conversion?.geometryAssessment||result.export?.geometryAssessment)?.polylineWidths||[]){const n=widthNode(row.source);if(n)n.widthEvidence=row;}
  for(const n of nodes.values())n.incoming=[];
  for(const n of nodes.values())for(const edge of n.outgoing)nodes.get(edge.target)?.incoming.push(edge);
  return {binary:result?.source?.representation==='decoded',format,nodes,roots,nodeRoots,storageRoots,sourceText,valid:result?.validation?.strictAvailable===true};

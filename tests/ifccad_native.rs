@@ -347,6 +347,7 @@ fn fixture_document() -> IfccadDocument {
                     kind: {
                         let vertices: Vec<[f64; 2]> = vec![[0.0, 0.0], [2.0, 0.0], [2.0, 3.0]];
                         IfccadEntityKind::PlanarPolyline {
+                            widths: Default::default(),
                             line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
                             bulges: vec![0.; vertices.len()],
                             vertices,

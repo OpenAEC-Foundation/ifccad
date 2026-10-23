@@ -510,5 +510,25 @@
   {
     "file": "invalid/line-pattern-upright-extra-flag.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/polyline-widths.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/polyline-defaults-overrides.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/polyline-width-count.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/polyline-width-null-override.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/polyline-width-unused-default.ifcx",
+    "valid": false
   }
 ]

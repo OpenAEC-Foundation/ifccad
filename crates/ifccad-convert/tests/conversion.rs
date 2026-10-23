@@ -222,7 +222,7 @@ fn supported_entity_with_thickness_or_xdata_is_rejected() {
     );
 }
 #[test]
-fn bulges_are_retained_and_width_remains_a_rejectable_loss() {
+fn bulges_and_vertex_widths_are_retained() {
     for width in [false, true] {
         let mut c = to_cad(&validated(&primitives())).unwrap().into_document();
         let h = c.block_records.get("*Model_Space").unwrap().entity_handles[1];
@@ -235,10 +235,8 @@ fn bulges_are_retained_and_width_remains_a_rejectable_loss() {
             l.vertices[0].bulge = 0.5;
         }
         if width {
-            assert!(matches!(
-                from_cad(&c, metadata()),
-                Err(IfccadConversionError::Unsupported(_))
-            ));
+            let out = from_cad(&c, metadata()).unwrap();
+            assert!(out.validated_source().document().model.entities.iter().any(|e|matches!(&e.as_native().unwrap().kind,IfccadEntityKind::PlanarPolyline{widths:IfccadPlanarPolylineWidths::PerVertex{widths},..} if widths[0][0]==2.)));
         } else {
             let out = from_cad(&c, metadata()).unwrap();
             assert!(out.validated_source().document().model.entities.iter().any(

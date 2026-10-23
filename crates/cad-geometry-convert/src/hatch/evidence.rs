@@ -315,7 +315,11 @@ fn pairs(
                     PairedCurve::new(sc, sa, tc, ta).with_angular_drift((ss - ts).abs())
                 })
                 .collect();
-            Ok(GeometryPair { points, curves })
+            Ok(GeometryPair {
+                points,
+                curves,
+                bands: vec![],
+            })
         })
         .collect()
 }

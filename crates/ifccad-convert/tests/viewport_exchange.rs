@@ -88,6 +88,7 @@ fn multiple_paper_viewports_exchange_in_memory_dxf_dwg() {
     second.entities[2].as_native_mut().unwrap().kind = {
         let vertices: Vec<[f64; 2]> = vec![[20., 25.], [180., 25.], [180., 125.], [20., 125.]];
         IfccadEntityKind::PlanarPolyline {
+            widths: Default::default(),
             bulges: vec![0.; vertices.len()],
             vertices,
             closed: true,

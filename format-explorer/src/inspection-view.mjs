@@ -1,4 +1,5 @@
 import {dimensionPresentation,dimensionFieldLabel,dimensionValueLabel,isDimensionNode,renderDimensionLabel} from './dimension-view.mjs';
+import {widthPresentation,effectiveWidthPresentation} from './polyline-widths.mjs';
 import {hatchValues,hatchSummary} from './hatch-view.mjs';
 import {translate} from './i18n.mjs';
 import {inspectionNavigation} from './inspection-navigation.mjs';
@@ -20,6 +21,7 @@ export function renderInspection(model,state){
   const entries=Object.entries(value),ownerNode=navigation.nodes.get(owner);
   return entries.slice(0,100).map(([key,v])=>{
    const next=[...path,key],fieldId=JSON.stringify([owner,next]),label=e(keyLabel(key,owner));
+   if(key==='widths'&&path.at(-1)==='ifccad::geom::planarPolyline')return '<details class="inspector-field" data-field-id="'+e(fieldId)+'"'+(!state.fieldCollapsed?.has(fieldId)?' open':'')+'><summary>'+chevron+'<span class="property-label">'+e(t('width.title'))+'</span></summary><div class="field-children">'+widthPresentation(v,language)+'</div></details>';
    const linkedArray=Array.isArray(v)&&ownerNode?.outgoing.some(link=>link.field.startsWith(next.join('.')+'.'));
    const composite=v!==null&&typeof v==='object'&&(linkedArray||!(Array.isArray(v)&&v.length<=4&&v.every(item=>item===null||typeof item!=='object')));
    if(composite)return '<details class="inspector-field" data-field-id="'+e(fieldId)+'"'+(!state.fieldCollapsed?.has(fieldId)&&(depth===0||state.fieldExpanded?.has(fieldId))?' open':'')+'><summary>'+chevron+'<span class="property-label">'+label+'</span></summary><div class="field-children">'+fields(v,next,depth+1,owner)+'</div></details>';
@@ -50,9 +52,11 @@ export function renderInspection(model,state){
  }
  const help=t('help.'+node.type);if(!help.startsWith('help.'))details+='<p class="secondary">'+e(help)+'</p>';
   const assessment=node.values.boundsAssessment;if(assessment)details+='<p class="secondary">'+e(t('boundsSummary',{quality:t(assessment.quality||'empty'),proof:t(assessment.enclosureVerified?'enclosureChecked':'enclosureNotChecked')}))+'</p>';
+  if(assessment?.polylineWidthReasons?.length)details+='<p class="secondary">'+e(t('width.partial'))+'</p>';
   for(const reason of new Set(assessment?.linePatternReasons||[]))details+='<p class="secondary">'+e(t('linePatternReason.'+reason))+'</p>';
   details+=node.type==='group'?'<p class="secondary">'+e(t('group'))+'</p>':'<h3>'+e(t('storedValues'))+'</h3>';
   if(node.type!=='group')details+='<div class="inspector-fields" data-field-owner="'+e(node.key)+'">'+fields(node.values,[],0,node.key)+'</div>';
+  details+=effectiveWidthPresentation(node.polylineWidths,language);
   const dimension=dimensionPresentation(node,model.format),computed=dimension?.derived;
   if(computed?.graphics)details+='<h3>'+e(t('dimension.field.graphics'))+'</h3><div class="inspector-fields">'+fields(computed.graphics,['derived','graphics'],0,node.key)+'</div>';
   if(computed){

@@ -524,9 +524,8 @@ content loses the whole representation under Allow and Reject refuses it;
 malformed geometry remains an error under either loss policy. Entity recovery
 can omit the whole affected Dimension, never publish partial graphics. Generated
 origin transfers the picture under Allow with a located provenance loss; Reject
-refuses it. Existing unrelated Dimension style losses are not waived. Zero-width
-polylines, native SOLID/TRACE arrows and the existing Text/MText profile are
-supported; wide polylines, nonzero cache root bases, clone insertion transforms
+refuses it. Existing unrelated Dimension style losses are not waived. Planar polylines with native widths, native SOLID/TRACE arrows and the existing Text/MText profile are
+supported; nonzero extrusion thickness, nonzero cache root bases, clone insertion transforms
 and unqualified tilted cache conventions remain bounded limitations. No generator,
 validity engine, opaque picture preservation or CAD-host product patch is added.
 See [the complete mapping](../../docs/dimension/graphics-design.md).
@@ -554,3 +553,24 @@ gradient state, unbound activation and DERIVED-dependent pixel size. Native
 storage success is not physical transport proof. All six offered versions,
 Explorer preflight and external AC1024 correctness acceptance are specified in
 [Hatch output qualification](../../docs/hatch-export-versions.md).
+
+## Polyline width contract
+
+[Native widths and qualification](../../docs/geometry/polyline-widths.md) define
+Constant, PerVertex and classic Defaulted modes. Missing classic leaves inherit;
+explicit zero/equal overrides remain authored. All values, including dormant
+records, are validated. Full segment bands are required; join/display evidence
+and partial bounds remain separate. Extrusion thickness is deferred.
+
+The selected bd10efc codec base additionally needs the explicit
+[width patch](../../patches/opencadcodec-polyline-widths/README.md); its optional
+Vertex2D fields are fully classified, not ignored. PreserveClassic DXF retains
+header defaults and None/Some leaves. Six ordinary versions are tested; legacy
+binary DXF promotion is not a requested-version pass. DWG inherited leaves are
+located dependency losses and Reject refuses them before download. AC1032 alone
+qualifies stored wide Dimension pictures. Current upstream Dimension #117 and
+Hatch #132 fixes remain in the base; historical repair patches are not reapplied.
+
+The original linked red Dimension storage gate passes both source hashes through
+strict native and AC1032 CAD readback; bounded visual comparison in the unchanged pinned host also passes. Standalone codec full-suite/lint
+failures are documented in the patch README and are not claimed passing.

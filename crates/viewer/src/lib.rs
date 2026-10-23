@@ -11,6 +11,7 @@ mod inspection_dimension_label;
 mod inspection_ifccad_dimension;
 mod line_pattern_exchange;
 mod options;
+mod polyline_widths;
 mod selection;
 pub use binary_download::export_ifccad_binary_bytes;
 pub use ifccad::{export_ifccad_bytes, inspect_cad_as_ifccad_bytes, inspect_ifccad_bytes};

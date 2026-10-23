@@ -39,12 +39,14 @@ fn loss(
 }
 fn combine(pairs: Vec<GeometryPair>) -> GeometryPair {
     let mut out = GeometryPair {
+        bands: vec![],
         points: vec![],
         curves: vec![],
     };
     for p in pairs {
         out.points.extend(p.points);
         out.curves.extend(p.curves);
+        out.bands.extend(p.bands);
     }
     out
 }
@@ -120,6 +122,7 @@ impl Export<'_, '_> {
             return Ok(Some(Body {
                 entity: EntityType::Insert(entity),
                 pair: GeometryPair {
+                    bands: vec![],
                     points: vec![],
                     curves: vec![],
                 },

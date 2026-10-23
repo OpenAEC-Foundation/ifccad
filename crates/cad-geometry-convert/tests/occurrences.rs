@@ -48,6 +48,7 @@ fn uncertain_point_bound_is_a_hard_proof_gap_instead_of_proven_exceedance() {
     let point = PairedPoint::from_ranges(position.clone(), position);
     let upper = point.squared_deviation().1;
     let pair = GeometryPair {
+        bands: vec![],
         points: vec![(point, upper)],
         curves: vec![],
     };
@@ -121,6 +122,7 @@ fn equal_endpoints_do_not_certify_curve_interiors() {
     };
     let axis = |v: [f64; 3]| v.map(|n| Range::point(exact(n)));
     let pair = GeometryPair {
+        bands: vec![],
         points: GeometryPair::points(
             &[[-1., 0., 0.], [1., 0., 0.]],
             &[[-1., 0., 0.], [1., 0., 0.]],

@@ -1620,7 +1620,10 @@
           "default": false
         },
         "linePatternGeneration": {},
-        "bulges": {}
+        "bulges": {},
+        "widths": {
+          "$ref": "#/$defs/planarPolylineWidths"
+        }
       },
       "additionalProperties": false,
       "allOf": [
@@ -6331,6 +6334,92 @@
           "default": 0
         }
       }
+    },
+    "planarPolylineWidths": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "constant"
+            },
+            "width": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "width"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "perVertex"
+            },
+            "widths": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "widths"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "defaulted"
+            },
+            "defaultStartWidth": {
+              "type": "number",
+              "minimum": 0
+            },
+            "defaultEndWidth": {
+              "type": "number",
+              "minimum": 0
+            },
+            "overrides": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "start": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "end": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "defaultStartWidth",
+            "defaultEndWidth",
+            "overrides"
+          ],
+          "additionalProperties": false
+        }
+      ]
     }
   },
   "$comment": "Mandatory IFCCAD local supplements. Ordinary IFCX shapes, typed decoding and profile-rules graph/domain algorithms also apply. This is not a whole drawing schema or IFCX core syntax."

@@ -12,7 +12,15 @@ pub(crate) mod clip_containment;
 pub mod hatch;
 pub(crate) mod numeric;
 mod placement;
+mod polyline_width;
+mod polyline_width_bounds;
 mod primitive;
+pub use polyline_width::{
+    PlanarPolylineWidths, PolylineVertexWidthOverride, PolylineWidthValidationError,
+};
+pub use polyline_width_bounds::{
+    polyline_width_display_bounds, PolylineWidthBoundsReason, PolylineWidthDisplayBounds,
+};
 mod trig;
 mod units;
 mod validation;
@@ -20,7 +28,7 @@ mod values;
 
 pub(crate) use block::PreparedBlockTransform;
 pub use block::{BlockTransform, BlockTransformError, Scale3};
-pub use bounds::{geometry_bounds, paper_frame_bounds};
+pub use bounds::{geometry_bounds, geometry_centerline_bounds, paper_frame_bounds};
 pub(crate) use bulge::bulge_segment_bounds;
 pub(crate) use circular::{circular_bounds, elliptic_bounds};
 pub(crate) use placement::CoordinateFrameComponents;

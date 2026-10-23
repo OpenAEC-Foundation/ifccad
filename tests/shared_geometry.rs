@@ -8,7 +8,9 @@ fn packed_and_separate_bulges_have_identical_geometry() {
     let packed = [[-1., 0., 1.], [1., 0., 1.]];
     let xy = [[-1., 0.], [1., 0.]];
     let bulges = [1., 1.];
+    let widths = Default::default();
     let contour = |vertices| GeometryRef::PlanarPolyline {
+        widths: &widths,
         placement: CoordinateFrame3::default(),
         vertices,
         closed: true,
@@ -59,6 +61,7 @@ fn dormant_final_bulge_does_not_enlarge_an_open_path() {
     let vertices = [[0., 0.], [2., 0.]];
     let bulges = [0., 7.];
     let path = GeometryRef::PlanarPolyline {
+        widths: &Default::default(),
         placement: CoordinateFrame3::default(),
         vertices: PlanarVertices::Separate {
             xy: &vertices,
@@ -98,6 +101,7 @@ fn invalid_parameters_fail_before_exact_arithmetic() {
     .is_ok());
     let xy = [[0., 0.], [0., 0.]];
     assert!(validate_geometry(GeometryRef::PlanarPolyline {
+        widths: &Default::default(),
         placement: CoordinateFrame3::default(),
         vertices: PlanarVertices::Separate {
             xy: &xy,

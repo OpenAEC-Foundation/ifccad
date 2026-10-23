@@ -6,7 +6,7 @@ import {inspectionNavigation,cadSelectionForNode} from './inspection-navigation.
 import {initializeElementList} from './element-list.mjs';
 import {initializeDialogs} from './dialogs.mjs';
 import {initializeFeedback} from './feedback.mjs';
-import {inspectionReport,filledEvidenceSummary,dimensionGraphicsSummary,conversionDirections} from './inspection-report.mjs';
+import {inspectionReport,polylineWidthEvidenceSummary,filledEvidenceSummary,dimensionGraphicsSummary,conversionDirections} from './inspection-report.mjs';
 export function initializeWorkspace({onTab=()=>{},onPreferences=()=>{},onSelection=()=>{},onLayout=()=>{}}={}){
  const $=id=>document.getElementById(id);let storage;try{storage=localStorage;}catch{}
  const browserLanguages=()=>navigator.languages?.length?navigator.languages:[navigator.language];
@@ -61,6 +61,7 @@ export function initializeWorkspace({onTab=()=>{},onPreferences=()=>{},onSelecti
     if(messages.length){const ul=document.createElement('ul');for(const message of messages.slice(0,500)){const li=document.createElement('li');li.textContent=typeof message==='string'?message:[message.code,message.location,message.message,message.action,...(message.reasons||[])].filter(Boolean).join(' · ');ul.append(li);}if(state.tab==='overview'){const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent=t('reportMessages',{count:messages.length});details.append(summary,ul);section.append(details);}else section.append(ul);}
     if(part.text?.entries?.some(e=>e.glyphCoverage==='unassessed')){const notice=document.createElement('p');notice.className='secondary';notice.textContent=t('textGlyphNotice');section.append(notice);}
     const graphicsSummary=dimensionGraphicsSummary(part.dimensionAssessment,state.language);if(graphicsSummary){const notice=document.createElement('p');notice.className='secondary';notice.textContent=graphicsSummary;section.append(notice);}
+    const widthSummary=polylineWidthEvidenceSummary(part.geometryAssessment||part.geometry,state.language);if(widthSummary){const notice=document.createElement('p');notice.className='secondary';notice.textContent=widthSummary;section.append(notice);}
     const filledSummary=filledEvidenceSummary(part.geometryAssessment||part.geometry,state.language);if(filledSummary){const notice=document.createElement('p');notice.className='secondary';notice.textContent=filledSummary;section.append(notice);}
     if(key==='outputCheck'&&part.cadReadback===true)p.textContent=t('cadReadbackPassed');
     if(part.geometry||part.geometryAssessment||part.text||part.preservation||key==='outputCheck'){const details=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');summary.textContent=t(key==='outputCheck'?'readbackDetails':part.preservation?'restorationDetails':'conversionEvidence');pre.textContent=JSON.stringify(key==='outputCheck'?part:part.text?{geometry:part.geometry||part.geometryAssessment,text:part.text}:part.preservation?part:part.geometry||part.geometryAssessment,null,2);details.append(summary,pre);section.append(details);}

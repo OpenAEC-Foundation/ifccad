@@ -116,6 +116,7 @@ fn bounds_cover_curve_interiors_and_exclude_dormant_bulges() {
     assert!(bounds.max[1] >= 2.);
     assert!(bounds.min[0] <= -2. && bounds.max[0] >= 2.);
     d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::PlanarPolyline {
+        widths: Default::default(),
         vertices: vec![[0., 0.], [2., 0.]],
         bulges: vec![0., 100.],
         closed: false,

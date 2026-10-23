@@ -38,6 +38,7 @@ fn kinds() -> Vec<IfccadEntityKind> {
             placement: frame(),
         },
         IfccadEntityKind::PlanarPolyline {
+            widths: Default::default(),
             vertices: vec![[0., 0.], [2., 0.], [2., 2.]],
             bulges: vec![1., -0.25, 7.],
             closed: false,

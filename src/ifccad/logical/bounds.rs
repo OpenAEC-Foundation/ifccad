@@ -2,8 +2,8 @@
 use super::line_pattern_bounds::{effective_context, marker_contribution, AppearanceContext};
 use super::*;
 use crate::geometry_kernel::{
-    geometry_bounds, numeric::Interval, paper_frame_bounds, BlockTransform, PaperFrame, Point3,
-    PreparedBlockTransform, Scale3,
+    numeric::Interval, paper_frame_bounds, polyline_width_display_bounds, BlockTransform,
+    PaperFrame, Point3, PreparedBlockTransform, Scale3,
 };
 use crate::text::*;
 use std::collections::BTreeMap;
@@ -26,6 +26,12 @@ pub enum IfccadBoundsQuality {
     Estimated,
     Partial,
 }
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct IfccadPolylineWidthBoundsIssue {
+    pub source_path: String,
+    pub occurrence_path: Vec<u64>,
+    pub reason: crate::geometry_kernel::PolylineWidthBoundsReason,
+}
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadScopeBoundsAssessment {
     pub scope_id: IfccadScopeId,
@@ -34,6 +40,7 @@ pub struct IfccadScopeBoundsAssessment {
     pub enclosure_verified: bool,
     pub text_reasons: Vec<TextExtentReason>,
     pub line_pattern_reasons: Vec<crate::line_pattern::LinePatternBoundsReason>,
+    pub polyline_width_reasons: Vec<IfccadPolylineWidthBoundsIssue>,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadBoundsAssessment {
@@ -47,18 +54,20 @@ struct Extents {
     estimated: bool,
     reasons: Vec<TextExtentReason>,
     marker_unavailable: bool,
+    width_unavailable: bool,
+    polyline_width_reasons: Vec<IfccadPolylineWidthBoundsIssue>,
     line_pattern_reasons: Vec<crate::line_pattern::LinePatternBoundsReason>,
 }
 impl Extents {
     fn bounds(&self) -> Option<IfccadBounds3d> {
-        if self.unavailable || self.marker_unavailable {
+        if self.unavailable || self.marker_unavailable || self.width_unavailable {
             None
         } else {
             self.all
         }
     }
     fn quality(&self) -> Option<IfccadBoundsQuality> {
-        if self.unavailable || self.marker_unavailable {
+        if self.unavailable || self.marker_unavailable || self.width_unavailable {
             Some(IfccadBoundsQuality::Partial)
         } else if self.all.is_none() {
             None
@@ -69,7 +78,7 @@ impl Extents {
         }
     }
     fn completeness(&self) -> IfccadGeometryCompleteness {
-        if self.unavailable || self.marker_unavailable {
+        if self.unavailable || self.marker_unavailable || self.width_unavailable {
             IfccadGeometryCompleteness::Unavailable
         } else if self.all.is_some() {
             IfccadGeometryCompleteness::Complete
@@ -86,6 +95,9 @@ impl Extents {
         }
         self.unavailable |= other.unavailable;
         self.marker_unavailable |= other.marker_unavailable;
+        self.width_unavailable |= other.width_unavailable;
+        self.polyline_width_reasons
+            .extend(other.polyline_width_reasons);
         for r in other.line_pattern_reasons {
             if !self.line_pattern_reasons.contains(&r) {
                 self.line_pattern_reasons.push(r);
@@ -189,6 +201,8 @@ fn frame_stroke(
     Ok(Some(value))
 }
 struct ExtentContext<'a> {
+    entity_id: u64,
+    source_path: &'a str,
     appearance: &'a IfccadEntityAppearance,
     layer_id: Option<u64>,
     occurrence: AppearanceContext,
@@ -245,6 +259,8 @@ impl<'a> Evaluation<'a> {
                 owner,
                 &e.kind,
                 ExtentContext {
+                    entity_id: e.id,
+                    source_path: &format!("/cad/d{}/e{}", self.drawing.drawing_id, e.id),
                     appearance: &e.appearance,
                     layer_id: Some(e.layer_id),
                     occurrence: context,
@@ -263,6 +279,8 @@ impl<'a> Evaluation<'a> {
         input: ExtentContext<'_>,
     ) -> Result<Extents, IfccadReport> {
         let ExtentContext {
+            entity_id,
+            source_path,
             appearance,
             layer_id,
             occurrence: context,
@@ -276,6 +294,9 @@ impl<'a> Evaluation<'a> {
                 let block = self.blocks[definition_id];
                 let mut local =
                     self.scope(Owner::BlockDefinition(*definition_id), Some(context))?;
+                for issue in &mut local.polyline_width_reasons {
+                    issue.occurrence_path.insert(0, entity_id);
+                }
                 let t = BlockTransform::try_new(
                     transform.placement.coordinate_frame()?,
                     transform.rotation,
@@ -394,7 +415,7 @@ impl<'a> Evaluation<'a> {
                     });
                 };
                 let mut local = Extents::default();
-                for part in &graphics.parts {
+                for (part_index, part) in graphics.parts.iter().enumerate() {
                     if part.purpose == IfccadDimensionGraphicsPurpose::ReferencePoint {
                         continue;
                     }
@@ -407,16 +428,27 @@ impl<'a> Evaluation<'a> {
                         })?
                         .upper;
                     let kind = IfccadEntityKind::from(part.kind.clone());
-                    local.merge(self.kind_extents(
+                    let part_path = format!("{source_path}/graphics/p{part_index}");
+                    let mut contribution = self.kind_extents(
                         owner,
                         &kind,
                         ExtentContext {
+                            entity_id,
+                            source_path: &part_path,
                             appearance: &part.appearance,
                             layer_id: context.layer_id,
                             occurrence: context,
                             line_pattern_scale: scale,
                         },
-                    )?);
+                    )?;
+                    if matches!(part.kind, IfccadDimensionGraphicsKind::BlockInstance { .. }) {
+                        // Bounds responsibility is the dependent picture part; leaf/handle
+                        // identities remain in the separate numerical geometry assessment.
+                        for issue in &mut contribution.polyline_width_reasons {
+                            issue.source_path = part_path.clone();
+                        }
+                    }
+                    local.merge(contribution);
                 }
                 let transform = BlockTransform::try_new(
                     dimension.placement.coordinate_frame()?,
@@ -460,15 +492,53 @@ impl<'a> Evaluation<'a> {
                 }
             }
             kind => {
-                let b = native(
-                    geometry_bounds(kind.as_shared_geometry()?.expect("primitive branch"))
-                        .map_err(|e| error(owner, &e.to_string()))?,
-                );
-                Extents {
-                    all: Some(b),
-                    proven: Some(b),
-                    ..Default::default()
+                let shared = kind.as_shared_geometry()?.expect("primitive branch");
+                let display = polyline_width_display_bounds(shared)
+                    .map_err(|e| error(owner, &e.to_string()))?;
+                let mut value = Extents::default();
+                for b in display.proven_segment_bounds {
+                    let b = native(b);
+                    union(&mut value.all, b);
+                    union(&mut value.proven, b);
                 }
+                let mut reasons = display.reasons;
+                if let IfccadEntityKind::PlanarPolyline {
+                    widths,
+                    vertices,
+                    closed,
+                    ..
+                } = kind
+                {
+                    let count = if *closed {
+                        vertices.len()
+                    } else {
+                        vertices.len().saturating_sub(1)
+                    };
+                    let active_wide = widths
+                        .effective_widths(vertices.len())
+                        .map_err(|e| error(owner, &e.to_string()))?
+                        .iter()
+                        .take(count)
+                        .flatten()
+                        .any(|v| *v != 0.);
+                    let continuous = context
+                        .pattern_id
+                        .and_then(|id| self.drawing.line_patterns.iter().find(|p| p.id == id))
+                        .is_some_and(|p| p.pattern.is_empty());
+                    if active_wide && !continuous {
+                        reasons.push(crate::geometry_kernel::PolylineWidthBoundsReason::UnassessedPatternInteraction);
+                    }
+                }
+                value.width_unavailable = !reasons.is_empty();
+                value.polyline_width_reasons = reasons
+                    .into_iter()
+                    .map(|reason| IfccadPolylineWidthBoundsIssue {
+                        source_path: format!("{source_path}/ifccad::geom::planarPolyline/widths"),
+                        occurrence_path: vec![],
+                        reason,
+                    })
+                    .collect();
+                value
             }
         };
         if matches!(
@@ -610,9 +680,13 @@ pub fn assess_ifccad_document_bounds(
                     scope_id: owner,
                     bounds: e.bounds(),
                     quality: e.quality(),
-                    enclosure_verified: !e.unavailable && !e.marker_unavailable && !e.estimated,
+                    enclosure_verified: !e.unavailable
+                        && !e.marker_unavailable
+                        && !e.width_unavailable
+                        && !e.estimated,
                     text_reasons: e.reasons,
                     line_pattern_reasons: e.line_pattern_reasons,
+                    polyline_width_reasons: e.polyline_width_reasons,
                 },
             ))
         })

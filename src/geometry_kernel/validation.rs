@@ -1,4 +1,4 @@
-use super::{geometry_bounds, paper_frame_bounds, GeometryRef, PaperFrame};
+use super::{geometry_centerline_bounds, paper_frame_bounds, GeometryRef, PaperFrame};
 use std::collections::BTreeSet;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
@@ -38,7 +38,9 @@ pub(crate) fn validate_parameters(g: GeometryRef<'_>) -> Result<(), GeometryVali
                 && major >= minor
                 && arc.is_none_or(|(s, w)| arc_valid(s, w))
         }
-        GeometryRef::PlanarPolyline { vertices, .. } => vertices.len() >= 2 && vertices.is_finite(),
+        GeometryRef::PlanarPolyline {
+            vertices, widths, ..
+        } => vertices.len() >= 2 && vertices.is_finite() && widths.validate(vertices.len()).is_ok(),
         GeometryRef::SpatialPolyline { vertices, .. } => {
             vertices.len() >= 2 && vertices.iter().flatten().all(|v| v.is_finite())
         }
@@ -50,7 +52,7 @@ fn arc_valid(start: f64, sweep: f64) -> bool {
     start.is_finite() && sweep.is_finite() && sweep != 0. && sweep.abs() < std::f64::consts::TAU
 }
 pub fn validate_geometry(g: GeometryRef<'_>) -> Result<(), GeometryValidationError> {
-    geometry_bounds(g).map(|_| ())
+    geometry_centerline_bounds(g).map(|_| ())
 }
 pub fn validate_paper_boundary(
     f: PaperFrame,

@@ -19,15 +19,16 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
   source:{name:request.name,format:'ocdraw'},reader:{status:'failed',messages:[]},validation:{strictAvailable:false},
   failure:{stage:'reading',code:'OCDRAW_PARKED',message:'OCDraw is parked. Choose an IFCCAD file or use the archived OCDraw reference.'}
  };
- const options=request.conversionOptions||request.preserveSplines===true?{tolerance:normalizeTolerance(request.conversionOptions?.tolerance??{mode:"default"}),...(request.conversionOptions?.partialOpen===true?{partialOpen:true}:{}),...(request.preserveSplines===true?{preserveSplines:true}:{})}:undefined;
- const exportOptions=request.exportConversionOptions?{tolerance:normalizeTolerance(request.exportConversionOptions.tolerance??{mode:'default'})}:options;
+ const lossPolicy=config=>{if(config?.lossPolicy===undefined)return {};if(!['allow','reject'].includes(config.lossPolicy))throw Error('Invalid loss policy');return {lossPolicy:config.lossPolicy};};
+ const options=request.conversionOptions||request.preserveSplines===true?{tolerance:normalizeTolerance(request.conversionOptions?.tolerance??{mode:"default"}),...lossPolicy(request.conversionOptions),...(request.conversionOptions?.partialOpen===true?{partialOpen:true}:{}),...(request.preserveSplines===true?{preserveSplines:true}:{})}:undefined;
+ const exportOptions=request.exportConversionOptions?{tolerance:normalizeTolerance(request.exportConversionOptions.tolerance??{mode:'default'}),...lossPolicy(request.exportConversionOptions)}:options;
  const invoke=(name,args,config=options)=>{
   const capabilities=typeof wasm.conversion_capabilities==='function'?parsePresentationJson(wasm.conversion_capabilities()):{};
   if(name==='convert_cad_to_ifccad'&&config?.partialOpen===true&&(capabilities.ifccad?.partialOpening!==true||typeof wasm.convert_cad_to_ifccad_with_options!=='function'))throw Error('Partial opening is unavailable in this processor');
   if(typeof wasm.conversion_capabilities==='function'&&(config?.tolerance.mode??'default')==='default'&&capabilities[drawingFormat]?.coordinateToleranceDefault!==true)throw Error('Coordinate default tolerance is unavailable in this processor');
   if(config?.tolerance.coordinateFallback!==undefined&&capabilities[drawingFormat]?.coordinateToleranceFallback!==true)throw Error('Coordinate tolerance fallback is unavailable in this processor');
   if(name==='convert_cad_to_ifccad'&&request.preserveSplines===true&&(capabilities.ifccad?.splinePreservation!==true||typeof wasm.convert_cad_to_ifccad_with_options!=='function'))throw Error('IFCCAD spline preservation is unavailable in this processor');
-  if(config){if(typeof wasm[name+'_with_options']==='function')return wasm[name+'_with_options'](...args,JSON.stringify(config));if(config.tolerance.mode!=='default')throw Error('This converter build does not support adjustable tolerance options');}
+  if(config){if(typeof wasm[name+'_with_options']==='function')return wasm[name+'_with_options'](...args,JSON.stringify(config));if(config.lossPolicy==='reject')throw Error('Loss rejection is unavailable in this processor');if(config.tolerance.mode!=='default')throw Error('This converter build does not support adjustable tolerance options');}
   return wasm[name](...args);
  };
  const drawingFormat='ifccad';

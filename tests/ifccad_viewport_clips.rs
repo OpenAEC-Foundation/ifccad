@@ -28,6 +28,7 @@ fn new_clip_families_accept_tangency_and_reject_interior_escape() {
         height: 2.,
     };
     let poly = |bulges| IfccadEntityKind::PlanarPolyline {
+        widths: Default::default(),
         vertices: vec![[-1., 0.], [1., 0.]],
         bulges,
         closed: true,

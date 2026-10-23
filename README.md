@@ -77,10 +77,13 @@ source retention and loss diagnostics remain unchanged. See the
 3. The [native SOLID/TRACE precursor](docs/geometry/solid-trace-design.md) is implemented,
    retaining all finite local corner combinations and both CAD object types,
    with coordinate, surface and display guarantees kept separate.
-4. Add bounded worked-out Dimension graphics using the currently supported
-   zero-width polyline profile; native storage, CAD exchange and Explorer support are implemented and verified.
-5. Add polyline widths as a separate follow-up, using the red sample_AC1032
-   Dimension and its wide `_ArchTick` marker as an acceptance case.
+4. Bounded worked-out Dimension graphics have native storage, atomic CAD exchange
+   and Explorer support; the separate width candidate extends their original
+   zero-width primitive boundary.
+5. Native polyline widths are implemented as a separate review candidate, including
+   classic defaults/zero overrides and original red sample_AC1032 storage acceptance.
+   Final verification is separately recorded; bounded unchanged-host comparison passes;
+   extrusion thickness is deferred.
 6. Continue remaining Dimension kinds/selectors and later joint annotation support
    according to their dependencies.
 7. Expand supported CAD semantics; assess whole-document storage/performance

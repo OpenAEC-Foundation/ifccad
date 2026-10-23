@@ -1,0 +1,1056 @@
+diff --git a/src/entities/polyline.rs b/src/entities/polyline.rs
+index 0ef95f1..9a571c5 100644
+--- a/src/entities/polyline.rs
++++ b/src/entities/polyline.rs
+@@ -135,10 +135,10 @@ pub struct Vertex2D {
+     pub location: Vector3,
+     /// Vertex flags
+     pub flags: VertexFlags,
+-    /// Start width (0 = use default)
+-    pub start_width: f64,
+-    /// End width (0 = use default)
+-    pub end_width: f64,
++    /// Explicit start width; None inherits the owning polyline start default.
++    pub start_width: Option<f64>,
++    /// Explicit end width; None inherits the owning polyline end default.
++    pub end_width: Option<f64>,
+     /// Bulge (0 = straight segment, <0 = clockwise arc, >0 = counter-clockwise arc)
+     pub bulge: f64,
+     /// Curve fit tangent direction in radians
+@@ -152,8 +152,8 @@ impl Vertex2D {
+         Self {
+             location,
+             flags: VertexFlags::new(),
+-            start_width: 0.0,
+-            end_width: 0.0,
++            start_width: None,
++            end_width: None,
+             bulge: 0.0,
+             curve_tangent: 0.0,
+             id: 0,
+@@ -170,8 +170,8 @@ impl Vertex2D {
+     }
+ 
+     pub fn with_width(mut self, start_width: f64, end_width: f64) -> Self {
+-        self.start_width = start_width;
+-        self.end_width = end_width;
++        self.start_width = Some(start_width);
++        self.end_width = Some(end_width);
+         self
+     }
+ }
+@@ -226,6 +226,17 @@ pub struct Polyline2D {
+ }
+ 
+ impl Polyline2D {
++    /// Resolve each independently absent vertex width against its matching default.
++    /// Numeric zero, including signed zero, is always an explicit width.
++    pub fn effective_vertex_widths(&self, index: usize) -> Option<[f64; 2]> {
++        self.vertices.get(index).map(|v| {
++            [
++                v.start_width.unwrap_or(self.start_width),
++                v.end_width.unwrap_or(self.end_width),
++            ]
++        })
++    }
++
+     pub fn new() -> Self {
+         Self {
+             common: EntityCommon::new(),
+diff --git a/src/io/dwg/dwg_document_builder.rs b/src/io/dwg/dwg_document_builder.rs
+index 87651c7..671dbd1 100644
+--- a/src/io/dwg/dwg_document_builder.rs
++++ b/src/io/dwg/dwg_document_builder.rs
+@@ -2349,8 +2349,8 @@ impl DwgDocumentBuilder {
+                                         flags: crate::entities::polyline::VertexFlags::from_bits(
+                                             d.flags,
+                                         ),
+-                                        start_width: d.start_width,
+-                                        end_width: d.end_width,
++                                        start_width: Some(d.start_width),
++                                        end_width: Some(d.end_width),
+                                         bulge: d.bulge,
+                                         curve_tangent: d.tangent_dir,
+                                         id: d.vertex_id,
+diff --git a/src/io/dwg/dwg_stream_writers/object_writer/entities.rs b/src/io/dwg/dwg_stream_writers/object_writer/entities.rs
+index f0459f4..792a182 100644
+--- a/src/io/dwg/dwg_stream_writers/object_writer/entities.rs
++++ b/src/io/dwg/dwg_stream_writers/object_writer/entities.rs
+@@ -2578,7 +2578,14 @@ impl<'a> DwgObjectWriter<'a> {
+                 None
+             };
+             self.next_handle = (i + 1 < vertex_handles.len()).then(|| vertex_handles[i + 1]);
+-            self.write_vertex2d(v, vh, e.common.handle, &e.common.layer, &e.common.color);
++            self.write_vertex2d(
++                v,
++                e.effective_vertex_widths(i).expect("existing vertex"),
++                vh,
++                e.common.handle,
++                &e.common.layer,
++                &e.common.color,
++            );
+         }
+ 
+         // Write SEQEND — last in polyline chain
+@@ -2621,6 +2628,7 @@ impl<'a> DwgObjectWriter<'a> {
+     fn write_vertex2d(
+         &mut self,
+         v: &Vertex2D,
++        widths: [f64; 2],
+         vertex_handle: Handle,
+         owner: Handle,
+         parent_layer: &str,
+@@ -2663,12 +2671,12 @@ impl<'a> DwgObjectWriter<'a> {
+         self.writer.write_bit_double(v.location.z);
+ 
+         // Start width BD 40 — negative = compression trick
+-        if v.start_width != 0.0 && v.end_width == v.start_width {
+-            self.writer.write_bit_double(-v.start_width);
++        if widths[0] != 0.0 && widths[1] == widths[0] {
++            self.writer.write_bit_double(-widths[0]);
+         } else {
+-            self.writer.write_bit_double(v.start_width);
++            self.writer.write_bit_double(widths[0]);
+             // End width BD 41 — only present if start >= 0
+-            self.writer.write_bit_double(v.end_width);
++            self.writer.write_bit_double(widths[1]);
+         }
+ 
+         // Bulge BD 42
+diff --git a/src/io/dxf/mod.rs b/src/io/dxf/mod.rs
+index 3edb24e..c5bbbb3 100644
+--- a/src/io/dxf/mod.rs
++++ b/src/io/dxf/mod.rs
+@@ -32,7 +32,8 @@ pub use reader::{DxfReader, DxfReaderConfiguration};
+ pub(crate) use reader::{DxfStreamReader, DxfTextReader};
+ pub use writer::{value_type_for_code, write_binary_dxf, write_dxf};
+ pub use writer::{
+-    DxfBinaryWriter, DxfStreamWriter, DxfStreamWriterExt, DxfTextWriter, DxfWriter, SectionWriter,
++    DxfBinaryWriter, DxfStreamWriter, DxfStreamWriterExt, DxfTextWriter, DxfWriter,
++    Polyline2DWriteMode, SectionWriter,
+ };
+ 
+ pub(crate) fn split_color_book_name(value: &str) -> (Option<String>, Option<String>) {
+diff --git a/src/io/dxf/reader/section_reader.rs b/src/io/dxf/reader/section_reader.rs
+index 99df41b..73c15bd 100644
+--- a/src/io/dxf/reader/section_reader.rs
++++ b/src/io/dxf/reader/section_reader.rs
+@@ -1076,12 +1076,12 @@ impl DynamicDxfFields {
+                     GroupCodeValueType::Byte
+                     | GroupCodeValueType::Int16
+                     | GroupCodeValueType::Int32
+-                    | GroupCodeValueType::Int64 => BlockPropertiesTableValue::Integer(
+-                        value.trim().parse::<i64>().unwrap_or(0),
+-                    ),
+-                    GroupCodeValueType::Double => BlockPropertiesTableValue::Real(
+-                        value.trim().parse::<f64>().unwrap_or(0.0),
+-                    ),
++                    | GroupCodeValueType::Int64 => {
++                        BlockPropertiesTableValue::Integer(value.trim().parse::<i64>().unwrap_or(0))
++                    }
++                    GroupCodeValueType::Double => {
++                        BlockPropertiesTableValue::Real(value.trim().parse::<f64>().unwrap_or(0.0))
++                    }
+                     GroupCodeValueType::Handle => {
+                         BlockPropertiesTableValue::Handle(parse_dxf_handle(value))
+                     }
+@@ -1092,9 +1092,7 @@ impl DynamicDxfFields {
+                     }
+                     GroupCodeValueType::None
+                     | GroupCodeValueType::String
+-                    | GroupCodeValueType::Point3D => {
+-                        BlockPropertiesTableValue::Text(value.clone())
+-                    }
++                    | GroupCodeValueType::Point3D => BlockPropertiesTableValue::Text(value.clone()),
+                 };
+                 BlockPropertiesTableField {
+                     code: *code,
+@@ -4605,12 +4603,10 @@ impl<'a> SectionReader<'a> {
+             "BLOCKROTATIONGRIP" => DynamicBlockData::RotationGrip(dynamic_dxf_grip(&fields)),
+             "BLOCKVISIBILITYGRIP" => DynamicBlockData::VisibilityGrip(dynamic_dxf_grip(&fields)),
+             "BLOCKXYGRIP" => DynamicBlockData::XYGrip(dynamic_dxf_grip(&fields)),
+-            "BLOCKPROPERTIESTABLE" => {
+-                DynamicBlockData::PropertiesTable(BlockPropertiesTable {
+-                    parameter: dynamic_dxf_one_point(&fields),
+-                    fields: fields.properties_table_fields("AcDbBlockPropertiesTable"),
+-                })
+-            }
++            "BLOCKPROPERTIESTABLE" => DynamicBlockData::PropertiesTable(BlockPropertiesTable {
++                parameter: dynamic_dxf_one_point(&fields),
++                fields: fields.properties_table_fields("AcDbBlockPropertiesTable"),
++            }),
+             "BLOCKPROPERTIESTABLEGRIP" => {
+                 DynamicBlockData::PropertiesTableGrip(dynamic_dxf_grip(&fields))
+             }
+@@ -12974,43 +12970,21 @@ impl<'a> SectionReader<'a> {
+             pl.thickness = thickness;
+             pl.elevation = elevation;
+             pl.normal = normal_v;
+-            // A VERTEX without codes 40/41 inherits the POLYLINE default width;
+-            // one that carries them (even as 0) keeps its own value. Bake the
+-            // effective width into each vertex so tapered polylines survive —
+-            // this mirrors how a heavy polyline down-saves to LWPOLYLINE.
++            // Preserve independent tag presence; defaults remain authored header state.
+             pl.vertices = geom_vertices
+                 .iter()
+                 .map(|rv| {
+                     let mut v = Vertex2D::new(rv.loc);
+                     v.flags = VertexFlags::from_bits(rv.vflags as u8);
+-                    v.start_width = if rv.has_start_width {
+-                        rv.start_width
+-                    } else {
+-                        def_start_width
+-                    };
+-                    v.end_width = if rv.has_end_width {
+-                        rv.end_width
+-                    } else {
+-                        def_end_width
+-                    };
++                    v.start_width = rv.has_start_width.then_some(rv.start_width);
++                    v.end_width = rv.has_end_width.then_some(rv.end_width);
+                     v.bulge = rv.bulge;
+                     v.curve_tangent = rv.tangent;
+                     v
+                 })
+                 .collect();
+-            // When any vertex specifies its own width, the widths now live
+-            // per-vertex; keeping a non-zero polyline default would let a
+-            // renderer bleed it onto the intentionally zero-width segments.
+-            let per_vertex_widths = geom_vertices
+-                .iter()
+-                .any(|rv| rv.has_start_width || rv.has_end_width);
+-            if per_vertex_widths {
+-                pl.start_width = 0.0;
+-                pl.end_width = 0.0;
+-            } else {
+-                pl.start_width = def_start_width;
+-                pl.end_width = def_end_width;
+-            }
++            pl.start_width = def_start_width;
++            pl.end_width = def_end_width;
+             Ok(Some(EntityType::Polyline2D(pl)))
+         }
+     }
+diff --git a/src/io/dxf/writer/mod.rs b/src/io/dxf/writer/mod.rs
+index 96c5294..0f759d7 100644
+--- a/src/io/dxf/writer/mod.rs
++++ b/src/io/dxf/writer/mod.rs
+@@ -41,6 +41,16 @@ pub(crate) fn degrees(radians: f64) -> f64 {
+     degrees
+ }
+ 
++/// How plain classic 2D polylines are represented in modern DXF output.
++#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
++pub enum Polyline2DWriteMode {
++    /// Existing compact route; independently inherited widths are materialized.
++    #[default]
++    LightweightWhenEligible,
++    /// Keep header defaults and each independent VERTEX override presence.
++    PreserveClassic,
++}
++
+ /// DXF file writer
+ pub struct DxfWriter<'a> {
+     document: &'a CadDocument,
+@@ -48,6 +58,7 @@ pub struct DxfWriter<'a> {
+     pub binary: bool,
+     /// Explicit target version; `None` writes the document's own version.
+     version: Option<crate::types::DxfVersion>,
++    polyline2d_write_mode: Polyline2DWriteMode,
+ }
+ 
+ impl<'a> DxfWriter<'a> {
+@@ -57,6 +68,7 @@ impl<'a> DxfWriter<'a> {
+             document,
+             binary: false,
+             version: None,
++            polyline2d_write_mode: Polyline2DWriteMode::default(),
+         }
+     }
+ 
+@@ -66,6 +78,7 @@ impl<'a> DxfWriter<'a> {
+             document,
+             binary: true,
+             version: None,
++            polyline2d_write_mode: Polyline2DWriteMode::default(),
+         }
+     }
+ 
+@@ -81,6 +94,12 @@ impl<'a> DxfWriter<'a> {
+         self
+     }
+ 
++    /// Select whether classic default/override dependencies must remain authored.
++    pub fn with_polyline2d_write_mode(mut self, mode: Polyline2DWriteMode) -> Self {
++        self.polyline2d_write_mode = mode;
++        self
++    }
++
+     /// Set whether to write binary format
+     pub fn set_binary(&mut self, binary: bool) {
+         self.binary = binary;
+@@ -192,10 +211,12 @@ impl<'a> DxfWriter<'a> {
+         let extra_handles = count_extra_handles(
+             document,
+             SectionWriter::<W>::writable_version(output_version),
++            self.polyline2d_write_mode,
+         );
+         let handle_seed = handle_start + extra_handles + 1;
+         let mut section_writer = SectionWriter::new(writer, handle_start, handle_seed);
+         section_writer.set_version(output_version);
++        section_writer.set_polyline2d_write_mode(self.polyline2d_write_mode);
+         section_writer.build_valid_handles(document);
+ 
+         // Write all sections
+@@ -247,7 +268,11 @@ impl<'a> DxfWriter<'a> {
+     }
+ }
+ 
+-fn count_extra_handles(document: &CadDocument, version: crate::types::DxfVersion) -> u64 {
++fn count_extra_handles(
++    document: &CadDocument,
++    version: crate::types::DxfVersion,
++    mode: Polyline2DWriteMode,
++) -> u64 {
+     use crate::objects::ObjectType;
+ 
+     let mut count = 0u64;
+@@ -261,7 +286,8 @@ fn count_extra_handles(document: &CadDocument, version: crate::types::DxfVersion
+             EntityType::Polyline2D(polyline) => {
+                 // Plain 2D polylines down-save as LWPOLYLINE for R2000+,
+                 // which emits no child records (see SectionWriter).
+-                if version >= crate::types::DxfVersion::AC1015
++                if mode == Polyline2DWriteMode::LightweightWhenEligible
++                    && version >= crate::types::DxfVersion::AC1015
+                     && section_writer::polyline2d_downsaves_to_lwpolyline(polyline)
+                 {
+                     continue;
+diff --git a/src/io/dxf/writer/r12.rs b/src/io/dxf/writer/r12.rs
+index 4857e80..4e5b3e0 100644
+--- a/src/io/dxf/writer/r12.rs
++++ b/src/io/dxf/writer/r12.rs
+@@ -1283,9 +1283,11 @@ impl<'a, W: DxfStreamWriter> R12Writer<'a, W> {
+         self.normal(p.normal)?;
+         for v in &p.vertices {
+             self.vertex_start(&p.common, paper, v.location)?;
+-            if v.start_width != 0.0 || v.end_width != 0.0 {
+-                self.writer.write_double(40, v.start_width)?;
+-                self.writer.write_double(41, v.end_width)?;
++            if let Some(width) = v.start_width {
++                self.writer.write_double(40, width)?;
++            }
++            if let Some(width) = v.end_width {
++                self.writer.write_double(41, width)?;
+             }
+             if v.bulge != 0.0 {
+                 self.writer.write_double(42, v.bulge)?;
+diff --git a/src/io/dxf/writer/section_writer.rs b/src/io/dxf/writer/section_writer.rs
+index f827842..83a4ab8 100644
+--- a/src/io/dxf/writer/section_writer.rs
++++ b/src/io/dxf/writer/section_writer.rs
+@@ -7,6 +7,8 @@ mod associative;
+ #[cfg(test)]
+ mod table_tests;
+ 
++use super::Polyline2DWriteMode;
++
+ use crate::document::CadDocument;
+ use crate::entities::*;
+ use crate::error::{DxfError, Result};
+@@ -73,6 +75,7 @@ pub struct SectionWriter<'a, W: DxfStreamWriter> {
+     handle_seed: u64,
+     /// DXF version (determines SAT vs SAB format for ACIS data)
+     dxf_version: DxfVersion,
++    polyline2d_write_mode: Polyline2DWriteMode,
+     /// Collected SAB entries: (entity_handle, sab_binary_data) for ACDSDATA section
+     sab_entries: Vec<(Handle, Vec<u8>)>,
+     /// Whether currently writing paper space entities (for group code 67)
+@@ -110,6 +113,11 @@ pub struct SectionWriter<'a, W: DxfStreamWriter> {
+ }
+ 
+ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
++    /// Select the same classic representation policy used for handle budgeting.
++    pub fn set_polyline2d_write_mode(&mut self, mode: Polyline2DWriteMode) {
++        self.polyline2d_write_mode = mode;
++    }
++
+     /// Create a new section writer
+     pub fn new(writer: &'a mut W, handle_start: u64, handle_seed: u64) -> Self {
+         Self {
+@@ -117,6 +125,7 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
+             next_handle: handle_start,
+             handle_seed,
+             dxf_version: DxfVersion::AC1024,
++            polyline2d_write_mode: Polyline2DWriteMode::default(),
+             sab_entries: Vec::new(),
+             writing_paper_space: false,
+             paper_viewport_ids: HashMap::new(),
+@@ -4163,7 +4172,10 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
+         // Writing every heavy polyline back as POLYLINE/VERTEX/SEQEND is a
+         // large structural divergence from the source drawing, and some CAD
+         // applications flag the resurrected VERTEX owner wiring on save.
+-        if self.dxf_version >= DxfVersion::AC1015 && polyline2d_downsaves_to_lwpolyline(polyline) {
++        if self.polyline2d_write_mode == Polyline2DWriteMode::LightweightWhenEligible
++            && self.dxf_version >= DxfVersion::AC1015
++            && polyline2d_downsaves_to_lwpolyline(polyline)
++        {
+             return self.write_polyline2d_as_lwpolyline(polyline, owner);
+         }
+         self.writer.write_entity_type("POLYLINE")?;
+@@ -4183,10 +4195,10 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
+         if polyline.thickness != 0.0 {
+             self.writer.write_double(39, polyline.thickness)?;
+         }
+-        if polyline.start_width != 0.0 {
++        if polyline.start_width.to_bits() != 0 {
+             self.writer.write_double(40, polyline.start_width)?;
+         }
+-        if polyline.end_width != 0.0 {
++        if polyline.end_width.to_bits() != 0 {
+             self.writer.write_double(41, polyline.end_width)?;
+         }
+         self.write_normal(polyline.normal)?;
+@@ -4212,11 +4224,11 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
+             self.writer.write_subclass("AcDbVertex")?;
+             self.writer.write_subclass("AcDb2dVertex")?;
+             self.writer.write_point3d(10, vertex.location)?;
+-            if vertex.start_width != 0.0 {
+-                self.writer.write_double(40, vertex.start_width)?;
++            if let Some(width) = vertex.start_width {
++                self.writer.write_double(40, width)?;
+             }
+-            if vertex.end_width != 0.0 {
+-                self.writer.write_double(41, vertex.end_width)?;
++            if let Some(width) = vertex.end_width {
++                self.writer.write_double(41, width)?;
+             }
+             if vertex.bulge != 0.0 {
+                 self.writer.write_double(42, vertex.bulge)?;
+@@ -4272,16 +4284,8 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
+         for vertex in &polyline.vertices {
+             self.writer.write_double(10, vertex.location.x)?;
+             self.writer.write_double(20, vertex.location.y)?;
+-            let start_width = if vertex.start_width != 0.0 {
+-                vertex.start_width
+-            } else {
+-                polyline.start_width
+-            };
+-            let end_width = if vertex.end_width != 0.0 {
+-                vertex.end_width
+-            } else {
+-                polyline.end_width
+-            };
++            let start_width = vertex.start_width.unwrap_or(polyline.start_width);
++            let end_width = vertex.end_width.unwrap_or(polyline.end_width);
+             self.writer.write_double(40, start_width)?;
+             self.writer.write_double(41, end_width)?;
+             self.writer.write_double(42, vertex.bulge)?;
+@@ -4300,6 +4304,16 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
+ 
+     /// Write LWPOLYLINE entity
+     fn write_lwpolyline(&mut self, lwpoly: &LwPolyline, owner: Handle) -> Result<()> {
++        if lwpoly.constant_width.to_bits() != 0
++            && lwpoly
++                .vertices
++                .iter()
++                .any(|v| v.start_width.to_bits() != 0 || v.end_width.to_bits() != 0)
++        {
++            return Err(crate::error::DxfError::Encoding(
++                "Conflicting constant and per-vertex LWPOLYLINE widths".into(),
++            ));
++        }
+         self.writer.write_entity_type("LWPOLYLINE")?;
+         self.write_common_entity_data(&lwpoly.common, owner)?;
+         self.writer.write_subclass("AcDbPolyline")?;
+@@ -4318,16 +4332,18 @@ impl<'a, W: DxfStreamWriter> SectionWriter<'a, W> {
+         if lwpoly.thickness != 0.0 {
+             self.writer.write_double(39, lwpoly.thickness)?;
+         }
+-        if lwpoly.constant_width != 0.0 {
++        if lwpoly.constant_width.to_bits() != 0 {
+             self.writer.write_double(43, lwpoly.constant_width)?;
+         }
+ 
+         for vertex in &lwpoly.vertices {
+             self.writer.write_double(10, vertex.location.x)?;
+             self.writer.write_double(20, vertex.location.y)?;
+-            // Always write start width, end width, and bulge (default to 0.0 if not set)
+-            self.writer.write_double(40, vertex.start_width)?;
+-            self.writer.write_double(41, vertex.end_width)?;
++            // Constant width and variable width controls must not compete.
++            if lwpoly.constant_width.to_bits() == 0 {
++                self.writer.write_double(40, vertex.start_width)?;
++                self.writer.write_double(41, vertex.end_width)?;
++            }
+             self.writer.write_double(42, vertex.bulge)?;
+             // Vertex ids only exist in R2010+ drawings; earlier formats have
+             // no such field.
+diff --git a/src/lib.rs b/src/lib.rs
+index 839afa2..14ee890 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -265,7 +265,7 @@ pub use layer_state::{LayerState, LayerStateLayer, LayerStateMask};
+ 
+ // Re-export I/O types
+ pub use io::dwg::{DwgReadOptions, DwgReader, DwgWriter, MeshFaceBudget};
+-pub use io::dxf::{DxfReader, DxfReaderConfiguration, DxfWriter};
++pub use io::dxf::{DxfReader, DxfReaderConfiguration, DxfWriter, Polyline2DWriteMode};
+ pub use io::read::{
+     push_read_diagnostic, ReadDiagnostic, ReadOutcome, ReadStage, ReadStats, SourceFormat,
+     MAX_READ_DIAGNOSTICS,
+diff --git a/tests/issue63.rs b/tests/issue63.rs
+index cdf6661..80863f4 100644
+--- a/tests/issue63.rs
++++ b/tests/issue63.rs
+@@ -125,8 +125,8 @@ fn plain_polyline() -> Polyline2D {
+     pl.add_vertex(v0);
+ 
+     let mut v1 = Vertex2D::new(Vector3::new(10.0, 0.0, 2.0));
+-    v1.start_width = 1.0;
+-    v1.end_width = 0.25;
++    v1.start_width = Some(1.0);
++    v1.end_width = Some(0.25);
+     pl.add_vertex(v1);
+ 
+     pl.add_vertex(Vertex2D::new(Vector3::new(10.0, 10.0, 2.0)));
+diff --git a/tests/polyline_width_defaults.rs b/tests/polyline_width_defaults.rs
+new file mode 100644
+--- /dev/null
++++ b/tests/polyline_width_defaults.rs
+@@ -0,0 +1,71 @@
++//! Classic source presence survives independently of effective numeric widths.
++use acadrust::entities::Polyline2D;
++use acadrust::{DxfReader, EntityType};
++use std::io::Cursor;
++fn classic() -> Polyline2D {
++    let doc = DxfReader::from_reader(Cursor::new(
++        include_bytes!("fixtures/polyline-width-defaults.dxf").to_vec(),
++    ))
++    .unwrap()
++    .read()
++    .unwrap();
++    let found = doc
++        .entities()
++        .find_map(|e| match e {
++            EntityType::Polyline2D(p) => Some(p.clone()),
++            _ => None,
++        })
++        .expect("classic POLYLINE");
++    found
++}
++#[test]
++fn classic_reader_preserves_header_defaults() {
++    let p = classic();
++    assert_eq!([p.start_width, p.end_width], [0.2, 0.4]);
++}
++
++#[test]
++fn classic_reader_preserves_independent_overrides() {
++    let p = classic();
++    let actual: Vec<_> = p
++        .vertices
++        .iter()
++        .map(|v| (v.start_width, v.end_width))
++        .collect();
++    assert_eq!(
++        actual,
++        vec![
++            (None, None),
++            (Some(0.0), None),
++            (None, Some(0.0)),
++            (Some(0.2), Some(0.4))
++        ]
++    );
++}
++#[test]
++fn default_edit_changes_only_inherited_leaves() {
++    let mut p = classic();
++    p.start_width = 0.6;
++    p.end_width = 0.8;
++    assert_eq!(p.effective_vertex_widths(0), Some([0.6, 0.8]));
++    assert_eq!(p.effective_vertex_widths(1), Some([0.0, 0.8]));
++    assert_eq!(p.effective_vertex_widths(2), Some([0.6, 0.0]));
++    assert_eq!(p.effective_vertex_widths(3), Some([0.2, 0.4]));
++    assert_eq!(p.effective_vertex_widths(4), None);
++    p.flags.set_closed(true);
++    assert_eq!(p.effective_vertex_widths(3), Some([0.2, 0.4]));
++}
++#[test]
++fn explicit_signed_zero_is_not_inheritance() {
++    use acadrust::entities::Vertex2D;
++    use acadrust::types::Vector3;
++    let mut p = Polyline2D::new();
++    p.start_width = 1.0;
++    p.end_width = 2.0;
++    p.add_vertex(Vertex2D::new(Vector3::ZERO));
++    p.add_vertex(Vertex2D::new(Vector3::ZERO).with_width(-0.0, 0.0));
++    assert_eq!(p.effective_vertex_widths(0), Some([1.0, 2.0]));
++    let w = p.effective_vertex_widths(1).unwrap();
++    assert_eq!(w[0].to_bits(), (-0.0f64).to_bits());
++    assert_eq!(w[1].to_bits(), 0.0f64.to_bits());
++}
+diff --git a/tests/polyline_width_exchange.rs b/tests/polyline_width_exchange.rs
+new file mode 100644
+--- /dev/null
++++ b/tests/polyline_width_exchange.rs
+@@ -0,0 +1,342 @@
++//! Physical output must retain classic dependency state and noncompeting controls.
++use acadrust::entities::LwPolyline;
++use acadrust::types::{DxfVersion, Vector2};
++use acadrust::{
++    CadDocument, DwgReader, DwgWriter, DxfReader, DxfWriter, EntityType, Polyline2DWriteMode,
++};
++use std::io::Cursor;
++fn fixture() -> CadDocument {
++    DxfReader::from_reader(Cursor::new(
++        include_bytes!("fixtures/polyline-width-defaults.dxf").to_vec(),
++    ))
++    .unwrap()
++    .read()
++    .unwrap()
++}
++// Independent group-code oracle: no entity reader or writer helpers.
++fn tags(bytes: &[u8]) -> Vec<(i32, String)> {
++    if !bytes.starts_with(b"AutoCAD Binary DXF") {
++        let lines: Vec<_> = std::str::from_utf8(bytes).unwrap().lines().collect();
++        return lines
++            .chunks_exact(2)
++            .map(|p| (p[0].trim().parse().unwrap(), p[1].trim().to_owned()))
++            .collect();
++    }
++    let mut i = 22;
++    let mut pairs = Vec::new();
++    while i < bytes.len() {
++        let code = u16::from_le_bytes(bytes[i..i + 2].try_into().unwrap()) as i32;
++        i += 2;
++        let size = match code {
++            10..=59 | 110..=149 | 210..=239 | 460..=469 | 1010..=1059 => 8,
++            60..=79 | 170..=179 | 270..=279 | 370..=389 | 400..=409 | 1060..=1070 => 2,
++            90..=99 | 420..=429 | 440..=459 | 1071 => 4,
++            160..=169 => 8,
++            280..=289 | 290..=299 => 1,
++            310..=319 | 1004 => {
++                let n = bytes[i] as usize;
++                i += 1;
++                i += n;
++                pairs.push((code, String::new()));
++                continue;
++            }
++            _ => 0,
++        };
++        let value = if size == 0 {
++            let n = bytes[i..].iter().position(|b| *b == 0).unwrap();
++            let s = String::from_utf8_lossy(&bytes[i..i + n]).into_owned();
++            i += n + 1;
++            s
++        } else {
++            let data = &bytes[i..i + size];
++            i += size;
++            if matches!(code,10..=59|110..=149|210..=239|460..=469|1010..=1059) {
++                f64::from_le_bytes(data.try_into().unwrap()).to_string()
++            } else {
++                String::new()
++            }
++        };
++        let eof = code == 0 && value == "EOF";
++        pairs.push((code, value));
++        if eof {
++            break;
++        }
++    }
++    pairs
++}
++
++fn records(tags: &[(i32, String)], kind: &str) -> Vec<Vec<(i32, String)>> {
++    let mut result = Vec::new();
++    let mut current = None;
++    for pair in tags {
++        if pair.0 == 0 {
++            if let Some(r) = current.take() {
++                result.push(r)
++            };
++            if pair.1 == kind {
++                current = Some(Vec::new())
++            }
++        } else if let Some(r) = &mut current {
++            r.push(pair.clone())
++        }
++    }
++    if let Some(r) = current {
++        result.push(r)
++    }
++    result
++}
++#[test]
++fn classic_ascii_and_binary_keep_header_and_vertex_presence() {
++    let doc = fixture();
++    for binary in [false, true] {
++        let mut writer =
++            DxfWriter::new(&doc).with_polyline2d_write_mode(Polyline2DWriteMode::PreserveClassic);
++        writer.set_binary(binary);
++        let bytes = writer.write_to_vec().unwrap();
++        {
++            let pairs = tags(&bytes);
++            let vertices = records(&pairs, "VERTEX");
++            assert_eq!(vertices.len(), 4);
++            let widths: Vec<_> = vertices
++                .iter()
++                .map(|r| {
++                    r.iter()
++                        .filter(|p| p.0 == 40 || p.0 == 41)
++                        .map(|(c, v)| (*c, v.parse::<f64>().unwrap()))
++                        .collect::<Vec<_>>()
++                })
++                .collect();
++            assert_eq!(
++                widths,
++                vec![
++                    vec![],
++                    vec![(40, 0.)],
++                    vec![(41, 0.)],
++                    vec![(40, 0.2), (41, 0.4)]
++                ]
++            );
++            let header = records(&pairs, "POLYLINE");
++            assert_eq!(header.len(), 1);
++            assert!(header[0].contains(&(40, "0.2".into())));
++            assert!(header[0].contains(&(41, "0.4".into())));
++        }
++        let reread = DxfReader::from_reader(Cursor::new(bytes))
++            .unwrap()
++            .read()
++            .unwrap();
++        let p = reread
++            .entities()
++            .find_map(|e| {
++                if let EntityType::Polyline2D(p) = e {
++                    Some(p)
++                } else {
++                    None
++                }
++            })
++            .unwrap();
++        assert_eq!([p.start_width, p.end_width], [0.2, 0.4]);
++        assert_eq!(
++            p.vertices
++                .iter()
++                .map(|v| (v.start_width, v.end_width))
++                .collect::<Vec<_>>(),
++            vec![
++                (None, None),
++                (Some(0.), None),
++                (None, Some(0.)),
++                (Some(0.2), Some(0.4))
++            ]
++        );
++    }
++}
++#[test]
++fn constant_lw_emits_43_without_40_41() {
++    let mut doc = CadDocument::new();
++    let mut p = LwPolyline::from_points(vec![Vector2::new(0., 0.), Vector2::new(10., 0.)]);
++    p.constant_width = 0.15;
++    doc.add_entity(EntityType::LwPolyline(p)).unwrap();
++    let pairs = tags(&DxfWriter::new(&doc).write_to_vec().unwrap());
++    let rs = records(&pairs, "LWPOLYLINE");
++    assert_eq!(rs.len(), 1);
++    assert!(rs[0].contains(&(43, "0.15".into())));
++    assert!(!rs[0].iter().any(|p| p.0 == 40 || p.0 == 41));
++}
++#[test]
++fn conflicting_constant_and_vertex_controls_are_refused() {
++    let mut doc = CadDocument::new();
++    let mut p = LwPolyline::from_points(vec![Vector2::new(0., 0.), Vector2::new(10., 0.)]);
++    p.constant_width = 0.15;
++    p.vertices[0].end_width = 0.2;
++    doc.add_entity(EntityType::LwPolyline(p)).unwrap();
++    assert!(DxfWriter::new(&doc).write_to_vec().is_err());
++}
++#[test]
++fn dwg_materializes_absent_vertex_widths_without_invented_flags() {
++    let doc = fixture();
++    let bytes = DwgWriter::write_to_vec(&doc).unwrap();
++    let reread = DwgReader::from_stream(Cursor::new(bytes)).read().unwrap();
++    let p = reread
++        .entities()
++        .find_map(|e| {
++            if let EntityType::Polyline2D(p) = e {
++                Some(p)
++            } else {
++                None
++            }
++        })
++        .unwrap();
++    assert_eq!([p.start_width, p.end_width], [0.2, 0.4]);
++    assert_eq!(
++        p.vertices
++            .iter()
++            .map(|v| (v.start_width, v.end_width))
++            .collect::<Vec<_>>(),
++        vec![
++            (Some(0.2), Some(0.4)),
++            (Some(0.), Some(0.4)),
++            (Some(0.2), Some(0.)),
++            (Some(0.2), Some(0.4))
++        ]
++    );
++}
++#[test]
++fn actual_binary_header_version_is_recorded() {
++    let doc = fixture();
++    for (request, actual) in [
++        (DxfVersion::AC1015, DxfVersion::AC1024),
++        (DxfVersion::AC1018, DxfVersion::AC1024),
++        (DxfVersion::AC1021, DxfVersion::AC1021),
++        (DxfVersion::AC1024, DxfVersion::AC1024),
++        (DxfVersion::AC1027, DxfVersion::AC1027),
++        (DxfVersion::AC1032, DxfVersion::AC1032),
++    ] {
++        let bytes = DxfWriter::new_binary(&doc)
++            .with_version(request)
++            .with_polyline2d_write_mode(Polyline2DWriteMode::PreserveClassic)
++            .write_to_vec()
++            .unwrap();
++        let read = DxfReader::from_reader(Cursor::new(bytes))
++            .unwrap()
++            .read()
++            .unwrap();
++        assert_eq!(read.version, actual);
++    }
++}
++
++#[test]
++fn preserve_classic_allocates_distinct_vertex_seqend_handles() {
++    use acadrust::entities::{Insert, Line};
++    use acadrust::tables::{BlockRecord, TableEntry};
++    use acadrust::types::Vector3;
++    let mut doc = fixture();
++    let source = doc
++        .entities()
++        .find_map(|e| {
++            if let EntityType::Polyline2D(p) = e {
++                Some(p.clone())
++            } else {
++                None
++            }
++        })
++        .unwrap();
++    let mut block = BlockRecord::new("WideMarker");
++    block.set_handle(doc.allocate_handle());
++    let block_handle = block.handle;
++    block.block_entity_handle = doc.allocate_handle();
++    block.block_end_handle = doc.allocate_handle();
++    doc.block_records.add(block).unwrap();
++    let mut marker = source;
++    marker.common.handle = Default::default();
++    marker.common.owner_handle = block_handle;
++    doc.add_entity(EntityType::Polyline2D(marker)).unwrap();
++    doc.add_entity(EntityType::Insert(Insert::new("WideMarker", Vector3::ZERO)))
++        .unwrap();
++    doc.add_entity(EntityType::Line(Line::new())).unwrap();
++    let bytes = DxfWriter::new(&doc)
++        .with_polyline2d_write_mode(Polyline2DWriteMode::PreserveClassic)
++        .write_to_vec()
++        .unwrap();
++    let pairs = tags(&bytes);
++    let mut handles = std::collections::HashSet::new();
++    for (c, v) in &pairs {
++        if *c == 5 || *c == 105 {
++            assert!(handles.insert(v.to_uppercase()), "duplicate handle {v}");
++        }
++    }
++    let parents: std::collections::HashSet<_> = records(&pairs, "POLYLINE")
++        .iter()
++        .map(|r| r.iter().find(|p| p.0 == 5).unwrap().1.clone())
++        .collect();
++    assert_eq!(parents.len(), 2);
++    assert_eq!(records(&pairs, "VERTEX").len(), 8);
++    assert_eq!(records(&pairs, "SEQEND").len(), 2);
++    for r in records(&pairs, "VERTEX")
++        .into_iter()
++        .chain(records(&pairs, "SEQEND"))
++    {
++        assert!(parents.contains(&r.iter().find(|p| p.0 == 330).unwrap().1));
++    }
++    DxfReader::from_reader(Cursor::new(bytes))
++        .unwrap()
++        .read()
++        .unwrap();
++}
++
++#[test]
++fn classic_defaults_and_constant_signed_zero_survive_dxf() {
++    let mut doc = fixture();
++    let p = doc
++        .entities_mut()
++        .find_map(|e| {
++            if let EntityType::Polyline2D(p) = e {
++                Some(p)
++            } else {
++                None
++            }
++        })
++        .unwrap();
++    p.start_width = -0.0;
++    p.vertices[0].start_width = Some(-0.0);
++    let mut lw = LwPolyline::from_points(vec![Vector2::new(0., 0.), Vector2::new(1., 0.)]);
++    lw.constant_width = -0.0;
++    doc.add_entity(EntityType::LwPolyline(lw)).unwrap();
++    for binary in [false, true] {
++        let mut w =
++            DxfWriter::new(&doc).with_polyline2d_write_mode(Polyline2DWriteMode::PreserveClassic);
++        w.set_binary(binary);
++        let bytes = w.write_to_vec().unwrap();
++        let parsed = tags(&bytes);
++        let lw = records(&parsed, "LWPOLYLINE");
++        assert!(!lw[0].iter().any(|p| p.0 == 40 || p.0 == 41));
++        let back = DxfReader::from_reader(Cursor::new(bytes))
++            .unwrap()
++            .read()
++            .unwrap();
++        let p = back
++            .entities()
++            .find_map(|e| {
++                if let EntityType::Polyline2D(p) = e {
++                    Some(p)
++                } else {
++                    None
++                }
++            })
++            .unwrap();
++        assert_eq!(p.start_width.to_bits(), (-0.0f64).to_bits());
++        assert_eq!(
++            p.vertices[0].start_width.unwrap().to_bits(),
++            (-0.0f64).to_bits()
++        );
++        let p = back
++            .entities()
++            .find_map(|e| {
++                if let EntityType::LwPolyline(p) = e {
++                    Some(p)
++                } else {
++                    None
++                }
++            })
++            .unwrap();
++        assert_eq!(p.constant_width.to_bits(), (-0.0f64).to_bits());
++    }
++}
+diff --git a/tests/fixtures/polyline-width-defaults.dxf b/tests/fixtures/polyline-width-defaults.dxf
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/polyline-width-defaults.dxf
+@@ -0,0 +1,100 @@
++0
++SECTION
++2
++HEADER
++9
++$ACADVER
++1
++AC1032
++0
++ENDSEC
++0
++SECTION
++2
++ENTITIES
++0
++POLYLINE
++5
++100
++8
++0
++66
++1
++70
++0
++10
++0
++20
++0
++30
++0
++40
++0.2
++41
++0.4
++0
++VERTEX
++5
++101
++8
++0
++10
++0
++20
++0
++30
++0
++0
++VERTEX
++5
++102
++8
++0
++10
++10
++20
++0
++30
++0
++40
++0
++0
++VERTEX
++5
++103
++8
++0
++10
++20
++20
++0
++30
++0
++41
++0
++0
++VERTEX
++5
++104
++8
++0
++10
++30
++20
++0
++30
++0
++40
++0.2
++41
++0.4
++0
++SEQEND
++5
++105
++8
++0
++0
++ENDSEC
++0
++EOF
+diff --git a/tests/fixtures/polyline-width-defaults.md b/tests/fixtures/polyline-width-defaults.md
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/polyline-width-defaults.md
+@@ -0,0 +1,8 @@
++# Polyline width source fixture
++
++Hand-authored AC1032 ASCII DXF created for this width patch under MPL-2.0.
++No external drawing or proprietary input was copied. Four XY vertices retain
++header defaults .2/.4 and independent overrides: {}, {start:0}, {end:0},
++{start:.2,end:.4}. The last record is dormant while open. Expected tag presence
++is literal, independent of the codec writer. Binary output is inspected by an
++independent group-code oracle in polyline_width_exchange.rs.

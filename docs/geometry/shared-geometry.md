@@ -47,8 +47,9 @@ inexact IDs, widths, fitted curves or unsupported metadata.
 
 Generic and dedicated spatial CAD polyline backings recognize vertex flag 0
 or 32 as ordinary straight-path infrastructure. Fitted/mesh vertex flags remain
-unsupported. Classic 2D polyline widths and vertex metadata are not silently
-folded into a bulged path. Direct, DXF and DWG source tests exercise these
+unsupported. Classic 2D widths retain separate header defaults and optional vertex leaves
+through the [native width contract](polyline-widths.md); unsupported vertex
+metadata is never silently folded into a bulged path. Direct, DXF and DWG source tests exercise these
 backings independently of native-to-CAD emission.
 
 Full conic interiors are included in the proof. Bulged segments use enclosing
@@ -208,3 +209,11 @@ once to every part, including helpers for numeric proof. ReferencePoint helpers
 are excluded only from display/bounds. Nested marker transforms retain the
 ordinary occurrence arithmetic. Eight SOLID/TRACE positions, optional surface
 coverage and unassessed display remain independent evidence.
+
+Planar width bands use local full widths, shared exact operands and the actual
+stored plane/occurrence maps. Full nondegenerate strips are required independently
+of Allow/Reject; joins and host display remain separate. Definition-local proof
+does not replace nested Model/Paper occurrence proof. The core's explicit
+`geometry_centerline_bounds` supports Hatch/clip contour semantics, while
+`polyline_width_display_bounds` supplies segment contributions and located Partial
+reasons for drawing bounds. Derived effective widths do not replace authored state.

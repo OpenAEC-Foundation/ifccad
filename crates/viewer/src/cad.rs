@@ -123,7 +123,11 @@ pub(crate) fn export(
     document.version = cad_version;
     progress("writing");
     let written = if format == "dxf" {
-        DxfWriter::new(&document).write_to_vec()
+        DxfWriter::new(&document)
+            .with_polyline2d_write_mode(
+                ifccad_convert::opencadcodec::Polyline2DWriteMode::PreserveClassic,
+            )
+            .write_to_vec()
     } else {
         DwgWriter::write_to_vec(&document)
     };
@@ -175,6 +179,7 @@ pub(crate) fn export(
         };
     diagnostics.extend(hatch_issues.into_iter().map(|i| i.value()));
     diagnostics.extend(crate::line_pattern_exchange::losses(&document, &checked));
+    diagnostics.extend(crate::polyline_widths::losses(&document, &checked));
     diagnostics.extend(spline_parameterization_losses(&document, &checked));
     diagnostics.extend(viewport_shadeplot_losses(&document, &checked));
     diagnostics.extend(hatch_description_losses(&document, &checked));

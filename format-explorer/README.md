@@ -182,3 +182,16 @@ preflight. For DXF before AC1027 the selected codec writes relative rotation;
 Explorer shows this loss for the selected version and refuses a download under
 Reject. Actual written-file readback checks the mode too. Native IFCCAD/IFCX and
 CBOR retain the original upright mode. No alternate version is selected.
+
+Polyline inspection separates stored Constant/PerVertex/Defaulted state from
+effective pairs, labels inherited leaves and explicit zeros, and presents optional
+segment-band/join evidence with display Unassessed. Located width bounds reasons
+prevent safe culling/complete extents. Width export preflight is independent of
+Hatch and upright entries; inherited DWG leaves block Reject before download.
+All native DXF preview/export routes select the classic-preserving writer. See
+[the width qualification contract](../docs/geometry/polyline-widths.md).
+
+Polyline widths appear within Stored values → Planar polyline → Polyline widths.
+Classic overrides retain inherited versus explicit labels, including zero and
+equal values. Effective defaulted pairs appear separately under Derived values;
+band/surface/display assessments remain in conversion reports.

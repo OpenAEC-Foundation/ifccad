@@ -92,6 +92,18 @@ pub(super) fn validate(d: &IfccadDocument) -> Result<(), IfccadReport> {
             {
                 return Err(fail(1, &path, "ReferencePoint requires Point"));
             }
+            if let IfccadDimensionGraphicsKind::PlanarPolyline {
+                widths, vertices, ..
+            } = &p.kind
+            {
+                widths.validate(vertices.len()).map_err(|e| {
+                    crate::ifccad::diagnostics::failure(
+                        "IFCCAD-POLYLINE-WIDTH-001",
+                        &path,
+                        e.to_string(),
+                    )
+                })?;
+            }
             if let Some(geometry) = p.kind.as_shared_geometry()? {
                 crate::geometry_kernel::validate_geometry(geometry)
                     .map_err(|e| fail(1, &path, e))?;

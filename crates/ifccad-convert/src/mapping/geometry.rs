@@ -21,6 +21,7 @@ pub(crate) fn to_entity(
     context: &mut crate::geometry_context::GeometryContext,
     issues: &mut Vec<IfccadDiagnostic>,
 ) -> Result<Option<EntityType>, crate::IfccadConversionError> {
+    super::polyline_width::to_cad_mode_loss(kind, key, issues);
     let source = crate::IfccadGeometryEntitySource::NativeEntity {
         owner: context.owner,
         entity_id: key,
@@ -41,6 +42,23 @@ pub(crate) fn to_entity(
     ) = (kind, &mut prepared.entity)
     {
         p.plinegen = *line_pattern_generation == IfccadLinePatternGeneration::Continuous;
+    }
+    if let (
+        IfccadEntityKind::PlanarPolyline {
+            line_pattern_generation,
+            ..
+        },
+        EntityType::Polyline2D(p),
+    ) = (kind, &mut prepared.entity)
+    {
+        p.flags = opencadcodec::entities::PolylineFlags::from_bits(
+            (p.flags.bits() & !128)
+                | if *line_pattern_generation == IfccadLinePatternGeneration::Continuous {
+                    128
+                } else {
+                    0
+                },
+        );
     }
     if let (
         IfccadEntityKind::SpatialPolyline {
@@ -172,10 +190,12 @@ pub(crate) fn from_entity(
             sweep_parameter: sweep,
         },
         G::PlanarPolyline {
+            widths,
             placement: frame,
             vertices,
             closed,
         } => IfccadEntityKind::PlanarPolyline {
+            widths,
             placement: placement(frame),
             bulges: vertices.iter().map(|v| v[2]).collect(),
             vertices: vertices.into_iter().map(|v| [v[0], v[1]]).collect(),

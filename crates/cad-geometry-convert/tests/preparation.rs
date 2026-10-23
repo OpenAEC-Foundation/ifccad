@@ -62,6 +62,7 @@ fn signed_native_arcs_have_a_supported_cad_parameterization() {
 fn bulged_contours_include_full_segment_curve_evidence() {
     let vertices = [[-1., 0., 1.], [1., 0., 1.]];
     let prepared = prepare_to_cad(GeometryRef::PlanarPolyline {
+        widths: &Default::default(),
         placement: CoordinateFrame3::default(),
         vertices: ifccad::geometry_kernel::PlanarVertices::Packed(&vertices),
         closed: true,
@@ -119,6 +120,7 @@ fn rounded_away_curve_parameters_cannot_be_emitted_as_degenerate_cad_curves() {
             arc: None,
         },
         GeometryRef::PlanarPolyline {
+            widths: &Default::default(),
             placement: distant,
             vertices: ifccad::geometry_kernel::PlanarVertices::Packed(&vertices),
             closed: false,

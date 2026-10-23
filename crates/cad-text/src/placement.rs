@@ -601,6 +601,7 @@ fn project(m: [[f64; 3]; 3], p: [f64; 3]) -> Result<[f64; 3], CadTextError> {
 }
 fn pair(source: [Q; 3], target: [Q; 3]) -> GeometryPair {
     let mut pair = GeometryPair {
+        bands: vec![],
         points: Vec::new(),
         curves: Vec::new(),
     };

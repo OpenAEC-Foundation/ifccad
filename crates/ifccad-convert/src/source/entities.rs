@@ -109,6 +109,18 @@ pub(crate) fn classified(e: &EntityType, loc: &str, issues: &mut Vec<IfccadDiagn
             );
         }
         EntityType::LwPolyline(p) => {
+            if p.constant_width.to_bits() != 0
+                && p.vertices
+                    .iter()
+                    .any(|v| v.start_width.to_bits() != 0 || v.end_width.to_bits() != 0)
+            {
+                issues.push(diagnostic(
+                    "polyline-width-unsupported",
+                    format!("{loc}/widths"),
+                    "conflicting lightweight constant and vertex width controls",
+                ));
+            }
+
             residual(
                 p,
                 &opencadcodec::LwPolyline::new(),
@@ -119,6 +131,7 @@ pub(crate) fn classified(e: &EntityType, loc: &str, issues: &mut Vec<IfccadDiagn
                     "elevation",
                     "is_closed",
                     "plinegen",
+                    "constant_width",
                 ],
                 loc,
                 issues,
@@ -127,7 +140,7 @@ pub(crate) fn classified(e: &EntityType, loc: &str, issues: &mut Vec<IfccadDiagn
                 residual(
                     v,
                     &opencadcodec::entities::LwVertex::new(v.location),
-                    &["location", "bulge"],
+                    &["location", "bulge", "start_width", "end_width"],
                     loc,
                     issues,
                 );
@@ -146,7 +159,14 @@ pub(crate) fn classified(e: &EntityType, loc: &str, issues: &mut Vec<IfccadDiagn
             residual(
                 p,
                 &expected,
-                &["common", "vertices", "normal", "elevation"],
+                &[
+                    "common",
+                    "vertices",
+                    "normal",
+                    "elevation",
+                    "start_width",
+                    "end_width",
+                ],
                 loc,
                 issues,
             );
@@ -154,7 +174,7 @@ pub(crate) fn classified(e: &EntityType, loc: &str, issues: &mut Vec<IfccadDiagn
                 residual(
                     v,
                     &opencadcodec::entities::Vertex2D::new(v.location),
-                    &["location", "bulge"],
+                    &["location", "bulge", "start_width", "end_width"],
                     loc,
                     issues,
                 );
@@ -282,16 +302,22 @@ pub(crate) fn validate_source(entity: &EntityType) -> Result<(), crate::IfccadCo
                 && p.end_parameter.is_finite()
         }
         EntityType::Polyline2D(p) => {
-            finite(p.normal)
+            p.start_width >= 0.
+                && p.end_width >= 0.
+                && finite(p.normal)
                 && [p.elevation, p.thickness, p.start_width, p.end_width]
                     .into_iter()
                     .all(f64::is_finite)
                 && p.vertices.len() >= 2
                 && p.vertices.iter().all(|v| {
                     finite(v.location)
-                        && [v.start_width, v.end_width, v.bulge, v.curve_tangent]
+                        && v.start_width
                             .into_iter()
+                            .chain(v.end_width)
+                            .chain([v.bulge, v.curve_tangent])
                             .all(f64::is_finite)
+                        && v.start_width.is_none_or(|v| v >= 0.)
+                        && v.end_width.is_none_or(|v| v >= 0.)
                 })
         }
         EntityType::Polyline3D(p) => {
@@ -317,8 +343,12 @@ pub(crate) fn validate_source(entity: &EntityType) -> Result<(), crate::IfccadCo
                 && l.elevation.is_finite()
                 && l.thickness.is_finite()
                 && l.constant_width.is_finite()
+                && l.constant_width >= 0.
                 && l.vertices.len() >= 2
                 && l.vertices.iter().all(|v| {
+                    if v.start_width < 0. || v.end_width < 0. {
+                        return false;
+                    }
                     [
                         v.location.x,
                         v.location.y,

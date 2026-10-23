@@ -58,6 +58,7 @@ pub enum IfccadDimensionGraphicsKind {
         end: [f64; 3],
     },
     PlanarPolyline {
+        widths: IfccadPlanarPolylineWidths,
         vertices: Vec<[f64; 2]>,
         bulges: Vec<f64>,
         closed: bool,
@@ -125,12 +126,14 @@ impl From<IfccadDimensionGraphicsKind> for IfccadEntityKind {
                 Self::LineSegment { start, end }
             }
             IfccadDimensionGraphicsKind::PlanarPolyline {
+                widths,
                 vertices,
                 bulges,
                 closed,
                 placement,
                 line_pattern_generation,
             } => Self::PlanarPolyline {
+                widths,
                 vertices,
                 bulges,
                 closed,
@@ -205,12 +208,14 @@ impl TryFrom<IfccadEntityKind> for IfccadDimensionGraphicsKind {
             },
             IfccadEntityKind::LineSegment { start, end } => Self::LineSegment { start, end },
             IfccadEntityKind::PlanarPolyline {
+                widths,
                 vertices,
                 bulges,
                 closed,
                 placement,
                 line_pattern_generation,
             } => Self::PlanarPolyline {
+                widths,
                 vertices,
                 bulges,
                 closed,

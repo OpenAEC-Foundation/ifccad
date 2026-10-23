@@ -133,7 +133,7 @@ fn allow_skips_unsupported_source_properties_and_retains_supported_native_placem
             _ => p.vertices[0].vertex_id = 10,
         }
         let out = cad_document_to_encoded_ifccad(&c, metadata(), Default::default()).unwrap();
-        let mapped = matches!(field, 0 | 2);
+        let mapped = matches!(field, 0..=2);
         assert_eq!(
             out.validated_source().document().model.entities.len(),
             if mapped { 3 } else { 2 }

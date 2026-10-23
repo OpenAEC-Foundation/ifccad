@@ -26,9 +26,11 @@ is the mutable unreleased revision 1, updated in place.
    The implementation is complete and verified: optional owned
    graphics, IFCX/CBOR storage, atomic CAD picture transfer, occurrence proof
    and Explorer support.
-5. Add native polyline widths in a separate follow-up slice. The red sample_AC1032
-   Dimension and its width-0.15 `_ArchTick` marker are acceptance evidence for that
-   follow-up, not a completion gate for the bounded graphics slice.
+5. Native polyline widths are implemented as a separate candidate: Constant,
+   PerVertex and classic Defaulted state, segment-band proof, partial bounds and
+   qualified exchange. Original red sample_AC1032 storage acceptance passes; final
+   verification is recorded separately; bounded unchanged-host comparison passes. Extrusion
+   thickness remains a later slice.
 6. Continue remaining Dimension kinds/selectors and later joint annotation support
    according to their dependencies.
 7. Expand supported CAD semantics; assess whole-document storage/performance
@@ -230,24 +232,26 @@ documented in
 content within the existing sequence; it does not reopen layout/workspace work
 or publish the initial contract.
 
-Polyline widths are explicitly deferred to the separate slice below. They do not
-block the bounded graphics implementation plan. Its positive capture/reuse cases
-must use complete supported graphics, including zero-width paths and native
-SOLID/TRACE arrows. The red sample is a limitation/rejection regression here:
-unsupported width remains diagnosed, with no zeroing, primitive substitution or
-partial picture presented as complete. Existing Allow/Reject and entity-recovery
-policies remain distinct.
+The original bounded graphics slice deferred widths and used zero-width paths
+and native SOLID/TRACE arrows for positive cases. The separate width candidate
+below now extends that primitive coverage and runs the original linked red case.
+Whole-picture rollback, complete-resource transfer and independent Allow/Reject
+versus entity-recovery policies retain their existing meaning.
 
-## Planned polyline-width follow-up
+<a id="planned-polyline-width-follow-up"></a>
 
-After bounded Dimension graphics, design and implement native polyline widths
-as a separate semantic slice. Include constant width and start/end widths per
-segment for supported lightweight/classic planar polylines, with straight/bulged
-geometry, joins, bounds and qualified CAD exchange. Reuse this support in ordinary
-Model/Paper/block entities and Dimension graphics. Detailed fields, defaults and
-mapping codes require their own design; they are not added by this roadmap update.
-Existing presentation lineweight is already supported and remains independent;
-extrusion thickness is a separate coordinate/geometry property.
+## Polyline-width implementation candidate
+
+The separate [native polyline width contract](docs/geometry/polyline-widths.md)
+is implemented as a review candidate on top of bounded Dimension graphics.
+Constant, explicit vertex pairs and classic defaults/optional overrides retain
+explicit zeros and dormant records in IFCX/CBOR. Mandatory segment-band proofs and
+located Partial display bounds cover ordinary Model/Paper/block and graphics use.
+Six ordinary CAD versions have explicit qualification/loss rules; stored wide
+Dimension pictures are AC1032-only. Final gate status is recorded with the candidate;
+bounded planar comparison in the unchanged host passes for both originals and
+all six AC1032 files.
+Presentation lineweight remains independent; extrusion thickness stays deferred.
 
 The original red linear/aligned Dimension `0x527` in sample_AC1032, its pictureblock
 `*D8`, and both INSERTs of `_ArchTick` are the concrete follow-up acceptance case.

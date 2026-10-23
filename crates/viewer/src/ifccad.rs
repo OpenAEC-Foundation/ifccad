@@ -28,7 +28,7 @@ pub(crate) fn present_document(output: &mut Value, d: &IfccadDocument, graph: &V
             S::BlockDefinition(id)=>{let b=d.blocks.iter().find(|b|b.id==id).unwrap();(format!("/cad/d{}/block/{id}",d.drawing_id),b.bounds,b.bounds_quality)},
         };
         let quality=|q:Q|match q {Q::Enclosing=>"enclosing",Q::Estimated=>"estimated",Q::Partial=>"partial"};
-        json!({"scope":format!("{scope:?}"),"scopePath":scope_path,"complete":a.quality!=Some(Q::Partial),"state":if a.quality==Some(Q::Partial){"Unavailable"}else if a.bounds.is_none(){"Empty"}else{"Complete"},"quality":a.quality.map(quality),"bounds":a.bounds,"storedBounds":bounds,"storedQuality":bounds.map(|_|quality(claim.unwrap_or(Q::Enclosing))),"enclosureVerified":a.enclosure_verified,"safeForNegativeQuery":a.enclosure_verified&&bounds.is_some()&&claim!=Some(Q::Estimated),"textReasons":a.text_reasons.iter().map(|r|format!("{r:?}")).collect::<Vec<_>>(),"linePatternReasons":a.line_pattern_reasons.iter().map(|r|format!("{r:?}")).collect::<Vec<_>>()})
+        json!({"scope":format!("{scope:?}"),"scopePath":scope_path,"complete":a.quality!=Some(Q::Partial),"state":if a.quality==Some(Q::Partial){"Unavailable"}else if a.bounds.is_none(){"Empty"}else{"Complete"},"quality":a.quality.map(quality),"bounds":a.bounds,"storedBounds":bounds,"storedQuality":bounds.map(|_|quality(claim.unwrap_or(Q::Enclosing))),"enclosureVerified":a.enclosure_verified,"safeForNegativeQuery":a.enclosure_verified&&bounds.is_some()&&claim!=Some(Q::Estimated),"textReasons":a.text_reasons.iter().map(|r|format!("{r:?}")).collect::<Vec<_>>(),"polylineWidthReasons":a.polyline_width_reasons.iter().map(|r|json!({"sourcePath":r.source_path,"occurrencePath":r.occurrence_path.iter().map(u64::to_string).collect::<Vec<_>>(),"reason":format!("{:?}",r.reason)})).collect::<Vec<_>>(),"linePatternReasons":a.line_pattern_reasons.iter().map(|r|format!("{r:?}")).collect::<Vec<_>>()})
     }).collect::<Vec<_>>();
     let hatches = role("ifccad::hatch")
         .into_iter()
@@ -55,6 +55,8 @@ pub(crate) fn present_document(output: &mut Value, d: &IfccadDocument, graph: &V
     output["presentation"] = json!({"format":"ifccad","drawingId":d.drawing_id,"unit":d.length_unit,"linePatternScale":d.line_pattern_scale,"pointDisplay":nodes.iter().find_map(|n|n["attributes"].get("ifccad::drawing")).and_then(|d|d.get("pointDisplay")),
         "layers":role("ifccad::layer"),"layouts":role("ifccad::layout"),"blockDefinitions":role("ifccad::blockDefinition"),
         "linePatterns":role("ifccad::linePattern"),"symbolSources":role("ifccad::symbolSource"),"ucsDefinitions":role("ifccad::ucsDefinition"),"modelWindows":role("ifccad::modelWindow"),"hatchEntityCount":role("ifccad::hatch").len(),"hatches":hatches,"hatchFillEvaluation":"unassessed","textStyles":role("ifccad::textStyle"),"textEntityCount":role("ifccad::text").len(),"mTextEntityCount":role("ifccad::mText").len(),"entities":role("ifccad::entity"),"opaqueEntities":role("ifccad::opaqueEntity"),"opaqueEntityCount":role("ifccad::opaqueEntity").len(),"preservationRecords":role("ifccad::preservationRecord"),"preservationSources":d.preservation.as_ref().map(|p|&p.sources),"boundsCompleteness":completeness,"graph":graph});
+    output["presentation"]["polylineWidths"] = crate::polyline_widths::authored(graph);
+    output["presentation"]["polylineWidthExportPreflight"] = crate::polyline_widths::preflight(d);
     output["presentation"]["dimensions"] = crate::inspection_ifccad_dimension::entities(d);
     output["presentation"]["dimensionStyles"] = crate::inspection_ifccad_dimension::styles(d);
     output["presentation"]["hatchExportPreflight"] = crate::hatch_capabilities::preflight(d);
@@ -247,7 +249,25 @@ pub(crate) fn export_ifccad_with_options(
         }
     };
     output["conversion"] = json!({"format":"ifccad","preservation":preservation_report(converted.preservation_report()),"textAssessment":text_report(converted.text_assessment())});
-    let issues = diagnostics(converted.diagnostics());
+    let mut issues = diagnostics(converted.diagnostics());
+    if let Ok(version) = cad::selection(format, version) {
+        let width_issues =
+            crate::polyline_widths::restrictions(drawing.document(), format, version);
+        if options.loss_policy == crate::options::ExportLossPolicy::Reject
+            && !width_issues.is_empty()
+        {
+            output["export"] = json!({"format":format,"diagnostics":width_issues});
+            fail(
+                &mut output,
+                "exporting",
+                "CAD_EXCHANGE_LOSS_REJECTED",
+                "Polyline width dependency losses were rejected; no download is offered",
+            );
+            return output;
+        }
+        issues.extend(width_issues);
+    }
+
     let assessment = crate::geometry::assessment(converted.geometry_assessment());
     output["conversion"]["dimensionAssessment"] =
         crate::inspection_ifccad_dimension::report(converted.dimension_assessment());

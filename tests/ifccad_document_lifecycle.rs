@@ -191,6 +191,7 @@ fn invalid_typed_documents_fail_without_encoding() {
         d.model.entities[0].as_native_mut().unwrap().kind = {
             let vertices: Vec<[f64; 2]> = vec![[0., 0.]];
             IfccadEntityKind::PlanarPolyline {
+                widths: Default::default(),
                 bulges: vec![0.; vertices.len()],
                 vertices,
                 closed: false,

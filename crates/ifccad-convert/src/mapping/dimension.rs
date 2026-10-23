@@ -200,6 +200,7 @@ pub(crate) fn from_entity(
     };
     let overrides = from_refs!(&p.overrides, doc, patterns, maps);
     let mut pair = cad_geometry_convert::GeometryPair {
+        bands: vec![],
         points: Vec::new(),
         curves: Vec::new(),
     };
@@ -572,6 +573,7 @@ pub(crate) fn to_entity(
         Err(e) => return Err(fatal(&loc, e)),
     };
     let mut pair = cad_geometry_convert::GeometryPair {
+        bands: vec![],
         points: Vec::new(),
         curves: Vec::new(),
     };

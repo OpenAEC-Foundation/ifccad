@@ -119,6 +119,7 @@ fn pair(source: [Q; 3], target: [Q; 3]) -> GeometryPair {
     let p = PairedPoint::new(source, target);
     let d2 = p.squared_deviation().1;
     GeometryPair {
+        bands: vec![],
         points: vec![(p, d2)],
         curves: Vec::new(),
     }

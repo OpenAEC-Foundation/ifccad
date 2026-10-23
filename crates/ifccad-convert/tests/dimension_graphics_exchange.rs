@@ -401,12 +401,19 @@ fn operation_evidence_separates_absent_empty_transferred_and_failed_pictures() {
         out.dimension_assessment().entries()[0].graphics_coverage,
         IfccadDimensionGraphicsCoverage::Absent
     );
-    let out = cad_document_to_ifccad_document(
-        &support::picture(true),
-        common::metadata(),
-        Default::default(),
-    )
-    .unwrap();
+    let mut unsupported = support::picture(true);
+    let handle = *unsupported
+        .block_records
+        .get("*DimensionPicture")
+        .unwrap()
+        .entity_handles
+        .last()
+        .unwrap();
+    if let EntityType::LwPolyline(p) = unsupported.get_entity_mut(handle).unwrap() {
+        p.thickness = 1.;
+    }
+    let out = cad_document_to_ifccad_document(&unsupported, common::metadata(), Default::default())
+        .unwrap();
     assert_eq!(
         out.dimension_assessment().entries()[0].graphics_coverage,
         IfccadDimensionGraphicsCoverage::NotTransferred

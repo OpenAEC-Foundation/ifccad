@@ -1,5 +1,5 @@
 name: Prepare viewport codec
-description: Select the pinned unmodified codec
+description: Select the pinned codec with the explicit polyline-width patch
 runs:
   using: composite
   steps:
@@ -9,7 +9,10 @@ runs:
         ref: bd10efc2c54dfe1e6288c5f10486dce9be0d7f32
         path: .superpowers/dependencies/opencadcodec-viewports-development
         persist-credentials: false
-    - name: Select unmodified codec
+    - name: Apply polyline-width codec patch
+      shell: bash
+      run: git -C .superpowers/dependencies/opencadcodec-viewports-development apply "$GITHUB_WORKSPACE/patches/opencadcodec-polyline-widths/0001-preserve-polyline-widths.patch"
+    - name: Select width-patched codec
       shell: bash
       run: |
         set -euo pipefail

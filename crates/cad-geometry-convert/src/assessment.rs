@@ -228,6 +228,21 @@ impl<S: Clone> GeometryAssessment<S> {
                 failure
             })
     }
+    pub fn check_band(
+        &self,
+        source: &S,
+        band: &crate::geometry::polyline_width::PairedPolylineBand,
+    ) -> Result<f64, Box<GeometryFailure<S>>> {
+        let (lo, hi) = band.squared_deviation().ok_or_else(|| {
+            self.failure(
+                source,
+                Some(band.segment_index()),
+                GeometryStage::DeviationAssessment,
+                GeometryFailureReason::DeviationBoundOutOfRange,
+            )
+        })?;
+        self.check_interval(source, band.segment_index(), &lo, &hi)
+    }
     pub fn check_curve(
         &self,
         source: &S,

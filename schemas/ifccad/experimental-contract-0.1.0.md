@@ -123,7 +123,7 @@ explosion is performed. Name/anonymous intent is independent of native ownership
 and IDs. CAD's reserved Model/Paper block names cannot be allocated as local
 CAD definitions; a native name hint does not itself change a block's native role.
 
-The local circle shape aims at the analytic meaning of IFC4 `IfcCircle`; the namespace remains local until an official IFCX geometry attribute has an exact roundtrip contract. A line segment is not equivalent to unbounded `IfcLine`; planar polyline bulges are supported; widths and fitted/spline segments remain outside this profile. The separate `placement` attribute can later be reused with a published geometry vocabulary if equivalent.
+The local circle shape aims at the analytic meaning of IFC4 `IfcCircle`; the namespace remains local until an official IFCX geometry attribute has an exact roundtrip contract. A line segment is not equivalent to unbounded `IfcLine`; planar polyline bulges are supported; constant, per-vertex and classic default/override full widths use the shared closed widths value; fitted/spline segments remain outside this profile. The separate `placement` attribute can later be reused with a published geometry vocabulary if equivalent.
 
 ## Paper viewports
 

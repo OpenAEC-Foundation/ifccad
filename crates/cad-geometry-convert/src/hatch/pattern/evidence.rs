@@ -281,6 +281,7 @@ fn build(
         }
     }
     Ok(GeometryPair {
+        bands: vec![],
         points,
         curves: vec![],
     })

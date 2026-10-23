@@ -556,6 +556,13 @@ fn convert_prepared(
         &mappings,
         crate::filled_surface_assessment::FilledSourceDirection::FromCad,
     )?;
+    assessment.polyline_widths = crate::polyline_width_assessment::collect_polyline_widths(
+        &drawing,
+        source,
+        &mappings,
+        crate::polyline_width_assessment::PolylineWidthSourceDirection::FromCad,
+        &assessment,
+    )?;
     Ok(Some(CadToIfccadDocumentOutcome {
         partial_open: audit.partial_report(),
         dimension: crate::IfccadDimensionAssessment::new(

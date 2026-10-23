@@ -81,12 +81,14 @@ impl IfccadEntityKind {
                 arc: Some((*start_parameter, *sweep_parameter)),
             },
             Self::PlanarPolyline {
+                widths,
                 placement,
                 vertices,
                 bulges,
                 closed,
                 ..
             } => G::PlanarPolyline {
+                widths,
                 placement: placement.coordinate_frame()?,
                 vertices: PlanarVertices::Separate {
                     xy: vertices,
@@ -170,12 +172,14 @@ impl IfccadDimensionGraphicsKind {
                 arc: Some((*start_parameter, *sweep_parameter)),
             },
             Self::PlanarPolyline {
+                widths,
                 placement,
                 vertices,
                 bulges,
                 closed,
                 ..
             } => G::PlanarPolyline {
+                widths,
                 placement: placement.coordinate_frame()?,
                 vertices: PlanarVertices::Separate {
                     xy: vertices,

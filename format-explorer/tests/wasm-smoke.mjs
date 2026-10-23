@@ -343,3 +343,28 @@ console.log('Browser WASM IFCCAD opaque spline capture, durable reopen and actua
  const exported=processBrowserRequest({...partial,export:{format:'dxf',version:'AC1032'}},wasm);assert.equal(exported.failure,null,JSON.stringify(exported.failure));assert.equal(exported.partialOpening.errorCount,1);assert.ok(exported.export.download.base64);
  console.log('Browser WASM normal error, explicit partial opening, omission report and CAD readback verified');
 }
+
+// Authored classic dependencies survive actual WASM/native/physical routes.
+{
+ const bytes=Uint8Array.from(await readFile(new URL('../../conformance/next/ifccad/valid/polyline-defaults-overrides.ifcx',import.meta.url)));
+ const request={kind:'ifccad',name:'widths.ifcx',files:[{path:'widths.ifcx',bytes:bytes.buffer}]};
+ const opened=processBrowserRequest(request,wasm);assert.equal(opened.failure,null);const authored=opened.presentation.polylineWidths.find(r=>r.widths.kind==='defaulted');assert.deepEqual(authored.widths.overrides,[{}, {start:0},{end:0},{start:.2,end:.4}]);
+ for(const encoding of ['cbor','cbor-zstd']){const saved=processBrowserRequest({...request,export:{format:'ifccad',encoding}},wasm);assert.equal(saved.failure,null);const file=saved.export.download;const b=Uint8Array.from(Buffer.from(file.base64,'base64'));const read=processBrowserRequest({kind:'ifccad',name:file.fileName,files:[{path:file.fileName,bytes:b.buffer}]},wasm);assert.equal(read.failure,null);assert.deepEqual(read.presentation.polylineWidths,opened.presentation.polylineWidths);}
+ const dxf=processBrowserRequest({...request,export:{format:'dxf',version:'AC1032'}},wasm);assert.equal(dxf.failure,null,JSON.stringify(dxf.failure));const b=Uint8Array.from(Buffer.from(dxf.export.download.base64,'base64'));const back=processBrowserRequest({kind:'cad',name:'widths.dxf',files:[{path:'widths.dxf',bytes:b.buffer}]},wasm);assert.equal(back.failure,null);assert.deepEqual(back.presentation.polylineWidths.find(r=>r.widths.kind==='defaulted').widths,authored.widths);
+ const reject=processBrowserRequest({...request,exportConversionOptions:{lossPolicy:'reject'},export:{format:'dwg',version:'AC1032'}},wasm);assert.ok(reject.failure);assert.equal(reject.export?.download,undefined);
+ console.log('Browser WASM classic width native/CBOR and physical DXF presence, DWG dependency Reject verified');
+}
+
+{
+ const graph=JSON.parse(await readFile(new URL('../../conformance/next/ifccad/valid/polyline-defaults-overrides.ifcx',import.meta.url),'utf8'));
+ for(const n of graph.data){const p=n.attributes?.['ifccad::geom::planarPolyline'];if(p)p.widths={kind:'constant',width:.15};}
+ const block=graph.data.find(n=>n.attributes?.['ifccad::blockDefinition']);const marker=graph.data.find(n=>n.path===block.children['0']);const line=marker.attributes['ifccad::geom::lineSegment'];assert.ok(line);delete marker.attributes['ifccad::geom::lineSegment'];marker.attributes['ifccad::geom::planarPolyline']={vertices:[line.start.slice(0,2),line.end.slice(0,2)],widths:{kind:'constant',width:.15}};marker.attributes['ifccad::geom::placement']={origin:[0,0,0],xAxis:[1,0,0],yAxis:[0,1,0]};
+
+ const bytes=Uint8Array.from(Buffer.from(JSON.stringify(graph))),request={kind:'ifccad',name:'constant-markers.ifcx',files:[{path:'constant-markers.ifcx',bytes:bytes.buffer}]};
+ for(const format of ['dxf','dwg']){
+  const saved=processBrowserRequest({...request,export:{format,version:'AC1032'}},wasm);assert.equal(saved.failure,null,JSON.stringify(saved.failure));assert.ok(saved.export.geometryAssessment.polylineWidths.some(r=>r.source.kind==='BlockOccurrence'));
+  const b=Uint8Array.from(Buffer.from(saved.export.download.base64,'base64'));if(format==='dwg')assert.equal(Buffer.from(b.subarray(0,6)).toString(),'AC1032');
+  const read=processBrowserRequest({kind:'cad',name:'constant-markers.'+format,files:[{path:'constant-markers.'+format,bytes:b.buffer}]},wasm);assert.equal(read.failure,null,JSON.stringify(read.failure));assert.ok(read.presentation.polylineWidths.length>=2);assert.ok(read.presentation.polylineWidths.every(r=>r.widths.kind==='constant'&&r.widths.width===.15));
+ }
+ console.log('Browser WASM constant-width marker occurrences through actual DXF and DWG bytes verified');
+}

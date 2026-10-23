@@ -3,12 +3,14 @@ use ifccad::*;
 use opencadcodec::{entities::Hatch, EntityType};
 fn combine(pairs: Vec<cad_geometry_convert::GeometryPair>) -> cad_geometry_convert::GeometryPair {
     let mut p = cad_geometry_convert::GeometryPair {
+        bands: vec![],
         points: vec![],
         curves: vec![],
     };
     for q in pairs {
         p.points.extend(q.points);
         p.curves.extend(q.curves);
+        p.bands.extend(q.bands);
     }
     p
 }
