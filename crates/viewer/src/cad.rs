@@ -59,6 +59,19 @@ pub(crate) struct CadFileExportRequest<'a> {
     pub version: &'a str,
     pub loss_policy: crate::options::ExportLossPolicy,
 }
+fn header_matches(format: &str, bytes: &[u8], version: &str) -> bool {
+    if format == "dwg" {
+        return bytes.get(..6) == Some(version.as_bytes());
+    }
+    let text = String::from_utf8_lossy(bytes);
+    let mut lines = text.lines().map(str::trim);
+    while let Some(line) = lines.next() {
+        if line == "$ACADVER" {
+            return lines.next() == Some("1") && lines.next() == Some(version);
+        }
+    }
+    false
+}
 
 pub(crate) fn export(
     mut output: Value,
@@ -82,24 +95,19 @@ pub(crate) fn export(
             return output;
         }
     };
-    if let Err(error) = crate::hatch_exchange::check_gradient_target_version(&document, cad_version)
-    {
+    let target = crate::hatch_capabilities::HatchTargetProfile {
+        format,
+        version: cad_version,
+    };
+    if let Some(restriction) = target.restrictions(&document).into_iter().find(|r| r.hard) {
         fail(
             &mut output,
             "exporting",
-            "HATCH_GRADIENT_TARGET_VERSION_UNSUPPORTED",
-            error,
-        );
-        return output;
-    }
-    if let Err(error) =
-        crate::hatch_exchange::check_association_target_version(&document, cad_version)
-    {
-        fail(
-            &mut output,
-            "exporting",
-            "HATCH_ASSOCIATION_TARGET_VERSION_UNSUPPORTED",
-            error,
+            restriction.code,
+            format!(
+                "{format} {version}: {} ({})",
+                restriction.reason, restriction.location
+            ),
         );
         return output;
     }
@@ -136,7 +144,9 @@ pub(crate) fn export(
             return output;
         }
     };
-    if checked.version != cad_version {
+    if checked.dwg_source_version.unwrap_or(checked.version) != cad_version
+        || !header_matches(format, &bytes, version)
+    {
         fail(
             &mut output,
             "checking",
@@ -146,13 +156,14 @@ pub(crate) fn export(
         return output;
     }
     let original_count = diagnostics.len();
-    let hatch_issues = match crate::hatch_exchange::check_hatch_exchange(&document, &checked) {
-        Ok(v) => v,
-        Err(error) => {
-            fail(&mut output, "checking", "HATCH_READBACK_UNCONFIRMED", error);
-            return output;
-        }
-    };
+    let hatch_issues =
+        match crate::hatch_exchange::check_hatch_exchange_for_target(&document, &checked, target) {
+            Ok(v) => v,
+            Err(error) => {
+                fail(&mut output, "checking", "HATCH_READBACK_UNCONFIRMED", error);
+                return output;
+            }
+        };
     diagnostics.extend(hatch_issues.into_iter().map(|i| i.value()));
     diagnostics.extend(spline_parameterization_losses(&document, &checked));
     diagnostics.extend(viewport_shadeplot_losses(&document, &checked));

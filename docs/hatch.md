@@ -9,7 +9,7 @@ plus the explicit Dimension text-position repair; viewport repairs are upstream.
 The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated
 pin/transport limitations below, including paper grid and DXF ShadePlot gates.
 
-OCDraw and IFCCAD independently support native Solid, LinePattern and Gradient Hatch: an ordinary entity
+IFCCAD supports native Solid, LinePattern and Gradient Hatch: an ordinary entity
 with identity, owner/order, appearance, one placed local XY plane, stored loops,
 an area rule and an authored join tolerance. OCDraw uses one `hatchStream`;
 IFCCAD uses placement plus one `ifccad::hatch` attribute. IFCX composition
@@ -107,15 +107,15 @@ EXTERNAL/DERIVED/OUTERMOST/TEXTBOX map to provenance; TEXT_ISLAND maps to active
 textIsland semantics. POLYLINE remains backing-derived. No flags are inferred
 from first-loop order. NOT_CLOSED, SELF_INTERSECTING, DUPLICATE and unknown active
 flags remain unsupported. Annotative contexts and unqualified dictionaries
-remain outside this slice. Inactive classic settings, seeds/pixelSize and other
-editing state still produce their existing losses pending the separate slice B.
+remain outside this slice. Classic editing and boundary construction now have independent optional native
+records; unrepresentable model state and physical losses remain explicit.
 Nondefault joinTolerance is located loss; native invalidity and hard numerical
 failures remain fatal under both policies.
 
-The production viewer/browser verifies the actual target CAD model after AC1032
+The production viewer/browser verifies the actual target CAD model after
 DXF/DWG write/read, including source-group order, duplicates, association switch,
-provenance and TextIsland, before offering a download. Other versions are refused
-for these new states with HATCH_ASSOCIATION_TARGET_VERSION_UNSUPPORTED. Missing
+provenance and TextIsland, before offering a download. All six offered versions
+are qualified independently; see [version profiles](hatch-export-versions.md). Missing
 Hatches, invalid owners, missing source correspondence or confirmed loop reorder
 fail with HATCH_READBACK_UNCONFIRMED. Unexpected nonempty changed source groups
 also fail, so physical codec changes cannot deliver a partial/substituted group.
@@ -249,14 +249,13 @@ without evaluating fill or changing the contour/source/join/bounds contract.
 ## Qualified gradient CAD boundary
 
 Enabled gradient is selected before classic pattern flags or UserDefined
-linetype gates. Inactive classic pattern/context data receives editing-state
-loss; known inactive gradient state is retained natively, including incomplete
-preferences. Unknown definitions, nonzero reserved data, non-0/1 positions,
+linetype gates. Inactive classic pattern/context data is captured in classicSettings; known
+inactive gradient state is retained independently, including incomplete preferences. Unknown definitions, nonzero reserved data, non-0/1 positions,
 extra stops and inherited colors remain unqualified: Allow omits the active
 Hatch or only its inactive state; Reject refuses loss. Missing active data,
 nonfinite scalars/positions and incomplete endpoint pairs are hard errors.
-Inactive ACAD pattern-origin metadata is left for common loss auditing; it
-does not become a gradient anchor and source records are not mutated.
+Inactive ACAD XY pattern-origin metadata belongs to classicSettings; it does not
+become a gradient anchor and source records are not mutated.
 
 Native placements remain valid independently of CAD coverage. Export requires
 exact numerical equality of local X/Y with the actual target arbitrary-axis
@@ -269,9 +268,8 @@ Actual AC1032 DXF/DWG tests cover all nine types, both modes, RGB/ACI endpoints,
 all area rules, relationships and independently authored gradient tags.
 Additional exact tilted frames and nested nonuniform occurrences retain their
 local data; contours retain the existing numerical evidence. Fill, gradient
-fields and pixels remain separately unassessed. Example writer:
-`write_hatch_gradient` with route `ocdraw` or `ifccad`.
-Its focused samples are under `tests/fixtures/ocdraw` and `tests/fixtures/ifccad`.
+fields and pixels remain separately unassessed. Active examples and focused
+samples use IFCCAD under `examples/ifccad` and `tests/fixtures/ifccad`.
 
 Memory CadDocument supports disabled state; pinned DWG retains it, pinned DXF
 omits it. Native named identity exceeds GradientColorEntry and produces located
@@ -287,5 +285,61 @@ Changed parameters receive TARGET_CODEC_HATCH_GRADIENT_PARAMETER_LOSS;
 disappeared inactive state receives TARGET_CODEC_HATCH_GRADIENT_STATE_LOSS.
 Unconfirmed matching fails verification. Optional conversion `lossPolicy`
 defaults to allow; reject is enforced at model and physical-file phases before
-offering a download. Gradient-state exports to other versions are explicitly
-unqualified and refused. Empty diagnostics do not certify renderer fidelity.
+offering a download. Active gradients require AC1018 or later; inactive settings
+have format/version-specific losses. See [actual output qualification](hatch-export-versions.md).
+Empty diagnostics do not certify renderer fidelity.
+
+## Classic editing and construction records
+
+Optional `classicSettings` retains preferred solid/linePattern mode, creation
+type userDefined/predefined/custom, optional literal name/description/origin,
+rotation (default 0), positive scale (1), double (false), and optional ordered
+`definitionLines`. These direct local XY values have an unwrapped angle, basePoint,
+XY offsetVector and signed dashLengths (positive dash, negative gap, zero dot;
+empty means continuous). They are already effective stored CAD definitions, not
+unscaled PAT families. Import copies them before UserDefined/double materialization,
+without inverse rotation, scale division or along/perpendicular projection.
+The normalized active `HatchLinePattern` remains independent and unchanged.
+
+Some(empty string), Some([0,0]) and Some([]) are authored presence. Direct values
+must be finite, offsetVector nonzero and a nonempty dash list must have a positive,
+finite absolute period. Duplicate lines, signed zeros and partial/inactive lists
+are retained. A nonzero XY vector alone does not qualify active transverse spacing.
+The all-default record must be absent.
+
+Optional `boundaryConstruction` retains ordered finite XY seedPoints (default
+empty) and finite nonnegative pixelSize (0). Duplicate and outside seeds are
+valid. Its all-default record must be absent. Pixel size is neither joinTolerance
+nor HPGAPTOL, and never fabricates DERIVED provenance.
+
+Neither record synchronizes with changes to literal fill/contours. CAD import
+captures the recipe before qualified UserDefined/double materialization. Export
+restores compatible discrete structure, dash/gap/dot order and literal metadata,
+then certifies the actual original-parameter CAD candidate against the active fill
+within the selected coordinate-domain tolerance, over complete conservative contour
+enclosures and all relevant nested/nonuniform occurrences. No fingerprint or exact
+normalized-float gate is used. A deliberate tiny numeric edit may also qualify;
+this is conversion compatibility, not proof that the fill was never edited.
+Exact/zero tolerance adds no minimum margin.
+
+A trial is not included in final evidence or diagnostics. An optional recipe that
+is incompatible or unqualified falls back with located semantic loss under Allow;
+Reject refuses that loss. The finally selected candidate always needs its own hard
+proof, including the active-fill fallback. Unrelated numeric failures remain hard.
+An upper bound above the limit is not by itself a proven geometric exceedance.
+Absent stored origin remains absent, including when definition points are translated;
+offset vectors are never translated. Only the managed origin slot is replaced,
+leaving allocated identity, source/reactor links, construction and other XData intact.
+Frame-bound state requires exactly matching OCS axes; representable translations
+project XY points explicitly. Equal oblique bases preserve local XY values;
+translations must remain exactly representable. Finite unrepresentable records are omitted whole
+with `hatch-classic-settings-loss` or `hatch-boundary-construction-loss`; Reject
+refuses. Known nonfinite/invalid state is hard even while inactive.
+
+Closed IFCX optional members reject null/unknown keys. LaterWins replaces the
+whole Hatch attribute. Native CBOR revision 1 adds fields 7/8 in place, with the
+same shared validation and existing optional Zstd envelope. Classic slot 9 stores
+direct definition lines; retired draft classic slot 8 and IFCX `families` are
+unknown and rejected, without a historical decoder or revision bump. Physical transport
+and the original AC1024 practice regression are documented in
+[Hatch output versions](hatch-export-versions.md).

@@ -199,9 +199,14 @@ fn spline_and_inactive_construction_fields_receive_explicit_classification() {
     h.pattern_scale = 2.;
     h.gradient_color.angle = 0.3;
     let p = prepare_hatch_from_cad(&h, 1e-9).unwrap();
-    for field in ["seed_points", "pixel_size", "pattern_context"] {
-        assert!(p.losses.iter().any(|l| l.field == field));
-    }
+    let construction = p.boundary_construction.as_ref().unwrap();
+    assert_eq!(construction.seed_points, vec![[0., 0.]]);
+    assert_eq!(construction.pixel_size, 0.25);
+    assert_eq!(p.classic_settings.as_ref().unwrap().scale, 2.);
+    assert!(!p
+        .losses
+        .iter()
+        .any(|l| matches!(l.field, "seed_points" | "pixel_size" | "pattern_context")));
     let gradient = p.gradient.as_ref().unwrap();
     assert_eq!(gradient.rotation, 0.3);
     assert_eq!(gradient.gradient_type, None);

@@ -470,5 +470,29 @@
   {
     "file": "invalid/dimension-graphics-null.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/hatch-editing.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/hatch-editing-definition-zero-offset.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-editing-old-families.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-editing-default.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-editing-null.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/hatch-construction-negative.ifcx",
+    "valid": false
   }
 ]

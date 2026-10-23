@@ -60,6 +60,10 @@ fn tolerance() -> f64 {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct HatchValue {
+    #[serde(default, deserialize_with = "super::presentation::present")]
+    classic_settings: Option<Value>,
+    #[serde(default, deserialize_with = "super::presentation::present")]
+    boundary_construction: Option<Value>,
     #[serde(default)]
     association_enabled: bool,
     loops: Vec<LoopValue>,
@@ -128,6 +132,18 @@ pub(super) fn decode_hatch(
     let placement: IfccadPlacement =
         serde_json::from_value(placement.clone()).map_err(|e| error(&e.to_string()))?;
     Ok(IfccadEntityKind::Hatch(IfccadHatch {
+        classic_settings: v
+            .classic_settings
+            .as_ref()
+            .map(super::hatch_editing::decode_classic)
+            .transpose()
+            .map_err(|e| error(&e.to_string()))?,
+        boundary_construction: v
+            .boundary_construction
+            .as_ref()
+            .map(super::hatch_editing::decode_construction)
+            .transpose()
+            .map_err(|e| error(&e.to_string()))?,
         association_enabled: v.association_enabled,
         gradient: v
             .gradient
@@ -151,6 +167,12 @@ pub(super) fn encode_hatch(h: &IfccadHatch, prefix: &str) -> Value {
     });
     if h.association_enabled {
         value["associationEnabled"] = json!(true);
+    }
+    if let Some(c) = &h.classic_settings {
+        value["classicSettings"] = super::hatch_editing::encode_classic(c);
+    }
+    if let Some(c) = &h.boundary_construction {
+        value["boundaryConstruction"] = super::hatch_editing::encode_construction(c);
     }
     if let Some(g) = &h.gradient {
         value["gradient"] = super::hatch_gradient::encode(g);

@@ -5294,6 +5294,18 @@
           "presence": "default",
           "default": false,
           "omit": "exact"
+        },
+        {
+          "code": 7,
+          "name": "classic_settings",
+          "type": "Option<HatchClassicSettings>",
+          "presence": "optional"
+        },
+        {
+          "code": 8,
+          "name": "boundary_construction",
+          "type": "Option<HatchBoundaryConstruction>",
+          "presence": "optional"
         }
       ],
       "dependencies": [
@@ -5303,7 +5315,9 @@
         "Option<IfccadHatchGradient>",
         "Vec<IfccadHatchLoop>",
         "bool",
-        "f64"
+        "f64",
+        "Option<HatchClassicSettings>",
+        "Option<HatchBoundaryConstruction>"
       ]
     },
     "Box<IfccadDimension>": {
@@ -10051,6 +10065,248 @@
         "f64",
         "u64",
         "IfccadFilledQuadrilateral"
+      ]
+    },
+    "HatchClassicFill": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "Solid",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "LinePattern",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "HatchCreationType": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "UserDefined",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Predefined",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Custom",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "Option<HatchClassicFill>": {
+      "kind": "optional",
+      "items": [
+        "HatchClassicFill"
+      ],
+      "dependencies": [
+        "HatchClassicFill"
+      ]
+    },
+    "Option<HatchCreationType>": {
+      "kind": "optional",
+      "items": [
+        "HatchCreationType"
+      ],
+      "dependencies": [
+        "HatchCreationType"
+      ]
+    },
+    "HatchClassicSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "preferred_fill",
+          "type": "Option<HatchClassicFill>",
+          "presence": "optional"
+        },
+        {
+          "code": 1,
+          "name": "creation_type",
+          "type": "Option<HatchCreationType>",
+          "presence": "optional"
+        },
+        {
+          "code": 2,
+          "name": "name",
+          "type": "Option<String>",
+          "presence": "optional"
+        },
+        {
+          "code": 3,
+          "name": "description",
+          "type": "Option<String>",
+          "presence": "optional"
+        },
+        {
+          "code": 4,
+          "name": "origin",
+          "type": "Option<[f64;2]>",
+          "presence": "optional"
+        },
+        {
+          "code": 5,
+          "name": "rotation",
+          "type": "f64",
+          "presence": "default",
+          "default": 0.0,
+          "omit": "exact"
+        },
+        {
+          "code": 6,
+          "name": "scale",
+          "type": "f64",
+          "presence": "default",
+          "default": 1.0,
+          "omit": "exact"
+        },
+        {
+          "code": 7,
+          "name": "double",
+          "type": "bool",
+          "presence": "default",
+          "default": false,
+          "omit": "exact"
+        },
+        {
+          "code": 9,
+          "name": "definition_lines",
+          "type": "Option<Vec<HatchPatternDefinitionLine>>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "Option<HatchClassicFill>",
+        "Option<HatchCreationType>",
+        "Option<String>",
+        "Option<Vec<HatchPatternDefinitionLine>>",
+        "Option<[f64;2]>",
+        "bool",
+        "f64"
+      ]
+    },
+    "HatchBoundaryConstruction": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "seed_points",
+          "type": "Vec<[f64;2]>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
+        },
+        {
+          "code": 1,
+          "name": "pixel_size",
+          "type": "f64",
+          "presence": "default",
+          "default": 0.0,
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "Vec<[f64;2]>",
+        "f64"
+      ]
+    },
+    "Option<HatchClassicSettings>": {
+      "kind": "optional",
+      "items": [
+        "HatchClassicSettings"
+      ],
+      "dependencies": [
+        "HatchClassicSettings"
+      ]
+    },
+    "Option<HatchBoundaryConstruction>": {
+      "kind": "optional",
+      "items": [
+        "HatchBoundaryConstruction"
+      ],
+      "dependencies": [
+        "HatchBoundaryConstruction"
+      ]
+    },
+    "Option<[f64;2]>": {
+      "kind": "optional",
+      "items": [
+        "[f64;2]"
+      ],
+      "dependencies": [
+        "[f64;2]"
+      ]
+    },
+    "HatchPatternDefinitionLine": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "angle",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "base_point",
+          "type": "[f64;2]",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "offset_vector",
+          "type": "[f64;2]",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "dash_lengths",
+          "type": "Vec<f64>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "Vec<f64>",
+        "[f64;2]",
+        "f64"
+      ]
+    },
+    "Vec<HatchPatternDefinitionLine>": {
+      "kind": "list",
+      "items": [
+        "HatchPatternDefinitionLine"
+      ],
+      "dependencies": [
+        "HatchPatternDefinitionLine"
+      ]
+    },
+    "Option<Vec<HatchPatternDefinitionLine>>": {
+      "kind": "optional",
+      "items": [
+        "Vec<HatchPatternDefinitionLine>"
+      ],
+      "dependencies": [
+        "Vec<HatchPatternDefinitionLine>"
       ]
     }
   }

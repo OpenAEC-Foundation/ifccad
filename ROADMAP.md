@@ -7,13 +7,16 @@ and current Rust code define contracts; dated local plans retain their slice sco
 
 IFCCAD is the active track. OCDraw is parked as a reference archive, without
 feature parity, routine builds or tests; see [parking](docs/ocdraw-parking.md).
-The accepted CBOR revision-2/native-Zstd checkpoint precedes this migration.
+The native CBOR/Zstd checkpoint precedes this migration; the current CBOR mapping
+is the mutable unreleased revision 1, updated in place.
 
-1. Complete and integrate the IFCCAD-main-track migration against current main.
-   It changes workspace/API ownership, archive and application routing, not format semantics.
-2. Keep Hatch B paused until that integration. Rebase once afterward, replace the
-   old codec pin and dual-model scope, and decide its IFCCAD/CBOR contract boundary
-   before implementation. Do not couple later work to its unresolved boundary.
+1. The IFCCAD-main-track migration is integrated: workspace/API ownership, archive
+   and application routing now use IFCCAD.
+2. Hatch B is resumed on that basis: classic editing/construction state belongs to
+   IFCCAD/IFCX and the mutable CBOR revision 1. Its separate DXF/DWG target profiles
+   qualify all six offered versions, disclose losses before export, and retain the
+   original AC1024 foundation drawing as local correctness acceptance. This does
+   not reopen the completed Dimension graphics slice or deferred spline contours.
 3. Native SOLID and TRACE are implemented and verified: two kinds retaining every
    finite local corner combination, native IFCX/CBOR storage and qualified CAD
    type retention, with coordinate/surface/display evidence kept separate.

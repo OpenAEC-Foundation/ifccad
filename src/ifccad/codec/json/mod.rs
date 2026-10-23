@@ -7,6 +7,7 @@ mod dimension_values;
 mod encode;
 mod geometry;
 mod hatch;
+mod hatch_editing;
 mod hatch_gradient;
 mod hatch_pattern;
 mod hatch_values;

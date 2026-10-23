@@ -170,7 +170,11 @@ fn user_defined_double_needs_context_and_preserves_both_directions() {
     };
     assert_eq!(fill.families.len(), 2);
     assert_eq!(fill.families[1].angle, std::f64::consts::FRAC_PI_2);
-    assert!(p.losses.iter().any(|l| l.field == "pattern_type"));
+    let settings = p.classic_settings.as_ref().unwrap();
+    assert_eq!(settings.creation_type, Some(HatchCreationType::UserDefined));
+    assert!(settings.double);
+    assert_eq!(settings.definition_lines.as_ref().unwrap().len(), 1);
+    assert!(!p.losses.iter().any(|l| l.field == "pattern_type"));
     assert!(p
         .pairs
         .iter()

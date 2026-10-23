@@ -3019,6 +3019,12 @@
         "associationEnabled": {
           "type": "boolean",
           "default": false
+        },
+        "classicSettings": {
+          "$ref": "#/$defs/hatchClassicSettings"
+        },
+        "boundaryConstruction": {
+          "$ref": "#/$defs/hatchBoundaryConstruction"
         }
       },
       "allOf": [
@@ -6212,6 +6218,117 @@
         }
       },
       "additionalProperties": false
+    },
+    "hatchClassicSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "preferredFill": {
+          "enum": [
+            "solid",
+            "linePattern"
+          ]
+        },
+        "creationType": {
+          "enum": [
+            "userDefined",
+            "predefined",
+            "custom"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "origin": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        "rotation": {
+          "type": "number",
+          "default": 0
+        },
+        "scale": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 1
+        },
+        "double": {
+          "type": "boolean",
+          "default": false
+        },
+        "definitionLines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "angle",
+              "basePoint",
+              "offsetVector"
+            ],
+            "properties": {
+              "angle": {
+                "type": "number"
+              },
+              "basePoint": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number"
+                }
+              },
+              "offsetVector": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number"
+                }
+              },
+              "dashLengths": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "default": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "hatchBoundaryConstruction": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "seedPoints": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number"
+            }
+          },
+          "default": []
+        },
+        "pixelSize": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0
+        }
+      }
     }
   },
   "$comment": "Mandatory IFCCAD local supplements. Ordinary IFCX shapes, typed decoding and profile-rules graph/domain algorithms also apply. This is not a whole drawing schema or IFCX core syntax."

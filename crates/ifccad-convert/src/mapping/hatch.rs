@@ -46,7 +46,7 @@ pub(crate) fn from_cad(
     };
     for loss in p.losses {
         issues.push(crate::diagnostics::diagnostic(
-            "hatch-editing-state",
+            editing_loss_code(loss.field),
             format!("{loc}/{}", loss.field),
             loss.detail,
         ));
@@ -61,6 +61,8 @@ pub(crate) fn from_cad(
         issues,
     )?;
     Ok(Some(IfccadEntityKind::Hatch(IfccadHatch {
+        classic_settings: p.classic_settings,
+        boundary_construction: p.boundary_construction,
         association_enabled: p.is_associative,
         gradient: p.gradient.map(super::hatch_gradient::gradient_from_cad),
         placement: super::geometry::placement(p.placement),
@@ -81,7 +83,7 @@ pub(crate) fn from_cad(
     })))
 }
 
-fn continuous_user_linetype(h: &Hatch, source: &opencadcodec::CadDocument) -> bool {
+pub(crate) fn continuous_user_linetype(h: &Hatch, source: &opencadcodec::CadDocument) -> bool {
     let c = &h.common;
     let name = if c.linetype.is_empty() || c.linetype.eq_ignore_ascii_case("ByLayer") {
         // Layer 0 in a local block inherits the insertion layer, including
@@ -116,6 +118,7 @@ pub(crate) fn to_cad(
     id: u64,
     context: &mut crate::geometry_context::GeometryContext,
     issues: &mut Vec<IfccadDiagnostic>,
+    continuous_linetype: bool,
 ) -> Result<Option<EntityType>, IfccadConversionError> {
     let b = h
         .loops
@@ -164,6 +167,34 @@ pub(crate) fn to_cad(
             })
         }
     };
+    let candidates = cad_geometry_convert::hatch::prepare_hatch_editing_candidates(
+        p,
+        h.placement
+            .coordinate_frame()
+            .map_err(IfccadConversionError::CoreValidation)?,
+        &h.fill,
+        h.classic_settings.as_ref(),
+        h.boundary_construction.as_ref(),
+        continuous_linetype,
+    )
+    .map_err(|source| IfccadConversionError::HatchPreparation {
+        location: format!("entity/{id}"),
+        source,
+    })?;
+    let mut pending =
+        if let (Some(preferred), ifccad::geometry_kernel::hatch::HatchFill::LinePattern(_)) =
+            (candidates.preferred.as_ref(), &h.fill)
+        {
+            Some(crate::to_cad::hatch_recipes::PendingHatchRecipe {
+                entity_id: id,
+                owner: context.owner,
+                preferred: preferred.clone(),
+                fallback: candidates.fallback.clone(),
+            })
+        } else {
+            None
+        };
+    p = candidates.preferred.unwrap_or(candidates.fallback);
     let flags = h
         .loops
         .iter()
@@ -191,6 +222,10 @@ pub(crate) fn to_cad(
         issues.push(crate::diagnostics::diagnostic(
             if loss.field == "gradient.frame" {
                 "HATCH_GRADIENT_FRAME_UNSUPPORTED"
+            } else if loss.field.starts_with("classicSettings")
+                || loss.field.starts_with("boundaryConstruction")
+            {
+                editing_loss_code(loss.field)
             } else {
                 "hatch-pattern-metadata"
             },
@@ -198,15 +233,21 @@ pub(crate) fn to_cad(
             loss.detail,
         ));
     }
-    context.record(
-        id,
-        IfccadGeometryEntitySource::NativeEntity {
-            owner: context.owner,
-            entity_id: id,
-        },
-        combine(p.pairs),
-        issues,
-    )?;
+    if let Some(mut pending) = pending.take() {
+        pending.preferred.hatch.paths = p.hatch.paths.clone();
+        pending.fallback.hatch.paths = p.hatch.paths.clone();
+        context.pending_hatch_recipes.push(pending);
+    } else {
+        context.record(
+            id,
+            IfccadGeometryEntitySource::NativeEntity {
+                owner: context.owner,
+                entity_id: id,
+            },
+            combine(p.pairs),
+            issues,
+        )?;
+    }
     if h.join_tolerance != ifccad::geometry_kernel::hatch::DEFAULT_HATCH_JOIN_TOLERANCE {
         issues.push(crate::diagnostics::diagnostic(
             "hatch-join-policy",
@@ -215,4 +256,13 @@ pub(crate) fn to_cad(
         ));
     }
     Ok(Some(EntityType::Hatch(Box::new(p.hatch))))
+}
+fn editing_loss_code(field: &str) -> &'static str {
+    if field.starts_with("classicSettings") {
+        "hatch-classic-settings-loss"
+    } else if field.starts_with("boundaryConstruction") {
+        "hatch-boundary-construction-loss"
+    } else {
+        "hatch-editing-state"
+    }
 }

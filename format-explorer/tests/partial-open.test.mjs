@@ -1,3 +1,4 @@
+import * as hatchExport from '../src/hatch-export.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -13,7 +14,7 @@ test('partial opening is an explicit retry after an eligible error, persists thr
  const workspace={t:(key,v)=>translate('nl',key,v),show(){},clear(){},setMessage(){},setStatus(){},setLoading(){},clearLoading(){},setCadReport(){}};
  const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
  const result={validation:{strictAvailable:true},conversion:{diagnostics:[{code:'source-field',location:'field',message:'not represented'}]},partialOpening:{errorCount:1,omittedEntityCount:2,entities:[{handle:'0xA',kind:'HATCH',layer:'wall',reason:'GapExceeded'},{handle:'0xB',kind:'TEXT',reason:'unsupported'}],errors:[{code:'HatchPreparation/GapExceeded'}]}};
- vm.runInNewContext(code,{initializeWorkspace:()=>workspace,conversionOptions:()=>({tolerance:{mode:'default'}}),examples:[],ifccadEncoding,...cadFormats,Blob,URL:{createObjectURL(blob){reports.push(blob);return 'blob:report';},revokeObjectURL(){}},setTimeout(){},document:{getElementById:element,createElement:()=>({click(){}})},createFileClient:()=>({async open(r){requests.push(r);return r.conversionOptions.partialOpen?result:{validation:{strictAvailable:false},failure:{code:'IFCCAD_CONVERSION_FAILED',message:'Gap exceeds limit',partialOpenAvailable:recoverable}};}}),initializeCadPreview:()=>({clear(){},setSource(){},updateSource(){},cancel(){},select(){return Promise.resolve();}}),AbortController});
+ vm.runInNewContext(code,{initializeWorkspace:()=>workspace,conversionOptions:()=>({tolerance:{mode:'default'}}),examples:[],ifccadEncoding,...cadFormats,...hatchExport,Blob,URL:{createObjectURL(blob){reports.push(blob);return 'blob:report';},revokeObjectURL(){}},setTimeout(){},document:{getElementById:element,createElement:()=>({click(){}})},createFileClient:()=>({async open(r){requests.push(r);return r.conversionOptions.partialOpen?result:{validation:{strictAvailable:false},failure:{code:'IFCCAD_CONVERSION_FAILED',message:'Gap exceeds limit',partialOpenAvailable:recoverable}};}}),initializeCadPreview:()=>({clear(){},setSource(){},updateSource(){},cancel(){},select(){return Promise.resolve();}}),AbortController});
  assert.equal(element('partial-open').hidden,true);
  element('file').files=[{name:'bad.dxf',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];
  await element('open').onclick();

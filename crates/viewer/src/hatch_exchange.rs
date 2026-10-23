@@ -1,7 +1,7 @@
 //! Physical verification against the already mapped target model.
 use ifccad_convert::opencadcodec::{
     entities::hatch::{Hatch, HatchGradientPattern},
-    CadDocument, Color, DxfVersion, EntityType,
+    CadDocument, Color, EntityType,
 };
 use serde_json::{json, Value};
 use std::collections::BTreeMap;
@@ -21,19 +21,6 @@ impl HatchExchangeIssue {
 }
 fn meaningful(h: &Hatch) -> bool {
     h.gradient_color != HatchGradientPattern::default()
-}
-pub(crate) fn check_gradient_target_version(
-    d: &CadDocument,
-    version: DxfVersion,
-) -> Result<(), String> {
-    if version != DxfVersion::AC1032
-        && d.entities()
-            .any(|e| matches!(e,EntityType::Hatch(h) if meaningful(h)))
-    {
-        Err("Gradient export is qualified only for AC1032; choose that version to retain gradient settings".into())
-    } else {
-        Ok(())
-    }
 }
 fn groups(d: &CadDocument) -> Result<BTreeMap<String, Vec<&Hatch>>, String> {
     let mut scopes = BTreeMap::<String, Vec<&Hatch>>::new();
@@ -94,6 +81,89 @@ pub(crate) fn check_hatch_exchange(
                 ));
             }
             let base = format!("{scope}/hatches/{index}");
+            let classic = classic_fields(wanted);
+            let returned_classic = classic_fields(read);
+            for field in [
+                "preferredFill",
+                "creationType",
+                "name",
+                "origin",
+                "rotation",
+                "scale",
+                "double",
+                "definitionLines",
+            ] {
+                if field == "definitionLines"
+                    && classic[field].as_array().map(Vec::len)
+                        == returned_classic[field].as_array().map(Vec::len)
+                {
+                    for (line, (a, b)) in classic[field]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .zip(returned_classic[field].as_array().unwrap())
+                        .enumerate()
+                    {
+                        for key in ["angle", "basePoint", "offsetVector", "dashLengths"] {
+                            if a[key] != b[key] {
+                                issues.push(HatchExchangeIssue {
+                                    code: "TARGET_CODEC_HATCH_CLASSIC_SETTINGS_LOSS",
+                                    location: format!(
+                                        "{base}/classicSettings/definitionLines/{line}/{key}"
+                                    ),
+                                    expected: a[key].clone(),
+                                    actual: b[key].clone(),
+                                    message: format!(
+                                        "The CAD file changed Hatch definition line {line}/{key}"
+                                    ),
+                                });
+                            }
+                        }
+                    }
+                    continue;
+                }
+                if classic[field] != returned_classic[field] {
+                    issues.push(HatchExchangeIssue {
+                        code: "TARGET_CODEC_HATCH_CLASSIC_SETTINGS_LOSS",
+                        location: format!("{base}/classicSettings/{field}"),
+                        expected: classic[field].clone(),
+                        actual: returned_classic[field].clone(),
+                        message: format!("The CAD file changed Hatch classicSettings/{field}"),
+                    });
+                }
+            }
+            for (field, expected, actual, code) in [
+                (
+                    "boundaryConstruction/seedPoints",
+                    json!(wanted
+                        .seed_points
+                        .iter()
+                        .map(|p| [p.x, p.y])
+                        .collect::<Vec<_>>()),
+                    json!(read
+                        .seed_points
+                        .iter()
+                        .map(|p| [p.x, p.y])
+                        .collect::<Vec<_>>()),
+                    "TARGET_CODEC_HATCH_BOUNDARY_CONSTRUCTION_LOSS",
+                ),
+                (
+                    "boundaryConstruction/pixelSize",
+                    json!(wanted.pixel_size),
+                    json!(read.pixel_size),
+                    "TARGET_CODEC_HATCH_BOUNDARY_CONSTRUCTION_LOSS",
+                ),
+            ] {
+                if expected != actual {
+                    issues.push(HatchExchangeIssue {
+                        code,
+                        location: format!("{base}/{field}"),
+                        expected,
+                        actual,
+                        message: format!("The CAD file changed Hatch {field}"),
+                    });
+                }
+            }
             if wanted.paths.len() != read.paths.len() {
                 return Err(format!(
                     "Hatch loop count changed at {base}; correspondence is unconfirmed"
@@ -226,14 +296,24 @@ pub(crate) fn check_hatch_exchange(
     Ok(issues)
 }
 
-pub(crate) fn check_association_target_version(
-    d: &CadDocument,
-    version: DxfVersion,
-) -> Result<(), String> {
-    if version!=DxfVersion::AC1032 && d.entities().any(|e|matches!(e,EntityType::Hatch(h) if h.is_associative || h.paths.iter().any(|p|!p.boundary_handles.is_empty() || p.flags.bits()&0x9d!=0))) {
-        return Err("Hatch source groups and text-loop semantics are qualified only for AC1032".into());
+fn classic_fields(h: &Hatch) -> Value {
+    json!({"preferredFill":h.is_solid,"creationType":format!("{:?}",h.pattern_type),"name":h.pattern.name,"origin":h.stored_pattern_origin().map(|p|[p.x,p.y]),"rotation":h.pattern_angle,"scale":h.pattern_scale,"double":h.is_double,"definitionLines":h.pattern.lines.iter().map(|f|json!({"angle":f.angle,"basePoint":[f.base_point.x,f.base_point.y],"offsetVector":[f.offset.x,f.offset.y],"dashLengths":f.dash_lengths})).collect::<Vec<_>>()})
+}
+pub(crate) fn check_hatch_exchange_for_target(
+    expected: &CadDocument,
+    actual: &CadDocument,
+    target: crate::hatch_capabilities::HatchTargetProfile<'_>,
+) -> Result<Vec<HatchExchangeIssue>, String> {
+    let mut issues = check_hatch_exchange(expected, actual)?;
+    for i in &mut issues {
+        i.message = format!(
+            "{} {}: {}",
+            target.format,
+            target.version.as_str(),
+            i.message
+        );
     }
-    Ok(())
+    Ok(issues)
 }
 
 pub(crate) fn gradient_status(fill: &Value, gradient: &Value) -> &'static str {
@@ -259,6 +339,24 @@ mod tests {
             d.add_entity(EntityType::Hatch(Box::new(h))).unwrap();
         }
         d
+    }
+    #[test]
+    fn changed_classic_parameter_names_the_exact_field() {
+        let mut expected = document();
+        let handle = expected.entities().next().unwrap().common().handle;
+        let EntityType::Hatch(h) = expected.get_entity_mut(handle).unwrap() else {
+            panic!()
+        };
+        h.pattern_angle = 0.5;
+        let mut actual = expected.clone();
+        let EntityType::Hatch(h) = actual.get_entity_mut(handle).unwrap() else {
+            panic!()
+        };
+        h.pattern_angle = 0.25;
+        let issues = check_hatch_exchange(&expected, &actual).unwrap();
+        assert_eq!(issues.len(), 1);
+        assert_eq!(issues[0].code, "TARGET_CODEC_HATCH_CLASSIC_SETTINGS_LOSS");
+        assert!(issues[0].location.ends_with("/rotation"));
     }
     #[test]
     fn removed_hatch_never_shifts_the_next_hatch_into_a_successful_match() {

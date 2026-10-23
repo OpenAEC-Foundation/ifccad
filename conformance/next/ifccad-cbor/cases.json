@@ -333,6 +333,83 @@
       "valid": false,
       "diagnostic": "invalid/graphics-reference-line.ifccad.cbor.diag",
       "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "valid/hatch-editing.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/hatch-editing.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/hatch-editing-definition-integer-angle.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/hatch-editing-definition-integer-angle.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/hatch-editing-definition-null.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/hatch-editing-definition-null.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/hatch-editing-definition-zero-offset.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/hatch-editing-definition-zero-offset.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/hatch-editing-definition-all-dots.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/hatch-editing-definition-all-dots.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/hatch-editing-definition-duplicate.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/hatch-editing-definition-duplicate.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/hatch-editing-old-families.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/hatch-editing-old-families.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/hatch-editing-default.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/hatch-editing-default.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/hatch-editing-null.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/hatch-editing-null.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/hatch-editing-unknown.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/hatch-editing-unknown.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/hatch-editing-duplicate.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/hatch-editing-duplicate.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/hatch-editing-integer-scale.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/hatch-editing-integer-scale.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/hatch-construction-negative.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/hatch-construction-negative.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
     }
   ]
 }

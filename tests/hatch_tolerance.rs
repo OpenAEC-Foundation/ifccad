@@ -34,6 +34,8 @@ fn fixed_paper_scale_resolves_physical_limits_but_plot_edits_preserve_stored_tol
         .clone();
     e.id = d.id_counters.allocate_entity_id().unwrap();
     e.kind = IfccadEntityKind::Hatch(IfccadHatch {
+        classic_settings: None,
+        boundary_construction: None,
         association_enabled: false,
         gradient: None,
         placement: IfccadPlacement {

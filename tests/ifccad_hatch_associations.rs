@@ -115,6 +115,8 @@ fn native_boundary_providers_include_text_mtext_blocks_and_paper_viewports() {
                 source.id = next;
                 next += 1;
                 source.kind = IfccadEntityKind::Hatch(IfccadHatch {
+                    classic_settings: None,
+                    boundary_construction: None,
                     association_enabled: false,
                     gradient: None,
                     placement: fixture::plane(),

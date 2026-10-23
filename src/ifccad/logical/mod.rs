@@ -1,5 +1,8 @@
 use super::*;
-pub use crate::geometry_kernel::hatch::HatchLoopProvenance;
+pub use crate::geometry_kernel::hatch::{
+    HatchBoundaryConstruction, HatchClassicFill, HatchClassicSettings, HatchCreationType,
+    HatchLoopProvenance,
+};
 mod allocation;
 mod dimension;
 mod dimension_graphics;

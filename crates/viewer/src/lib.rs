@@ -2,7 +2,9 @@
 mod binary_download;
 mod cad;
 mod geometry;
+mod hatch_capabilities;
 mod hatch_exchange;
+mod hatch_export_facts;
 mod ifccad;
 mod ifccad_input;
 mod inspection_dimension_label;
@@ -14,7 +16,7 @@ pub use ifccad::{export_ifccad_bytes, inspect_cad_as_ifccad_bytes, inspect_ifcca
 use serde_json::{json, Value};
 use std::path::Path;
 pub fn conversion_capabilities() -> Value {
-    json!({"ifccad":{"partialOpening":true,"adjustableTolerance":true,"coordinateToleranceDefault":true,"coordinateToleranceFallback":true,"splinePreservation":true}})
+    json!({"ifccad":{"partialOpening":true,"adjustableTolerance":true,"coordinateToleranceDefault":true,"coordinateToleranceFallback":true,"splinePreservation":true,"hatchExport":hatch_capabilities::metadata()}})
 }
 pub fn export_ifccad_bytes_with_options(
     name: &str,

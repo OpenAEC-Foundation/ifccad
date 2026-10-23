@@ -152,3 +152,20 @@ XY reference tuples are rejected, never completed with an inferred Z.
 ## Dimension graphics
 
 Dimension record field 7 optionally stores IfccadDimensionGraphics. Its required fields are 0 origin (SourceSnapshot=0, Generated=1), 1 ordered parts (including explicit empty). Each part has 0 optional layer_id, 1 required kind code, 2 required contextual geometry body, 3 appearance (all ByLayer default), 4 visible (true), 5 binary64 line_pattern_scale (1.0), 6 purpose (Display=0 default, ReferencePoint=1). Layer zero is present, not inherited; negative zero is preserved. The body is the existing primitive body, without a second enum envelope. Standalone graphics-kind values retain the ordinary tagged-map envelope. Allowed codes are 0..8, 10..12, 14/15; codes 9/13 are invalid. Origin/parts have no omission defaults. These records update the one experimental revision 1 in place. Shared logical validation applies the closed Hatch and marker/helper restrictions.
+
+## Hatch editing and construction
+
+IfccadHatch optional fields 7 classic_settings and 8 boundary_construction are
+omitted for None. Classic record fields: 0 optional preferred_fill (Solid=0,
+LinePattern=1), 1 optional creation_type (UserDefined=0, Predefined=1, Custom=2),
+2 optional name, 3 optional description, 4 optional XY origin, 5 rotation (0),
+6 scale (1), 7 double (false), 9 optional ordered definition_lines. Classic code
+8 is unknown and rejected; it is not a historical mapping. Definition-line record
+fields are 0 required angle, 1 required XY base_point, 2 required XY offset_vector,
+3 signed dash_lengths (default []). These are direct effective values, independent
+of the active normalized HatchLineFamily mapping. Construction has
+0 ordered XY seed_points ([]), 1 pixel_size (0). Numeric slots use binary64;
+exact defaults can be omitted, negative zero is retained. Option empty/zero/code0
+remains present, null/unknown/duplicate keys fail. All-default present records
+fail shared logical validation. The single unreleased revision 1 is updated in
+place, with no historical mapping, revision bump or changed Zstd envelope.

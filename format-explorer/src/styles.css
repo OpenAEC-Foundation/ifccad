@@ -227,3 +227,5 @@
 :root .partial-opening button{color:var(--theme-text);}
 .partial-open-action{flex:none;margin-left:auto;}
 @media(max-width:620px){.partial-open-action{margin-left:0}}
+
+#hatch-export-note{white-space:pre-line}

@@ -62,18 +62,23 @@ fn unbound_switch_loss_is_visible_and_reject_never_offers_download() {
 }
 
 #[test]
-fn hatch_association_file_profile_is_explicitly_ac1032() {
+fn hatch_associations_do_not_require_ac1032() {
     {
         let _ifccad = true;
         let bytes: &[u8] = {
             include_bytes!("../../../conformance/next/ifccad/valid/hatch-associations-unbound.ifcx")
         };
-        let out = { export_ifccad_bytes_with_options("hatch.ifcx", bytes, "dwg", "AC1027", "{}") };
-        assert_eq!(
-            out["failure"]["code"], "HATCH_ASSOCIATION_TARGET_VERSION_UNSUPPORTED",
-            "{}",
-            out["failure"]
-        );
-        assert!(out["export"]["download"].is_null());
+        for format in ["dxf", "dwg"] {
+            for version in ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"] {
+                let out =
+                    export_ifccad_bytes_with_options("hatch.ifcx", bytes, format, version, "{}");
+                assert!(
+                    out["failure"].is_null(),
+                    "{format}/{version}: {}",
+                    out["failure"]
+                );
+                assert!(!out["export"]["download"].is_null());
+            }
+        }
     }
 }

@@ -364,3 +364,21 @@ IFCCAD-DIMENSION-GRAPHICS-002: part layers/patterns/styles and local markers mus
 IFCCAD-DIMENSION-GRAPHICS-003: a Dimension's optional children.graphics must target its canonical /cad/dD/eE/graphics group. The group requires dimensionGraphics and children, with contiguous numeric roles I targeting /cad/dD/eE/graphics/pI. Each part requires dimensionGraphicsPart and exactly one permitted payload. Groups have no placement/appearance/payload, parts have no CAD children or ordinary entity roles. Direct XYZ lines/spatial paths and BlockInstance forbid separate placement; all other permitted kinds require their existing placement. Known graphics nodes require exactly one proper owner; orphan, shared, cross-Dimension, noncanonical, null and unknown core values fail. Existing IFCX key composition runs before these checks; absence of a child key in a later fragment does not delete earlier links.
 
 See [Dimension mapping](../../docs/dimension/graphics-design.md) for exact fields, defaults and frame conventions. These rules add neither implicit child inheritance nor a generator/update protocol.
+
+## Hatch editing state
+
+IFCCAD-HATCH-006: optional classicSettings and boundaryConstruction must each be
+nonempty. Classic optional preferredFill/creationType/name/description/origin/
+definitionLines distinguish authored presence, including empty strings, zero XY and
+empty lists. Rotation is finite/unwrapped (default 0), scale finite positive
+(1), double false by default. Each direct local XY definition line requires finite
+angle/basePoint/offsetVector and optional signed dashLengths (default []). Its XY
+vector MUST be nonzero; a nonempty dash list MUST have positive finite absolute
+period. Signed zeros, ordering and duplicate lines MUST be retained. Definition
+values MUST NOT be interpreted as normalized active along/perpendicular families;
+active transverse spacing and CAD compatibility require separate qualification. Neither completeness nor agreement with active fill is
+required. Construction seedPoints are ordered finite XY (default []), including
+duplicates/outside points; pixelSize is finite nonnegative (0). A fully default
+record is invalid. These values never regenerate geometry or set provenance.
+Closed IFCX members reject null/unknown keys; LaterWins replaces the whole Hatch.
+Shared typed validation applies equally to IFCX, CBOR and Zstd readback.

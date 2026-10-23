@@ -125,6 +125,32 @@ pub(super) fn expand_attributes(attrs: &mut Map<String, Value>) {
         }
     }
     if let Some(hatch) = attrs.get_mut("ifccad::hatch") {
+        if let Some(classic) = hatch.get_mut("classicSettings") {
+            // These are intrinsic defaults, not optional authored presence.
+            // In particular, do not add origin/name/type/definitionLines.
+            fill(
+                classic,
+                &[
+                    ("rotation", json!(0.)),
+                    ("scale", json!(1.)),
+                    ("double", json!(false)),
+                ],
+            );
+            if let Some(lines) = classic
+                .get_mut("definitionLines")
+                .and_then(Value::as_array_mut)
+            {
+                for line in lines {
+                    fill(line, &[("dashLengths", json!([]))]);
+                }
+            }
+        }
+        if let Some(construction) = hatch.get_mut("boundaryConstruction") {
+            fill(
+                construction,
+                &[("seedPoints", json!([])), ("pixelSize", json!(0.))],
+            );
+        }
         if let Some(pattern) = hatch.get_mut("fill").filter(|v| v["kind"] == "linePattern") {
             fill(
                 pattern,

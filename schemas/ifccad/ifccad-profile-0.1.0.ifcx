@@ -3698,6 +3698,153 @@
             "associationEnabled": {
               "dataType": "Boolean",
               "optional": true
+            },
+            "classicSettings": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "preferredFill": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "solid",
+                        "linePattern"
+                      ]
+                    },
+                    "optional": true
+                  },
+                  "creationType": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "userDefined",
+                        "predefined",
+                        "custom"
+                      ]
+                    },
+                    "optional": true
+                  },
+                  "name": {
+                    "dataType": "String",
+                    "optional": true
+                  },
+                  "description": {
+                    "dataType": "String",
+                    "optional": true
+                  },
+                  "origin": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    },
+                    "optional": true
+                  },
+                  "rotation": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "scale": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "double": {
+                    "dataType": "Boolean",
+                    "optional": true
+                  },
+                  "families": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Object",
+                        "objectRestrictions": {
+                          "values": {
+                            "angle": {
+                              "dataType": "Real"
+                            },
+                            "basePoint": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "value": {
+                                  "dataType": "Real"
+                                }
+                              }
+                            },
+                            "offset": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "value": {
+                                  "dataType": "Real"
+                                }
+                              }
+                            },
+                            "dashes": {
+                              "dataType": "Array",
+                              "arrayRestrictions": {
+                                "value": {
+                                  "dataType": "Object",
+                                  "objectRestrictions": {
+                                    "values": {
+                                      "kind": {
+                                        "dataType": "Enum",
+                                        "enumRestrictions": {
+                                          "options": [
+                                            "dash",
+                                            "gap",
+                                            "dot"
+                                          ]
+                                        }
+                                      },
+                                      "length": {
+                                        "dataType": "Real",
+                                        "optional": true
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "min": 0
+                    },
+                    "optional": true
+                  }
+                }
+              },
+              "optional": true
+            },
+            "boundaryConstruction": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "seedPoints": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Array",
+                        "arrayRestrictions": {
+                          "min": 2,
+                          "max": 2,
+                          "value": {
+                            "dataType": "Real"
+                          }
+                        }
+                      }
+                    },
+                    "optional": true
+                  },
+                  "pixelSize": {
+                    "dataType": "Real",
+                    "optional": true
+                  }
+                }
+              },
+              "optional": true
             }
           }
         }

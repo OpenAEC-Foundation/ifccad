@@ -1,4 +1,5 @@
 mod entities;
+pub(crate) mod hatch_recipes;
 mod layouts;
 
 use crate::diagnostics::diagnostic;
@@ -269,16 +270,37 @@ fn convert_document(
             .map(|e| e.id())
             .collect::<Vec<_>>()
     };
-    geometry.select(crate::IfccadGeometryOwner::ModelLayout(drawing.model.id));
-    geometry.assess_roots(&members, &roots(&drawing.model.entities), &mut issues)?;
-    for block in &supported {
-        geometry.select(crate::IfccadGeometryOwner::BlockDefinition(block.id));
-        geometry.assess_roots(&members, &roots(&block.entities), &mut issues)?;
-    }
-    for (id, _) in &paper_owners {
+    let all_roots = std::iter::once((
+        crate::IfccadGeometryOwner::ModelLayout(drawing.model.id),
+        roots(&drawing.model.entities),
+    ))
+    .chain(supported.iter().map(|block| {
+        (
+            crate::IfccadGeometryOwner::BlockDefinition(block.id),
+            roots(&block.entities),
+        )
+    }))
+    .chain(paper_owners.iter().map(|(id, _)| {
         let paper = drawing.paper_layouts.iter().find(|p| p.id == *id).unwrap();
-        geometry.select(crate::IfccadGeometryOwner::PaperLayout(*id));
-        geometry.assess_roots(&members, &roots(&paper.entities), &mut issues)?;
+        (
+            crate::IfccadGeometryOwner::PaperLayout(*id),
+            roots(&paper.entities),
+        )
+    }))
+    .collect::<Vec<_>>();
+    let pending = std::mem::take(&mut geometry.pending_hatch_recipes);
+    hatch_recipes::resolve_hatch_recipes(
+        pending,
+        &mut document,
+        &mappings,
+        &members,
+        &all_roots,
+        &mut geometry,
+        &mut issues,
+    )?;
+    for (owner, roots) in &all_roots {
+        geometry.select(*owner);
+        geometry.assess_roots(&members, roots, &mut issues)?;
     }
     crate::loss::to_cad(drawing, &mut issues);
     crate::diagnostics::enforce_policy(options.loss_policy, &issues)?;

@@ -205,6 +205,8 @@ pub fn drawing(family: &str, count: usize) -> Result<IfccadDocument> {
                     });
                 }
                 IfccadEntityKind::Hatch(IfccadHatch {
+                    classic_settings: None,
+                    boundary_construction: None,
                     placement: plane(x, y),
                     gradient,
                     fill,

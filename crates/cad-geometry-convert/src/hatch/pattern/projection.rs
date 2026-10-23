@@ -4,8 +4,9 @@ use crate::geometry::{
     cad_plane,
     numeric::{exact, round_nearest},
 };
+use num_traits::Zero;
 use opencadcodec::entities::hatch::HatchPatternLine;
-pub(super) fn from_cad(h: &Hatch) -> Result<HatchLinePattern, CadHatchPreparationError> {
+pub(in crate::hatch) fn from_cad(h: &Hatch) -> Result<HatchLinePattern, CadHatchPreparationError> {
     validate_source_scalars(h)?;
     if !h.pattern_angle.is_finite() || !h.pattern_scale.is_finite() || h.pattern_scale <= 0. {
         return Err(CadPreparationError::InvalidGeometry.into());
@@ -54,6 +55,10 @@ pub(super) fn from_cad(h: &Hatch) -> Result<HatchLinePattern, CadHatchPreparatio
         let d = direction(angle);
         let along = dot(&d, &offset);
         let perpendicular = cross(&d, &offset);
+        let (lower, upper) = perpendicular.limits();
+        if lower.is_zero() && upper.is_zero() {
+            return Err(CadPreparationError::InvalidGeometry.into());
+        }
         let perpendicular_value = nearest(&perpendicular)?;
         if perpendicular_value == 0. {
             return Err(CadPreparationError::OutOfRange.into());
@@ -119,7 +124,7 @@ pub(crate) fn validate_source_scalars(h: &Hatch) -> Result<(), CadHatchPreparati
     }
     Ok(())
 }
-pub(super) fn to_cad(
+pub(in crate::hatch) fn to_cad(
     p: &HatchLinePattern,
     plane: CoordinateFrame3,
     normal: Vector3,

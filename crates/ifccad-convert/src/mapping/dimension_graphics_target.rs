@@ -136,7 +136,9 @@ impl Export<'_, '_> {
                 self.geometry,
                 self.issues,
             ),
-            IfccadEntityKind::Hatch(h) => super::hatch::to_cad(h, id, self.geometry, self.issues),
+            IfccadEntityKind::Hatch(h) => {
+                super::hatch::to_cad(h, id, self.geometry, self.issues, false)
+            }
             IfccadEntityKind::Dimension(_) | IfccadEntityKind::Viewport(_) => Ok(None),
             _ => super::geometry::to_entity(kind, id, self.geometry, self.issues),
         };

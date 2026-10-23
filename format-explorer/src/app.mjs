@@ -6,6 +6,7 @@ import {examples} from './examples.mjs';
 import {ifccadEncoding} from './ifccad-encoding.mjs';
 import {initializeToleranceSettings} from './tolerance-settings.mjs';
 import {cadOutputForSource,supportsCadVersion} from './cad-formats.mjs';
+import {hatchExportState,showHatchExportRestrictions} from './hatch-export.mjs';
 const $=id=>document.getElementById(id),client=createFileClient();let source,controller,generation=0,stale=false,result,sourceCadVersion;
 function showsCad(tab){return tab==='overview'||tab==='drawing';}
 const workspace=initializeWorkspace({onTab:tab=>{if(showsCad(tab)&&!stale)preview.show();else preview.hide();toleranceSettings?.setView(tab);},onSelection:key=>{if(!stale)void preview.selectElement(key);},onLayout:layout=>{if(!stale)void preview.selectLayout(layout);},onPreferences:()=>{preview.refresh?.();updatePreservation();updateTolerance();updateCadSourceNote();}}),t=(key,values)=>workspace.t(key,values),preview=initializeCadPreview({translate:t,onCadSelection:key=>{if(!stale)workspace.revealCadElement?.(key);},onReport:value=>{workspace.setCadReport(value);toleranceSettings?.setReport(result,value);},onState:value=>workspace.setCadStatus(value),externalSettings:true});
@@ -15,9 +16,10 @@ function showStatus(message,quiet=false){workspace.setMessage?.(message,quiet);$
 function drawingFormat(){return 'ifccad';}
 function selectedOptions(stage='input'){return conversionOptions(toleranceSettings?toleranceSettings.selected(stage):{mode:$('tolerance-mode').value||'default',value:$('tolerance-value').value,unit:$('tolerance-unit').value||'mm'});}
 function updatePreservation(){const cad=/\.(dxf|dwg)$/i.test($('file').files?.[0]?.name||'');const available=cad;$('preservation-control').hidden=!available;$('preserve-splines').disabled=!available||!!controller;}
-function updateCadSourceNote(){const label=t('downloadCadOutput',{format:($('preview-format').value||'dxf').toUpperCase(),version:$('preview-version').value||'AC1032'});$('cad-download').title=label;$('cad-download').ariaLabel=label;const unmatched=source?.kind==='cad'&&sourceCadVersion&&!supportsCadVersion(sourceCadVersion);$('cad-source-settings-note').hidden=!unmatched;$('cad-source-settings-note').textContent=unmatched?t('unsupportedSourceCadVersion',{sourceVersion:sourceCadVersion,outputVersion:$('preview-version').value}):'';}
+function hatchSelection(){return {format:$('preview-format').value||'dxf',version:$('preview-version').value||'AC1032',lossPolicy:source?.exportConversionOptions?.lossPolicy||'allow',stale,unavailable:!result?.validation?.strictAvailable||!!controller};}
+function updateCadSourceNote(){const label=t('downloadCadOutput',{format:($('preview-format').value||'dxf').toUpperCase(),version:$('preview-version').value||'AC1032'});$('cad-download').title=label;$('cad-download').ariaLabel=label;const unmatched=source?.kind==='cad'&&sourceCadVersion&&!supportsCadVersion(sourceCadVersion);$('cad-source-settings-note').hidden=!unmatched;$('cad-source-settings-note').textContent=unmatched?t('unsupportedSourceCadVersion',{sourceVersion:sourceCadVersion,outputVersion:$('preview-version').value}):'';showHatchExportRestrictions($('hatch-export-note'),$('cad-download'),result?.presentation,hatchSelection(),t);}
 function updateTolerance(){const mode=$('tolerance-mode').value||'default';$('custom-tolerance').hidden=mode!=='custom';const unit=result?.presentation?.unit||result?.presentation?.graph?.data?.find(n=>n.attributes?.['ifccad::drawing'])?.attributes['ifccad::drawing'].lengthUnit,capable=result?.conversionCapabilities?.[drawingFormat()]?.adjustableTolerance;for(const option of Array.from($('tolerance-mode').options||[]))if(option.value!=='default')option.disabled=capable===false;if($('tolerance-mode').options?.[0])$('tolerance-mode').options[0].textContent=t(capable===false?'legacyTolerance':'defaultTolerance');$('tolerance-effective').textContent=(unit?t('modelUnit',{unit}):'')+(capable===false?' · '+t('toleranceUnavailable'):'');toleranceSettings?.setReport(result);}
-function finishBusy(){controller=null;$('partial-open').disabled=false;workspace.clearLoading();$('file').disabled=false;$('open').disabled=false;updatePreservation();}
+function finishBusy(){controller=null;$('partial-open').disabled=false;workspace.clearLoading();$('file').disabled=false;$('open').disabled=false;updatePreservation();updateCadSourceNote();}
 function loadingInfo(name,kind,operation){return {name,action:operation?'exportingTo':kind==='cad'?'convertingTo':'openingFile',format:operation?.format?.toUpperCase()||('IFCCAD')};}
 function clearSelection(){$('native-download-menu').hidePopover?.();generation++;controller?.abort();finishBusy();source=undefined;result=undefined;$('partial-open').hidden=true;$('partial-opening').hidden=true;sourceCadVersion=undefined;stale=false;preview.clear();workspace.clear();updateCadSourceNote();$('export').disabled=true;$('cad-download').disabled=true;$('drawing').hidden=true;}
 function updatePartialOpening(value){
@@ -61,7 +63,7 @@ $('export').onclick=()=>{
 for(const encoding of ['json','cbor','cbor-zstd'])$('native-'+encoding).onclick=()=>{
  $('native-download-menu').hidePopover();
  if(!stale&&!$('export').disabled)return run({format:drawingFormat(),...(encoding==='json'?{}:{encoding})});
-};$('cad-download').onclick=()=>stale?undefined:run({format:$('preview-format').value,version:$('preview-version').value});
+};$('cad-download').onclick=()=>stale||hatchExportState(result?.presentation,hatchSelection()).blocked?undefined:run({format:$('preview-format').value,version:$('preview-version').value});
 function cancel(){generation++;controller?.abort();finishBusy();workspace.setStatus('cancelled');}
 $('loading-cancel').onclick=cancel;
 $('preview-open').onclick=()=>{if(!stale)workspace.selectTab('drawing');};

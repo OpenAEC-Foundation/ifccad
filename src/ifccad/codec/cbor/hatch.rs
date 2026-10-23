@@ -4,6 +4,10 @@ use crate::geometry_kernel::hatch::{
     HatchGradientColorMode, HatchGradientType, HatchLineFamily, HatchLinePattern,
     HatchLoopProvenance,
 };
+use crate::geometry_kernel::hatch::{
+    HatchBoundaryConstruction, HatchClassicFill, HatchClassicSettings, HatchCreationType,
+    HatchPatternDefinitionLine,
+};
 record!(IfccadHatch;
 0 => gradient: Option<IfccadHatchGradient> = Some(None),
 1 => placement: IfccadPlacement = None,
@@ -12,7 +16,26 @@ record!(IfccadHatch;
 4 => join_tolerance: f64 = None,
 5 => fill: HatchFill = None,
 6 => association_enabled: bool = Some(false),
+7 => classic_settings: Option<HatchClassicSettings> = Some(None),
+8 => boundary_construction: Option<HatchBoundaryConstruction> = Some(None),
 );
+record!(HatchClassicSettings;
+0 => preferred_fill: Option<HatchClassicFill> = Some(None),
+1 => creation_type: Option<HatchCreationType> = Some(None),
+2 => name: Option<String> = Some(None),
+3 => description: Option<String> = Some(None),
+4 => origin: Option<[f64;2]> = Some(None),
+5 => rotation: f64 = Some(0.0),
+6 => scale: f64 = Some(1.0),
+7 => double: bool = Some(false),
+9 => definition_lines: Option<Vec<HatchPatternDefinitionLine>> = Some(None),
+);
+record!(HatchBoundaryConstruction;
+0 => seed_points: Vec<[f64;2]> = Some(Vec::new()),
+1 => pixel_size: f64 = Some(0.0),
+);
+unit_enum!(HatchClassicFill; 0 => Solid, 1 => LinePattern,);
+unit_enum!(HatchCreationType; 0 => UserDefined, 1 => Predefined, 2 => Custom,);
 unit_enum!(HatchAreaRule;
 0 => Normal,
 1 => Outer,
@@ -942,3 +965,10 @@ mod current_main_tests {
         assert!(err.to_string().contains("unknown field"));
     }
 }
+
+record!(HatchPatternDefinitionLine;
+0 => angle: f64 = None,
+1 => base_point: [f64;2] = None,
+2 => offset_vector: [f64;2] = None,
+3 => dash_lengths: Vec<f64> = Some(Vec::new()),
+);

@@ -207,6 +207,7 @@ pub fn prepare_hatch_to_cad(
         &mut hatch, placement, fill, gradient,
     )?);
     Ok(PreparedCadHatch {
+        native_boundaries: boundaries.to_vec(),
         hatch,
         pairs,
         losses,

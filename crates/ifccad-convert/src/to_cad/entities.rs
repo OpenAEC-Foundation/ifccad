@@ -245,7 +245,12 @@ pub(super) fn to_cad(
                 }
                 IfccadEntityKind::BlockInstance { .. } => None,
                 IfccadEntityKind::Hatch(h) => {
-                    crate::mapping::hatch::to_cad(h, e.id, geometry, issues)?
+                    let mut probe = opencadcodec::entities::Hatch::solid();
+                    probe.common = common.clone();
+                    probe.common.owner_handle = *owner;
+                    let continuous =
+                        crate::mapping::hatch::continuous_user_linetype(&probe, document);
+                    crate::mapping::hatch::to_cad(h, e.id, geometry, issues, continuous)?
                 }
                 kind => crate::mapping::geometry::to_entity(kind, e.id, geometry, issues)?,
             };
@@ -257,7 +262,7 @@ pub(super) fn to_cad(
                     }
                 }
                 let pattern_origin = match &target {
-                    EntityType::Hatch(h) if !h.is_solid => h.stored_pattern_origin(),
+                    EntityType::Hatch(h) => h.stored_pattern_origin(),
                     _ => None,
                 };
                 *target.common_mut() = common;

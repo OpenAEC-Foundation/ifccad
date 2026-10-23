@@ -200,7 +200,11 @@ pub fn prepare_hatch_from_cad(
         losses.extend(p.losses);
         HatchFill::LinePattern(p.pattern)
     };
+    let editing = super::prepare_editing_from_cad(h, placement)?;
+    losses.extend(editing.losses);
     Ok(PreparedNativeHatch {
+        classic_settings: editing.classic_settings,
+        boundary_construction: editing.boundary_construction,
         loop_flags: super::prepare_loop_flags_from_cad(h)?,
         gradient: gradient.gradient,
         fill,
@@ -230,25 +234,12 @@ pub fn prepare_hatch_from_cad_with_pattern_context(
     if h.gradient_color.enabled || h.is_solid || h.pattern_type != HatchPatternType::UserDefined {
         return prepare_hatch_from_cad(h, join_tolerance);
     }
-    super::pattern::validate_source_scalars(h)?;
-    if !continuous_linetype
-        || h.pattern.lines.len() != 1
-        || !h.pattern.lines[0].dash_lengths.is_empty()
-    {
-        return Err(unsupported(
-            "pattern_type",
-            "user-defined active linetype/families are not a qualified continuous profile",
-        ));
-    }
-    // Retain explicit evaluated geometry; the native format does not retain
-    // the CAD editor's user-defined linetype dependency.
-    let mut literal = h.clone();
-    literal.pattern_type = HatchPatternType::Custom;
-    literal.is_double = false;
-    if h.is_double {
-        super::pattern::audit::expand_double(h, &mut literal)?;
-    }
+    let literal = materialize_user_defined(h, continuous_linetype)?;
     let mut prepared = prepare_hatch_from_cad(&literal, join_tolerance)?;
+    let editing = super::prepare_editing_from_cad(h, prepared.placement)?;
+    prepared.classic_settings = editing.classic_settings;
+    prepared.boundary_construction = editing.boundary_construction;
+    prepared.losses.extend(editing.losses);
     if h.is_double {
         if let HatchFill::LinePattern(p) = &prepared.fill {
             let pair = super::pattern::double_evidence(
@@ -260,13 +251,32 @@ pub fn prepare_hatch_from_cad_with_pattern_context(
             *prepared.pairs.last_mut().expect("pattern certificate") = pair;
         }
     }
-    prepared.losses.push(HatchSourceLoss {
-        field: "pattern_type",
-        detail: if h.is_double {
-            "qualified continuous user-defined double expanded to two literal families; editor linetype/double dependency is not retained"
-        } else {
-            "qualified continuous user-defined families retained; editor linetype dependency is not retained"
-        }.into(),
-    });
     Ok(prepared)
+}
+
+/// Shared recipe materialization, without reinterpreting contour join policy.
+pub(super) fn materialize_user_defined(
+    h: &Hatch,
+    continuous_linetype: bool,
+) -> Result<Hatch, CadHatchPreparationError> {
+    if h.gradient_color.enabled || h.is_solid || h.pattern_type != HatchPatternType::UserDefined {
+        return Ok(h.clone());
+    }
+    super::pattern::validate_source_scalars(h)?;
+    if !continuous_linetype
+        || h.pattern.lines.len() != 1
+        || !h.pattern.lines[0].dash_lengths.is_empty()
+    {
+        return Err(unsupported(
+            "pattern_type",
+            "user-defined active linetype/families are not a qualified continuous profile",
+        ));
+    }
+    let mut literal = h.clone();
+    literal.pattern_type = HatchPatternType::Custom;
+    literal.is_double = false;
+    if h.is_double {
+        super::pattern::audit::expand_double(h, &mut literal)?;
+    }
+    Ok(literal)
 }

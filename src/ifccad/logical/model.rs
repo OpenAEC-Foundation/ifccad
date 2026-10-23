@@ -209,6 +209,10 @@ pub struct IfccadBlockTransform {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+// Keep the existing direct public Hatch value. Its independent optional editing
+// records increase the variant size; do not change ownership/allocation as an
+// unmeasured side effect of extending the logical contract.
+#[allow(clippy::large_enum_variant)]
 pub enum IfccadEntityKind {
     Solid(IfccadFilledQuadrilateral),
     Trace(IfccadFilledQuadrilateral),

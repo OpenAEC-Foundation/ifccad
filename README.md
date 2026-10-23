@@ -71,9 +71,9 @@ source retention and loss diagnostics remain unchanged. See the
 
 [ROADMAP.md](ROADMAP.md) is authoritative. The current order is:
 
-1. Complete and integrate the IFCCAD-main-track migration after the accepted CBOR gate.
-2. Resume Hatch B on the integrated basis, updating its scope to IFCCAD and reviewing
-   any CBOR revision implications before contract changes.
+1. The IFCCAD-main-track migration is integrated; OCDraw remains parked.
+2. Hatch B adds classic editing/construction state in IFCCAD/IFCX and the mutable
+   CBOR revision 1, with version-specific DXF/DWG qualification and Explorer disclosure.
 3. The [native SOLID/TRACE precursor](docs/geometry/solid-trace-design.md) is implemented,
    retaining all finite local corner combinations and both CAD object types,
    with coordinate, surface and display guarantees kept separate.
@@ -86,7 +86,7 @@ source retention and loss diagnostics remain unchanged. See the
 7. Expand supported CAD semantics; assess whole-document storage/performance
    using representative evidence.
 
-Hatch B stays paused until migration integration. The xformop experiment stays
+Hatch B is resumed on the integrated IFCCAD basis. The xformop experiment stays
 separate. One broad cross-cutting task runs at a time; independent narrow work
 can proceed with focused checks and coordinated integration verification.
 

@@ -302,6 +302,16 @@ pub(super) fn to_cad(
     build(h, p, plane, b, true, false)
 }
 
+pub(super) fn candidate_to_cad(
+    p: &HatchLinePattern,
+    h: &Hatch,
+    plane: CoordinateFrame3,
+    b: &[HatchBoundary2],
+    double: bool,
+) -> Result<GeometryPair, CadHatchPreparationError> {
+    build(h, p, plane, b, true, double)
+}
+
 pub(crate) fn double_evidence(
     h: &Hatch,
     p: &HatchLinePattern,

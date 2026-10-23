@@ -233,6 +233,11 @@ mod tests {
         check::<HatchGradient<IfccadColor>>(&r, "HatchGradient<IfccadColor>");
         check::<IfccadHatchLoop>(&r, "IfccadHatchLoop");
         check::<HatchLoopProvenance>(&r, "HatchLoopProvenance");
+        check::<HatchClassicSettings>(&r, "HatchClassicSettings");
+        check::<HatchPatternDefinitionLine>(&r, "HatchPatternDefinitionLine");
+        check::<HatchBoundaryConstruction>(&r, "HatchBoundaryConstruction");
+        check::<HatchClassicFill>(&r, "HatchClassicFill");
+        check::<HatchCreationType>(&r, "HatchCreationType");
         check::<DimensionFractionLayout>(&r, "DimensionFractionLayout");
         check::<HatchLinePattern>(&r, "HatchLinePattern");
         check::<DimensionDefinition>(&r, "DimensionDefinition");

@@ -386,7 +386,7 @@ Dot grid style and frequencies beyond CAD i16 receive field-specific substitutio
 ## Hatch
 
 Native Solid, LinePattern and Gradient Hatch map stored contours and the normal/outer/ignore area rule.
-Ordered whole-object source groups bind after entity allocation, retaining duplicate IDs and disabled relations. The association switch, loopprovenance and TextIsland are independent authored state. Missing target sources omit their whole group with located loss; contours and other groups remain. Qualified AC1032 DXF/DWG readback preserves these states, with explicit unbound-switch codec loss and Reject-before-download.
+Ordered whole-object source groups bind after entity allocation, retaining duplicate IDs and disabled relations. The association switch, loopprovenance and TextIsland are independent authored state. Missing target sources omit their whole group with located loss; contours and other groups remain. Qualified DXF/DWG readback at all six offered versions preserves these states, with explicit unbound-switch codec loss and Reject-before-download; see [target profiles](../../docs/hatch-export-versions.md).
 Unsupported associations retain contour geometry with located loss.
 `hatch_join_tolerance` is a CAD-to-native creation option, separate from numeric
 conversion tolerance. Nondefault native limits are not persisted in CAD and
@@ -414,7 +414,7 @@ Gradient settings use the separate native state: active type/two endpoints and
 independent rotation/shift/mode/tint, or partial dormant preferences. CAD output
 requires exact native/target OCS axes; unsupported active frames omit the whole
 Hatch, while dormant frame failure omits only state with a located loss.
-Native color identity may exceed the pinned gradient surface. Physical AC1032
+Native color identity may exceed the pinned gradient surface. Physical version-specific
 DXF/DWG qualification and #109 source/target limitations are detailed in
 [Hatch support](../../docs/hatch.md). No gradient renderer is implemented.
 
@@ -525,3 +525,27 @@ supported; wide polylines, nonzero cache root bases, clone insertion transforms
 and unqualified tilted cache conventions remain bounded limitations. No generator,
 validity engine, opaque picture preservation or CAD-host product patch is added.
 See [the complete mapping](../../docs/dimension/graphics-design.md).
+
+## Hatch editing coverage
+
+IFCCAD classicSettings and boundaryConstruction map independently of active
+fill/contours. Direct `definitionLines` preserve original effective angles, base
+points, XY offsets and signed dash lengths before UserDefined/double expansion.
+The active normalized fill is unchanged. Exact OCS axes govern transport; candidate
+selection checks discrete structure/presence and the actual candidate's certified
+geometric bound within the selected domain tolerance, including every relevant
+occurrence. No fingerprint or exact re-normalization is required. Tiny deliberate
+numeric edits can qualify as conversion deviations too. Failed optional trials do
+not enter final evidence; diagnosed fallback requires its own hard proof. Stored
+origin absence is retained and offset vectors are never translated. Native presence or
+finite frame/range states that CadDocument cannot represent produce located
+`hatch-classic-settings-loss` / `hatch-boundary-construction-loss`; invalid
+meaningful scalar/family state remains fatal. Partial/stale records remain valid
+natively, without PAT/font lookup or regeneration. Whole-object source groups
+remain ordered and atomic; no segment selectors are added.
+
+Actual DXF/DWG output separately diagnoses description, inactive classic and
+gradient state, unbound activation and DERIVED-dependent pixel size. Native
+storage success is not physical transport proof. All six offered versions,
+Explorer preflight and external AC1024 correctness acceptance are specified in
+[Hatch output qualification](../../docs/hatch-export-versions.md).

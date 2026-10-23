@@ -138,16 +138,25 @@ fn enabled_gradient_bypasses_inactive_user_defined_double_gates() {
     h.is_double = true;
     let p = prepare_hatch_from_cad_with_pattern_context(&h, 1e-9, false).unwrap();
     assert_eq!(p.fill, HatchFill::Gradient);
-    assert!(p.losses.iter().any(|l| l.field == "pattern_context"));
+    let classic = p.classic_settings.as_ref().unwrap();
+    assert_eq!(classic.creation_type, Some(HatchCreationType::UserDefined));
+    assert!(classic.double);
+    assert!(!p.losses.iter().any(|l| l.field == "pattern_context"));
 }
 
 #[test]
-fn inactive_pattern_origin_is_left_for_common_loss_auditing_on_gradients() {
+fn inactive_pattern_origin_is_captured_independently_of_the_gradient() {
     let mut h = hatch();
     h.is_solid = false;
     h.record_pattern_origin(Vector2::new(2., 3.));
     let residual = pattern::residual_common(&h).unwrap();
-    assert_eq!(residual.extended_data, h.common.extended_data);
+    assert!(residual.extended_data.records().is_empty());
+    let editing = prepare_editing_from_cad(&h, CoordinateFrame3::default()).unwrap();
+    assert_eq!(
+        editing.classic_settings.as_ref().unwrap().origin,
+        Some([2., 3.])
+    );
+    assert_eq!(h.stored_pattern_origin(), Some(Vector2::new(2., 3.)));
 }
 
 #[test]

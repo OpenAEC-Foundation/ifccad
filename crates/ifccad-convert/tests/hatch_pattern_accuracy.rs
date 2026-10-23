@@ -12,7 +12,7 @@ fn far_pattern_preserves_native_semantics_through_strict_readback_and_real_cad_f
     source
         .add_entity(EntityType::Hatch(Box::new(far::hatch())))
         .unwrap();
-    let rejected = cad_document_to_encoded_ifccad(
+    let encoded = cad_document_to_encoded_ifccad(
         &source,
         common::metadata(),
         CadToIfccadOptions {
@@ -20,19 +20,24 @@ fn far_pattern_preserves_native_semantics_through_strict_readback_and_real_cad_f
             ..Default::default()
         },
     )
-    .err()
-    .expect("unrepresented library dependency must remain rejected");
-    let IfccadConversionError::Unsupported(issues) = rejected else {
-        panic!("geometry must be certified")
-    };
-    assert!(issues.iter().any(|d| d.code == "hatch-editing-state"));
-    assert!(issues
+    .expect("classic editing state is represented and geometry is certified");
+    assert!(!encoded
+        .diagnostics()
+        .iter()
+        .any(|d| d.code == "hatch-editing-state"));
+    assert!(encoded
+        .diagnostics()
         .iter()
         .any(|d| d.code == "GeometryRoundedWithinTolerance"));
-    let encoded =
-        cad_document_to_encoded_ifccad(&source, common::metadata(), Default::default()).unwrap();
     let native = encoded.validated_source().document();
     let expected = native.model.entities[0].as_native().unwrap().kind.clone();
+    let IfccadEntityKind::Hatch(hatch) = &expected else {
+        panic!()
+    };
+    let classic = hatch.classic_settings.as_ref().unwrap();
+    assert_eq!(classic.creation_type, Some(HatchCreationType::Custom));
+    assert_eq!(classic.rotation, std::f64::consts::FRAC_PI_2);
+    assert_eq!(classic.scale, 0.5);
     let bytes = encode_ifccad_cbor_document(native).unwrap();
     let loaded = load_ifccad_cbor_bytes(bytes.bytes(), Default::default()).unwrap();
     assert_eq!(
@@ -49,8 +54,25 @@ fn far_pattern_preserves_native_semantics_through_strict_readback_and_real_cad_f
                 loss_policy: policy,
                 ..Default::default()
             },
-        )
-        .unwrap();
+        );
+        let cad = cad.unwrap();
+        assert!(!cad
+            .diagnostics()
+            .iter()
+            .any(|d| d.code == "hatch-classic-settings-loss"));
+        let opencadcodec::EntityType::Hatch(actual) = cad
+            .document()
+            .entities()
+            .find(|e| matches!(e, opencadcodec::EntityType::Hatch(_)))
+            .unwrap()
+        else {
+            panic!()
+        };
+        assert_eq!(actual.pattern.lines, far::hatch().pattern.lines);
+        assert_eq!(
+            actual.stored_pattern_origin(),
+            far::hatch().stored_pattern_origin()
+        );
         for format in 0..3 {
             let returned = match format {
                 0 | 1 => DxfReader::from_reader(Cursor::new(

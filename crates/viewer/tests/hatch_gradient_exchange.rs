@@ -59,18 +59,24 @@ fn actual_disabled_dxf_loss_is_visible_and_reject_never_offers_download() {
     }
 }
 #[test]
-fn only_qualified_ac1032_is_offered_for_active_and_inactive_gradient_state() {
+fn only_active_dwg_ac1015_gradient_is_blocked() {
     {
         let ifccad = true;
         for inactive in [false, true] {
             let b = bytes(ifccad, inactive);
             for version in ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027"] {
                 let r = export(ifccad, &b, "dwg", version, "{}");
-                assert_eq!(
-                    r["failure"]["code"], "HATCH_GRADIENT_TARGET_VERSION_UNSUPPORTED",
-                    "{r}"
-                );
-                assert!(r["export"]["download"].is_null());
+                if version == "AC1015" && !inactive {
+                    assert_eq!(
+                        r["failure"]["code"], "HATCH_TARGET_FEATURE_UNSUPPORTED",
+                        "{}",
+                        r["failure"]
+                    );
+                    assert!(r["export"]["download"].is_null());
+                } else {
+                    assert!(r["failure"].is_null(), "{}", r["failure"]);
+                    assert!(!r["export"]["download"].is_null());
+                }
             }
         }
     }
@@ -85,4 +91,11 @@ fn explicit_allow_is_accepted_but_invalid_loss_policy_is_not() {
         let r = export(false, &b, "dxf", "AC1032", policy);
         assert_eq!(r["failure"]["code"], "INVALID_CONVERSION_OPTIONS");
     }
+}
+#[test]
+fn gradient_dxf_ac1015_requires_newer_format_even_if_the_codec_reads_its_own_tags() {
+    let b = bytes(false, false);
+    let r = export(false, &b, "dxf", "AC1015", "{}");
+    assert_eq!(r["failure"]["code"], "HATCH_TARGET_FEATURE_UNSUPPORTED");
+    assert!(r["export"]["download"].is_null());
 }

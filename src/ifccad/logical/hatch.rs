@@ -91,6 +91,8 @@ pub type IfccadHatchGradient = crate::geometry_kernel::hatch::HatchGradient<Ifcc
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadHatch {
+    pub classic_settings: Option<crate::geometry_kernel::hatch::HatchClassicSettings>,
+    pub boundary_construction: Option<crate::geometry_kernel::hatch::HatchBoundaryConstruction>,
     pub association_enabled: bool,
     pub gradient: Option<IfccadHatchGradient>,
     pub placement: IfccadPlacement,
@@ -100,6 +102,24 @@ pub struct IfccadHatch {
     pub fill: HatchFill,
 }
 pub(crate) fn validate_hatch(h: &IfccadHatch, path: &str) -> Result<(), IfccadReport> {
+    if let Some(c) = &h.classic_settings {
+        crate::geometry_kernel::hatch::validate_hatch_classic_settings(c).map_err(|e| {
+            crate::ifccad::diagnostics::failure(
+                "IFCCAD-HATCH-006",
+                &format!("{path}/classicSettings/{}", e.field),
+                e.to_string(),
+            )
+        })?;
+    }
+    if let Some(c) = &h.boundary_construction {
+        crate::geometry_kernel::hatch::validate_hatch_boundary_construction(c).map_err(|e| {
+            crate::ifccad::diagnostics::failure(
+                "IFCCAD-HATCH-006",
+                &format!("{path}/boundaryConstruction/{}", e.field),
+                e.to_string(),
+            )
+        })?;
+    }
     for (i, l) in h.loops.iter().enumerate() {
         if l.provenance.as_ref().is_some_and(|p| p.is_empty()) {
             return Err(crate::ifccad::diagnostics::failure(

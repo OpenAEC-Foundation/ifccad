@@ -40,53 +40,11 @@ pub(super) fn audit(h: &Hatch) -> Result<Vec<HatchSourceLoss>, CadHatchPreparati
             detail: detail.into(),
         })
     };
-    if (h.is_solid || h.gradient_color.enabled)
-        && (h.pattern.name != "SOLID"
-            || !h.pattern.description.is_empty()
-            || !h.pattern.lines.is_empty())
-    {
-        loss(
-            "pattern",
-            "inactive classic pattern metadata is not retained",
-        );
-    }
-    if (h.is_solid || h.gradient_color.enabled)
-        && (h.pattern_type != HatchPatternType::Predefined
-            || h.pattern_angle != 0.
-            || h.pattern_scale != 1.
-            || h.is_double)
-    {
-        loss(
-            "pattern_context",
-            "inactive classic pattern creation settings are not retained",
-        );
-    }
     if !h.gradient_color.enabled && !h.is_solid && h.pattern_type == HatchPatternType::UserDefined {
         return Err(unsupported(
             "pattern_type",
             "user-defined pattern needs model-aware continuous linetype qualification",
         ));
-    }
-    if !h.gradient_color.enabled && !h.is_solid {
-        loss("pattern_type", "literal families retained; external pattern-library and creation-type dependency is not retained");
-        if h.is_double {
-            loss(
-                "is_double",
-                "inactive double flag on predefined/custom pattern is not retained",
-            );
-        }
-    }
-    if !h.seed_points.is_empty() {
-        loss(
-            "seed_points",
-            "boundary construction seed points are not retained",
-        );
-    }
-    if h.pixel_size != 0. {
-        loss(
-            "pixel_size",
-            "boundary construction pixel size is not retained",
-        );
     }
     if h.mpolygon_hatch_color != Color::ByLayer
         || h.mpolygon_x_direction != Vector2::ZERO

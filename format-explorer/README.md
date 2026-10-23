@@ -151,3 +151,22 @@ fills can be retained. The full packaged smoke regression runs with `npm test`
 when both browser WASM and Open CAD Studio bundles are present; it does not
 require source files in the deployed package. CI builds
 only IFCCAD plus the active companions and has native and WASM Zstd checks.
+
+## Hatch target restrictions
+
+The CAD output controls retain a supported original source version, including
+AC1024. Hatch restrictions appear before download for the selected DXF/DWG
+version, using drawing-specific Rust qualification shared with physical export.
+Warnings appear in the output conversion report, grouped by reason with occurrence
+counts; individual located diagnostics remain available in the report. They are
+not input-conversion losses. Necessarily unsupported active profiles block
+download. Changing format/version or reopening a drawing refreshes the note.
+Actual write/readback still enforces the selected loss policy and can report
+additional located losses. The Explorer never silently switches to AC1032.
+See [Hatch version qualification](../docs/hatch-export-versions.md).
+
+Original Hatch recipes use direct `definitionLines`; qualified output retains the
+original values and missing origin through the selected tolerance assessment.
+Numerical rounding and optional recipe loss are separate from physical file loss.
+Known DXF angle changes are located per definition line in the output report;
+no automatic version substitution is made. See [Hatch output qualification](../docs/hatch-export-versions.md).

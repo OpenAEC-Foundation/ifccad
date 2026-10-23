@@ -643,3 +643,17 @@ surface correspondence; absent surface evidence does not invalidate, omit or
 lose a finite descriptor. Viewer rendering remains unassessed.
 
 Dimension owns optional independent graphics, projected as canonical child groups/parts in IFCX. No identity allocation or freshness evaluation is introduced; see [profile rules](profile-rules-0.1.0.md#owned-dimension-graphics).
+
+## Independent Hatch editing state
+
+`ifccad::hatch.classicSettings` and `.boundaryConstruction` are optional closed
+non-null records with the defaults, authored presence and intrinsic validation
+in [IFCCAD-HATCH-006](profile-rules-0.1.0.md#hatch-editing-state). They do not
+alter active fill, stored contours, source references, placement or allocation.
+No automatic recipe synchronization, gap policy, source regeneration or precise
+selector is introduced. CBOR revision 1 stores the same contract in place.
+
+Classic `definitionLines` store direct effective local XY definitions rather than
+normalized active families. Their closed fields and intrinsic validation follow
+IFCCAD-HATCH-006. Draft JSON `families` and classic CBOR code 8 are rejected;
+mutable mapping revision 1 uses classic code 9 with no historical reader.

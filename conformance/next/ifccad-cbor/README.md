@@ -28,3 +28,8 @@ have production strict readback. Negative physical cases cover null, unknown
 origin, missing/duplicate fields, forbidden kinds 9/13/16, non-binary64 numeric
 representations and an incompatible ReferencePoint purpose. IFCX and CBOR share
 the same logical ownership, geometry and reference validation.
+
+Hatch editing fixtures independently author body fields 7/8, code-zero enums,
+empty strings/families, signed-zero origin and duplicate/outside seeds. Negative
+cases cover empty records, null, unknown/duplicate fields, integer scale and
+negative pixel size. New bytes use literal maps, not the production writer.

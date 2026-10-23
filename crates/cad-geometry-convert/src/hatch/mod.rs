@@ -1,5 +1,10 @@
 //! Stored Hatch contours/families and independent numerical conversion evidence.
 mod audit;
+mod editing;
+pub use editing::{
+    apply_editing_to_cad, prepare_editing_from_cad, prepare_hatch_editing_candidates,
+    PreparedHatchEditing, PreparedHatchEditingCandidates,
+};
 mod evidence;
 mod from_cad;
 mod gradient;
@@ -65,6 +70,8 @@ pub fn resolve_creation_tolerance(
 }
 
 pub struct PreparedNativeHatch {
+    pub classic_settings: Option<ifccad::geometry_kernel::hatch::HatchClassicSettings>,
+    pub boundary_construction: Option<ifccad::geometry_kernel::hatch::HatchBoundaryConstruction>,
     pub loop_flags: Vec<PreparedHatchLoopFlags>,
     pub gradient: Option<ifccad::geometry_kernel::hatch::HatchGradient<opencadcodec::Color>>,
     pub fill: HatchFill,
@@ -77,7 +84,9 @@ pub struct PreparedNativeHatch {
     pub pairs: Vec<GeometryPair>,
     pub losses: Vec<HatchSourceLoss>,
 }
+#[derive(Clone)]
 pub struct PreparedCadHatch {
+    pub(crate) native_boundaries: Vec<HatchBoundary2>,
     pub hatch: Hatch,
     pub pairs: Vec<GeometryPair>,
     pub losses: Vec<HatchSourceLoss>,
@@ -89,6 +98,8 @@ pub struct HatchSourceLoss {
 }
 #[derive(Debug, thiserror::Error)]
 pub enum CadHatchPreparationError {
+    #[error("{0}")]
+    Editing(#[from] ifccad::geometry_kernel::hatch::HatchEditingValidationError),
     #[error("Hatch loop count mismatch: expected {expected}, got {actual}")]
     LoopCountMismatch { expected: usize, actual: usize },
     #[error("{0}")]

@@ -1,6 +1,8 @@
 //! ID-free planar Hatch parameters, join proofs and conservative enclosures.
 mod bounds;
+mod editing;
 mod endpoints;
+pub use editing::*;
 mod gradient;
 mod pattern;
 mod tolerance;

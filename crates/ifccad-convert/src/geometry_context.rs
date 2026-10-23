@@ -16,6 +16,7 @@ pub(crate) struct GeometryContext {
     pub state: cad_geometry_convert::ExchangeState<GeometryNodeKey, IfccadGeometryEntitySource>,
     pub owner: IfccadGeometryOwner,
     pub preparation_error: Option<cad_geometry_convert::CadPreparationError>,
+    pub pending_hatch_recipes: Vec<crate::to_cad::hatch_recipes::PendingHatchRecipe>,
     stored: BTreeMap<IfccadGeometryDomain, Assessment>,
     pub graphics_members: BTreeMap<GeometryNodeKey, Vec<GeometryNodeKey>>,
     pub graphics_owners: BTreeMap<u64, IfccadGeometryOwner>,
@@ -38,6 +39,7 @@ impl GeometryContext {
             state: cad_geometry_convert::ExchangeState::new(assessment),
             owner: IfccadGeometryOwner::ModelLayout(model_id),
             preparation_error: None,
+            pending_hatch_recipes: Vec::new(),
             stored: BTreeMap::new(),
             graphics_members: BTreeMap::new(),
             graphics_owners: BTreeMap::new(),
@@ -193,6 +195,22 @@ impl GeometryContext {
         roots: &[u64],
         issues: &mut Vec<IfccadDiagnostic>,
     ) -> Result<(), IfccadConversionError> {
+        self.assess_roots_impl(members, roots, issues, true)
+    }
+    pub fn trial_roots(
+        &mut self,
+        members: &BTreeMap<u64, Vec<u64>>,
+        roots: &[u64],
+    ) -> Result<(), IfccadConversionError> {
+        self.assess_roots_impl(members, roots, &mut Vec::new(), false)
+    }
+    fn assess_roots_impl(
+        &mut self,
+        members: &BTreeMap<u64, Vec<u64>>,
+        roots: &[u64],
+        issues: &mut Vec<IfccadDiagnostic>,
+        commit: bool,
+    ) -> Result<(), IfccadConversionError> {
         let mut members = self.tag_members(members);
         members.extend(self.graphics_members.clone());
         let roots = roots
@@ -210,6 +228,9 @@ impl GeometryContext {
             .state
             .assess_roots(&members, &roots, &mut assessment)
             .map_err(|e| self.numerical_failure(e))?;
+        if !commit {
+            return Ok(());
+        }
         self.state.assessment = assessment;
         for record in records {
             if record.deviation.upper() > 0. {

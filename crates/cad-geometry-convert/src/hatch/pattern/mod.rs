@@ -26,6 +26,70 @@ pub struct PreparedCadPattern {
     pub pair: GeometryPair,
     pub losses: Vec<HatchSourceLoss>,
 }
+/// Certify the supplied CAD definition against an active native pattern.
+/// Coordinates are never regenerated from the native pattern. This returns
+/// evidence only; the caller must assess its actual coordinate-domain limit
+/// and all relevant occurrences before selecting the candidate.
+pub fn pattern_candidate_pair_to_cad(
+    pattern: &HatchLinePattern,
+    placement: CoordinateFrame3,
+    boundaries: &[HatchBoundary2],
+    candidate: &Hatch,
+    continuous_linetype: bool,
+) -> Result<GeometryPair, CadHatchPreparationError> {
+    validate_plane(candidate.normal, candidate.elevation)?;
+    residual_common(candidate)?;
+    validate_hatch_fill(&HatchFill::LinePattern(pattern.clone()))
+        .map_err(|e| super::unsupported("pattern", e.to_string()))?;
+    if candidate.is_solid || candidate.gradient_color.enabled {
+        return Err(super::unsupported(
+            "pattern",
+            "candidate is not an active line pattern",
+        ));
+    }
+    let literal = super::from_cad::materialize_user_defined(candidate, continuous_linetype)?;
+    // Validate effective definition values directly. Inverting creation
+    // rotation/scale is unnecessary and can itself underflow valid lengths.
+    validate_source_scalars(&literal)?;
+    for line in &literal.pattern.lines {
+        validate_hatch_pattern_definition_line(&HatchPatternDefinitionLine {
+            angle: line.angle,
+            base_point: [line.base_point.x, line.base_point.y],
+            offset_vector: [line.offset.x, line.offset.y],
+            dash_lengths: line.dash_lengths.clone(),
+        })?;
+    }
+    if pattern.families.len() != literal.pattern.lines.len()
+        || pattern
+            .families
+            .iter()
+            .zip(&literal.pattern.lines)
+            .any(|(a, b)| {
+                a.dashes.len() != b.dash_lengths.len()
+                    || a.dashes.iter().zip(&b.dash_lengths).any(|(a, b)| {
+                        !matches!((a, b),
+                        (HatchDash::Dot, b) if *b == 0.)
+                            && !matches!((a, b),
+                            (HatchDash::Dash { .. }, b) if *b > 0.)
+                            && !matches!((a, b),
+                            (HatchDash::Gap { .. }, b) if *b < 0.)
+                    })
+            })
+    {
+        return Err(super::unsupported(
+            "pattern",
+            "candidate family or dash/gap/dot structure differs",
+        ));
+    }
+    evidence::candidate_to_cad(
+        pattern,
+        &literal,
+        placement,
+        boundaries,
+        candidate.pattern_type == opencadcodec::entities::hatch::HatchPatternType::UserDefined
+            && candidate.is_double,
+    )
+}
 /// Map already-effective literal families. Full Hatch activation (gradient,
 /// double, annotation and linetype context) is audited by Hatch preparation.
 pub fn prepare_pattern_from_cad(
