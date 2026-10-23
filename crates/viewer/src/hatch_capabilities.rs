@@ -1,15 +1,8 @@
 //! Qualification for the selected codec, shared by physical export and preflight.
+use crate::cad::VERSIONS;
 use crate::hatch_export_facts::{native_facts, HatchExportFacts};
 use ifccad_convert::opencadcodec::{CadDocument, DxfVersion, EntityType};
 use serde_json::{json, Value};
-pub(crate) const VERSIONS: [DxfVersion; 6] = [
-    DxfVersion::AC1015,
-    DxfVersion::AC1018,
-    DxfVersion::AC1021,
-    DxfVersion::AC1024,
-    DxfVersion::AC1027,
-    DxfVersion::AC1032,
-];
 #[derive(Clone, Copy)]
 pub(crate) struct HatchTargetProfile<'a> {
     pub format: &'a str,

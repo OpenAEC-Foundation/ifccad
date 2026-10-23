@@ -297,7 +297,7 @@ record!(LinePatternTransform;
 impl CborValue for LinePatternRotation {
     #[cfg(test)]
     fn registered_codes() -> &'static [(u64, &'static str)] {
-        &[(0, "Relative"), (1, "Absolute")]
+        &[(0, "Relative"), (1, "Absolute"), (2, "Upright")]
     }
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
         match self {
@@ -349,6 +349,30 @@ impl CborValue for LinePatternRotation {
                 }
                 Ok(())
             }
+            Self::Upright(value_0) => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(2)?;
+                w.u64(1)?;
+                let mut __cbor_fields = 0_u64;
+                if value_0.present()
+                    && (None as Option<f64>)
+                        .as_ref()
+                        .is_none_or(|d| !value_0.exact(d))
+                {
+                    __cbor_fields += 1;
+                }
+                w.map(__cbor_fields)?;
+                if value_0.present()
+                    && (None as Option<f64>)
+                        .as_ref()
+                        .is_none_or(|d| !value_0.exact(d))
+                {
+                    w.u64(0)?;
+                    value_0.encode(w)?;
+                }
+                Ok(())
+            }
         }
     }
     fn decode(r: &mut CborReader<'_>) -> Result<Self, IfccadCborReadError> {
@@ -369,6 +393,13 @@ impl CborValue for LinePatternRotation {
                 b.finish()?;
                 Self::Absolute(value_0)
             }
+            2 => {
+                let body = f.span(1)?;
+                let mut b = RecordFields::new(&body, &[(0, "value_0")])?;
+                let value_0: f64 = b.take(0, None)?;
+                b.finish()?;
+                Self::Upright(value_0)
+            }
             _ => return Err(r.error("unknown variant code")),
         };
         f.finish()?;
@@ -382,6 +413,7 @@ impl CborValue for LinePatternRotation {
             (Self::Absolute(value_0), Self::Absolute(value_0_other)) => {
                 value_0.exact(value_0_other)
             }
+            (Self::Upright(value_0), Self::Upright(value_0_other)) => value_0.exact(value_0_other),
             _ => false,
         }
     }

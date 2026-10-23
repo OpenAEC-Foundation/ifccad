@@ -74,3 +74,10 @@ test('default recipe assessment stays advisory under Reject and is localized as 
   assert.match(note.textContent,language==='nl'?/gekozen uitvoertolerantie/:/selected output tolerance/);
  }
 });
+
+test('line-pattern upright restrictions share target selection without a frontend version table',()=>{
+ const presentation={linePatternExportPreflight:[{format:'dxf',version:'AC1024',restrictions:[{code:'TARGET_CODEC_LINE_PATTERN_UPRIGHT_LOSS',policyEffect:'loss',message:'upright becomes relative'}]}]};
+ assert.equal(hatchExportState(presentation,{format:'dxf',version:'AC1024',lossPolicy:'reject'}).blocked,true);
+ assert.equal(hatchExportState(presentation,{format:'dxf',version:'AC1024',lossPolicy:'allow'}).blocked,false);
+ assert.deepEqual(hatchExportState(presentation,{format:'dwg',version:'AC1024'}).restrictions,[]);
+});

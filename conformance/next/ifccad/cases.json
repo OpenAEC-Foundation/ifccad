@@ -494,5 +494,21 @@
   {
     "file": "invalid/hatch-construction-negative.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/line-pattern-upright.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/line-pattern-upright-missing-angle.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-upright-null-angle.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/line-pattern-upright-extra-flag.ifcx",
+    "valid": false
   }
 ]

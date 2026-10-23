@@ -125,16 +125,16 @@ fn dxf_import_resolves_relocated_named_layout_dictionary() {
         .unwrap()
         .read()
         .unwrap();
-    assert_ne!(
-        read.header.acad_layout_dict_handle, new,
-        "characterize pinned DXF cache defect"
-    );
+    assert_eq!(read.header.acad_layout_dict_handle, new);
+    let before = serde_json::to_value(&read).unwrap();
     let result = encoded(&read, IfccadLossPolicy::Reject).unwrap();
     assert_eq!(result.validated_source().document().model.entities.len(), 3);
-    assert!(result
+    assert!(!result
         .diagnostics()
         .iter()
-        .any(|d| d.code == "layout-dictionary-cache-recovered" && !d.is_loss()));
+        .any(|d| d.code == "layout-dictionary-cache-recovered"));
+    load_ifccad_bytes(result.encoded().bytes(), Default::default()).unwrap();
+    assert_eq!(serde_json::to_value(&read).unwrap(), before);
 }
 #[test]
 fn layout_dictionary_real_conflicts_remain_fatal() {

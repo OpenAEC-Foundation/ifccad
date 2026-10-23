@@ -49,6 +49,8 @@ impl<M> LinePatternElement<M> {
 pub enum LinePatternRotation {
     Relative(f64),
     Absolute(f64),
+    /// Relative to the line tangent, with a half-turn when needed to keep the marker readable.
+    Upright(f64),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -104,7 +106,9 @@ pub fn validate_line_pattern_transform(
     value: &LinePatternTransform,
 ) -> Result<(), LinePatternValueError> {
     let angle = match value.rotation {
-        LinePatternRotation::Relative(v) | LinePatternRotation::Absolute(v) => v,
+        LinePatternRotation::Relative(v)
+        | LinePatternRotation::Absolute(v)
+        | LinePatternRotation::Upright(v) => v,
     };
     if !value.scale.is_finite()
         || value.scale <= 0.0

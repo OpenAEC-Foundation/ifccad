@@ -589,8 +589,8 @@ The active provisional profile adds drawing-owned SHX symbol sources and typed
 text/symbol markers. All current drawing payloads now require
 `nextSymbolSourceId`, even without sources. Plain numeric elements keep their
 wire spelling; the Rust pattern vector now contains typed elements. Use
-`LinePatternElement::simple(length)` for plain entries. URI/digest/embedding and
-upright rotation remain deferred. See profile-rules-0.1.0.md for the closed
+`LinePatternElement::simple(length)` for plain entries. URI/digest/embedding remain deferred. Upright rotation is now a native exclusive
+mode with the same finite-angle validation as relative/absolute rotation. See profile-rules-0.1.0.md for the closed
 physical alternatives and drawing-local reference contract.
 
 ## Hatch gradient settings
@@ -657,3 +657,9 @@ Classic `definitionLines` store direct effective local XY definitions rather tha
 normalized active families. Their closed fields and intrinsic validation follow
 IFCCAD-HATCH-006. Draft JSON `families` and classic CBOR code 8 are rejected;
 mutable mapping revision 1 uses classic code 9 with no historical reader.
+
+Complex line-pattern markers support exclusive relative, absolute and upright
+rotation with a finite stored radian angle. Upright follows the tangent while
+allowing a half-turn for readability. IFCX uses `rotation.mode: "upright"`;
+CBOR mapping revision 1 uses LinePatternRotation variant 2. This is stored
+marker semantics, with the existing unassessed external glyph/display boundary.

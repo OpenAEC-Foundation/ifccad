@@ -36,6 +36,7 @@ fn source() -> CadDocument {
             length: 0.,
             complex: Some(LineTypeComplexData {
                 source_flags: 0,
+                upright: false,
                 content: LineTypeComplexContent::Shape { shape_number: 42 },
                 style_handle: Handle::new(900),
                 scale: 0.1,
@@ -119,38 +120,45 @@ fn shape_role_lookup_uses_handles() {
 
 #[test]
 fn unsupported_marker_fallback_is_per_definition() {
-    let mut source = source();
-    source.line_types.get_mut("Mixed").unwrap().elements[1]
-        .complex
-        .as_mut()
-        .unwrap()
-        .scale = 0.;
-    let out =
-        cad_document_to_ifccad_document(&source, common::metadata(), Default::default()).unwrap();
-    assert!(out
-        .document()
-        .line_patterns
-        .iter()
-        .find(|p| p.name == "Mixed")
-        .unwrap()
-        .pattern
-        .is_empty());
-    assert_eq!(
-        out.diagnostics()
-            .iter()
-            .filter(|d| d.code == "line-pattern-complex")
-            .count(),
-        1
-    );
-    assert!(cad_document_to_ifccad_document(
-        &source,
-        common::metadata(),
-        CadToIfccadOptions {
-            loss_policy: IfccadLossPolicy::Reject,
-            ..Default::default()
+    for upright in [false, true] {
+        let mut source = source();
+        let marker = source.line_types.get_mut("Mixed").unwrap().elements[1]
+            .complex
+            .as_mut()
+            .unwrap();
+        if upright {
+            marker.upright = true;
+            marker.absolute_rotation = true;
+        } else {
+            marker.scale = 0.;
         }
-    )
-    .is_err());
+        let out = cad_document_to_ifccad_document(&source, common::metadata(), Default::default())
+            .unwrap();
+        assert!(out
+            .document()
+            .line_patterns
+            .iter()
+            .find(|p| p.name == "Mixed")
+            .unwrap()
+            .pattern
+            .is_empty());
+        assert_eq!(
+            out.diagnostics()
+                .iter()
+                .filter(|d| d.code == "line-pattern-complex")
+                .count(),
+            1
+        );
+        assert!(cad_document_to_ifccad_document(
+            &source,
+            common::metadata(),
+            CadToIfccadOptions {
+                loss_policy: IfccadLossPolicy::Reject,
+                ..Default::default()
+            }
+        )
+        .is_err());
+    }
 }
 
 #[test]
@@ -197,4 +205,75 @@ fn occurrence_marker_coverage_is_unassessed() {
         .geometry_assessment()
         .unassessed_entities()
         .is_empty());
+}
+
+#[test]
+fn upright_text_and_symbol_markers_keep_their_native_mode_and_cad_links() {
+    let mut source = source();
+    for marker in source
+        .line_types
+        .get_mut("Mixed")
+        .unwrap()
+        .elements
+        .iter_mut()
+        .filter_map(|e| e.complex.as_mut())
+    {
+        marker.absolute_rotation = false;
+        marker.upright = true;
+    }
+    let native =
+        cad_document_to_ifccad_document(&source, common::metadata(), Default::default()).unwrap();
+    assert!(!native
+        .diagnostics()
+        .iter()
+        .any(|d| d.code == "line-pattern-complex"));
+    let mixed = native
+        .document()
+        .line_patterns
+        .iter()
+        .find(|p| p.name == "Mixed")
+        .unwrap();
+    let mut kinds = Vec::new();
+    for marker in mixed.pattern.iter().filter_map(|e| e.marker.as_ref()) {
+        let transform = match marker {
+            IfccadLinePatternMarker::Text { transform, .. } => {
+                kinds.push("text");
+                transform
+            }
+            IfccadLinePatternMarker::Symbol { transform, .. } => {
+                kinds.push("symbol");
+                transform
+            }
+        };
+        assert!(matches!(
+            transform.rotation,
+            ifccad::line_pattern::LinePatternRotation::Upright(_)
+        ));
+    }
+    assert_eq!(kinds, ["text", "symbol"]);
+    let returned = ifccad_document_to_cad_document(native.document(), Default::default()).unwrap();
+    let actual = returned.document().line_types.get("Mixed").unwrap();
+    for (expected, actual) in source
+        .line_types
+        .get("Mixed")
+        .unwrap()
+        .elements
+        .iter()
+        .zip(&actual.elements)
+    {
+        if let Some(expected) = &expected.complex {
+            let actual = actual.complex.as_ref().unwrap();
+            assert!(actual.upright);
+            assert!(!actual.absolute_rotation);
+            assert_eq!(actual.rotation.to_bits(), expected.rotation.to_bits());
+            assert_eq!(actual.content, expected.content);
+            let style = returned
+                .document()
+                .text_styles
+                .iter()
+                .find(|s| s.handle == actual.style_handle)
+                .unwrap();
+            assert_eq!(style.is_shape_file, actual.is_shape());
+        }
+    }
 }

@@ -10,6 +10,7 @@ fn marker() -> CadLinePatternMarkerValues {
         scale: 0.1,
         rotation: 0.25,
         absolute_rotation: false,
+        upright: false,
         offset: [-1., 2.],
     }
 }
@@ -100,4 +101,12 @@ fn nonfinite_is_invalid_and_zero_scale_is_unsupported() {
         marker_values_to_cad(&value, Handle::new(7)),
         Err(CadLinePatternValueError::InvalidValue(_))
     ));
+}
+
+#[test]
+fn typed_upright_without_raw_flags_is_supported() {
+    let mut cad = marker_values_to_cad(&marker(), Handle::new(7)).unwrap();
+    cad.upright = true;
+    assert_eq!(cad.source_flags, 0);
+    assert!(marker_values_from_cad(&cad).is_ok());
 }

@@ -170,3 +170,9 @@ original values and missing origin through the selected tolerance assessment.
 Numerical rounding and optional recipe loss are separate from physical file loss.
 Known DXF angle changes are located per definition line in the output report;
 no automatic version substitution is made. See [Hatch output qualification](../docs/hatch-export-versions.md).
+
+Upright complex-line-pattern markers have a separate backend-generated target
+preflight. For DXF before AC1027 the selected codec writes relative rotation;
+Explorer shows this loss for the selected version and refuses a download under
+Reject. Actual written-file readback checks the mode too. Native IFCCAD/IFCX and
+CBOR retain the original upright mode. No alternate version is selected.

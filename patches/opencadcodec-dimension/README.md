@@ -1,5 +1,7 @@
 # Dimension text position codec repair
 
+Historical repair: no longer selected. Current upstream `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32` includes #117 reader/writer polarity and the corrected default flag. Keep this patch as provenance for the earlier pins; do not apply it to the current base.
+
 Current base: opencadcodec `325fa98d2b881f48e106a830d5cf161624f63131` (0.6.0). The unchanged patch also applies to its original `ab2eecdbffc31120b5ad6d899f6fc67cf21ede39` base.
 Apply `0001-text-position-flag.patch` as the only remaining local repair,
 using the shared [codec configuration](../opencadcodec-viewports/README.md).

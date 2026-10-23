@@ -24,8 +24,12 @@ fn r12_common_context_is_a_located_loss_under_both_policies() {
 
 #[test]
 fn newly_exposed_header_settings_are_diagnosed_and_rejectable() {
-    let edits: [fn(&mut opencadcodec::document::HeaderVariables); 7] = [
+    let edits: [fn(&mut opencadcodec::document::HeaderVariables); 11] = [
         |h| h.polysolid_width = 4.,
+        |h| h.create_ellipse_as_polyline = true,
+        |h| h.dim_arc_symbol = 2,
+        |h| h.dim_fixed_ext_line_on = true,
+        |h| h.dim_leader_arrow_block_handle = opencadcodec::Handle::new(0x1234),
         |h| h.dim_text_fill = 1,
         |h| h.real_world_scale = false,
         |h| h.dwf_frame = 1,

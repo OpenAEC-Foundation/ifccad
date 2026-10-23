@@ -37,7 +37,9 @@ fn from_marker(
     let transform = LinePatternTransform {
         scale: value.scale,
         offset: value.offset,
-        rotation: if value.absolute_rotation {
+        rotation: if value.upright {
+            LinePatternRotation::Upright(value.rotation)
+        } else if value.absolute_rotation {
             LinePatternRotation::Absolute(value.rotation)
         } else {
             LinePatternRotation::Relative(value.rotation)
@@ -95,9 +97,10 @@ fn to_marker(
     let Some(handle) = handle else {
         return Ok(None);
     };
-    let (rotation, absolute_rotation) = match transform.rotation {
-        LinePatternRotation::Relative(v) => (v, false),
-        LinePatternRotation::Absolute(v) => (v, true),
+    let (rotation, absolute_rotation, upright) = match transform.rotation {
+        LinePatternRotation::Relative(v) => (v, false, false),
+        LinePatternRotation::Absolute(v) => (v, true, false),
+        LinePatternRotation::Upright(v) => (v, false, true),
     };
     match marker_values_to_cad(
         &CadLinePatternMarkerValues {
@@ -106,6 +109,7 @@ fn to_marker(
             offset: transform.offset,
             rotation,
             absolute_rotation,
+            upright,
         },
         handle,
     ) {

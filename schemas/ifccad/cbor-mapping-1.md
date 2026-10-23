@@ -169,3 +169,8 @@ exact defaults can be omitted, negative zero is retained. Option empty/zero/code
 remains present, null/unknown/duplicate keys fail. All-default present records
 fail shared logical validation. The single unreleased revision 1 is updated in
 place, with no historical mapping, revision bump or changed Zstd envelope.
+
+`LinePatternRotation` uses variant codes 0 Relative, 1 Absolute and 2 Upright.
+Each has the same required body field 0 containing a binary64 radian angle.
+Upright zero is explicit and distinct from the default relative positive zero.
+This updates the single mutable mapping revision 1 in place.

@@ -35,6 +35,7 @@ fn source() -> CadDocument {
             length: 0.,
             complex: Some(LineTypeComplexData {
                 source_flags: 0,
+                upright: false,
                 content: LineTypeComplexContent::Shape { shape_number: 42 },
                 style_handle: Handle::new(900),
                 scale: 0.1,

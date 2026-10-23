@@ -291,8 +291,9 @@ nonnegative first length and a finite positive absolute-length sum.
 
 Text markers carry `kind:text`, literal `text` and a complete `textStyle` path.
 Symbol markers carry `kind:symbol`, `symbolSource` path and uint32 `shapeNumber`.
-Both support finite positive scale, finite two-component offset, and relative or
-absolute rotation in radians. Omission defaults are 1, [0,0], and relative zero;
+Both support finite positive scale, finite two-component offset, and relative,
+absolute or upright rotation in radians. Upright follows the tangent and permits
+a half-turn to keep the marker readable; it is mutually exclusive with absolute. Omission defaults are 1, [0,0], and relative zero;
 null, unknown fields and fields of another variant are rejected. References are
 canonical complete paths within the same drawing and must resolve to their
 respective roles after composition. Later fragments replace whole attribute

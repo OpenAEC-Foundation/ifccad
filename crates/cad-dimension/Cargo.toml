@@ -9,7 +9,7 @@ description = "Typed CAD dimension styles, overrides and geometric preparation"
 ifccad = { path = "../.." }
 cad-geometry-convert = { path = "../cad-geometry-convert" }
 cad-presentation-convert = { path = "../cad-presentation-convert" }
-opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "325fa98d2b881f48e106a830d5cf161624f63131" }
+opencadcodec = { package = "acadrust", git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "bd10efc2c54dfe1e6288c5f10486dce9be0d7f32" }
 num-rational = "0.4"
 num-traits = "0.2"
 fpmath = "=0.1.1"

@@ -1,8 +1,8 @@
 # Drawing presentation and CAD exchange
 
-Current dependency qualification (2026-10-16): codec `325fa98d2b881f48e106a830d5cf161624f63131`
-plus the explicit Dimension text-position repair; viewport repairs are upstream.
-The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated
+Current dependency qualification (2026-10-23): unmodified codec `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`
+(package `acadrust` 0.6.6, local alias `opencadcodec`). Dimension and viewport repairs are upstream.
+The [current audit](geometry/opencadcodec-update-2026-10-23.md) supersedes dated
 pin/transport limitations below, including paper grid and DXF ShadePlot gates.
 
 IFCCAD and OCDraw retain independent models, schemas, identities and converters.
@@ -165,8 +165,8 @@ inventory; mixed containers retain their original container-level diagnostic.
 Supported siblings still map. Target handles bind after construction, and skipped
 viewports receive no emitted override or workspace references.
 
-All eight codec-dependent companions select the audited 325fa98 pin and the
-explicit Dimension text-position repair. Upstream #103, #106 and #107 are
+All seven active codec-dependent companions select the audited bd10efc pin
+without local source patches. Dimension polarity and viewport #103, #106 and #107 are
 included; viewport off-state, paper grid flags and DXF ShadePlot are qualified.
 The browser still compares requested ShadePlot with physical readback and
 reports changed or unconfirmed values. Older CAD versions remain separately limited.

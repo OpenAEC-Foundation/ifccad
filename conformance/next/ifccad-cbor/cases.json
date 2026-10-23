@@ -410,6 +410,23 @@
       "valid": false,
       "diagnostic": "invalid/hatch-construction-negative.ifccad.cbor.diag",
       "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "valid/line-pattern-upright.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/line-pattern-upright.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/line-pattern-upright-unknown-mode.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/line-pattern-upright-unknown-mode.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/line-pattern-upright-float32-angle.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/line-pattern-upright-float32-angle.ifccad.cbor.diag",
+      "errorClass": "Malformed"
     }
   ]
 }

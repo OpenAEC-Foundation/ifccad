@@ -215,8 +215,59 @@ fn handleless_dictionary_dxf() -> CadDocument {
 }
 
 #[test]
-fn handleless_empty_dictionary_model_scaffold_has_a_unique_root_recovery() {
+fn pinned_reader_completes_the_handleless_model_root_before_conversion() {
     let cad = handleless_dictionary_dxf();
+    let ObjectType::Dictionary(root) = cad
+        .objects
+        .get(&cad.header.named_objects_dict_handle)
+        .unwrap()
+    else {
+        panic!()
+    };
+    assert_eq!(root.handle, cad.header.named_objects_dict_handle);
+    assert!(root.owner.is_null());
+    assert_eq!(
+        root.entries,
+        [("ACAD_LAYOUT".into(), cad.header.acad_layout_dict_handle)]
+    );
+    let before = serde_json::to_value(&cad).unwrap();
+    let result = convert(&cad, IfccadLossPolicy::Allow).unwrap();
+    assert_eq!(result.validated_source().document().model.entities.len(), 1);
+    assert!(!result
+        .diagnostics()
+        .iter()
+        .any(|d| d.code == "model-scaffold-recovered"));
+    ifccad::load_ifccad_bytes(result.encoded().bytes(), Default::default()).unwrap();
+    assert_eq!(serde_json::to_value(&cad).unwrap(), before);
+}
+
+// Independently construct the incomplete public-model shape accepted by our
+// bounded recovery. The current reader no longer produces the old defect.
+fn incomplete_model_scaffold() -> CadDocument {
+    let mut cad = handleless_dictionary_dxf();
+    assert_eq!(cad.objects.len(), 3);
+    let dictionary = cad.header.acad_layout_dict_handle;
+    let ObjectType::Dictionary(root) = cad
+        .objects
+        .get_mut(&cad.header.named_objects_dict_handle)
+        .unwrap()
+    else {
+        panic!()
+    };
+    assert_eq!(root.entries, [("ACAD_LAYOUT".into(), dictionary)]);
+    root.entries.clear();
+    let absent = cad.allocate_handle();
+    cad.header.named_objects_dict_handle = absent;
+    let ObjectType::Dictionary(d) = cad.objects.get_mut(&dictionary).unwrap() else {
+        panic!()
+    };
+    d.owner = absent;
+    cad
+}
+
+#[test]
+fn incomplete_model_scaffold_has_a_unique_root_recovery() {
+    let cad = incomplete_model_scaffold();
     assert!(!cad
         .objects
         .contains_key(&cad.header.named_objects_dict_handle));
@@ -243,7 +294,7 @@ fn handleless_empty_dictionary_model_scaffold_has_a_unique_root_recovery() {
 #[test]
 fn incomplete_model_scaffold_does_not_recover_authored_or_ambiguous_roots() {
     for case in 0..6 {
-        let mut cad = handleless_dictionary_dxf();
+        let mut cad = incomplete_model_scaffold();
         let handle = cad.allocate_handle();
         let mut d = opencadcodec::objects::Dictionary::new();
         d.handle = handle;

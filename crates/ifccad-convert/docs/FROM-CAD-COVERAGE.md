@@ -28,12 +28,12 @@ with the affected domain. Payloads and error sources remain typed; these
 categories do not change Allow/Reject or the supported source subset.
 
 Pinned semantic inventory V1, opencadcodec
-`325fa98d2b881f48e106a830d5cf161624f63131`. Exhaustive matches classify every
+`bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`. Exhaustive matches classify every
 inventory category. Serde residual checks cover fields plus typed comparisons
 for skipped-serde common/marker/object state. Data not exposed by the codec has
 no asserted coverage. Default Allow returns the supported subset with located
 loss diagnostics; explicit Reject prevents output for any semantic loss.
-The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
+The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-23.md)
 records the added public fields and their treatment in both converters.
 
 The 2026-10-05 additions to associative subentity identifiers, edge curves and
@@ -58,7 +58,7 @@ Reimporting CAD does not restore a previous IFCCAD allocation history.
 | Header PDMODE/PDSIZE | Supported glyph/enclosure bits and finite default/absolute/view-relative sizes become native PointDisplay. Default zero remains distinct from explicit negative-five-percent. Unsupported bits/nonfinite size omit only the setting with located point-display loss; point geometry remains live |
 | Local BlockRecords | Map name/base/unit/ordered contents, description, anonymous flag, explodability and signed-uniform policy, including unused ordinary anonymous definitions. Consistent begin-description duplicates are consumed; conflicting extra marker metadata retains loss evidence. Begin/end identity and reverse insert handles are structural/derived. Other flags, preview, unfamiliar insert-count bytes and layout associations remain diagnosed |
 | Model/Paper BlockRecords | Validate role/ownership; metadata including unit/base must remain default. A layout-free reserved primary `*Paper_Space` record is codec bookkeeping only when its header role, default state and absence of drawable content or layout/INSERT references agree; it creates no Paper layout. Other orphan Paper records remain structural errors |
-| LineType | Actual simple and qualified text/SHX definitions, including unused records, preserve signed lengths, parameters and relative/absolute rotation. Ordinary and shape STYLE references resolve by role and handle; missing/wrong-role targets are fatal. Unsupported active dependencies replace the entire named definition under Allow with one Modified diagnostic; Reject refuses. Invalid periods/scalars and cache disagreements retain independent checks/diagnostics. |
+| LineType | Actual simple and qualified text/SHX definitions, including unused records, preserve signed lengths, parameters and relative/absolute/upright rotation. Ordinary and shape STYLE references resolve by role and handle; missing/wrong-role targets are fatal. Unsupported active dependencies replace the entire named definition under Allow with one Modified diagnostic; Reject refuses. Invalid periods/scalars and cache disagreements retain independent checks/diagnostics. |
 | TextStyle | Qualified ordinary styles retain independent native identities. Qualified shape STYLE records become independent SHX sources, including anonymous records, duplicate filenames and unused resources. File paths retain basenames with one locator-loss diagnostic per record. Active unsupported shape properties and inactive source name/history metadata are diagnosed separately. Wrong-role text lookup and duplicate/nonfinite structures remain invalid or explicitly unsupported. |
 | DimStyle/AppId/View/VPort/Ucs/Vx | Only default records, record handles normalized; additional/changed records diagnosed |
 | Classes | Default definitions only; normalize derived numbering/instance counts and version metadata |
@@ -222,7 +222,7 @@ defaults, Unicode/target lookup collisions and whole complex-pattern fallback.
 The shared codec development configuration is documented in
 [patch provenance](../../../patches/opencadcodec-viewports/README.md). OCDraw and
 IFCCAD retain independent native geometry and clip contracts. The
-[2026-10-05 audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md) separates
+[2026-10-05 audit](../../../docs/geometry/opencadcodec-update-2026-10-23.md) separates
 patched from unmodified upstream evidence.
 ## Paper layout conversion boundary
 
@@ -511,7 +511,7 @@ and [issue #16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
 
 Marker footprints are unassessed per affected native curve and block occurrence, alongside the numerical host-curve proof. External font/SHX availability is not probed or diagnosed as semantic loss. Producer bounds claims remain distinct from derived Partial/Estimated evidence.
 
-AC1032 complex DXF/DWG qualification uses `tests/complex_line_pattern_exchange.rs` and the independently authored `tests/fixtures/line-patterns/complex-literal-ac1032.dxf` at the pinned dependency and explicit viewport patch. STYLE roles, filename identities, marker values, relative/absolute flags and degree/radian conversion are checked semantically. Upright flags are outside the current codec public model; this does not qualify upright preservation.
+AC1032 complex DXF/DWG qualification uses `tests/complex_line_pattern_exchange.rs` and the independently authored `tests/fixtures/line-patterns/complex-literal-ac1032.dxf` at the unmodified pinned dependency. STYLE roles, filename identities, marker values, relative/absolute flags and degree/radian conversion are checked semantically. Native upright mode retains the exclusive selector and angle for both text and symbols. Conflicting absolute/upright selectors and unknown flags remain unsupported. Physical DXF before AC1027 loses upright in the selected codec; Explorer preflight and physical readback report that loss and Reject refuses it. Model conversion itself retains upright independently of the eventual file target.
 
 ## Gradient field coverage
 
@@ -537,7 +537,7 @@ no fixed background or RGB replacement is invented.
 
 ## Upstream pin update — 2026-10-16
 
-The current exact codec pin is `325fa98d2b881f48e106a830d5cf161624f63131`
+The current exact codec pin is `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`
 (upstream package version remains 0.6.0), with only the explicit
 [Dimension text-position patch](../../../patches/opencadcodec-dimension/README.md).
 Viewport off-state #103, paper grid flags #106, DXF ShadePlot #107 and gradient

@@ -1,9 +1,12 @@
 // Rust supplies drawing-specific qualification. The UI only selects and presents it.
 export function hatchExportState(presentation,{format,version,lossPolicy='allow',stale=false}={}){
- const restrictions=presentation?.hatchExportPreflight?.find(e=>e.format===format&&e.version===version)?.restrictions??[];
+ const hatch=presentation?.hatchExportPreflight?.find(e=>e.format===format&&e.version===version)?.restrictions??[];
+ const linePattern=presentation?.linePatternExportPreflight?.find(e=>e.format===format&&e.version===version)?.restrictions??[];
+ const restrictions=linePattern.length?[...hatch,...linePattern]:hatch;
  return {restrictions,blocked:stale||restrictions.some(r=>r.policyEffect==='block'||lossPolicy==='reject'&&r.policyEffect==='loss')};
 }
 const messages={
+ TARGET_CODEC_LINE_PATTERN_UPRIGHT_LOSS:'linePatternRestrictionUpright',
  HATCH_PREFLIGHT_UNAVAILABLE:'hatchRestrictionCheck',
  HATCH_RECIPE_PREFLIGHT_CHECK:'hatchRestrictionRecipeCheck',
  HATCH_TARGET_FEATURE_UNSUPPORTED:'hatchRestrictionGradientVersion',

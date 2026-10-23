@@ -16,6 +16,7 @@ pub struct CadLinePatternMarkerValues {
     pub scale: f64,
     pub rotation: f64,
     pub absolute_rotation: bool,
+    pub upright: bool,
     pub offset: [f64; 2],
 }
 
@@ -42,6 +43,11 @@ fn validate(value: &CadLinePatternMarkerValues) -> Result<(), CadLinePatternValu
             "nonfinite transform",
         ));
     }
+    if value.absolute_rotation && value.upright {
+        return Err(CadLinePatternValueError::Unsupported(
+            "conflicting absolute/upright marker rotation",
+        ));
+    }
     if value.scale <= 0. {
         return Err(CadLinePatternValueError::Unsupported("nonpositive scale"));
     }
@@ -57,10 +63,11 @@ pub fn marker_values_from_cad(
         scale: value.scale,
         rotation: value.rotation,
         absolute_rotation: value.absolute_rotation,
+        upright: value.upright,
         offset: value.offset,
     };
     validate(&result)?;
-    if value.source_flags & !0x07 != 0 {
+    if value.source_flags & !0x0f != 0 {
         return Err(CadLinePatternValueError::Unsupported(
             "unqualified complex linetype flags",
         ));
@@ -97,6 +104,7 @@ pub fn marker_values_to_cad(
     };
     Ok(LineTypeComplexData {
         source_flags: 0,
+        upright: value.upright,
         content,
         style_handle,
         scale: value.scale,

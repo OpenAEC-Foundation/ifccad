@@ -28,12 +28,12 @@ production-readback and semantic-mismatch phases. Error sources remain typed;
 this changes Rust error handling, not graph-aware loss or precision assessment.
 
 Profile `urn:example:ifccad:0.1.0`; opencadcodec revision
-`325fa98d2b881f48e106a830d5cf161624f63131`. Default Allow returns supported content
+`bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`. Default Allow returns supported content
 with losses; explicit Reject refuses diagnosed omissions or modifications.
 
-The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md)
-records the current public-model review and the remaining upstream clipping
-defects. A development patch is not part of the default dependency.
+The [dependency audit](../../../docs/geometry/opencadcodec-update-2026-10-23.md)
+records the current public-model review and target boundaries. No local source
+patch is selected.
 
 The validated source includes persistent next-ID watermarks. They remain in
 the source native drawing and govern subsequent native editing; they are
@@ -103,7 +103,7 @@ Nested/shared nonzero-base blocks now pass both DXF and DWG transfers.
 The shared codec development configuration is documented in
 [patch provenance](../../../patches/opencadcodec-viewports/README.md). OCDraw and
 IFCCAD retain independent native geometry and clip contracts. The
-[2026-10-05 audit](../../../docs/geometry/opencadcodec-update-2026-10-05.md) separates
+[2026-10-05 audit](../../../docs/geometry/opencadcodec-update-2026-10-23.md) separates
 patched from unmodified upstream evidence.
 ## Paper viewport conversion
 
@@ -426,7 +426,7 @@ and [issue #16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
 
 Marker footprints are unassessed per affected native curve and block occurrence, alongside the numerical host-curve proof. External font/SHX availability is not probed or diagnosed as semantic loss. Producer bounds claims remain distinct from derived Partial/Estimated evidence.
 
-AC1032 complex DXF/DWG qualification uses `tests/complex_line_pattern_exchange.rs` and the independently authored `tests/fixtures/line-patterns/complex-literal-ac1032.dxf` at the pinned dependency and explicit viewport patch. STYLE roles, filename identities, marker values, relative/absolute flags and degree/radian conversion are checked semantically. Upright flags are outside the current codec public model; this does not qualify upright preservation.
+AC1032 complex DXF/DWG qualification uses `tests/complex_line_pattern_exchange.rs` and the independently authored `tests/fixtures/line-patterns/complex-literal-ac1032.dxf` at the unmodified pinned dependency. STYLE roles, filename identities, marker values, relative/absolute flags and degree/radian conversion are checked semantically. Native upright mode retains the exclusive selector and angle for both text and symbols. Conflicting absolute/upright selectors and unknown flags remain unsupported. Physical DXF before AC1027 loses upright in the selected codec; Explorer preflight and physical readback report that loss and Reject refuses it. Model conversion itself retains upright independently of the eventual file target.
 
 ## Gradient target coverage
 
@@ -455,7 +455,7 @@ no fixed background or RGB replacement is invented.
 
 ## Upstream pin update — 2026-10-16
 
-The current exact codec pin is `325fa98d2b881f48e106a830d5cf161624f63131`
+The current exact codec pin is `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`
 (upstream package version remains 0.6.0), with only the explicit
 [Dimension text-position patch](../../../patches/opencadcodec-dimension/README.md).
 Viewport off-state #103, paper grid flags #106, DXF ShadePlot #107 and gradient

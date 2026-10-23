@@ -1,19 +1,13 @@
-# Viewport codec configuration
+# Codec checkout configuration
 
-Current upstream base: `325fa98d2b881f48e106a830d5cf161624f63131` (package version 0.6.0), audited on 2026-10-16.
-
-Viewport repairs #88, #89 and #103 are merged into this base. Paper grid #106 and DXF ShadePlot #107 are also included. Files 0001, 0002 and 0003 remain historical provenance; do not apply them to this base.
-
-The only selected local repair is the [Dimension text-position patch](../opencadcodec-dimension/README.md), tracked in upstream [issue #117](https://github.com/HakanSeven12/opencadcodec/issues/117). Create an independent checkout and preserve unrelated dependency edits:
+Current upstream base: `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32` (package `acadrust` 0.6.6, local dependency alias `opencadcodec`), audited on 2026-10-23. The exact upstream fix for [Hatch DXF angles #132](https://github.com/HakanSeven12/opencadcodec/issues/132) is selected without local source patches. Dimension text-position polarity #117 and earlier viewport repairs are upstream.
 
 ```text
 git clone https://github.com/HakanSeven12/opencadcodec.git .superpowers/dependencies/opencadcodec-viewports-development
-git -C .superpowers/dependencies/opencadcodec-viewports-development checkout --detach 325fa98d2b881f48e106a830d5cf161624f63131
-git -C .superpowers/dependencies/opencadcodec-viewports-development apply --check ../../../patches/opencadcodec-dimension/0001-text-position-flag.patch
-git -C .superpowers/dependencies/opencadcodec-viewports-development apply ../../../patches/opencadcodec-dimension/0001-text-position-flag.patch
+git -C .superpowers/dependencies/opencadcodec-viewports-development checkout --detach bd10efc2c54dfe1e6288c5f10486dce9be0d7f32
 cargo test --config patches/opencadcodec-viewports.toml --workspace
 ```
 
-For persistent opt-in, copy `patches/opencadcodec-viewports.toml` into the ignored `.cargo/config.toml`, preserving local build configuration. The shared `.github/actions/viewport-codec` action selects the same base and patch. The historical action/configuration names remain stable. Local patched results do not describe the unmodified dependency.
+For persistent local selection, copy `patches/opencadcodec-viewports.toml` to ignored `.cargo/config.toml`, preserving local build configuration. The shared `.github/actions/viewport-codec` action selects the same unmodified base; its historical action/configuration names remain stable. Historical viewport and Dimension patch files are provenance only and must not be applied to this revision.
 
-See the [current public-model audit](../../docs/geometry/opencadcodec-update-2026-10-16.md) and [workspace contract](../../docs/workspace-state.md). No measurement run is authorized by changing this pin.
+See the [current public-model audit](../../docs/geometry/opencadcodec-update-2026-10-23.md). Changing this pin does not authorize a size/exchange measurement.

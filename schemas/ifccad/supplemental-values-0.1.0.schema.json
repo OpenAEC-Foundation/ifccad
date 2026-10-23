@@ -3418,7 +3418,8 @@
                 "mode": {
                   "enum": [
                     "relative",
-                    "absolute"
+                    "absolute",
+                    "upright"
                   ]
                 },
                 "angle": {
@@ -3469,7 +3470,8 @@
                 "mode": {
                   "enum": [
                     "relative",
-                    "absolute"
+                    "absolute",
+                    "upright"
                   ]
                 },
                 "angle": {

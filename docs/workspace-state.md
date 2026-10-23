@@ -1,8 +1,8 @@
 # Drawing workspace state
 
-Current dependency qualification (2026-10-16): codec `325fa98d2b881f48e106a830d5cf161624f63131`
-plus the explicit Dimension text-position repair; viewport repairs are upstream.
-The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated
+Current dependency qualification (2026-10-23): unmodified codec `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`
+(package `acadrust` 0.6.6, local alias `opencadcodec`). Dimension and viewport repairs are upstream.
+The [current audit](geometry/opencadcodec-update-2026-10-23.md) supersedes dated
 pin/transport limitations below, including paper grid and DXF ShadePlot gates.
 
 Workspace describes saved drawing views, construction aids and current choices.
@@ -12,9 +12,9 @@ qualified codec limits.
 
 ## Codec qualification
 
-Base: opencadcodec 0.6.0, revision `325fa98d2b881f48e106a830d5cf161624f63131`,
-with the explicit viewport-off-state repair documented in
-[patch provenance](../patches/opencadcodec-viewports/README.md).
+Base: package `acadrust` 0.6.6 at `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`, exposed under
+the existing `opencadcodec` dependency alias, without local source patches.
+See [checkout provenance](../patches/opencadcodec-viewports/README.md).
 
 | Field or relation | Evidence | Qualified boundary |
 | --- | --- | --- |
@@ -23,7 +23,7 @@ with the explicit viewport-off-state repair documented in
 | Paper viewport grid, disabled zero snap and stored UCS/activation | Two Paper owners through both codecs | Tested values survive independently of canvas versus authored viewport role |
 | Nondefault overall canvas center/width/height | Fresh document through both codecs | Tested numeric frame retained; no relation to media or drawable bounds asserted |
 | First literal `*ACTIVE` VPORT | Hand-authored DXF with heights 20 then 30 | Reader iteration retains this literal order; DWG current-selection meaning is not established by a set-of-values assertion |
-| Paper current-selection/positive stacking rank | Literal VIEWPORT status 68 changed from 1 to 3 with the same viewport ID | Both read to identical public viewport values. Number, visible/off state and draw order cannot reconstruct the lost rank |
+| Paper current-selection/positive stacking rank | Literal VIEWPORT status 68 changed from 1 to 3 with the same viewport ID | The literal rank is retained independently as dxf_status and receives a located loss when unrepresented; the current Paper selection is not inferred |
 | Isometric pair bits | Four raw status-bit combinations | Both pair bits remain separately available; the workspace adapter must interpret their joint meaning |
 
 Tests and the independent literal source live in

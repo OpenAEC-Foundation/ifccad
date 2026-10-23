@@ -1,4 +1,5 @@
 const copy={
+ linePatternRestrictionUpright:['This codec writes upright line-pattern text and symbols as relative rotation in DXF before AC1027.','Deze codec schrijft rechtop blijvende tekst en symbolen in lijnpatronen als relatieve rotatie in DXF vóór AC1027.'],
  hatchRestriction:['{format} {version}: {reason} {effect}','{format} {version}: {reason} {effect}'],
  hatchRestrictionRepeated:['{reason} ({count} messages)','{reason} ({count} meldingen)'],
  hatchRestrictionRecipeCheck:['The original Hatch recipe will be checked with the selected output tolerance.','Het oorspronkelijke arceerrecept wordt met de gekozen uitvoertolerantie gecontroleerd.'],

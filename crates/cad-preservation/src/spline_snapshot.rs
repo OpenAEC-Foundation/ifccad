@@ -195,7 +195,8 @@ pub fn decode_spline_snapshot(bytes: &[u8]) -> Result<CadSplineSnapshot, CadSpli
     };
     // Version 3 states the new R12 metadata carrier, including explicit null.
     let r12_present = value["common"].get("r12Metadata").is_some();
-    let valid_shape = valid_shape && (r12_present == (snapshot.codec_revision == CODEC_REVISION));
+    let valid_shape = valid_shape
+        && (r12_present == (spline_payload_version(&snapshot.codec_revision) == Some(3)));
     if !valid_shape {
         return Err(CadSplineSnapshotError::Malformed(
             <serde_json::Error as serde::de::Error>::custom(

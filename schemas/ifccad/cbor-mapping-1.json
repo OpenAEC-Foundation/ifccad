@@ -8015,6 +8015,19 @@
               "presence": "required"
             }
           ]
+        },
+        {
+          "name": "Upright",
+          "code": 2,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
         }
       ],
       "dependencies": [

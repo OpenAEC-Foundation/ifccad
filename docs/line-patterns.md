@@ -33,14 +33,15 @@ selector. The two identity domains are independent. Unused styles, sources and
 definitions remain meaningful records. Duplicate source filenames do not merge IDs.
 
 Every marker has a positive finite `scale`, a finite two-component `offset`
-(along and perpendicular to the line), and `rotation` with `relative` or
-`absolute` mode and a finite angle in radians. Defaults are scale 1, offset
+(along and perpendicular to the line), and `rotation` with `relative`, `absolute` or `upright` mode and a finite angle in radians. Defaults are scale 1, offset
 `[0,0]` and relative angle 0; omission applies those defaults, while explicit
 null is invalid. Writers omit exact default transform fields, preserving signed
 zero and absolute-zero rotation; see [drawing defaults](drawing-defaults.md).
-Relative rotation follows
-the tangent; absolute rotation requests a fixed drawing orientation. Upright
-rotation is deferred because the pinned codec public model cannot represent it.
+Relative rotation follows the tangent; absolute rotation requests a fixed drawing
+orientation. Upright follows the tangent with a half-turn when needed to keep the
+text or symbol readable. It is an exclusive marker rotation mode, independent of
+ordinary Text/MText creation flags. A zero-angle upright mode remains explicit.
+The stored mode is supported; evaluated glyph rendering remains unassessed.
 
 ## Symbol sources and identities
 
@@ -121,10 +122,9 @@ values and invalid periods remain fatal, independently of loss policy.
 AC1032 DXF/DWG tests check resolved STYLE relationships, marker content,
 progression, scale, offsets and relative/absolute rotation through production
 native readers. A manually authored DXF fixture independently specifies marker
-flags and degree values. This qualification uses the dependency pin and explicit
-patch documented in each converter's coverage contracts. Upright flags remain
-outside this public-model boundary; see
-[codec issue 108](https://github.com/HakanSeven12/opencadcodec/issues/108).
+flags and degree values. This qualification uses the unmodified dependency pin
+documented in each converter's coverage contracts. Separate upright checks
+qualify the native selector and the physical target boundary described below.
 
 The Explorer entity catalogue contains continuous, dashed and GAS text patterns.
 The retained IFCCAD `examples/ifccad/overview.ifcx` regression asset also contains
@@ -135,3 +135,15 @@ resolve its own libraries; a successful preview does not certify every glyph.
 See [example reproduction and extension](../examples/README.md) for the current
 catalogue. Focused standalone authoring programs `write_line_patterns` and
 `write_ifccad_line_patterns` remain available.
+
+## Upright target-file qualification
+
+Native IFCX and mutable CBOR mapping revision 1 retain upright rotation and its
+finite radian angle for both text and SHX symbol markers. The current unmodified
+codec pin is [audited here](geometry/opencadcodec-update-2026-10-23.md).
+The codec writes upright as relative in DXF before AC1027. Explorer discloses
+that selected-target loss before downloading; actual physical readback compares
+the stored mode independently. Allow returns the file with a located loss;
+Reject offers no download. The requested version is never substituted.
+Focused physical checks cover the AC1024/AC1027 DXF boundary and DWG AC1024.
+This qualifies stored mode/source linkage, not evaluated glyph display.

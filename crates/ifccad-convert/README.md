@@ -283,8 +283,9 @@ Continuous scaffold with `line-pattern-scaffold` modification; Reject refuses it
 Optional native scale/generation defaults are normalized for comparison only;
 foreign graph data is still checked and exact numeric projection errors fail.
 
-Both converters pin upstream `325fa98d2b881f48e106a830d5cf161624f63131` and select
-only the [remaining viewport-off repair](../../patches/opencadcodec-viewports/README.md).
+The active converter and CAD companions pin unmodified upstream `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`
+(package `acadrust` 0.6.6) under the existing `opencadcodec` alias. See
+[checkout selection](../../patches/opencadcodec-viewports/README.md).
 The earlier exchange table retains its historical provenance. IFCCAD geometry,
 clipping and source classification remain separate from OCDraw.
 See the [2026-10-07 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-07.md).
@@ -301,14 +302,18 @@ independent of tab order. Only the fully default initial Layout1 scaffold is
 excluded; additional empty sheets remain authored.
 
 Import resolves layout roles from the named root `ACAD_LAYOUT` membership.
-A stale header cache may point at unrelated metadata; a competing layout
+The pinned DXF reader resolves its layout dictionary cache from that named
+membership. Independently supplied CAD documents can still have a stale header
+cache pointing at unrelated metadata; a competing layout
 dictionary or root role remains an error. Null dictionary/Layout owners are
 inferred only from one exact named membership, with a located `Recovery`;
 non-null conflicts, duplicate entries and multiple parents are rejected.
 The source `CadDocument` is unchanged.
 
-The pinned DXF reader can leave a Model-only scaffold with an absent root cache.
-Import completes it only when the entire object graph consists of one default
+The pinned DXF reader now establishes the named root before synthesizing a
+Model layout (upstream #122). Independently supplied public CAD documents can
+still contain an incomplete Model-only scaffold with an absent root cache.
+Import completes that shape only when the entire object graph consists of one default
 empty root and one default Model dictionary/Layout pair, with consistent Model
 block links and the dictionary owner equal to that absent cache. Derived extents
 are allowed. Authored settings, extra objects, multiple roots or existing cache
@@ -375,7 +380,7 @@ and numeric evidence. `geometry_assessment().is_complete()` is false for opaque
 curves/occurrences. See [preservation](../../docs/preservation.md).
 ## Workspace and upstream update — 2026-10-08
 
-Both converters select opencadcodec 0.6.0 at `325fa98d2b881f48e106a830d5cf161624f63131` plus the explicit viewport-off repair [PR #103](https://github.com/HakanSeven12/opencadcodec/pull/103). Merged spline DXF parameterization and DWG Paper owner/overall-role repairs now come from upstream. See the [dependency audit](../../docs/geometry/opencadcodec-update-2026-10-08.md) and [workspace contract](../../docs/workspace-state.md) for the current field/transport boundary.
+The active converter selects unmodified codec `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32` (package `acadrust` 0.6.6). Dimension, viewport, spline DXF and Paper-owner repairs are upstream. See the [dependency audit](../../docs/geometry/opencadcodec-update-2026-10-23.md) and [workspace contract](../../docs/workspace-state.md).
 
 UCS definitions, Model windows, canvas frame/grid/snap/UCS and authored Paper viewport aids map through shared ID-free scalar helpers. Native identities, ownership, source classification and located losses stay format-specific. Disabled zero snap spacing and stored-UCS activation survive independently of current choices. Model-viewport aids retain Model coordinates inside Paper; canvas aids use Paper coordinates. Canvas frames do not enter geometry bounds or clip ownership.
 
@@ -441,7 +446,7 @@ CAD DIMDSEP zero/NULL is normalized to the decimal point, including unused
 styles and explicit DSTYLE 278 resets; it is never stored as native NUL.
 The equivalent explicit decimal-point code may be used on CAD export.
 
-Current codec qualification: [2026-10-16 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-16.md). Only the documented Dimension patch remains selected; viewport repairs are upstream.
+Current codec qualification: [2026-10-23 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-23.md). No local source patch is selected.
 
 ## Conversion diagnosis
 

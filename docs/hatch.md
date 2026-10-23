@@ -4,9 +4,9 @@ IFCCAD is the active track. OCDraw descriptions below retain historical context;
 its implementation and fixtures are parked. See [parking](ocdraw-parking.md).
 Only IFCCAD code, schemas and current converter coverage define active behavior.
 
-Current dependency qualification (2026-10-16): codec `325fa98d2b881f48e106a830d5cf161624f63131`
-plus the explicit Dimension text-position repair; viewport repairs are upstream.
-The [current audit](geometry/opencadcodec-update-2026-10-16.md) supersedes dated
+Current dependency qualification (2026-10-23): unmodified codec `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`
+(package `acadrust` 0.6.6, local alias `opencadcodec`). Dimension and viewport repairs are upstream.
+The [current audit](geometry/opencadcodec-update-2026-10-23.md) supersedes dated
 pin/transport limitations below, including paper grid and DXF ShadePlot gates.
 
 IFCCAD supports native Solid, LinePattern and Gradient Hatch: an ordinary entity
@@ -79,8 +79,7 @@ can process these dependencies; synchronization is outside this implementation.
 
 ## Qualified CAD subset
 
-The codec pin is `325fa98d2b881f48e106a830d5cf161624f63131`, with only the
-[Dimension text-position patch](../patches/opencadcodec-dimension/README.md).
+The codec pin is `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`, without local source patches.
 Shared preparation audits fields and registers full contour curve evidence
 with nested occurrence assessment. Exact source spans qualify full turns;
 no epsilon promotes near-full arcs. Frames project to the actual CAD OCS;

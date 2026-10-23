@@ -7,6 +7,15 @@ use ifccad_convert::opencadcodec::{
 use serde_json::{json, Value};
 use std::{io::Cursor, path::Path};
 
+pub(crate) const VERSIONS: [DxfVersion; 6] = [
+    DxfVersion::AC1015,
+    DxfVersion::AC1018,
+    DxfVersion::AC1021,
+    DxfVersion::AC1024,
+    DxfVersion::AC1027,
+    DxfVersion::AC1032,
+];
+
 pub(crate) fn selection(
     format: &str,
     version: &str,
@@ -165,6 +174,7 @@ pub(crate) fn export(
             }
         };
     diagnostics.extend(hatch_issues.into_iter().map(|i| i.value()));
+    diagnostics.extend(crate::line_pattern_exchange::losses(&document, &checked));
     diagnostics.extend(spline_parameterization_losses(&document, &checked));
     diagnostics.extend(viewport_shadeplot_losses(&document, &checked));
     diagnostics.extend(hatch_description_losses(&document, &checked));

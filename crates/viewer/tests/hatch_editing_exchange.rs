@@ -109,11 +109,13 @@ fn direct_original_definition_survives_native_storage_and_all_twelve_physical_ta
 }
 
 #[test]
-fn known_codec_angle_difference_is_a_specific_physical_definition_line_loss() {
+fn codec_hatch_angles_are_retained_in_all_offered_dxf_versions() {
+    use base64::{engine::general_purpose::STANDARD, Engine};
     use ifccad_convert::{opencadcodec::*, *};
     use opencadcodec::entities::hatch::*;
     let mut cad = CadDocument::new();
     let mut h = Hatch::with_pattern(HatchPattern::new("Original"));
+    h.pattern_angle = 0.7853981633974487;
     h.pattern.lines.push(HatchPatternLine {
         angle: 5.4977871437821335,
         base_point: Vector2::ZERO,
@@ -144,23 +146,49 @@ fn known_codec_angle_difference_is_a_specific_physical_definition_line_loss() {
     .unwrap();
     for version in ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"] {
         let bytes = encode_ifccad_document(native.validated_source().document()).unwrap();
-        let out =
-            export_ifccad_bytes_with_options("angle.ifcx", bytes.bytes(), "dxf", version, "{}");
+        let out = export_ifccad_bytes_with_options(
+            "angle.ifcx",
+            bytes.bytes(),
+            "dxf",
+            version,
+            r#"{"lossPolicy":"reject"}"#,
+        );
         assert!(out["failure"].is_null(), "{out}");
         let diagnostics = out["export"]["diagnostics"].as_array().unwrap();
         assert!(!diagnostics
             .iter()
             .any(|d| d["code"] == "hatch-classic-settings-loss"));
         assert!(
-            diagnostics
+            !diagnostics
                 .iter()
-                .any(|d| d["code"] == "TARGET_CODEC_HATCH_CLASSIC_SETTINGS_LOSS"
-                    && d["location"]
-                        .as_str()
-                        .unwrap()
-                        .ends_with("/definitionLines/0/angle")),
-            "{diagnostics:?}"
+                .any(|d| d["code"] == "TARGET_CODEC_HATCH_CLASSIC_SETTINGS_LOSS"),
+            "{version}: {diagnostics:?}"
         );
+        let data = STANDARD
+            .decode(out["export"]["download"]["base64"].as_str().unwrap())
+            .unwrap();
+        let read = DxfReader::from_reader(std::io::Cursor::new(data))
+            .unwrap()
+            .read()
+            .unwrap();
+        let returned = read
+            .entities()
+            .find_map(|e| match e {
+                EntityType::Hatch(h) => Some(h),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(
+            returned.pattern_angle.to_bits(),
+            0.7853981633974487_f64.to_bits(),
+            "{version} code 52"
+        );
+        assert_eq!(
+            returned.pattern.lines[0].angle.to_bits(),
+            5.4977871437821335_f64.to_bits(),
+            "{version} code 53"
+        );
+        assert_eq!(out["export"]["fileCheck"]["ifccadStrictReadback"], true);
     }
 }
 #[test]

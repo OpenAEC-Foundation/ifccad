@@ -242,3 +242,21 @@ fn literal_payload_versions_and_current_bytes_remain_compatible() {
     assert_eq!(legacy.to_source().common.layer_handle, None);
     assert_eq!(legacy.to_source().dwg_scenario, None);
 }
+
+#[test]
+fn october_16_revision_three_snapshots_remain_decodable_with_exact_presence() {
+    let bytes = capture_spline(&Spline::new(), 0, CODEC_REVISION).unwrap();
+    let mut value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+    value["codecRevision"] = OCTOBER_16_CODEC_REVISION.into();
+    assert_eq!(
+        decode_spline_snapshot(&serde_json::to_vec(&value).unwrap())
+            .unwrap()
+            .payload_version(),
+        3
+    );
+    value["common"]
+        .as_object_mut()
+        .unwrap()
+        .remove("r12Metadata");
+    assert!(decode_spline_snapshot(&serde_json::to_vec(&value).unwrap()).is_err());
+}

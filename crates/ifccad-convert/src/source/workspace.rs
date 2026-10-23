@@ -96,9 +96,6 @@ pub(crate) fn viewport_residual(
     if r.dxf_status == Some(derived_status) {
         r.dxf_status = None;
     }
-    if r.stacking == v.id {
-        r.stacking = 0;
-    }
     if (0..=3).contains(&v.shade_plot_mode) {
         r.shade_plot_mode = b.shade_plot_mode;
     }

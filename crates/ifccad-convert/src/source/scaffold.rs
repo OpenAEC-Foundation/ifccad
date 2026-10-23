@@ -1,4 +1,4 @@
-//! Bounded recovery for the pinned DXF reader's incomplete Model-only scaffold.
+//! Bounded recovery for an incomplete Model-only public CAD scaffold.
 use crate::{diagnostics::diagnostic, IfccadDiagnostic, IfccadDiagnosticAction};
 use opencadcodec::{
     objects::{Dictionary, Layout, ObjectType},

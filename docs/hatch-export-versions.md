@@ -1,7 +1,6 @@
 # Hatch DXF/DWG output qualification
 
-This is correctness qualification of the selected opencadcodec `325fa98` plus
-the documented Dimension text-position patch. It is not a benchmark, renderer
+This is correctness qualification of the selected unmodified codec `bd10efc` (package `acadrust` 0.6.6). It is not a benchmark, renderer
 claim, CAD editing/update protocol, or guarantee for arbitrary drawings.
 Native IFCCAD stores independent contours, literal fill, source groups,
 associativity, provenance, TextIsland, classic editing and construction records.
@@ -53,7 +52,7 @@ These conditions are independent of source-group transport:
 | --- | --- | --- |
 | Enabled association without sources | Switch cleared, all six versions | Switch cleared, all six versions |
 | Inactive gradient state | Omitted, all six versions | Omitted in AC1015; retained in AC1018+ |
-| Definition-line/general angles affected by codec #132 | Located physical angle changes, all six versions | Qualified source values retained |
+| Reported definition-line/general angles from codec #132 | Exact source bits retained in all six versions | Qualified source values retained |
 | Pattern description | Omitted, all six versions | Omitted, all six versions |
 | Classic definition lines/angle/scale/double in solid mode | Omitted, all six versions | Omitted, all six versions |
 | Pixel size with no existing DERIVED path | Omitted, all six versions | Omitted, all six versions |
@@ -113,13 +112,20 @@ These patterns are local leaves, with no relevant original block occurrence;
 separate nested nonuniform controls verify amplification and fallback. The native
 record and qualified DWG output retain exact raw definition values and absent
 origins. Ten DWG-source and eleven DXF-source model recipe losses are removed.
-DXF angle differences remain physical losses until a separate adoption of
-[opencadcodec #132](https://github.com/HakanSeven12/opencadcodec/issues/132).
-Readback locates each changed definition-line angle; it does not label the entire
-original recipe omitted. This is not a renderer/editor-regeneration assessment.
+Upstream [opencadcodec #132](https://github.com/HakanSeven12/opencadcodec/issues/132)
+is adopted at `bd10efc`: the reported DXF angles and original practice recipes
+now require exact scalar retention. Physical comparison remains active and
+locates any genuinely changed field; this is not a claim that every arbitrary
+binary64 radian has an exact degree preimage. This is not a renderer/editor-regeneration assessment.
 
 The regression requires twelve actual target cells per original representation,
 strict native/file readback and unchanged source hashes. Missing input or a
 different hash fails the explicit acceptance run. It is ignored in ordinary CI
 because external user source files are not distributed; synthetic regressions
 remain ordinary CI tests. The original Explorer AC1024 selection remains AC1024.
+
+For the bd10efc adoption, the user stopped the repeated complete-original matrix
+after 19 successful cells, before the native upright extension. These remain
+scoped evidence for the pin update, not a full 24-cell pass of the final combined
+candidate. The new mode uses small targeted DXF AC1024/AC1027 and DWG AC1024
+controls; the complete external fixture remains available for an explicit run.

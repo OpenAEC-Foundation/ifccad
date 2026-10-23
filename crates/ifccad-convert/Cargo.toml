@@ -13,7 +13,7 @@ cad-preservation = { path = "../cad-preservation" }
 cad-workspace-convert = { path = "../cad-workspace-convert" }
 cad-geometry-convert = { path = "../cad-geometry-convert" }
 ifccad = { path = "../.." }
-opencadcodec = { package = "opencadcodec", git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "325fa98d2b881f48e106a830d5cf161624f63131", features = ["serde"] }
+opencadcodec = { package = "acadrust", git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "bd10efc2c54dfe1e6288c5f10486dce9be0d7f32", features = ["serde"] }
 serde = "1"
 serde_json = "1"
 sha2 = "=0.10.9"

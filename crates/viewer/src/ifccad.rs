@@ -58,6 +58,8 @@ pub(crate) fn present_document(output: &mut Value, d: &IfccadDocument, graph: &V
     output["presentation"]["dimensions"] = crate::inspection_ifccad_dimension::entities(d);
     output["presentation"]["dimensionStyles"] = crate::inspection_ifccad_dimension::styles(d);
     output["presentation"]["hatchExportPreflight"] = crate::hatch_capabilities::preflight(d);
+    output["presentation"]["linePatternExportPreflight"] =
+        crate::line_pattern_exchange::preflight(d);
 }
 /// Inspect the experimental IFCCAD profile after production composition/validation.
 pub fn inspect_ifccad_bytes(name: &str, bytes: &[u8]) -> Value {

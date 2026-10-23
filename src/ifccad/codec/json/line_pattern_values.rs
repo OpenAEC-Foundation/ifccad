@@ -18,6 +18,7 @@ pub(crate) fn encode_pattern_elements(
             LinePatternRotation::Relative(angle) if super::defaults::is_positive_zero(angle) => {},
             LinePatternRotation::Relative(angle) => { v["rotation"]=json!({"mode":"relative","angle":angle}); },
             LinePatternRotation::Absolute(angle) => { v["rotation"]=json!({"mode":"absolute","angle":angle}); },
+            LinePatternRotation::Upright(angle) => { v["rotation"]=json!({"mode":"upright","angle":angle}); },
         }
         json!({"length":e.length,"marker":v})
     }).collect::<Vec<_>>())
@@ -66,6 +67,7 @@ fn decode_element(value: &Value, prefix: &str) -> Option<IfccadLinePatternElemen
         Some(v) => match v.get("mode")?.as_str()? {
             "relative" => LinePatternRotation::Relative(v.get("angle")?.as_f64()?),
             "absolute" => LinePatternRotation::Absolute(v.get("angle")?.as_f64()?),
+            "upright" => LinePatternRotation::Upright(v.get("angle")?.as_f64()?),
             _ => return None,
         },
     };

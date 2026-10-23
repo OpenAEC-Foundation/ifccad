@@ -191,14 +191,10 @@ fn positive_viewport_stack_rank_is_not_a_current_identity() {
         assert_eq!(first["id"], 7);
         assert_eq!(third["id"], 7);
         // Group 68 retains stack metadata independently of the group 69 identity.
-        assert_eq!(first["stacking"], 1);
-        assert_eq!(third["stacking"], 3);
         assert_eq!(first["dxf_status"], 1);
         assert_eq!(third["dxf_status"], 3);
-        for field in ["stacking", "dxf_status"] {
-            first.as_object_mut().unwrap().remove(field);
-            third.as_object_mut().unwrap().remove(field);
-        }
+        first.as_object_mut().unwrap().remove("dxf_status");
+        third.as_object_mut().unwrap().remove("dxf_status");
         assert_eq!(first, third, "all other viewport data, newline={newline:?}");
     }
 }

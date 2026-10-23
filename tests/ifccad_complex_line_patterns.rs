@@ -181,3 +181,51 @@ fn text_markers_use_independent_style_role() {
         json!("/cad/d1/symbolSource/0");
     assert!(load_ifccad_bytes(&serde_json::to_vec(&wire).unwrap(), Default::default()).is_err());
 }
+
+#[test]
+fn upright_rotation_roundtrips_ifcx_and_cbor_without_becoming_relative() {
+    let mut value = drawing();
+    value["data"].as_array_mut().unwrap().last_mut().unwrap()["attributes"]
+        ["ifccad::linePattern"]["pattern"][0]["marker"]["rotation"] =
+        json!({"mode":"upright","angle":-0.0});
+    let loaded =
+        load_ifccad_bytes(&serde_json::to_vec(&value).unwrap(), Default::default()).unwrap();
+    for binary in [false, true] {
+        let bytes = if binary {
+            encode_ifccad_cbor_document(loaded.document())
+                .unwrap()
+                .bytes()
+                .to_vec()
+        } else {
+            encode_ifccad_document(loaded.document())
+                .unwrap()
+                .bytes()
+                .to_vec()
+        };
+        let returned = if binary {
+            load_ifccad_cbor_bytes(&bytes, Default::default())
+                .unwrap()
+                .into_document()
+        } else {
+            load_ifccad_bytes(&bytes, Default::default())
+                .unwrap()
+                .into_document()
+        };
+        assert_eq!(&returned, loaded.document());
+        let json_bytes = encode_ifccad_document(&returned).unwrap();
+        let encoded: Value = serde_json::from_slice(json_bytes.bytes()).unwrap();
+        let pattern = encoded["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|n| n["path"] == "/cad/d1/linePattern/1")
+            .unwrap();
+        let rotation =
+            &pattern["attributes"]["ifccad::linePattern"]["pattern"][0]["marker"]["rotation"];
+        assert_eq!(rotation["mode"], "upright");
+        assert_eq!(
+            rotation["angle"].as_f64().unwrap().to_bits(),
+            (-0.0_f64).to_bits()
+        );
+    }
+}

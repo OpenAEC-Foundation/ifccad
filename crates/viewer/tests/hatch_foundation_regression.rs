@@ -286,7 +286,7 @@ fn original_ac1024_foundation_hatches_survive_every_offered_target() {
                     version
                 );
                 let mut count = 0;
-                let mut physical_recipe_differences = Vec::new();
+                let physical_recipe_differences = Vec::<serde_json::Value>::new();
                 for e in expected.document().entities() {
                     if let EntityType::Hatch(w) = e {
                         let EntityType::Hatch(r) = actual
@@ -304,16 +304,12 @@ fn original_ac1024_foundation_hatches_survive_every_offered_target() {
                         assert_eq!(r.pattern_scale.to_bits(), w.pattern_scale.to_bits());
                         assert_eq!(r.is_double, w.is_double);
                         assert_eq!(r.pattern.lines.len(), w.pattern.lines.len());
-                        let mut angle_check = |field: String, a: f64, b: f64| {
-                            if a.to_bits() != b.to_bits() {
-                                assert_eq!(output, "dxf", "DWG recipe scalar changed: {field}");
-                                assert_eq!(
-                                    b.to_bits(),
-                                    a.to_degrees().to_radians().to_bits(),
-                                    "new unclassified physical change: {field}"
-                                );
-                                physical_recipe_differences.push(serde_json::json!({"handle":w.common.handle.to_string(),"field":field,"expected":a,"actual":b,"code":"TARGET_CODEC_HATCH_CLASSIC_SETTINGS_LOSS"}));
-                            }
+                        let angle_check = |field: String, a: f64, b: f64| {
+                            assert_eq!(
+                                a.to_bits(),
+                                b.to_bits(),
+                                "{input} -> {output} {version}: recipe angle changed: {field}"
+                            );
                         };
                         angle_check("rotation".into(), w.pattern_angle, r.pattern_angle);
                         for (i, (a, b)) in w.pattern.lines.iter().zip(&r.pattern.lines).enumerate()

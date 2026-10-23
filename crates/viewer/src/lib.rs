@@ -9,6 +9,7 @@ mod ifccad;
 mod ifccad_input;
 mod inspection_dimension_label;
 mod inspection_ifccad_dimension;
+mod line_pattern_exchange;
 mod options;
 mod selection;
 pub use binary_download::export_ifccad_binary_bytes;

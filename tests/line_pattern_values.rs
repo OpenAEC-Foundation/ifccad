@@ -51,3 +51,13 @@ fn transform_and_source_rules() {
     })
     .is_ok());
 }
+
+#[test]
+fn upright_rotation_requires_a_finite_angle() {
+    use ifccad::line_pattern::*;
+    let mut transform = LinePatternTransform::default();
+    for angle in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        transform.rotation = LinePatternRotation::Upright(angle);
+        assert!(validate_line_pattern_transform(&transform).is_err());
+    }
+}

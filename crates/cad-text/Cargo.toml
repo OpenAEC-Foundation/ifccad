@@ -8,7 +8,7 @@ description = "Shared typed CAD text content and placement preparation"
 [dependencies]
 ifccad = { path = "../.." }
 cad-geometry-convert = { path = "../cad-geometry-convert" }
-opencadcodec = { git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "325fa98d2b881f48e106a830d5cf161624f63131" }
+opencadcodec = { package = "acadrust", git = "https://github.com/HakanSeven12/opencadcodec.git", rev = "bd10efc2c54dfe1e6288c5f10486dce9be0d7f32" }
 num-rational = "0.4"
 num-traits = "0.2"
 thiserror = "1"
