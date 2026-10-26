@@ -446,6 +446,12 @@ CAD DIMDSEP zero/NULL is normalized to the decimal point, including unused
 styles and explicit DSTYLE 278 resets; it is never stored as native NUL.
 The equivalent explicit decimal-point code may be used on CAD export.
 
+DIMLTEX/DIMLTEX1/DIMLTEX2 references to canonical ByBlock and ByLayer
+linetypes import as component inheritance selectors, including unused styles.
+ByBlock inherits the Dimension entity; ByLayer retains native layer inheritance.
+Dangling/wrong-kind handles remain errors. Component ByLayer CAD output remains
+an explicitly diagnosed restriction; see the [coverage contract](docs/FROM-CAD-COVERAGE.md).
+
 Current codec qualification: [2026-10-23 dependency audit](../../docs/geometry/opencadcodec-update-2026-10-23.md). No local source patch is selected.
 
 ## Conversion diagnosis

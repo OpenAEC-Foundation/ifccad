@@ -83,7 +83,7 @@ The group-52 offset rule follows [Autodesk linear dimensions](https://help.autod
 | dimfrac | R native inline/horizontal/diagonal fraction choice, retained even when inactive. |
 | dimarcsym | R style metadata before/above/none, U unknown choice. |
 | dimjogang | L radius-only state. |
-| dimltex_handle, dimltex1_handle, dimltex2_handle | R component pattern refs; adapter must bind actual definitions. |
+| dimltex_handle, dimltex1_handle, dimltex2_handle | R explicit component pattern refs; null/ByBlock inherit the Dimension entity, canonical ByLayer retains layer inheritance. Resolve non-null handles before classification using ASCII name matching; dangling/wrong-kind handles are invalid. Adapter binds ordinary definitions. CAD output of component ByLayer remains U. |
 | annotative | U annotation contexts, deferred joint text/dimension slice. |
 
 Native output rejects unequal settings for fields CAD couples across both

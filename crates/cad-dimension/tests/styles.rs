@@ -2,6 +2,69 @@ use cad_dimension::*;
 use ifccad::dimension::*;
 use opencadcodec::{tables::DimStyle, CadDocument};
 #[test]
+fn canonical_component_linetypes_are_selectors_in_all_three_fields() {
+    let doc = CadDocument::new();
+    for (name, expected) in [
+        ("ByBlock", DimensionAppearanceChoice::InheritEntity),
+        ("ByLayer", DimensionAppearanceChoice::ByLayer),
+        (
+            "Continuous",
+            DimensionAppearanceChoice::Explicit(doc.line_types.get("Continuous").unwrap().handle),
+        ),
+    ] {
+        let mut source = doc.dim_styles.get("Standard").unwrap().clone();
+        let handle = doc.line_types.get(name).unwrap().handle;
+        source.dimltex_handle = handle;
+        source.dimltex1_handle = handle;
+        source.dimltex2_handle = handle;
+        let prepared = prepare_style_from_cad(&source, &doc).unwrap();
+        assert_eq!(
+            prepared.values.dimension_line.appearance.line_pattern,
+            expected
+        );
+        assert_eq!(
+            prepared
+                .values
+                .extension_lines
+                .first
+                .appearance
+                .line_pattern,
+            expected
+        );
+        assert_eq!(
+            prepared
+                .values
+                .extension_lines
+                .second
+                .appearance
+                .line_pattern,
+            expected
+        );
+    }
+}
+
+#[test]
+fn component_linetype_handles_must_resolve_to_linetypes() {
+    let doc = CadDocument::new();
+    for handle in [
+        opencadcodec::Handle::new(99999),
+        doc.layers.get("0").unwrap().handle,
+    ] {
+        for field in 0..3 {
+            let mut source = doc.dim_styles.get("Standard").unwrap().clone();
+            match field {
+                0 => source.dimltex_handle = handle,
+                1 => source.dimltex1_handle = handle,
+                _ => source.dimltex2_handle = handle,
+            }
+            assert!(matches!(
+                prepare_style_from_cad(&source, &doc),
+                Err(CadDimensionPreparationError::Invalid { .. })
+            ));
+        }
+    }
+}
+#[test]
 fn paper_only_measure_factor_is_explicit_without_changing_coordinates() {
     let mut s = DimStyle::new("Building");
     s.dimlfac = -2.0;

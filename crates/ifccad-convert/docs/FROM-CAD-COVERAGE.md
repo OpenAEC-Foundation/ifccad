@@ -185,7 +185,9 @@ through logical and encoded conversion and production-reader readback.
 Layout dictionary identity comes from the root named dictionary's unique
 `ACAD_LAYOUT` entry, with matching dictionary map key, payload identity and root
 ownership. Every layout must be owned by that dictionary and occur exactly once
-under its actual name. A null, missing or wrong-type header cache is recovered
+under its actual name, matched using ASCII-case-insensitive CAD dictionary lookup.
+Duplicate membership or colliding case variants (including keys targeting another
+object) remain fatal; Unicode case folding is not introduced. A null, missing or wrong-type header cache is recovered
 without mutating the caller's document, with `layout-dictionary-cache-recovered`
 action Recovery. A cache resolving to a different existing Dictionary, ambiguous
 or missing named targets, and actual membership/ownership conflicts remain fatal
@@ -456,6 +458,15 @@ marker-block and pattern references. The neutral helper's complete public-field
 bounded adapter profile. Successfully mapped styles and DIMASSOC objects are
 removed from generic unsupported inventory; every residual field/object keeps
 its existing diagnostic contract. Default unused bootstrap styles remain scaffold.
+
+DIMLTEX/DIMLTEX1/DIMLTEX2 null or canonical ByBlock references inherit the
+Dimension entity's line pattern; canonical ByLayer references retain native
+ByLayer. Names use ASCII-case-insensitive matching after resolving the actual
+linetype handle. Ordinary linetypes remain explicit references; dangling and
+wrong-kind handles remain fatal, including in unused styles. Native outer
+occurrence ByBlock is a distinct mode. CAD output's existing restriction on
+component ByLayer patterns remains a located policy-controlled loss; this import
+fix does not qualify that output or add DSTYLE pattern-override coverage.
 
 Stored definition points and explicit text anchors use the existing hard
 owner/occurrence tolerance. Measurements are recomputed from the definition;

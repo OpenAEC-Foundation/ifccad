@@ -95,6 +95,29 @@ fn weight(v: i16) -> Result<DimensionAppearanceChoice<f64>, CadDimensionPreparat
         _ => return Err(invalid("style/lineWeight", "invalid weight")),
     })
 }
+fn line_pattern(
+    handle: Handle,
+    field: &str,
+    doc: &CadDocument,
+) -> Result<DimensionAppearanceChoice<Handle>, CadDimensionPreparationError> {
+    if handle.is_null() {
+        return Ok(DimensionAppearanceChoice::InheritEntity);
+    }
+    let pattern = doc
+        .line_types
+        .iter()
+        .find(|pattern| pattern.handle == handle)
+        .ok_or_else(|| invalid(field, "unresolved linetype handle"))?;
+    // CAD component ByBlock inherits the Dimension entity, rather than its
+    // enclosing block occurrence (the distinct native ByBlock choice).
+    Ok(if pattern.name.eq_ignore_ascii_case("ByBlock") {
+        DimensionAppearanceChoice::InheritEntity
+    } else if pattern.name.eq_ignore_ascii_case("ByLayer") {
+        DimensionAppearanceChoice::ByLayer
+    } else {
+        DimensionAppearanceChoice::Explicit(handle)
+    })
+}
 fn marker(
     handle: Handle,
     name: &str,
@@ -208,10 +231,7 @@ pub fn prepare_style_from_cad(
     v.dimension_line.suppress_second = s.dimsd2;
     v.dimension_line.appearance.color = color(s.dimclrd, s.dimclrd_true_color)?;
     v.dimension_line.appearance.line_weight = weight(s.dimlwd)?;
-    if s.dimltex_handle != Handle::NULL {
-        v.dimension_line.appearance.line_pattern =
-            DimensionAppearanceChoice::Explicit(s.dimltex_handle);
-    }
+    v.dimension_line.appearance.line_pattern = line_pattern(s.dimltex_handle, "DIMLTEX", doc)?;
     for (first, e) in [
         (true, &mut v.extension_lines.first),
         (false, &mut v.extension_lines.second),
@@ -231,9 +251,8 @@ pub fn prepare_style_from_cad(
         } else {
             s.dimltex2_handle
         };
-        if pattern != Handle::NULL {
-            e.appearance.line_pattern = DimensionAppearanceChoice::Explicit(pattern);
-        }
+        e.appearance.line_pattern =
+            line_pattern(pattern, if first { "DIMLTEX1" } else { "DIMLTEX2" }, doc)?;
     }
     v.arrows.first = marker(
         if s.dimsah { s.dimblk1 } else { s.dimblk },

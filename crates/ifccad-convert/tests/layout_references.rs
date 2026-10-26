@@ -74,6 +74,92 @@ fn assert_invalid(cad: &CadDocument) {
     }
 }
 #[test]
+fn layout_dictionary_ascii_case_preserves_membership_without_mutation() {
+    for missing_owner in [false, true] {
+        let mut cad = sample();
+        let dictionary = cad.header.acad_layout_dict_handle;
+        let ObjectType::Dictionary(d) = cad.objects.get_mut(&dictionary).unwrap() else {
+            panic!()
+        };
+        for (key, _) in &mut d.entries {
+            *key = key.to_ascii_uppercase();
+        }
+        if missing_owner {
+            for object in cad.objects.values_mut() {
+                if let ObjectType::Layout(l) = object {
+                    l.owner = Handle::NULL;
+                }
+            }
+        }
+        let before = serde_json::to_value(&cad).unwrap();
+        for policy in [IfccadLossPolicy::Allow, IfccadLossPolicy::Reject] {
+            let out = encoded(&cad, policy).unwrap();
+            let read = load_ifccad_bytes(out.encoded().bytes(), Default::default()).unwrap();
+            assert_eq!(read.document().model.entities.len(), 3);
+        }
+        assert_eq!(serde_json::to_value(&cad).unwrap(), before);
+    }
+}
+
+#[test]
+fn case_variant_duplicate_membership_and_conflicting_owner_remain_fatal() {
+    for conflict in 0..5 {
+        let mut cad = sample();
+        let model = layout_mut(&mut cad, "Model").handle;
+        let dictionary = cad.header.acad_layout_dict_handle;
+        if conflict == 0 {
+            let ObjectType::Dictionary(d) = cad.objects.get_mut(&dictionary).unwrap() else {
+                panic!()
+            };
+            d.entries.push(("MODEL".into(), model));
+        } else if conflict == 1 {
+            layout_mut(&mut cad, "Model").owner = Handle::new(99999);
+        } else if conflict == 2 {
+            let ObjectType::Dictionary(d) = cad
+                .objects
+                .get_mut(&cad.header.named_objects_dict_handle)
+                .unwrap()
+            else {
+                panic!()
+            };
+            d.entries.push(("MODEL".into(), model));
+        } else if conflict == 3 {
+            let other = cad.layers.get("0").unwrap().handle;
+            let ObjectType::Dictionary(d) = cad.objects.get_mut(&dictionary).unwrap() else {
+                panic!()
+            };
+            d.entries.push(("MODEL".into(), other));
+        } else {
+            let handle = cad.allocate_handle();
+            let mut d = opencadcodec::objects::DictionaryWithDefault::new();
+            d.handle = handle;
+            d.entries.push(("MODEL".into(), model));
+            cad.objects
+                .insert(handle, ObjectType::DictionaryWithDefault(d));
+        }
+        assert_invalid(&cad);
+    }
+}
+
+#[test]
+fn layout_dictionary_matching_does_not_fold_unicode_case() {
+    let mut cad = sample();
+    layout_mut(&mut cad, "Model").name = "Mödel".into();
+    let ObjectType::Dictionary(d) = cad
+        .objects
+        .get_mut(&cad.header.acad_layout_dict_handle)
+        .unwrap()
+    else {
+        panic!()
+    };
+    d.entries
+        .iter_mut()
+        .find(|(name, _)| name == "Model")
+        .unwrap()
+        .0 = "MÖDEL".into();
+    assert_invalid(&cad);
+}
+#[test]
 fn stale_layout_dictionary_cache_recovers_without_source_mutation_or_false_loss() {
     for cache in 0..3 {
         let mut cad = sample();

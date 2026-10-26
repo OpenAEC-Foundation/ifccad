@@ -1053,7 +1053,7 @@ fn scaffold_object(
                 if a.owner.is_null() {
                     a.owner = doc.header.named_objects_dict_handle;
                 }
-                a.entries.retain(|(name,h)|!matches!(doc.objects.get(h),Some(ObjectType::Layout(l)) if l.name==*name));
+                a.entries.retain(|(name,h)|!matches!(doc.objects.get(h),Some(ObjectType::Layout(l)) if l.name.eq_ignore_ascii_case(name)));
                 b.entries.retain(|(_,h)|matches!(base.objects.get(h),Some(o) if !matches!(o,ObjectType::Layout(_))));
             }
             a.handle = mapped(a.handle);

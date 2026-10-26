@@ -4,7 +4,7 @@ use crate::{IfccadConversionError as Error, IfccadDiagnostic};
 use opencadcodec::objects::{Layout, ObjectType};
 use opencadcodec::{CadDocument, EntityType, Handle};
 
-/// Missing owners are recoverable only from one exact dictionary membership.
+/// Missing owners are recoverable only from one ASCII-case-insensitive dictionary membership.
 /// A non-null conflict, duplicate entry or second parent is never repaired.
 pub(crate) fn owner(
     doc: &CadDocument,
@@ -26,11 +26,15 @@ pub(crate) fn owner(
             entries
                 .into_iter()
                 .flatten()
-                .filter(move |(_, h)| *h == handle)
-                .map(move |(key, _)| (*parent, key.as_str()))
+                .filter(move |(key, h)| {
+                    *h == handle || (*parent == expected && key.eq_ignore_ascii_case(name))
+                })
+                .map(move |(key, h)| (*parent, key.as_str(), *h))
         })
         .collect::<Vec<_>>();
-    if memberships != [(expected, name)] || (!actual.is_null() && actual != expected) {
+    if !matches!(memberships.as_slice(), [(parent, key, target)] if *parent == expected && *target == handle && key.eq_ignore_ascii_case(name))
+        || (!actual.is_null() && actual != expected)
+    {
         return false;
     }
     if actual.is_null() {
