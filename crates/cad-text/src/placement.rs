@@ -341,6 +341,9 @@ pub fn prepare_mtext_from_cad(source: &MText) -> Result<PreparedMText, CadTextEr
     if content.character_basis_normalized {
         issues.push(CadTextIssue::CharacterBasisNormalized);
     }
+    if content.paragraph_state_normalized {
+        issues.push(CadTextIssue::AuthoredFormattingNormalized);
+    }
     let columns = crate::layout::columns_from_cad(source, &mut issues)?;
     let wrap_width = if columns.is_some() {
         None

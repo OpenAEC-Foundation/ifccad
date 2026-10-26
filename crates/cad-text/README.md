@@ -34,6 +34,20 @@ global; shared explicit paragraph properties may be factored locally. Current
 style values never become inferred fixed overrides. Relative height codes are
 accumulated in the source context, then reference the nominal native height.
 
+Paragraph alignment, indent factors and tab stops also carry per property until
+changed or restored by a closing source scope. Each native paragraph receives
+independent effective overrides, including blank/trailing paragraphs and explicit
+zero/empty-tab resets. `paragraph_state_normalized` exposes materialized carry as
+`AuthoredFormattingNormalized`; explicit-repeat controls need no such diagnostic.
+Materialized tab-stop copies share the existing formatting byte budget with fonts.
+Mid-paragraph layout changes, including effective changes caused by scope
+restoration before more content, remain unqualified.
+
+CAD emission explicitly ends obsolete paragraph properties when a following
+native paragraph inherits a default or entity-basis value. Added reset controls
+can change override presence and receive the existing authored-format diagnostic;
+retained current formatting is separate from future editing dependencies.
+
 Emitters escape literals, including strings that resemble formatting or field
 syntax. TEXT uses its legacy percent controls. Unsupported target semantics
 return errors rather than silently becoming plain strings. The simple default

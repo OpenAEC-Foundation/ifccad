@@ -63,6 +63,17 @@ Paragraph layout uses a separate basis independent of the preceding paragraph.
 Tabs, breaks and stacks remain typed structural content. Explicit false, valid
 zero and empty tab-stop resets remain distinct from absent overrides.
 
+The CAD adapter materializes persistent MTEXT paragraph alignment, indent and
+tab state into independent native paragraphs, retaining per-field changes and
+scoped restoration across breaks. Source carry materialization is a located,
+rejectable `text-dependency` modification (`AuthoredFormattingNormalized`):
+current values are retained while editing dependencies may change. Export ends
+obsolete CAD state with explicit defaults when the next native paragraph uses
+its entity basis. Those reset controls can also normalize authored presence.
+Synthetic actual DXF/AC1032 DWG and strict JSON/CBOR readback cover these cases;
+they do not qualify glyph layout or general CAD editing equivalence. Source
+mid-paragraph layout changes remain outside the qualified conversion profile.
+
 Full-context validation uses the authored entity-wide paragraph basis and the
 actual effective character formats. Empty lines use their paragraph basis;
 fully overridden unused values do not invent geometry. Resolving a format

@@ -13,6 +13,9 @@ pub struct ParsedMTextContent {
     /// Source state-machine overrides were factored into a paragraph basis.
     /// Current formatting is retained; authored editing dependencies can change.
     pub character_basis_normalized: bool,
+    /// Carried source paragraph properties became independent local overrides.
+    /// Effective values are retained; later editing dependencies can change.
+    pub paragraph_state_normalized: bool,
     pub character_format: CharacterFormat<MarkupColor>,
     pub paragraph_format: ParagraphFormat,
     pub content: Vec<MTextParagraph<MarkupColor>>,
@@ -84,12 +87,14 @@ enum Level {
 #[derive(Clone)]
 struct State {
     format: CharacterFormat<MarkupColor>,
+    paragraph: ParagraphFormat,
     levels: [Level; 10],
 }
 impl Default for State {
     fn default() -> Self {
         Self {
             format: Default::default(),
+            paragraph: Default::default(),
             levels: [Level::Global; 10],
         }
     }
@@ -126,6 +131,7 @@ pub fn parse_mtext(
     let tokens = lex(source, limits)?;
     let mut result = ParsedMTextContent {
         character_basis_normalized: false,
+        paragraph_state_normalized: false,
         character_format: Default::default(),
         paragraph_format: Default::default(),
         content: vec![MTextParagraph::default()],
@@ -133,9 +139,33 @@ pub fn parse_mtext(
     let mut state = State::default();
     let mut scopes = Vec::new();
     let mut started = false;
-    let mut font_bytes = 0usize;
+    let mut materialized_bytes = 0usize;
+    let mut authored_paragraph = ParagraphFormat::default();
     for token in tokens {
         let offset = token.range.start;
+        let paragraph = result.content.last().unwrap();
+        if matches!(
+            &token.kind,
+            MarkupTokenKind::Literal(_)
+                | MarkupTokenKind::Tab
+                | MarkupTokenKind::Stack(_)
+                | MarkupTokenKind::ColumnBreak
+        ) && !paragraph.inlines.is_empty()
+            && state.paragraph != paragraph.paragraph_format
+        {
+            let resolve = |format| {
+                resolve_paragraph_format(&ParagraphFormat::default(), format)
+                    .map_err(|e| error(TextMarkupErrorCode::MalformedCode, offset, e.message))
+            };
+            if resolve(&state.paragraph)? != resolve(&paragraph.paragraph_format)? {
+                return Err(error(
+                    TextMarkupErrorCode::UnsupportedCode,
+                    offset,
+                    "mid-paragraph scoped layout restoration requires a qualified source profile",
+                ));
+            }
+            result.paragraph_state_normalized = true;
+        }
         let level = if !scopes.is_empty() {
             Level::Inline
         } else if !started {
@@ -148,8 +178,8 @@ pub fn parse_mtext(
         let field = match token.kind {
             MarkupTokenKind::ScopeStart => {
                 charge(
-                    &mut font_bytes,
-                    font_size(&state.format),
+                    &mut materialized_bytes,
+                    font_size(&state.format) + paragraph_tab_bytes(&state.paragraph),
                     limits.max_bytes,
                     offset,
                 )?;
@@ -158,12 +188,29 @@ pub fn parse_mtext(
             }
             MarkupTokenKind::ScopeEnd => {
                 state = scopes.pop().expect("lexer checked scope balance");
+                let paragraph = result.content.last_mut().unwrap();
+                // Paragraph layout applies to the whole paragraph. A closing
+                // scope restores future layout, without changing existing text.
+                if paragraph.inlines.is_empty() {
+                    charge(
+                        &mut materialized_bytes,
+                        paragraph_tab_bytes(&state.paragraph),
+                        limits.max_bytes,
+                        offset,
+                    )?;
+                    paragraph.paragraph_format = state.paragraph.clone();
+                }
                 continue;
             }
             MarkupTokenKind::Literal(text) => {
                 started = true;
                 let f = state.selected(Level::Inline);
-                charge(&mut font_bytes, font_size(&f), limits.max_bytes, offset)?;
+                charge(
+                    &mut materialized_bytes,
+                    font_size(&f),
+                    limits.max_bytes,
+                    offset,
+                )?;
                 let paragraph = result.content.last_mut().unwrap();
                 if let Some(MTextInline::Run {
                     text: previous,
@@ -185,6 +232,9 @@ pub fn parse_mtext(
             | MarkupTokenKind::RawLineFeed
             | MarkupTokenKind::RawCarriageReturn
             | MarkupTokenKind::RawCarriageReturnLineFeed => {
+                result.paragraph_state_normalized |=
+                    result.content.last().unwrap().paragraph_format != authored_paragraph;
+                authored_paragraph = ParagraphFormat::default();
                 started = true;
                 let inherited_level = if scopes.is_empty() {
                     Level::Paragraph
@@ -207,9 +257,15 @@ pub fn parse_mtext(
                     }
                 }
                 let f = state.selected(Level::Paragraph);
-                charge(&mut font_bytes, font_size(&f), limits.max_bytes, offset)?;
+                charge(
+                    &mut materialized_bytes,
+                    font_size(&f) + paragraph_tab_bytes(&state.paragraph),
+                    limits.max_bytes,
+                    offset,
+                )?;
                 result.content.push(MTextParagraph {
                     character_format: f,
+                    paragraph_format: state.paragraph.clone(),
                     ..Default::default()
                 });
                 continue;
@@ -257,7 +313,7 @@ pub fn parse_mtext(
                 let lower = literal_stack_part(&body[index + 1..], limits, offset)?;
                 let format = state.selected(Level::Inline);
                 charge(
-                    &mut font_bytes,
+                    &mut materialized_bytes,
                     font_size(&format),
                     limits.max_bytes,
                     offset,
@@ -290,12 +346,28 @@ pub fn parse_mtext(
                     ));
                 }
                 crate::paragraph::parse_paragraph(&body, &mut paragraph.paragraph_format, offset)?;
+                charge(
+                    &mut materialized_bytes,
+                    paragraph_tab_bytes(&paragraph.paragraph_format),
+                    limits.max_bytes,
+                    offset,
+                )?;
+                state.paragraph = paragraph.paragraph_format.clone();
+                // Track literal commands separately so repeated explicit source
+                // properties are not mislabeled as carried-state normalization.
+                crate::paragraph::parse_paragraph(&body, &mut authored_paragraph, offset)?;
+                charge(
+                    &mut materialized_bytes,
+                    paragraph_tab_bytes(&authored_paragraph),
+                    limits.max_bytes,
+                    offset,
+                )?;
                 continue;
             }
             MarkupTokenKind::Font { body, shx } => {
                 let font = font(&body, shx, offset)?;
                 charge(
-                    &mut font_bytes,
+                    &mut materialized_bytes,
                     font.family.as_ref().map_or(0, String::len)
                         + font.cad_font_name.as_ref().map_or(0, String::len),
                     limits.max_bytes,
@@ -410,6 +482,8 @@ pub fn parse_mtext(
             Level::Inline => {}
         }
     }
+    result.paragraph_state_normalized |=
+        result.content.last().unwrap().paragraph_format != authored_paragraph;
     for paragraph in &mut result.content {
         result.character_basis_normalized |= factor_paragraph_character_basis(paragraph);
     }
@@ -525,6 +599,13 @@ fn multiply(a: f64, b: f64, offset: usize) -> Result<f64, TextMarkupError> {
         ))
     }
 }
+fn paragraph_tab_bytes(format: &ParagraphFormat) -> usize {
+    format
+        .tab_stops
+        .as_ref()
+        .map_or(0, |stops| stops.len() * std::mem::size_of::<TextTabStop>())
+}
+
 fn font_size(f: &CharacterFormat<MarkupColor>) -> usize {
     f.font.as_ref().map_or(0, |font| {
         [&font.family, &font.cad_font_name, &font.big_font_name]
@@ -547,7 +628,7 @@ fn charge(
             error(
                 TextMarkupErrorCode::ResourceLimit,
                 offset,
-                "materialized font strings exceed byte budget",
+                "materialized formatting exceeds byte budget",
             )
         })?;
     Ok(())

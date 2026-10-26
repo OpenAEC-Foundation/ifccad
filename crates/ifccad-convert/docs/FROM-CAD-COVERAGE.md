@@ -373,6 +373,16 @@ height/explicit width and finite products/derived arithmetic remain required.
 CAD paragraph numbers remain initial-height factors; they are not guessed to be
 raw distances. Glyph/layout fidelity remains unassessed.
 
+MTEXT alignment, indent factors and tabs persist per property across paragraph
+breaks and restore with source scopes. They become independent native local
+overrides, including blank/trailing paragraphs, numeric-zero and empty-tab resets.
+Materialized source carry reports located `text-dependency` /
+`AuthoredFormattingNormalized`; Reject refuses that editing-dependency change
+even when current formatting is retained. Actual DXF/AC1032 DWG and strict native
+JSON/CBOR tests cover carry, partial changes, resets and nested scopes.
+Effective mid-paragraph layout restoration remains unqualified rather than
+silently assigning one paragraph layout to incompatible content.
+
 IFCCAD accepts exactly version-1 `AcadAnnotative` flag 0 as inactive ordinary
 text. Active/unknown context data, annotative styles and MText's active annotative
 flag remain unsupported. Remaining XDATA method data is still common-metadata

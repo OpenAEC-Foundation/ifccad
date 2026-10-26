@@ -60,12 +60,15 @@ pub fn emit_mtext(
         ));
     }
     let mut result = emit_format(input.character_format, &CharacterFormat::default())?;
+    let mut previous_paragraph = ParagraphFormat::default();
     for (index, paragraph) in input.content.iter().enumerate() {
         if index > 0 {
             result.push_str("\\P");
         }
-        let pformat = merge_paragraph(input.paragraph_format, &paragraph.paragraph_format);
+        let mut pformat = merge_paragraph(input.paragraph_format, &paragraph.paragraph_format);
+        reset_absent_paragraph_fields(&mut pformat, &previous_paragraph);
         result.push_str(&crate::paragraph::emit_paragraph(&pformat)?);
+        previous_paragraph = pformat;
         if paragraph.inlines.is_empty() && paragraph.character_format != CharacterFormat::default()
         {
             return Err(error(
@@ -309,6 +312,25 @@ fn merge_character(
     );
     result
 }
+fn reset_absent_paragraph_fields(current: &mut ParagraphFormat, previous: &ParagraphFormat) {
+    // CAD paragraph properties persist across bare breaks; native paragraphs
+    // independently inherit from their entity basis. End obsolete CAD state.
+    macro_rules! reset {
+        ($field:ident, $default:expr) => {
+            if current.$field.is_none() && previous.$field.unwrap_or($default) != $default {
+                current.$field = Some($default);
+            }
+        };
+    }
+    reset!(alignment, TextParagraphAlignment::Left);
+    reset!(first_line_indent_factor, 0.0);
+    reset!(left_indent_factor, 0.0);
+    reset!(right_indent_factor, 0.0);
+    if current.tab_stops.is_none() && previous.tab_stops.as_ref().is_some_and(|s| !s.is_empty()) {
+        current.tab_stops = Some(Vec::new());
+    }
+}
+
 fn merge_paragraph(parent: &ParagraphFormat, child: &ParagraphFormat) -> ParagraphFormat {
     let mut result = parent.clone();
     macro_rules! replace { ($($field:ident),+) => { $(if child.$field.is_some() { result.$field = child.$field.clone(); })+ }; }

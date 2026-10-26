@@ -279,6 +279,14 @@ refuses. Manual Auto-tail exports zero; a native fixed final cap remains unsuppo
 Formatting factoring, paragraph-basis, spacing/padding-reference changes are
 located, rejectable modifications, not silently claimed editing parity.
 
+Native paragraphs independently use their entity basis. CAD output explicitly
+resets obsolete alignment, indent and tab properties instead of letting the
+previous paragraph's CAD state bleed into a default-valued successor. Qualified
+numeric defaults/empty tabs preserve current values; changed override presence
+receives `text-dependency` / `AuthoredFormattingNormalized`. Actual DXF/AC1032 DWG
+and strict JSON/CBOR tests include a nondefault paragraph followed by defaults
+and by entity-basis values, independently of unassessed rendering/editing parity.
+
 Finite exhausted/negative remaining paragraph space is retained through the
 existing factor-based CAD mapping, without clamping widths/indents or dropping
 content. Strict JSON/CBOR and actual synthetic AC1032 DXF/DWG readback cover this
