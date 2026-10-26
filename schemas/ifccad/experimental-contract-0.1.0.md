@@ -385,6 +385,12 @@ nominal MText height. Font overrides replace the whole request. Layout overflow
 does not truncate content, and source-independent validation shares only pure
 text values and geometry helpers.
 
+Finite paragraph indentation may leave zero or negative remaining wrap/column
+space, including on the first line. Such overflow remains valid authored state.
+Nominal height and explicit width remain positive; indent products and derived
+width arithmetic must remain finite. This does not establish glyph/layout
+fidelity or require clipping, normalization or content removal.
+
 Composition replaces an entire repeated text/mText/textStyle attribute value.
 LaterWins does not concatenate content arrays or merge nested overrides.
 RejectConflicts rejects differing payloads. Final composition validates style

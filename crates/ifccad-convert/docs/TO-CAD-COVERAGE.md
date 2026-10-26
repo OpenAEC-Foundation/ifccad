@@ -279,6 +279,11 @@ refuses. Manual Auto-tail exports zero; a native fixed final cap remains unsuppo
 Formatting factoring, paragraph-basis, spacing/padding-reference changes are
 located, rejectable modifications, not silently claimed editing parity.
 
+Finite exhausted/negative remaining paragraph space is retained through the
+existing factor-based CAD mapping, without clamping widths/indents or dropping
+content. Strict JSON/CBOR and actual synthetic AC1032 DXF/DWG readback cover this
+boundary; rendering/automatic editing behaviour remains unassessed.
+
 Numeric evidence covers qualified active Text anchors/MText WCS anchors and
 nested occurrence propagation, independently of unassessed glyph/layout fidelity.
 `text_assessment()` distinguishes transferred and skipped native text. Supplied

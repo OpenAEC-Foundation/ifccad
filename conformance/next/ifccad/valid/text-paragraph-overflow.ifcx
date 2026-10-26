@@ -1,0 +1,300 @@
+{
+  "header": {
+    "id": "ifccad-finite-paragraph-overflow",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "0.1.0",
+    "author": "OpenAEC",
+    "timestamp": "2026-10-26T00:00:00Z"
+  },
+  "imports": [
+    {
+      "uri": "urn:example:ifccad:0.1.0"
+    }
+  ],
+  "schemas": {},
+  "data": [
+    {
+      "path": "/cad/d1",
+      "children": {
+        "layer0": "/cad/d1/layer/0",
+        "linePattern0": "/cad/d1/linePattern/0",
+        "model": "/cad/d1/layout/1",
+        "textStyle1": "/cad/d1/textStyle/1"
+      },
+      "attributes": {
+        "ifccad::drawing": {
+          "lengthUnit": "mm",
+          "linePatternScale": 1.0,
+          "nextBlockId": 1,
+          "nextEntityId": 4,
+          "nextLayerId": 1,
+          "nextLayoutId": 2,
+          "nextLinePatternId": 1,
+          "nextSymbolSourceId": 1,
+          "nextModelWindowId": 1,
+          "nextTextStyleId": 2,
+          "nextUcsId": 1,
+          "profileVersion": "0.1.0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/textStyle/1",
+      "attributes": {
+        "ifccad::textStyle": {
+          "creationBackward": false,
+          "creationUpsideDown": false,
+          "font": {
+            "cadFontName": "txt"
+          },
+          "name": "Labels",
+          "obliqueAngle": 0.0,
+          "vertical": false,
+          "widthFactor": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/1",
+      "children": {
+        "0": "/cad/d1/e1",
+        "1": "/cad/d1/e2",
+        "2": "/cad/d1/e3"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "bounds": {
+            "max": [
+              100.9045063494958,
+              122.85182467789635,
+              0.0
+            ],
+            "min": [
+              -20.392940254740196,
+              -19.000000000000004,
+              0.0
+            ]
+          },
+          "boundsQuality": "estimated",
+          "kind": "Model",
+          "tabIndex": 0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/0",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "Continuous",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/0",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "rgb": [
+                255,
+                255,
+                255
+              ]
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25,
+            "opacity": 1.0
+          },
+          "name": "0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::mText": {
+          "style": "/cad/d1/textStyle/1",
+          "height": 2,
+          "attachment": "topLeft",
+          "flow": "horizontal",
+          "wrapWidth": 10,
+          "paragraphFormat": {
+            "leftIndentFactor": 5,
+            "rightIndentFactor": 0,
+            "firstLineIndentFactor": -5
+          },
+          "content": [
+            {
+              "inlines": [
+                {
+                  "kind": "run",
+                  "text": "one two three"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e2",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            40,
+            0,
+            0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::mText": {
+          "style": "/cad/d1/textStyle/1",
+          "height": 2,
+          "attachment": "topLeft",
+          "flow": "horizontal",
+          "wrapWidth": 10,
+          "paragraphFormat": {
+            "leftIndentFactor": 6,
+            "rightIndentFactor": 0,
+            "firstLineIndentFactor": -6
+          },
+          "content": [
+            {
+              "inlines": [
+                {
+                  "kind": "run",
+                  "text": "one two three"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e3",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            80,
+            0,
+            0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::mText": {
+          "style": "/cad/d1/textStyle/1",
+          "height": 2,
+          "attachment": "topLeft",
+          "flow": "horizontal",
+          "wrapWidth": 10,
+          "paragraphFormat": {
+            "leftIndentFactor": 0,
+            "rightIndentFactor": 0,
+            "firstLineIndentFactor": 6
+          },
+          "content": [
+            {
+              "inlines": [
+                {
+                  "kind": "run",
+                  "text": "one two three"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

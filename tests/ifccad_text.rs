@@ -10,6 +10,31 @@ fn drawing() -> IfccadDocument {
 }
 
 #[test]
+fn finite_paragraph_overflow_fixture_roundtrips_json_and_cbor_strictly() {
+    let read = load_ifccad_bytes(
+        include_bytes!("../conformance/next/ifccad/valid/text-paragraph-overflow.ifcx"),
+        Default::default(),
+    )
+    .unwrap();
+    validate_ifccad_document(read.document()).unwrap();
+    assert_eq!(read.document().model.entities.len(), 3);
+    let json = encode_ifccad_document(read.document()).unwrap();
+    assert_eq!(
+        load_ifccad_bytes(json.bytes(), Default::default())
+            .unwrap()
+            .document(),
+        read.document()
+    );
+    let cbor = encode_ifccad_cbor_document(read.document()).unwrap();
+    assert_eq!(
+        load_ifccad_cbor_bytes(cbor.bytes(), Default::default())
+            .unwrap()
+            .document(),
+        read.document()
+    );
+}
+
+#[test]
 fn text_styles_keep_independent_large_ids_and_allocation_history() {
     let mut d = drawing();
     assert!(d.text_styles.is_empty());

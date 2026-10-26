@@ -309,7 +309,7 @@ fn usable_width_and_derived_products_are_checked_without_font_metrics() {
     };
     assert!(validate_mtext_content(&[p.clone()], ctx, |_| true).is_ok());
     p.paragraph_format.right_indent_factor = Some(2.0);
-    assert!(validate_mtext_content(&[p], ctx, |_| true).is_err());
+    assert!(validate_mtext_content(&[p], ctx, |_| true).is_ok());
     let entity = CharacterFormat::<u32> {
         height: Some(TextHeight::Relative { factor: f64::MAX }),
         ..Default::default()
@@ -420,13 +420,13 @@ fn color_validation_is_route_owned_and_background_padding_may_be_zero() {
 }
 
 #[test]
-fn entity_paragraph_basis_is_used_before_usable_width_validation() {
+fn effective_paragraph_basis_precedes_derived_arithmetic_validation() {
     let basis = ParagraphFormat {
-        left_indent_factor: Some(-3.0),
+        left_indent_factor: Some(f64::MAX),
         ..Default::default()
     };
     let mut p = paragraph(vec![]);
-    p.paragraph_format.right_indent_factor = Some(4.0);
+    p.paragraph_format.left_indent_factor = Some(0.0);
     let ctx = MTextValueContext {
         nominal_height: 2.5,
         wrap_width: Some(10.0),
@@ -435,10 +435,71 @@ fn entity_paragraph_basis_is_used_before_usable_width_validation() {
     assert!(
         validate_mtext_content_with_paragraph_format(&[p.clone()], ctx, &basis, |_| true).is_ok()
     );
-    assert!(
-        validate_mtext_content_with_paragraph_format(&[p], ctx, &Default::default(), |_| true)
-            .is_err()
-    );
+    p.paragraph_format.left_indent_factor = None;
+    assert!(validate_mtext_content_with_paragraph_format(&[p], ctx, &basis, |_| true).is_err());
+}
+
+#[test]
+fn finite_paragraph_overflow_is_valid_in_wrapped_and_column_text() {
+    let columns = MTextColumns::Static {
+        count: 2,
+        column_width: 10.0,
+        gutter: 1.0,
+        column_height: 50.0,
+        flow_reversed: false,
+    };
+    for (left, right, first) in [
+        (5.0, 0.0, -5.0),
+        (6.0, 0.0, -6.0),
+        (0.0, 6.0, 0.0),
+        (0.0, 0.0, 6.0),
+    ] {
+        for columns in [None, Some(&columns)] {
+            let mut p = paragraph(vec![MTextInline::Run {
+                text: "one two three".into(),
+                character_format: Default::default(),
+            }]);
+            p.paragraph_format = ParagraphFormat {
+                left_indent_factor: Some(left),
+                right_indent_factor: Some(right),
+                first_line_indent_factor: Some(first),
+                ..Default::default()
+            };
+            let ctx = MTextValueContext {
+                nominal_height: 2.0,
+                wrap_width: if columns.is_none() { Some(10.0) } else { None },
+                columns,
+            };
+            assert!(validate_mtext_content(&[p.clone()], ctx, |_| true).is_ok());
+            p.inlines.clear();
+            assert!(validate_mtext_content(&[p], ctx, |_| true).is_ok());
+        }
+    }
+}
+
+#[test]
+fn nonfinite_derived_paragraph_widths_and_invalid_wrap_width_still_fail() {
+    for (height, left, right, first, width) in [
+        (2.0, f64::MAX, 0.0, 0.0, 10.0),
+        (1.0, -f64::MAX, 0.0, 0.0, f64::MAX),
+        (1.0, 0.0, 0.0, -f64::MAX, f64::MAX),
+        (2.0, 0.0, 0.0, 0.0, 0.0),
+        (2.0, 0.0, 0.0, 0.0, -1.0),
+        (2.0, 0.0, 0.0, 0.0, f64::NAN),
+        (2.0, 0.0, 0.0, 0.0, f64::INFINITY),
+    ] {
+        let format = resolve_paragraph_format(
+            &ParagraphFormat::default(),
+            &ParagraphFormat {
+                left_indent_factor: Some(left),
+                right_indent_factor: Some(right),
+                first_line_indent_factor: Some(first),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert!(validate_resolved_paragraph_width(&format, height, Some(width)).is_err());
+    }
 }
 
 #[test]

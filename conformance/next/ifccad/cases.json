@@ -530,5 +530,9 @@
   {
     "file": "invalid/polyline-width-unused-default.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/text-paragraph-overflow.ifcx",
+    "valid": true
   }
 ]

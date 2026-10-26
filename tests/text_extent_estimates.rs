@@ -46,6 +46,60 @@ fn mtext<'a>(
 }
 
 #[test]
+fn exhausted_paragraph_width_reports_overflow_without_clipping_authored_content() {
+    let style = TextStyleProperties::new(FontRequest::family("Arial"));
+    let c = CharacterFormat::default();
+    let columns = MTextColumns::Static {
+        count: 2,
+        column_width: 10.0,
+        gutter: 1.0,
+        column_height: 50.0,
+        flow_reversed: false,
+    };
+    for (left, right, first) in [
+        (5.0, 0.0, -5.0),
+        (6.0, 0.0, -6.0),
+        (0.0, 6.0, 0.0),
+        (0.0, 0.0, 6.0),
+    ] {
+        let p = ParagraphFormat {
+            left_indent_factor: Some(left),
+            right_indent_factor: Some(right),
+            first_line_indent_factor: Some(first),
+            ..Default::default()
+        };
+        let content = vec![MTextParagraph {
+            inlines: vec![MTextInline::Run {
+                text: "one two three".into(),
+                character_format: Default::default(),
+            }],
+            ..Default::default()
+        }];
+        let before = content.clone();
+        for columns in [None, Some(&columns)] {
+            let mut input = mtext(&content, &style, &c, &p);
+            input.height = 2.0;
+            input.columns = columns;
+            input.wrap_width = if columns.is_none() { Some(10.0) } else { None };
+            let result = estimate_mtext_extent(&input).unwrap();
+            assert_eq!(result.status, TextExtentStatus::Estimated);
+            assert!(result.reasons.contains(&TextExtentReason::Overflow));
+            assert!(result
+                .reasons
+                .contains(&TextExtentReason::FontMetricsUnavailable));
+            let bounds = result.local_bounds.unwrap();
+            assert!(bounds
+                .min()
+                .components()
+                .into_iter()
+                .chain(bounds.max().components())
+                .all(f64::is_finite));
+        }
+        assert_eq!(content, before);
+    }
+}
+
+#[test]
 fn fontless_estimate_never_certifies_glyph_enclosure() {
     for literal in ["AB", "  ", "e\u{301}", "漢字", "אב", "😀"] {
         let content = [TextRun {

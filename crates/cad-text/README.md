@@ -41,6 +41,11 @@ profile is exercised through the pinned production DXF and AC1032 DWG codecs.
 That evidence does not establish application rendering or a complete native
 document roundtrip.
 
+Finite paragraph indentation that exhausts wrap/column space is retained as
+authored overflow, including first-line overflow. Nominal height and explicit
+width stay positive and derived arithmetic must stay finite. This preparation
+does not clamp factors, change source width or remove text to make it fit.
+
 ## Boundary and evidence
 
 `import_text_style`/`prepare_text_style_to_cad` retain supported symbolic font

@@ -366,6 +366,13 @@ unsupported-style omission; unsupported active layout/content skips the whole
 entity under Allow and Reject refuses located loss. Generic common metadata
 continues to receive its independent residual classification.
 
+Finite paragraph factors may exhaust or exceed remaining wrap/column space,
+including first-line space. They retain native authored overflow state rather
+than triggering invalid-number rejection or whole-text omission. Positive
+height/explicit width and finite products/derived arithmetic remain required.
+CAD paragraph numbers remain initial-height factors; they are not guessed to be
+raw distances. Glyph/layout fidelity remains unassessed.
+
 IFCCAD accepts exactly version-1 `AcadAnnotative` flag 0 as inactive ordinary
 text. Active/unknown context data, annotative styles and MText's active annotative
 flag remain unsupported. Remaining XDATA method data is still common-metadata

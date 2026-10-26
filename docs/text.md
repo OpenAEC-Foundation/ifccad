@@ -68,6 +68,15 @@ actual effective character formats. Empty lines use their paragraph basis;
 fully overridden unused values do not invent geometry. Resolving a format
 neither loads fonts nor rewrites authored records.
 
+Finite indentation may exhaust or exceed the wrap/column width, including the
+first-line width. These are authored overflow states, not invalid numbers.
+Positive nominal height and explicit wrap/column width, finite indent products
+and finite derived arithmetic remain required. Storage and CAD conversion retain
+the content and factors; no width/indent clamping or text omission is implied.
+Fontless estimates report actual overflow without clipping, independently of
+unassessed glyph layout. The active-next paragraph-overflow fixture covers strict
+JSON/CBOR storage; bounded synthetic AC1032 DWG/DXF tests cover conversion.
+
 ### Fontless estimates
 
 `estimate_text_extent` and `estimate_mtext_extent` return local and owning-scope

@@ -393,8 +393,10 @@ pub fn validate_resolved_paragraph_width(
     if let Some(width) = width {
         positive(width, "/wrapWidth")?;
         let usable = width - left - right;
-        positive(usable, "/paragraphFormat/usableWidth")?;
-        positive(usable - first, "/paragraphFormat/firstLineUsableWidth")?;
+        // Authored indents can exhaust the available space. Preserve finite
+        // overflow; layout estimates diagnose content that exceeds the frame.
+        finite(usable, "/paragraphFormat/usableWidth")?;
+        finite(usable - first, "/paragraphFormat/firstLineUsableWidth")?;
     }
     Ok(())
 }
