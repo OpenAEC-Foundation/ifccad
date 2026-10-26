@@ -1,6 +1,7 @@
 [package]
 name = "cad-geometry-convert"
-version = "0.1.0"
+version.workspace = true
+publish = false
 edition = "2021"
 license = "MPL-2.0"
 description = "Shared geometric preparation and certified CAD conversion accuracy"

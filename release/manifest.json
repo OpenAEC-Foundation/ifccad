@@ -1,0 +1,20 @@
+{
+  "softwareVersion": "2026.44.0",
+  "channel": "alpha",
+  "profileVersion": "0.1.0",
+  "profileImport": "urn:example:ifccad:0.1.0",
+  "ifcxVersion": "ifcx_alpha",
+  "cborMappingRevision": 1,
+  "zstdTransportRevision": 1,
+  "candidateFiles": [
+    "Cargo.lock",
+    "docs/alpha-compatibility.md",
+    "docs/releases.md",
+    "docs/releases/2026.44.0.md",
+    "release/manifest.json",
+    "rust-toolchain.toml",
+    "scripts/prepare_release.py",
+    "scripts/tests/test_prepare_release.py"
+  ],
+  "scope": "native ifccad core only"
+}

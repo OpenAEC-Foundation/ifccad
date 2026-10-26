@@ -1,6 +1,7 @@
 [package]
 name = "cad-text"
-version = "0.1.0"
+version.workspace = true
+publish = false
 edition = "2021"
 license = "MPL-2.0"
 description = "Shared typed CAD text content and placement preparation"

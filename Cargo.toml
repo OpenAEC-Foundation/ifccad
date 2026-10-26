@@ -1,6 +1,6 @@
 [package]
 name = "ifccad"
-version = "0.1.0"
+version.workspace = true
 edition = "2021"
 description = "IFCCAD drawing model with IFCX JSON and CBOR encodings"
 license = "MPL-2.0"
@@ -10,6 +10,11 @@ documentation = "https://docs.rs/ifccad"
 readme = "README.md"
 keywords = ["cad", "drawing", "ifccad", "exchange", "conformance"]
 categories = ["parser-implementations", "encoding"]
+
+include = ["/src/**", "/schemas/**", "/tests/**", "/conformance/next/**", "/examples/*.rs", "/examples/ifccad/**", "/README.md", "/LICENSE", "/Cargo.toml", "/rust-toolchain.toml", "/release/manifest.json", "/docs/alpha-compatibility.md", "/docs/releases.md", "/docs/releases/**"]
+
+[workspace.package]
+version = "2026.44.0"
 
 [workspace]
 members = ["crates/cad-preservation", "crates/cad-workspace-convert", "crates/cad-geometry-convert", "crates/cad-presentation-convert", "crates/cad-text", "crates/cad-dimension", "crates/viewer", "crates/browser", "crates/ifccad-convert"]

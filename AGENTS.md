@@ -15,7 +15,11 @@ native Zstd transport revision 1 remain experimental; default WASM excludes Zstd
 CBOR version 1 is a mutable unreleased draft, like the active IFCCAD profile.
 Update its single mapping and conformance/next fixtures in place; do not bump
 versions or keep historical mappings until a release/versioning policy is
-explicitly agreed. Earlier experimental files have no compatibility guarantee.
+explicitly agreed. The [release policy](docs/releases.md) now defines that
+boundary: these drafts remain mutable until their first publication; subsequent
+normative changes advance the appropriate identifiers. Keep one active mapping,
+without mandatory historical readers. Earlier experimental files have no
+compatibility guarantee.
 
 Start with:
 

@@ -1,6 +1,7 @@
 [package]
 name = "cad-preservation"
-version = "0.1.0"
+version.workspace = true
+publish = false
 edition = "2021"
 description = "Audited codec-specific CAD source snapshots"
 license = "MPL-2.0"

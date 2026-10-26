@@ -7,6 +7,11 @@ IFCX compression contract or a promise about future IFCX encodings.
 
 ## Physical contract
 
+This is transport revision 1. No private transport-revision field exists in
+the standard Zstd frame; the inner CBOR envelope identifies IFCCAD. After first
+publication, changed framing acceptance advances both the documented transport
+revision and the inner CBOR mapping under the [release policy](../../docs/releases.md).
+
 A file contains exactly one ordinary Zstandard frame, beginning with the standard
 magic bytes `28 B5 2F FD`. Its decompressed content is exactly one complete
 revision-1 IFCCAD CBOR document. The frame checksum is mandatory. Dictionary ID

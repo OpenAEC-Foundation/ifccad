@@ -1,6 +1,6 @@
 /target/
 /.worktrees/
-Cargo.lock
+/legacy/**/Cargo.lock
 **/*.rs.bk
 *.pdb
 

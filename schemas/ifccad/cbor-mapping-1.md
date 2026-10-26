@@ -21,7 +21,9 @@ provided. Version 1 is a mutable, unreleased experimental draft, like the active
 profile. Update this single contract and its fixtures in place, including changes
 to language, semantics, codes, defaults and normalization. No compatibility with
 earlier experimental files is promised. Do not add historical mappings or bump
-the version until an explicit release/versioning policy is agreed. File names conventionally end in
+the version before the first publication. The [release policy](../../docs/releases.md)
+defines freezing that published snapshot and incrementing subsequent contract
+revisions without requiring historical readers. File names conventionally end in
 `.ifccad.cbor`; contents determine validity. This raw mapping uses no compression
 or extra binary prefix. The optional experimental
 [Zstd transport](cbor-zstd-transport-1.md) wraps these unchanged payload bytes

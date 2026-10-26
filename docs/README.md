@@ -11,6 +11,7 @@ connect those sources without replacing them.
 | I want to… | Read |
 | --- | --- |
 | Understand the purpose and direction | [Vision](vision.md), then [roadmap](../ROADMAP.md) |
+| Understand alpha compatibility and releases | [Alpha policy](alpha-compatibility.md), [release/version policy](releases.md), [first candidate notes](releases/2026.44.0.md) |
 | Try the Explorer or reproduce an example | [Explorer guide](../format-explorer/README.md), then [example recipes](../examples/README.md) |
 | Load, edit, validate and save drawings | [Lifecycle and API conventions](experiments/ifccad-document-lifecycle.md), [ID management](experiments/ifccad-id-management.md) and [drawing defaults](drawing-defaults.md) |
 | Implement or validate the format | [Profile contract](../schemas/ifccad/experimental-contract-0.1.0.md), [rule catalog](../schemas/ifccad/profile-rules-0.1.0.md) and [candidate conformance](../conformance/next/README.md) |
