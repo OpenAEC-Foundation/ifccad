@@ -20,15 +20,16 @@ revision instead of inferring API/file compatibility from a version range.
 GitHub releases must be marked **prerelease** and titled **IFCCAD YYYY.W.N alpha**.
 No stable 1.0 status is implied by the year in the software version.
 
-`2026.44.0` is the first proposed version (26 October 2026, ISO week 44).
-At inspection, GitHub main was `2c7a4569804bff090b6cb1d894281bbe3f0b143c`,
-GitHub had no tags/releases and crates.io had no `ifccad` crate. Recheck before
-reserving a tag or publishing; if release week changes, choose that week's
-next unused sequence. Never reuse a published number or move a published tag.
+`2026.44.0` is the first native source alpha (27 October 2026, ISO week 44).
+The initial inspection on 26 October found no GitHub tags/releases or crates.io
+`ifccad` crate; no crates.io publication is part of this release. Before each
+publication, check remote tags/releases and any intended registry, then choose
+that week's next unused sequence. Never reuse a published number or move a
+published tag.
 
 ## File identification and contract changes
 
-Software and file identifiers are independent. The first candidate uses:
+Software and file identifiers are independent. The first published alpha uses:
 
 | Layer | Identifier | Meaning |
 | --- | --- | --- |
@@ -45,9 +46,9 @@ The release manifest and source hashes identify the exact bundled schemas,
 mapping, fixtures and implementation. Zstd's standard frame has no private
 transport-revision field; its inner CBOR envelope is the on-wire IFCCAD identity.
 
-Until first publication, current drafts can change in place without increments.
-Publication freezes that release's artifacts and contract, not the working tree.
-For development after a published contract:
+Before their first publication in 2026.44.0, these drafts could change in place
+without increments. Publication freezes that release's artifacts and contract,
+not the working tree. For development after a published contract:
 
 - A normative logical profile change, including new fields/defaults or changed
   validity/meaning, advances `0.N.0` to `0.(N+1).0` before landing. Update the

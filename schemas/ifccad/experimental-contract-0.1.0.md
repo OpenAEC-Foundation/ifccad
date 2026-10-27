@@ -25,13 +25,12 @@ Generated validation diagnostics identify a rule and source/component location.
 
 ## File and identity
 
-This remains an unpublished draft until the first alpha publication. The
-[release policy](../../docs/releases.md) identifies that snapshot and requires
-new identifiers for subsequent normative profile changes, without promising
-old readers or migrations. The in-place revision permission below applies only
-before that first publication.
+Profile 0.1.0 is first published with native source alpha 2026.44.0. The
+[release policy](../../docs/releases.md) fixes that snapshot and requires new
+identifiers for subsequent normative profile changes, without promising old
+readers or migrations.
 
-The file has IFCX `header`, `imports`, `schemas`, and `data`. `header.ifcxVersion` is `ifcx_alpha`. `header.dataVersion` belongs to the dataset. The drawing value's `profileVersion` is `0.1.0` and identifies this provisional CAD proof. This alpha contract can be revised without increasing that number; it does not promise compatibility across experimental reader revisions. The recommended drawing imports `urn:example:ifccad:0.1.0`, whose schema-only IFCX document is `ifccad-profile-0.1.0.ifcx`, and leaves drawing-local `schemas` empty. The `example` URN namespace is registered for documentation and experimentation; this identifier is intentionally temporary and must be replaced by an organization-controlled published URI before production exchange. During this experiment, the reader revision determines the schema definition for this URI; the identifier does not yet promise an immutable published schema. The strict reader resolves this one experimental URI from its bundled profile, without network access. Alternatively, a drawing may inline exactly matching definitions from that module's `schemas`; a missing import and missing local definitions fail. This is a bounded offline resolver, not general IFCX import resolution. Conditional requirements and cross-node constraints in this document exceed IFCX's per-attribute descriptions.
+The file has IFCX `header`, `imports`, `schemas`, and `data`. `header.ifcxVersion` is `ifcx_alpha`. `header.dataVersion` belongs to the dataset. The drawing value's `profileVersion` is `0.1.0` and identifies this provisional CAD proof. This published alpha contract requires a new identifier for subsequent normative changes; alpha releases have no general compatibility guarantee. The recommended drawing imports `urn:example:ifccad:0.1.0`, whose schema-only IFCX document is `ifccad-profile-0.1.0.ifcx`, and leaves drawing-local `schemas` empty. The `example` URN namespace is registered for documentation and experimentation; this identifier is intentionally temporary and must be replaced by an organization-controlled published URI before production exchange. The 2026.44.0 tag fixes the first published schema for this experimental URI; earlier unpublished readers may have used different definitions. The strict reader resolves this one experimental URI from its bundled profile, without network access. Alternatively, a drawing may inline exactly matching definitions from that module's `schemas`; a missing import and missing local definitions fail. This is a bounded offline resolver, not general IFCX import resolution. Conditional requirements and cross-node constraints in this document exceed IFCX's per-attribute descriptions.
 
 The complete path is a node identity. The profile uses `/cad/dN` for one drawing, `/cad/dN/layout/N` for Model and Paper layouts, `/cad/dN/layer/N` for layers, `/cad/dN/block/N` for block definitions, `/cad/dN/linePattern/N` for named pattern definitions, and `/cad/dN/eN` for drawable entities. Model and Paper layouts share one layout-ID domain. `N` is a canonical base-10 `uint64` with no sign or leading zero; entity IDs are unique within the drawing and are not repeated as attributes. USD-style angle brackets are not part of these paths. Path spelling is an experimental CAD convention, not a claim that IFCX requires UUIDs or these paths. References use the same complete path strings.
 
@@ -67,7 +66,8 @@ never lowered. Maintaining that history is an editor responsibility.
 Missing counters fail the current strict experimental reader; they are not
 inferred on load. Initializing an older file from current maxima cannot recover
 deleted-ID history and needs an explicit allocation baseline. The experimental
-URI/version remains 0.1.0 without an immutable compatibility promise.
+URI/version 0.1.0 includes this state in its first published snapshot; earlier
+unpublished allocation drafts have no compatibility promise.
 DWG/DXF import initializes fresh allocation state and retains source associations
 only through conversion mappings, without promising persistent native identity
 through CAD serialization. See the [allocation design](../../docs/experiments/ifccad-id-management.md).
@@ -668,7 +668,7 @@ selector is introduced. CBOR revision 1 stores the same contract in place.
 Classic `definitionLines` store direct effective local XY definitions rather than
 normalized active families. Their closed fields and intrinsic validation follow
 IFCCAD-HATCH-006. Draft JSON `families` and classic CBOR code 8 are rejected;
-mutable mapping revision 1 uses classic code 9 with no historical reader.
+published mapping revision 1 uses classic code 9 with no historical draft reader.
 
 Complex line-pattern markers support exclusive relative, absolute and upright
 rotation with a finite stored radian angle. Upright follows the tangent while

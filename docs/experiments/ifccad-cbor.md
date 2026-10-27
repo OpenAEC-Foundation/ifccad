@@ -7,8 +7,9 @@ readable by IFCX JSON applications. OCDraw is parked as a frozen reference outsi
 
 The [revision-1 contract](../../schemas/ifccad/cbor-mapping-1.md) and
 [complete field register](../../schemas/ifccad/cbor-mapping-1.json) define the
-language-neutral physical mapping. Candidate conformance is in
-`conformance/next/ifccad-cbor`. No supported-format publication is implied.
+language-neutral physical mapping. Conformance is in
+`conformance/next/ifccad-cbor`; its first published alpha snapshot is 2026.44.0.
+This remains experimental, with no stable-format or compatibility promise.
 
 ## Structure and evolution
 
@@ -20,11 +21,11 @@ Rust does not assign codes. The registry explicitly fixes every field/variant.
 
 The reader accepts only mapping revision 1. Unknown fields, variants or
 revisions are errors; there is no compatibility migration or silent skipping.
-Version 1 is a mutable unreleased draft, like the active IFCCAD profile: change
-the single mapping and fixtures in place. There are no historical mappings,
-compatibility promises for earlier experimental files or migration routes.
-A future release/versioning policy requires an explicit decision. Dimension
-references are required XYZ; the dimension-line point is XY in its placed plane.
+Revision 1 is published with native source alpha 2026.44.0. Later normative
+changes advance the single active mapping and fixtures under the
+[release/version policy](../releases.md). There are no mandatory historical
+mappings, compatibility promises for earlier experimental files or migration
+routes. Dimension references are required XYZ; the dimension-line point is XY in its placed plane.
 
 All supported logical content survives: IDs/counters, ownership/draw order,
 definition vector order, native geometry, Paper/Model state, text, patterns,
@@ -48,8 +49,9 @@ The [provisional standalone CAD scope](ifccad-document-lifecycle.md#provisional-
 keeps this experiment focused on the supported drawing document. A full IFCX
 source snapshot beside CBOR, a general fragment encoding and mixed-document
 writeback are deferred. CAD semantic coverage and qualified exchange remain
-the main development priority; each semantic slice keeps the single mutable
-revision-1 mapping, shared validation and production readback aligned.
+the main development priority; each semantic slice keeps the single active
+mapping, shared validation and production readback aligned, advancing identifiers
+when the published contract changes.
 
 A useful next optional measurement is a bounded whole-document comparison of
 compact IFCX JSON, raw CBOR and the native Rust CBOR + Zstd route at default

@@ -12,13 +12,12 @@ feature. Restore the complete pre-migration checkpoint only for explicitly
 requested legacy work; see `docs/ocdraw-parking.md` and the archive manifest.
 Underlying IFCX syntax/extensions retain their names. CBOR revision 1 and optional
 native Zstd transport revision 1 remain experimental; default WASM excludes Zstd.
-CBOR version 1 is a mutable unreleased draft, like the active IFCCAD profile.
-Update its single mapping and conformance/next fixtures in place; do not bump
-versions or keep historical mappings until a release/versioning policy is
-explicitly agreed. The [release policy](docs/releases.md) now defines that
-boundary: these drafts remain mutable until their first publication; subsequent
-normative changes advance the appropriate identifiers. Keep one active mapping,
-without mandatory historical readers. Earlier experimental files have no
+The first native source alpha, 2026.44.0, publishes IFCCAD profile 0.1.0,
+CBOR mapping revision 1 and Zstd transport revision 1. Those tagged contracts
+are fixed. Subsequent normative changes advance the appropriate identifiers
+under the [release policy](docs/releases.md). Update the single active mapping
+and conformance/next together; historical mappings/readers are not mandatory.
+Earlier experimental files and future alpha releases have no general
 compatibility guarantee.
 
 Start with:

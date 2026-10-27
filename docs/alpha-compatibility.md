@@ -26,11 +26,11 @@ breaking changes and the profile/encoding versions supported by that release.
 Compatibility may be provided for a particular version without creating a
 general promise to support all historical files.
 
-The active profile and CBOR mapping remain mutable, unreleased drafts until
-their first publication. The [release and file-version policy](releases.md)
-defines identification and subsequent increments. Preparing a candidate does
-not itself freeze or publish these drafts. A software version is not a
-statement of file compatibility.
+The first native source alpha, 2026.44.0, publishes profile 0.1.0, CBOR mapping
+revision 1 and optional Zstd transport revision 1. Its tagged snapshot is fixed.
+The [release and file-version policy](releases.md) defines subsequent increments;
+several unpublished edits can share a next draft identifier. A software version
+is not a statement of file compatibility.
 
 Reassess this policy as coverage and the format contract mature. A stronger
 compatibility or migration commitment requires an explicit new decision and

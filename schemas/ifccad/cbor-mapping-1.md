@@ -17,13 +17,12 @@ values and never inferred from field codes, vector indices or content.
 Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 1, 2: Document}`.
 All three fields are required. Other revisions are rejected; no migration,
 forward-compatible skipping, feature negotiation or historical decoder is
-provided. Version 1 is a mutable, unreleased experimental draft, like the active IFCCAD
-profile. Update this single contract and its fixtures in place, including changes
-to language, semantics, codes, defaults and normalization. No compatibility with
-earlier experimental files is promised. Do not add historical mappings or bump
-the version before the first publication. The [release policy](../../docs/releases.md)
-defines freezing that published snapshot and incrementing subsequent contract
-revisions without requiring historical readers. File names conventionally end in
+provided. Revision 1 is first published with native source alpha 2026.44.0,
+alongside IFCCAD profile 0.1.0. This tagged contract is fixed. Subsequent normative
+changes to language, semantics, codes, defaults or normalization advance the
+appropriate identifiers under the [release policy](../../docs/releases.md).
+Keep one active mapping; historical readers are not required. No compatibility
+with earlier experimental files is promised. File names conventionally end in
 `.ifccad.cbor`; contents determine validity. This raw mapping uses no compression
 or extra binary prefix. The optional experimental
 [Zstd transport](cbor-zstd-transport-1.md) wraps these unchanged payload bytes
@@ -169,10 +168,10 @@ of the active normalized HatchLineFamily mapping. Construction has
 0 ordered XY seed_points ([]), 1 pixel_size (0). Numeric slots use binary64;
 exact defaults can be omitted, negative zero is retained. Option empty/zero/code0
 remains present, null/unknown/duplicate keys fail. All-default present records
-fail shared logical validation. The single unreleased revision 1 is updated in
-place, with no historical mapping, revision bump or changed Zstd envelope.
+fail shared logical validation. These fields were added to draft revision 1
+before its first publication; no historical draft mapping is retained.
 
 `LinePatternRotation` uses variant codes 0 Relative, 1 Absolute and 2 Upright.
 Each has the same required body field 0 containing a binary64 radian angle.
 Upright zero is explicit and distinct from the default relative positive zero.
-This updates the single mutable mapping revision 1 in place.
+This variant was added to draft revision 1 before its first publication.

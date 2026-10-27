@@ -12,9 +12,10 @@ The profile and its encodings are still experimental, not a published standard.
 During alpha, later releases may be unable to open earlier IFCCAD files;
 backward compatibility and migration are not guaranteed. See the
 [alpha compatibility policy](docs/alpha-compatibility.md) and
-[release/version policy](docs/releases.md). The prepared first source alpha is
-`2026.44.0`, for the native core only; preparation does not mean it has been
-published. Explorer and CAD conversion are outside that release.
+[release/version policy](docs/releases.md). The first native source alpha is
+[2026.44.0](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.44.0).
+Its attached artifacts contain only the native core. Explorer and CAD conversion
+are outside that release.
 See the [vision](docs/vision.md) for the long-term direction and the
 [roadmap](ROADMAP.md) for development priorities.
 
@@ -78,7 +79,7 @@ source retention and loss diagnostics remain unchanged. See the
 [ROADMAP.md](ROADMAP.md) is authoritative. The current order is:
 
 1. The IFCCAD-main-track migration is integrated; OCDraw remains parked.
-2. Hatch B adds classic editing/construction state in IFCCAD/IFCX and the mutable
+2. Hatch B adds classic editing/construction state in IFCCAD/IFCX and
    CBOR revision 1, with version-specific DXF/DWG qualification and Explorer disclosure.
 3. The [native SOLID/TRACE precursor](docs/geometry/solid-trace-design.md) is implemented,
    retaining all finite local corner combinations and both CAD object types,

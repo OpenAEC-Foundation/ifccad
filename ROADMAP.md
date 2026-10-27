@@ -8,12 +8,13 @@ and current Rust code define contracts; dated local plans retain their slice sco
 IFCCAD is the active track. OCDraw is parked as a reference archive, without
 feature parity, routine builds or tests; see [parking](docs/ocdraw-parking.md).
 The native CBOR/Zstd checkpoint precedes this migration; the current CBOR mapping
-is the mutable unreleased revision 1, updated in place.
+is revision 1, published with native source alpha 2026.44.0. Later normative
+changes follow the [release/version policy](docs/releases.md).
 
 1. The IFCCAD-main-track migration is integrated: workspace/API ownership, archive
    and application routing now use IFCCAD.
 2. Hatch B is resumed on that basis: classic editing/construction state belongs to
-   IFCCAD/IFCX and the mutable CBOR revision 1. Its separate DXF/DWG target profiles
+   IFCCAD/IFCX and CBOR revision 1. Its separate DXF/DWG target profiles
    qualify all six offered versions, disclose losses before export, and retain the
    original AC1024 foundation drawing as local correctness acceptance. This does
    not reopen the completed Dimension graphics slice or deferred spline contours.
