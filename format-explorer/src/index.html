@@ -1,5 +1,7 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IFCCAD Format Explorer</title><link rel="stylesheet" href="styles.css"></head>
+<html lang="en"><head>
+  <script id="openaec-analytics-loader" src="https://open-aec.com/shared/analytics.js?v=20261026" defer></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IFCCAD Format Explorer</title><link rel="stylesheet" href="styles.css"></head>
 <body><main id="application" data-workspace="overview">
 <header class="titlebar"><img src="openaec-symbol.svg" width="32" height="38" alt="OpenAEC"><strong>OpenAEC</strong><span class="app-name">IFCCAD Format Explorer</span><div class="header-actions"><button id="feedback-open" data-i18n="feedback">Feedback</button><button id="settings-open" data-i18n="settings">Settings</button><button id="about-open" data-i18n="about">About</button></div></header>
 <div class="file-toolbar"><label class="file-label"><span data-i18n="file">File</span><input id="file" type="file" accept=".ifcx,.json,.cbor,.zst,.dxf,.dwg"></label><button id="open" data-i18n="process">Open / convert</button><label class="example-label"><span data-i18n="examples">Examples</span><select id="examples"><option value="" data-i18n="chooseExample">Choose an example</option></select></label><span class="privacy" data-i18n="privacy">Files stay on your device.</span><div class="file-notice"><span id="status" role="status" aria-live="polite" hidden></span><button id="partial-open" class="partial-open-action" data-i18n="partialOpen" aria-describedby="status" hidden>Open partially</button></div></div>
