@@ -9,7 +9,8 @@ SCRIPT = pathlib.Path(__file__).resolve().parents[1] / 'check_active_workspace.p
 
 class WorkspaceBoundary(unittest.TestCase):
     def check_workspace(self, manifest, files=None):
-        with tempfile.TemporaryDirectory(dir=SCRIPT.parent) as directory:
+        # Synthetic workspaces must not inherit this checkout's dependency patches.
+        with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory)
             (root / 'src').mkdir()
             (root / 'src/lib.rs').write_text('', encoding='utf-8')

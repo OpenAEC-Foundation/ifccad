@@ -229,3 +229,5 @@
 @media(max-width:620px){.partial-open-action{margin-left:0}}
 
 #hatch-export-note{white-space:pre-line}
+
+#conversion-info{position:fixed;inset:auto 16px 40px auto;margin:0;width:min(380px,calc(100vw - 32px));padding:14px 16px;border:1px solid var(--theme-border);border-radius:8px;background:var(--theme-surface);color:var(--theme-text);box-shadow:0 8px 24px #0003;font-size:12px;line-height:1.5}#conversion-info p{margin:0}#conversion-info-open{width:auto}

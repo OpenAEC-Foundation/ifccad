@@ -1,4 +1,5 @@
 use ifccad::*;
+
 #[test]
 fn filled_inspector_keeps_kind_slots_and_source() {
     let src = include_bytes!("../../../conformance/next/ifccad/valid/filled-primitives.ifcx");
@@ -25,22 +26,5 @@ fn filled_inspector_keeps_kind_slots_and_source() {
                 4
             );
         }
-    }
-}
-#[test]
-fn filled_inspection_never_promotes_positions_to_display() {
-    let src = include_bytes!("../../../conformance/next/ifccad/valid/filled-primitives.ifcx");
-    let out = viewer::export_ifccad_bytes("filled.ifcx", src, "dxf", "AC1032");
-    assert!(out["failure"].is_null(), "{out}");
-    let a = &out["export"]["geometryAssessment"];
-    assert_eq!(a["complete"], false);
-    let records = a["filledSurfaces"].as_array().unwrap();
-    assert_eq!(records.len(), 32);
-    assert!(records.iter().any(|r| r["surfaceCoverage"] == "Unassessed"));
-    assert!(records.iter().any(|r| r["surfaceCoverage"] == "Proven"));
-    for r in records {
-        assert_eq!(r["positionScope"], "FourBaseAndFourTop");
-        assert_eq!(r["displayEvaluation"], "unassessed");
-        assert!(r["source"]["entityId"].is_string());
     }
 }

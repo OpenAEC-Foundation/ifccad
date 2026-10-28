@@ -1,5 +1,9 @@
 # Hatch DXF/DWG output qualification
 
+This document qualifies the standalone reference converter, not the shared
+Explorer mapping. See [the current route](architecture/explorer-document-route.md)
+and [retired viewer integration](architecture/retired-viewer-converter.md).
+
 This is correctness qualification of the selected unmodified codec `bd10efc` (package `acadrust` 0.6.6). It is not a benchmark, renderer
 claim, CAD editing/update protocol, or guarantee for arbitrary drawings.
 Native IFCCAD stores independent contours, literal fill, source groups,
@@ -9,7 +13,7 @@ The converter and physical file each have separate loss boundaries.
 ## Target matrix
 
 Every cell is actually written and production-read in
-`crates/viewer/tests/hatch_version_matrix.rs`. Versions are checked against
+`crates/ifccad-convert/tests/hatch_version_matrix.rs`. Versions are checked against
 the emitted header and reader; export never substitutes a different version.
 
 | Format | Version | Sources, provenance, TextIsland | Active gradient |
@@ -78,12 +82,15 @@ does not assert loss or disable an otherwise valid custom-tolerance export.
 `HATCH_RECIPE_PREFLIGHT_CHECK` similarly makes a default-tolerance recipe trial
 advisory, including under Reject; actual export rechecks the selected tolerance
 and still refuses any resulting semantic loss under Reject.
-Explorer selects the current format/version entry
-from the same Rust profiles and discloses conditions before download.
+The former viewer selected the current format/version entry from these Rust
+profiles. That integration is retired. The current Explorer reports the shared
+mapping’s own losses and does not apply these reference-codec preflights.
 
 ## Original AC1024 practice acceptance
 
-Run the separately invoked correctness regression with both original 3bm files:
+The following is the historical reference-viewer correctness regression. Run it
+only in an isolated checkout of the recorded `f80d7bd` reference snapshot, using
+its documented codec preparation and both original 3bm files:
 
 ```text
 IFCCAD_HATCH_FOUNDATION_INPUT_ROOT=<directory containing both originals>
@@ -122,7 +129,7 @@ The regression requires twelve actual target cells per original representation,
 strict native/file readback and unchanged source hashes. Missing input or a
 different hash fails the explicit acceptance run. It is ignored in ordinary CI
 because external user source files are not distributed; synthetic regressions
-remain ordinary CI tests. The original Explorer AC1024 selection remains AC1024.
+remain ordinary CI tests. The historical reference-viewer AC1024 selection remained AC1024.
 
 For the bd10efc adoption, the user stopped the repeated complete-original matrix
 after 19 successful cells, before the native upright extension. These remain

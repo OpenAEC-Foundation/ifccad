@@ -1,5 +1,5 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
-use viewer::{export_ifccad_bytes, inspect_ifccad_bytes};
+use viewer::inspect_ifccad_bytes;
 
 #[test]
 fn ifccad_workspace_records_and_source_bytes_keep_full_width_identity() {
@@ -24,7 +24,7 @@ fn ifccad_workspace_records_and_source_bytes_keep_full_width_identity() {
         drawing["attributes"]["ifccad::drawing"]["nextUcsId"].as_u64(),
         Some(9007199254740994)
     );
-    let exported = export_ifccad_bytes("workspace.ifcx", BYTES, "ifccad", "AC1032");
+    let exported = export("workspace.ifcx", BYTES, "ifccad", "AC1032");
     assert!(exported["failure"].is_null(), "{exported}");
     assert_eq!(
         STANDARD
@@ -32,4 +32,8 @@ fn ifccad_workspace_records_and_source_bytes_keep_full_width_identity() {
             .unwrap(),
         BYTES
     );
+}
+
+fn export(name: &str, bytes: &[u8], format: &str, version: &str) -> serde_json::Value {
+    viewer::document_export_ifccad(name, bytes, format, version, "{}")
 }

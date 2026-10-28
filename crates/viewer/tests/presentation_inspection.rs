@@ -1,4 +1,4 @@
-use viewer::{export_ifccad_bytes, inspect_ifccad_bytes};
+use viewer::inspect_ifccad_bytes;
 
 #[test]
 fn ifccad_inspection_exposes_native_presentation_and_point_display() {
@@ -100,40 +100,4 @@ fn ifccad_inspection_exposes_native_presentation_and_point_display() {
         v["attributes"]["ifccad::viewport"]["layerOverrides"][0]["color"]["indexedColor"]["index"],
         1
     );
-}
-
-#[test]
-fn physical_shadeplot_survives_dxf_and_dwg_in_both_routes() {
-    use ifccad::{plot_kernel::ShadedPlotMode, *};
-    let mut ifc = load_ifccad_bytes(
-        include_bytes!("../../../tests/fixtures/ifccad/hello-viewports.ifcx"),
-        Default::default(),
-    )
-    .unwrap()
-    .document()
-    .clone();
-    for entity in &mut ifc.paper_layouts[0].entities {
-        if let Some(e) = entity.as_native_mut() {
-            if let IfccadEntityKind::Viewport(v) = &mut e.kind {
-                v.plot_shading_override = Some(ShadedPlotMode::Hidden);
-            }
-        }
-    }
-    let ifc = encode_ifccad_document(&ifc).unwrap();
-    {
-        let (name, bytes) = ("presentation.ifcx", ifc.bytes());
-        for format in ["dxf", "dwg"] {
-            let result = export_ifccad_bytes(name, bytes, format, "AC1032");
-            assert!(result["failure"].is_null(), "{:?}", result["failure"]);
-            let diagnostics = result["export"]["diagnostics"].as_array().unwrap();
-            assert_eq!(
-                diagnostics
-                    .iter()
-                    .filter(|d| d["code"] == "TARGET_CODEC_VIEWPORT_SHADEPLOT_LOSS")
-                    .count(),
-                0,
-                "{name}/{format}: {diagnostics:?}"
-            );
-        }
-    }
 }

@@ -25,7 +25,7 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
  const invoke=(name,args,config=options)=>{
   const capabilities=typeof wasm.conversion_capabilities==='function'?parsePresentationJson(wasm.conversion_capabilities()):{};
   if(name==='convert_cad_to_ifccad'&&config?.partialOpen===true&&(capabilities.ifccad?.partialOpening!==true||typeof wasm.convert_cad_to_ifccad_with_options!=='function'))throw Error('Partial opening is unavailable in this processor');
-  if(typeof wasm.conversion_capabilities==='function'&&(config?.tolerance.mode??'default')==='default'&&capabilities[drawingFormat]?.coordinateToleranceDefault!==true)throw Error('Coordinate default tolerance is unavailable in this processor');
+  if(typeof wasm.conversion_capabilities==='function'&&(config?.tolerance.mode??'default')==='default'&&capabilities[drawingFormat]?.coordinateToleranceDefault!==true&&capabilities[drawingFormat]?.numericalAssessment!=='unassessed')throw Error('Coordinate default tolerance is unavailable in this processor');
   if(config?.tolerance.coordinateFallback!==undefined&&capabilities[drawingFormat]?.coordinateToleranceFallback!==true)throw Error('Coordinate tolerance fallback is unavailable in this processor');
   if(name==='convert_cad_to_ifccad'&&request.preserveSplines===true&&(capabilities.ifccad?.splinePreservation!==true||typeof wasm.convert_cad_to_ifccad_with_options!=='function'))throw Error('IFCCAD spline preservation is unavailable in this processor');
   if(config){if(typeof wasm[name+'_with_options']==='function')return wasm[name+'_with_options'](...args,JSON.stringify(config));if(config.lossPolicy==='reject')throw Error('Loss rejection is unavailable in this processor');if(config.tolerance.mode!=='default')throw Error('This converter build does not support adjustable tolerance options');}
@@ -43,6 +43,11 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
  if(request.kind!=='cad'&&!binary)opening.nativeSourceText=new TextDecoder().decode(file.bytes);
  else if(opening.export?.download?.base64)opening.nativeSourceText=new TextDecoder().decode(decodeBase64(opening.export.download.base64));
  opening.conversionCapabilities=typeof wasm.conversion_capabilities==='function'?parsePresentationJson(wasm.conversion_capabilities()):{ifccad:{adjustableTolerance:false}};
+ if(!opening.failure&&opening.validation?.strictAvailable&&(request.kind!=='cad'||opening.export?.download?.base64)){
+  const bytes=request.kind==='cad'?decodeBase64(opening.export.download.base64):binary?new TextEncoder().encode(opening.nativeSourceText):file.bytes;
+  const stem=file.path.split('/').at(-1).replace(/(?:\.ifccad)?\.cbor(?:\.zst)?$|\.zst$|\.(?:ifcx(?:\.json)?|json|dxf|dwg)$/i,'');
+  opening.nativeFile={format:'ifccad',fileName:stem+'.ifcx',byteLength:bytes.length,base64:encodeBase64(bytes),representation:binary?'decoded':request.kind==='cad'?'generated':'original'};
+ }
  if(!operation||opening.failure||!opening.validation?.strictAvailable)return opening;
  if(operation.format===drawingFormat){
   if(operation.encoding){

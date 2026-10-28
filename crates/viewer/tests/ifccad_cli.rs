@@ -15,12 +15,12 @@ fn result(output: &std::process::Output) -> serde_json::Value {
         .clone()
 }
 #[test]
-fn cli_selects_ifccad_and_preserves_explicit_capture_and_export() {
+fn cli_uses_shared_conversion_and_rejects_unavailable_capture() {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/open-cubic.dxf");
     let file = path.to_str().unwrap();
-    let legacy = cli(&["cad", file]);
-    assert!(legacy.status.success());
-    assert_eq!(result(&legacy)["presentation"]["format"], "ifccad");
+    let opened = cli(&["cad", file]);
+    assert!(opened.status.success());
+    assert_eq!(result(&opened)["presentation"]["format"], "ifccad");
     let selected = cli(&[
         "cad",
         file,
@@ -29,19 +29,16 @@ fn cli_selects_ifccad_and_preserves_explicit_capture_and_export() {
         "--preserve-splines",
     ]);
     assert!(selected.status.success());
-    assert_eq!(result(&selected)["presentation"]["opaqueEntityCount"], 1);
-    let exported = cli(&[
-        "export-cad",
-        file,
-        "dwg",
-        "--drawing-format",
-        "ifccad",
-        "--preserve-splines",
-    ]);
+    assert_eq!(
+        result(&selected)["failure"]["code"],
+        "DOCUMENT_OPTION_UNAVAILABLE"
+    );
+    assert!(result(&selected)["export"]["download"].is_null());
+    let exported = cli(&["export-cad", file, "dwg", "--drawing-format", "ifccad"]);
     assert!(exported.status.success());
     let output = result(&exported);
     assert!(output["failure"].is_null(), "{}", output["failure"]);
-    assert_eq!(output["export"]["fileCheck"]["opaqueEntityCount"], 1);
+    assert_eq!(output["export"]["fileCheck"]["strictNativeReadback"], true);
     for args in [
         vec!["cad", file, "--drawing-format"],
         vec!["cad", file, "--drawing-format", "future"],

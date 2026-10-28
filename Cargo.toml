@@ -16,6 +16,10 @@ include = ["/src/**", "/schemas/**", "/tests/**", "/conformance/next/**", "/exam
 [workspace.package]
 version = "2026.44.0"
 
+# The shared Document converter and the browser use one IFCCAD model identity.
+[patch."https://github.com/OpenAEC-Foundation/ifccad.git"]
+ifccad = { path = "." }
+
 [workspace]
 members = ["crates/cad-preservation", "crates/cad-workspace-convert", "crates/cad-geometry-convert", "crates/cad-presentation-convert", "crates/cad-text", "crates/cad-dimension", "crates/viewer", "crates/browser", "crates/ifccad-convert"]
 resolver = "2"

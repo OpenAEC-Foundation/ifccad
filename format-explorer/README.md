@@ -1,128 +1,80 @@
 # IFCCAD Explorer
 
-The Explorer inspects IFCCAD and converts DXF/DWG directly through
-`ifccad-convert`. IFCCAD is the only active native format. OCDraw files and
-explicit old selections report `OCDRAW_PARKED`; see [parking](../docs/ocdraw-parking.md).
-The download menu includes experimental CBOR and CBOR + Zstd using the
-production writers. The browser explicitly enables Zstd.
+Explorer inspects native IFCCAD and converts CAD through the same
+`opencaddocument::Document` / IFCX mapping as Open CAD Studio. All drawing
+processing stays in the browser. No drawing-upload API or automatic feedback
+attachments exist. OCDraw remains parked.
 
-## Using the Explorer
+## Inspection and preview
 
-The interface defaults to Automatic language selection: the first supported
-Dutch or English browser preference, with English as fallback. Settings can
-override this with Nederlands or English, or return to Automatic. Saved explicit
-choices remain in effect; changing the theme does not pin an automatic language.
-About links to the OpenAEC IFCCAD web page at https://open-aec.com/ifccad/.
+One validated opening owns the native snapshot. The inspector, IFCX download
+and Studio preview use those same bytes. CAD input opens its original DWG/DXF
+beside the generated `.ifcx`; native IFCX input opens its original bytes.
+Studio internally imports IFCX into Document, so host rendering is distinct
+from stored native content and core validation. Preview does not require a
+DXF/DWG export. Changing CAD output format/version does not repeat CAD import.
 
-Feedback opens a local dialog with category, title (up to 200 characters),
-description (10–4,500 characters) and an optional reply email. As on the OpenAEC
-website, the dialog explains before sending that the report becomes a public
-GitHub issue in `OpenAEC-Foundation/ifccad`. It sends only the explicit form
-fields, with the title on the first message line and `app: "ifccad"`, to Open
-Feedback Studio's `/api/feedback` endpoint on its `pages.dev` host. Reply email
-is stored by the service and is not included in the issue. Drawings, file names
-and screenshots are never attached.
+Document structure, authored draw order, composed storage nodes, source
+contributions, stored values, relationships and full-width string identities
+remain available. The two curated examples are documented in
+[examples](../examples/README.md). Dutch/English, pane navigation, bounded lists,
+search, layer filters and settings remain local application state.
 
-A confirmed issue shows a link to its IFCCAD GitHub page. If the service stores
-the feedback without returning an issue URL, the dialog confirms receipt without
-claiming that an issue exists. Failed requests retain the draft; successful
-receipt clears it. Closing the dialog cancels the pending client request, and a
-late response cannot overwrite a reopened draft. Drafts are not saved across
-page reloads.
+Selection uses explicit native-ID → CAD-handle mappings from the pinned IFCX
+import, verified against that imported Document. This is **not** a physical-CAD
+readback qualification. Both directions require the current generated document
+and exact layout; shared block contents and unconverted entities are unmapped.
+Dirty Studio original/generated tabs survive source/preview replacement. Camera
+and session survive pane navigation. Restarting the viewer is an explicit action.
+Cancellation and source changes invalidate late results and selection observations.
 
-Deploy the matching Open Feedback Studio Functions and apply its
-`migrations/006_enable_ifccad_issues.sql` repository mapping before publishing
-this Explorer integration. The ordinary route must allow IFCCAD automatic
-issues. Its explicit `/api/private-feedback` route remains private for older
-clients and other forms; existing private feedback is unchanged. Existing spam
-checks remain in force; if Turnstile is enabled there, its client integration
-must be configured before launch. No secret or admin key belongs in the
-Explorer bundle. No mail delivery is configured by this integration.
+## Downloads and conversion boundary
 
-Start with Overview: IFCCAD contents, Open CAD Studio and conversion evidence
-share resizable panes. Document structure groups entities by type within their
-layout/block; Draw order preserves authored sequence. Storage structure shows
-composed IFCX nodes and ordered original source fragments. Full-width identities
-remain strings. Collections above ten items use a bounded searchable list.
-Selection maps to the generated CAD document in both directions when qualified
-readback links exist; block-definition contents and skipped items have no direct link.
-Camera, workspace tab and prepared CAD output survive navigation.
+IFCX/JSON keeps original native bytes, including foreign nodes and fragments.
+CAD-generated IFCX keeps the exact validated generation. CBOR and CBOR + Zstd
+use the core production codecs, with strict readback; they encode the validated
+drawing projection. Same-encoding binary downloads retain validated source
+bytes. Binary inspection and IFCX preview are labelled decoded projections,
+never original IFCX fragments. Input and decompressed CBOR are capped at 64 MiB.
+Compact storage remains CBOR + Zstd; Studio interchange is currently IFCX/JSON.
 
-Two curated IFCCAD examples provide an extensible entity catalogue and a fictitious
-house floor plan with an A3 sheet at 1:100. See [example recipes and extension
-instructions](../examples/README.md). Dimensions use native entities with compact
-millimetre labels; the CAD host regenerates their display.
-The native download button opens a popup with IFCX / JSON, experimental CBOR
-(`.ifccad.cbor`) and experimental CBOR + Zstd (`.ifccad.cbor.zst`, level 3).
-IFCX / JSON retains original IFCX bytes. Binary downloads encode the validated
-IFCCAD drawing projection; foreign IFCX nodes/fragments are excluded, as noted
-in the menu. Both production writers strictly read back and compare their output.
-Opening `.cbor` and `.cbor.zst` / `.zst` selects the corresponding strict
-production reader. Input and decompressed CBOR are capped at 64 MiB. The
-inspector clearly labels decoded JSON/nodes; these are not original IFCX source
-fragments. Binary-to-CAD output uses typed document conversion without an
-invented IFCX source audit. JSON download reconstructs IFCX; same-encoding binary
-download retains the original validated bytes. CAD download follows the shared
-DXF/DWG and version selection. A native file requires no input conversion;
-output failure retains input validity and native download. Input/output diagnostics,
-numerical evidence, preservation and CAD readback remain separate.
+DXF/DWG export is optional. It uses the selected version, the shared converter,
+actual CAD serialization/readback, and strict native readback of the returned
+Document. Readback currently compares entity kinds/counts; it does not certify
+all physical field values or complete semantic fidelity. Failure retains the
+valid inspected native snapshot. No automatic version or tolerance substitution
+occurs.
 
-Conversion / checks owns tolerance. Default is exactly 1e-9 per coordinate domain;
-Exact is zero. Custom may specify drawing coordinates or physical mm/m, with an
-independent coordinate fallback for unitless Model/Paper without a fixed output
-mapping. Without an explicit fallback, unknown physical meaning is rejected.
-Input and output limits can be selected together or independently and apply on
-Apply; effective evidence records the domain and fallback provenance.
+The migration is deliberately bounded. See the detailed
+[migration coverage](../docs/architecture/explorer-document-route.md):
 
-Supported typed spline preservation is on for newly selected CAD files and can
-be disabled before opening. Capture, opaque native geometry and qualified fresh
-CAD restoration have separate evidence. This does not add native spline geometry,
-font geometry, evaluated Hatch fill or complete Dimension display.
+- Core native validation, source inspection and binary codecs remain available.
+- Shared mapping diagnostics are retained verbatim; upstream losses are often
+  aggregated without source locations. Reader notifications remain separate.
+- The backend uses fixed parameter rounding. Certified numerical intervals and
+  rendered appearance are **unassessed**. Old converter proofs are not borrowed.
+- Adjustable/Exact tolerance, spline capture, partial recovery and
+  Reject policy are unavailable. UI controls are hidden with an explanation;
+  explicit API requests are rejected, never silently ignored.
+- Unknown/unreported losses cannot be ruled out. The observed foundation-model
+  dimension-text rendering discrepancy remains open host evidence. Counts of
+  stored graphics nodes alone do not qualify correct rendering.
 
-Overview and the enlarged Contents, Conversion/checks and Drawing workspaces reuse
-the same selection, applied settings and CAD session. Expand/restore changes the
-pane arrangement without reopening the source. Splitters support pointer and
-keyboard resizing. Desktop panes scroll internally; narrow screens stack the
-main panes and retain accessible controls.
+The separate `ifccad-convert` crate remains a reference for research and its own
+regression suite. Explorer and viewer have no dependency on it. The old viewer
+conversion APIs, codec helpers and route-specific tests have been retired; see
+[retirement and recovery](../docs/architecture/retired-viewer-converter.md).
+Native core validation, composed source inspection and binary codecs remain active.
 
-The contents pane has independently scrolling structure, item-list and inspector
-columns. A singleton appears directly under its owner; collections of 2–10
-members stay inline, and larger collections open the searchable middle list.
-That list stays open until closed and can then show later small selections too.
-Search matches identity, label, type, layer and short geometry description;
-the layer filter intersects the search. Source order remains unchanged and
-opening another source resets collection/filter state. Arrow keys, Home/End
-and Page Up/Down select and reveal list items. Large ownership sequences remain
-browsable in Draw order. There is no 150-item truncation or Show more step.
+## Development and verification
 
-Contents columns initially share the available width; a resize makes widths
-user-selected. The inspector can collapse and is automatically hidden below
-850px pane width when a list is open, or below 520px in any contents mode,
-unless explicitly overridden. Below 520px it opens over contents. Source
-changes initially open the first property nesting level; deeper objects start
-collapsed. Later explicit expansion/collapse persists across selection and
-inspector-tab changes. Plain property labels do not change record selection;
-typed references remain navigable. Selecting a navigation group of up to ten
-members opens it inline, while layouts and block definitions keep their own
-explicit expansion controls.
-
-## Development and checks
-
-The [browser and inspection architecture](../docs/architecture/browser-processing.md)
-describes source ownership, composition, request cancellation, separate conversion
-evidence and readback-qualified CAD selection.
-
-On an entity-local CAD conversion failure the Explorer first shows the normal
-error, then offers **Open partially / Gedeeltelijk openen**. Recovery is explicit
-per source; selecting a new file restores ordinary import. The retry uses the same
-tolerance settings. A persistent notice gives omitted-entity/error counts and a
-complete list with source handles, owners, layers and reasons. The downloadable
-JSON omission report includes every conversion diagnostic and original failure
-evidence. Native and CAD exports use the partial drawing; skipped content is absent.
-Shared structure and strict final validation still block output. Older WASM builds
-without partial-opening support reject the request instead of silently ignoring it.
+The merged typed API is pinned to Document
+`47d7888ca6ae1a13b80c8cf5076f5efdbc5a5f2b` (upstream PR #4). The workspace-root
+Cargo patch selects this checkout's core for the shared Rust model identity.
+No local Document API patch or preparation script is needed.
 
 ```text
+python scripts/check_explorer_dependencies.py
 wasm-pack build crates/browser --target web --out-dir ../../format-explorer/wasm-build --release
 node format-explorer/tests/wasm-smoke.mjs
 npm --prefix format-explorer test
@@ -130,68 +82,23 @@ npm --prefix format-explorer run build
 npm --prefix format-explorer start
 ```
 
-Run these from the repository root. The browser includes the Zstd feature and needs a WebAssembly-capable C compiler
-(e.g. Clang) to build its bundled Zstd dependency. Native code uses the same explicitly selected
-codec base/repair as [the converter](../crates/ifccad-convert/README.md).
-The browser module exports `open_ifccad`, `convert_cad_to_ifccad`,
-`export_ifccad`, option variants and `conversion_capabilities`; the worker defaults
-CAD input to IFCCAD and rejects retired route choices before invoking WASM.
+The browser enables core Zstd and requires a WebAssembly-capable C compiler.
+Use `PORT` for a separate loopback development port and `OCS_ROOT` for a pinned
+self-hosted viewer bundle. `ocs-source.json` records Studio, Document and core
+provenance; preserve Studio's license. A copied existing bundle must keep its
+recorded byte hashes and explicitly record any HTML mount-path rewrite.
+The workflow builds Studio independently at the pin and public URL.
 
-The dev server uses loopback, accepts `PORT` and optional `OCS_ROOT` for an existing
-pinned viewer bundle, and reloads frontend source. Website assembly writes changed
-assets only, prunes removed examples and clears stale missing bundles. WASM and
-Open CAD Studio compilation remain separate; no deployment occurs here.
+Before completing Rust changes, run the repository full gate in AGENTS.md.
+Frontend, WASM and packaged checks remain additional requirements. A development
+server or startup smoke is not a completed migration or visual-fidelity claim.
+Pushing main starts the verified production deployment workflow.
 
-## Drawing preview and deployment
+## Optional feedback
 
-Open CAD Studio reads generated DXF/DWG bytes. Native IFCCAD files have a converted
-preview; CAD source can also be opened as its original document. Preview preparation
-runs in the background and supports cancellation. Editing CAD does not rewrite
-IFCCAD source. The viewer bridge accepts only its same-origin parent/current token.
-
-The pinned Open CAD Studio revision is recorded in `ocs-source.json` and the workflow. Preserve its license and self-hosted bundle. The deployment scripts under `deploy/`
-cover release packaging, static smoke, rollback and public verification. Smoke uses
-the shipped IFCCAD manifest and examples, including actual CAD readback where
-available, using the Explorer's default CAD version so the catalogue's gradient
-fills can be retained. The full packaged smoke regression runs with `npm test`
-when both browser WASM and Open CAD Studio bundles are present; it does not
-require source files in the deployed package. CI builds
-only IFCCAD plus the active companions and has native and WASM Zstd checks.
-
-## Hatch target restrictions
-
-The CAD output controls retain a supported original source version, including
-AC1024. Hatch restrictions appear before download for the selected DXF/DWG
-version, using drawing-specific Rust qualification shared with physical export.
-Warnings appear in the output conversion report, grouped by reason with occurrence
-counts; individual located diagnostics remain available in the report. They are
-not input-conversion losses. Necessarily unsupported active profiles block
-download. Changing format/version or reopening a drawing refreshes the note.
-Actual write/readback still enforces the selected loss policy and can report
-additional located losses. The Explorer never silently switches to AC1032.
-See [Hatch version qualification](../docs/hatch-export-versions.md).
-
-Original Hatch recipes use direct `definitionLines`; qualified output retains the
-original values and missing origin through the selected tolerance assessment.
-Numerical rounding and optional recipe loss are separate from physical file loss.
-Known DXF angle changes are located per definition line in the output report;
-no automatic version substitution is made. See [Hatch output qualification](../docs/hatch-export-versions.md).
-
-Upright complex-line-pattern markers have a separate backend-generated target
-preflight. For DXF before AC1027 the selected codec writes relative rotation;
-Explorer shows this loss for the selected version and refuses a download under
-Reject. Actual written-file readback checks the mode too. Native IFCCAD/IFCX and
-CBOR retain the original upright mode. No alternate version is selected.
-
-Polyline inspection separates stored Constant/PerVertex/Defaulted state from
-effective pairs, labels inherited leaves and explicit zeros, and presents optional
-segment-band/join evidence with display Unassessed. Located width bounds reasons
-prevent safe culling/complete extents. Width export preflight is independent of
-Hatch and upright entries; inherited DWG leaves block Reject before download.
-All native DXF preview/export routes select the classic-preserving writer. See
-[the width qualification contract](../docs/geometry/polyline-widths.md).
-
-Polyline widths appear within Stored values → Planar polyline → Polyline widths.
-Classic overrides retain inherited versus explicit labels, including zero and
-equal values. Effective defaulted pairs appear separately under Derived values;
-band/surface/display assessments remain in conversion reports.
+Feedback sends only explicitly submitted category, title, description and optional
+reply email to Open Feedback Studio. The form warns that accepted reports become
+public GitHub issues in OpenAEC-Foundation/ifccad. Drawings, names and screenshots
+are never attached automatically. Successful responses show the returned issue
+link; failures retain the draft. Deploy the corresponding service mapping and
+spam protection before any separately authorized production publication.

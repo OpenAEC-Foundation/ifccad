@@ -1,4 +1,8 @@
 const copy={
+ viewerProjection:['Studio IFCX projection','IFCX-projectie in Studio'],
+ viewerProjectionUnassessed:['Mapping notices for the host projection; rendered appearance has not been assessed.','Meldingen voor de projectie in de host; de getekende weergave is niet beoordeeld.'],
+ conversionInfo:['Conversion info','Conversie-info'],
+ documentRouteLimits:['Shared Studio converter. Fixed rounding; numerical accuracy and host rendering are not assessed. Spline preservation and partial recovery are unavailable. CAD export is optional; preview opens the validated IFCX.','Gedeelde Studio-converter. Vaste afronding; numerieke nauwkeurigheid en hostweergave zijn niet beoordeeld. Splinebewaring en gedeeltelijk herstel zijn niet beschikbaar. CAD-export is optioneel; de preview opent het gevalideerde IFCX.'],
  'width.Proven':['Proven','Bewezen'], 'width.Unassessed':['Unassessed','Niet beoordeeld'], 'width.ZeroWidth':['Zero width','Nulbreedte'],
  'width.reason.CoincidentWideSegment':['Coincident wide segment has no defined tangent.','Samenvallende eindpunten van een breed segment geven geen bepaalde raaklijn.'],
  'width.reason.UnassessedJoin':['The join surface has not been assessed.','Het oppervlak van de aansluiting is niet beoordeeld.'],

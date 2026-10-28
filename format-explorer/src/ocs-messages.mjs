@@ -39,6 +39,7 @@ export function createOcsSession(iframe,token,{host=window,origin=location.origi
  return {
   ready,
   openOriginal:(base64,name)=>send('open','original',{base64,name}),
+  replaceOriginal:(base64,name)=>send('replace','original',{base64,name}),
   replaceGenerated:(base64,name)=>send('replace','generated',{base64,name}),
   selectGenerated:(handles,layout)=>send('select','generated',{handles,layout,documentId:generatedDocumentId}),
   subscribeSelection(listener){selectionListeners.add(listener);return()=>selectionListeners.delete(listener);},
@@ -111,6 +112,17 @@ export function createDocumentSession(control){
  }
  return {
   openOriginal:(base64,name)=>schedule(async()=>{if(originalId!==null)throw Error('Original drawing already open');originalId=await open(base64,name);return originalId;}),
+  replaceOriginal:(base64,name)=>schedule(async()=>{
+   const previous=originalId;
+   // Open the new source first; leave all edited source tabs intact.
+   const next=await open(base64,name);originalId=next;
+   const state=await control({op:'state'}),old=state.documents?.find(document=>document.id===previous);
+   if(old&&!old.dirty&&!state.command&&!state.modal){
+    const activated=await control({op:'activate',document_id:previous});
+    if(activated.ok){await control({op:'action',name:'close_document',document_id:previous});await control({op:'activate',document_id:next});}
+   }
+   return next;
+  }),
   replaceGenerated:(base64,name)=>schedule(async()=>{await closeGenerated();generatedId=await open(base64,name);return generatedId;}),
   selectGenerated(handles,layout,documentId=generatedId){return schedule(async()=>{
    if(!Array.isArray(handles)||handles.length>1||handles.some(handle=>typeof handle!=='string'||!/^([0-9a-f]{1,16})$/i.test(handle)||BigInt('0x'+handle)===0n))throw Error('Invalid CAD selection handle');

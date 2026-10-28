@@ -78,15 +78,3 @@ pub(crate) fn entities(doc: &IfccadDocument) -> Value {
     }
     json!(output)
 }
-pub(crate) fn report(r: &ifccad_convert::IfccadDimensionAssessment) -> Value {
-    use ifccad_convert::{
-        IfccadDimensionGraphicsCoverage as G, IfccadDimensionNumericCoverage as N,
-    };
-    let graphics = |value: G| match value {
-        G::Absent => json!({"state":"absent"}),
-        G::ExplicitEmpty => json!({"state":"explicitEmpty"}),
-        G::Transferred { part_count } => json!({"state":"transferred","partCount":part_count}),
-        G::NotTransferred => json!({"state":"notTransferred"}),
-    };
-    json!({"entries":r.entries().iter().map(|e|json!({"entityId":e.entity_id.to_string(),"owner":format!("{:?}",e.owner),"numericCoverage":match e.numeric_coverage{N::StoredDefinitionAnchors=>"storedDefinitionAnchors",N::StoredDefinitionAndExplicitTextAnchors=>"storedDefinitionAndExplicitTextAnchors",N::NotTransferred=>"notTransferred"},"displayCoverage":"unassessed","graphicsCoverage":graphics(e.graphics_coverage)})).collect::<Vec<_>>()})
-}

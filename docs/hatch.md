@@ -111,7 +111,7 @@ records; unrepresentable model state and physical losses remain explicit.
 Nondefault joinTolerance is located loss; native invalidity and hard numerical
 failures remain fatal under both policies.
 
-The production viewer/browser verifies the actual target CAD model after
+The retired reference-viewer integration verified the actual target CAD model after
 DXF/DWG write/read, including source-group order, duplicates, association switch,
 provenance and TextIsland, before offering a download. All six offered versions
 are qualified independently; see [version profiles](hatch-export-versions.md). Missing
@@ -125,6 +125,10 @@ Other physical codes are TARGET_CODEC_HATCH_SOURCE_GROUP_LOSS,
 TARGET_CODEC_HATCH_LOOP_PROVENANCE_LOSS and TARGET_CODEC_HATCH_TEXT_ISLAND_LOSS.
 TextIsland loss is active fill-semantic loss. This verification qualifies stored
 parameters, not rendering or automatic CAD-editor updates.
+
+The active Explorer uses a different shared mapping and readback boundary; see
+[current migration coverage](architecture/explorer-document-route.md). The
+reference converter’s physical qualifications do not transfer to it.
 
 ## Explicit line patterns
 

@@ -2,6 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {isCurrentOcsMessage,createDocumentSession,createOcsControl,createOcsSession} from '../src/ocs-messages.mjs';
 
+test('new source and IFCX replacement keep edited Studio documents',async()=>{
+ for(const dirty of [false,true]){
+  let current=1,next=2;const documents=new Map([[1,{id:1}]]);
+  const control=async request=>{
+   if(request.op==='state')return {ok:true,document_id:current,documents:[...documents.values()]};
+   if(request.op==='open'){current=next++;documents.set(current,{id:current,name:request.name,dirty:false});return {ok:true};}
+   if(request.op==='activate'){current=request.document_id;return {ok:true};}
+   if(request.op==='action'){assert.equal(documents.get(current).dirty,false);documents.delete(current);return {ok:true};}
+   throw Error('Unexpected operation');
+  };
+  const session=createDocumentSession(control);await session.openOriginal('e30=','first.dwg');await session.replaceGenerated('e30=','first.ifcx');
+  const before=session.ids();documents.get(before.originalId).dirty=dirty;documents.get(before.generatedId).dirty=true;
+  await session.replaceOriginal('e30=','second.dwg');await session.replaceGenerated('e30=','second.ifcx');
+  assert.equal(documents.has(before.originalId),dirty);assert.equal(documents.has(before.generatedId),true);
+  assert.equal(documents.get(session.ids().generatedId).name,'second.ifcx');
+ }
+});
+
 test('reverse selection messages require the current frame, token and generated document',async()=>{
  const listeners=new Map(),posted=[],events=[],origin='https://explorer.example';
  const host={addEventListener(name,fn){listeners.set(name,fn);},removeEventListener(name){listeners.delete(name);}};

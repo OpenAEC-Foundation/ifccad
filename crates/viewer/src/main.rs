@@ -1,7 +1,7 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use serde_json::json;
 use std::path::Path;
-use viewer::{export_ifccad_bytes, inspect_ifccad, progress};
+use viewer::{document_export_ifccad, inspect_ifccad, progress};
 fn main() {
     let mut args = std::env::args().collect::<Vec<_>>();
     let _drawing_format = if let Some(index) = args.iter().position(|a| a == "--drawing-format") {
@@ -39,9 +39,9 @@ fn main() {
                 .unwrap_or("")
                 .to_ascii_lowercase();
             match std::fs::read(path) {
-                Ok(bytes) => viewer::inspect_cad_as_ifccad_bytes_with_options(
-                    &args[2], &format, &bytes, &timestamp, &options,
-                ),
+                Ok(bytes) => {
+                    viewer::document_cad_to_ifccad(&args[2], &format, &bytes, &timestamp, &options)
+                }
                 Err(e) => {
                     let mut r = viewer::result(path, &format);
                     viewer::fail(&mut r, "reading", "CAD_OPEN_FAILED", e);
@@ -58,7 +58,7 @@ fn main() {
                 .to_ascii_lowercase();
             match std::fs::read(path) {
                 Ok(bytes) => {
-                    let opening = viewer::inspect_cad_as_ifccad_bytes_with_options(
+                    let opening = viewer::document_cad_to_ifccad(
                         &args[2], &format, &bytes, &timestamp, &options,
                     );
                     if !opening["failure"].is_null() {
@@ -71,7 +71,7 @@ fn main() {
                                     .expect("strict native bytes"),
                             )
                             .expect("native download Base64");
-                        let mut exported = viewer::export_ifccad_bytes_with_options(
+                        let mut exported = viewer::document_export_ifccad(
                             &args[2],
                             &native,
                             &args[3],
@@ -96,11 +96,12 @@ fn main() {
         Some("export-drawing" | "export-ifccad") if matches!(args.len(), 4 | 5) => {
             let path = Path::new(&args[2]);
             match std::fs::read(path) {
-                Ok(bytes) => export_ifccad_bytes(
+                Ok(bytes) => document_export_ifccad(
                     &args[2],
                     &bytes,
                     &args[3],
                     args.get(4).map(String::as_str).unwrap_or("AC1032"),
+                    &options,
                 ),
                 Err(e) => {
                     let mut r = viewer::result(path, "ifccad");
@@ -111,7 +112,7 @@ fn main() {
         }
         _ => {
             eprintln!(
-                "Usage: viewer drawing FILE | cad FILE [--drawing-format ifccad] [--preserve-splines] | export-cad FILE FORMAT [VERSION] [--drawing-format ifccad] [--preserve-splines] | export-drawing FILE FORMAT [VERSION]"
+                "Usage: viewer drawing FILE | cad FILE [--drawing-format ifccad] | export-cad FILE FORMAT [VERSION] [--drawing-format ifccad] | export-drawing FILE FORMAT [VERSION]"
             );
             std::process::exit(2)
         }

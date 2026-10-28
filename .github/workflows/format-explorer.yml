@@ -25,7 +25,7 @@ jobs:
         id: browser-cache
         with:
           path: format-explorer/wasm-build
-          key: ifccad-browser-wasm-ubuntu24-v3-${{ hashFiles('Cargo.toml', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ifccad-convert/README.md', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', '.github/actions/viewport-codec/**') }}
+          key: ifccad-browser-wasm-ubuntu24-v3-${{ hashFiles('Cargo.toml', 'Cargo.lock', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ifccad-convert/README.md', 'scripts/check_explorer_dependencies.py', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', 'patches/opencadcodec-polyline-widths/**', '.github/actions/viewport-codec/**') }}
       - uses: ./.github/actions/viewport-codec
         if: steps.browser-cache.outputs.cache-hit != 'true'
       - uses: dtolnay/rust-toolchain@stable
@@ -41,6 +41,11 @@ jobs:
         if: steps.browser-cache.outputs.cache-hit != 'true'
         with:
           tool: wasm-pack
+      - name: Check Explorer dependency boundary
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        run: |
+          cargo fetch --locked
+          python3 scripts/check_explorer_dependencies.py
       - name: Build browser processor
         if: steps.browser-cache.outputs.cache-hit != 'true'
         run: wasm-pack build crates/browser --target web --out-dir ../../format-explorer/wasm-build --release
@@ -66,12 +71,12 @@ jobs:
         id: web-cache
         with:
           path: ocs-upstream/dist/app
-          key: ocs-web-main-2a2d9b55-linux-trunk
+          key: ocs-web-main-aedf475c-linux-trunk
       - uses: actions/checkout@v5
         if: steps.web-cache.outputs.cache-hit != 'true'
         with:
           repository: HakanSeven12/OpenCADStudio
-          ref: 2a2d9b55d9a328fb6e2ec4d4adb6b122aa189459
+          ref: aedf475c97463213bd654ae96da8454eb0d7aac9
           path: ocs-upstream
       - uses: dtolnay/rust-toolchain@stable
         if: steps.web-cache.outputs.cache-hit != 'true'
@@ -114,7 +119,7 @@ jobs:
           test -s ocs-upstream/dist/app/supporters.json
       - uses: actions/upload-artifact@v4
         with:
-          name: ocs-web-main-2a2d9b55
+          name: ocs-web-main-aedf475c
           path: ocs-upstream/dist/app/
           retention-days: 7
 
@@ -132,7 +137,7 @@ jobs:
         id: rust-checks-cache
         with:
           path: target/explorer-rust-checks-passed
-          key: ifccad-rust-checks-debian12-v4-${{ hashFiles('Cargo.toml', 'scripts/check_active_workspace.py', 'scripts/tests/test_active_workspace.py', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'examples/**', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', '.github/actions/viewport-codec/**', '.github/workflows/format-explorer.yml') }}
+          key: ifccad-rust-checks-debian12-v4-${{ hashFiles('Cargo.toml', 'Cargo.lock', 'scripts/check_active_workspace.py', 'scripts/tests/test_active_workspace.py', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'examples/**', 'scripts/check_explorer_dependencies.py', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', 'patches/opencadcodec-polyline-widths/**', '.github/actions/viewport-codec/**', '.github/workflows/format-explorer.yml') }}
       - uses: ./.github/actions/viewport-codec
         if: steps.rust-checks-cache.outputs.cache-hit != 'true'
       - name: Install Rust check tools
@@ -146,7 +151,8 @@ jobs:
       - name: Check Rust workspace
         if: steps.rust-checks-cache.outputs.cache-hit != 'true'
         run: |
-          cargo fetch
+          cargo fetch --locked
+          python3 scripts/check_explorer_dependencies.py
           python3 scripts/check_active_workspace.py
           python3 -m unittest discover -s scripts/tests -p test_active_workspace.py
           cargo fmt --all -- --check
@@ -170,7 +176,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
         with:
-          name: ocs-web-main-2a2d9b55
+          name: ocs-web-main-aedf475c
           path: format-explorer/ocs-build
       - uses: actions/download-artifact@v4
         with:

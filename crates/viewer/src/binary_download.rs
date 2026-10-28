@@ -1,11 +1,14 @@
-use crate::{cad, fail, inspect_ifccad_bytes};
+use crate::{download, fail, inspect_ifccad_bytes};
 use ifccad::encode_ifccad_cbor_document;
 use serde_json::Value;
 
 /// Download the validated drawing projection using an explicit experimental encoding.
 /// IFCX source fragments and foreign nodes are outside this projection.
 pub fn export_ifccad_binary_bytes(name: &str, bytes: &[u8], encoding: &str) -> Value {
-    let mut output = inspect_ifccad_bytes(name, bytes);
+    export_binary(name, bytes, encoding, inspect_ifccad_bytes(name, bytes))
+}
+
+fn export_binary(name: &str, bytes: &[u8], encoding: &str, mut output: Value) -> Value {
     if output["validation"]["strictAvailable"] != true {
         return output;
     }
@@ -30,7 +33,7 @@ pub fn export_ifccad_binary_bytes(name: &str, bytes: &[u8], encoding: &str) -> V
             } else {
                 "ifccad.cbor.zst"
             };
-            cad::download(&mut output, name, extension, &bytes);
+            download::download(&mut output, name, extension, &bytes);
             if output["export"]["download"].is_object() {
                 let stem = crate::ifccad_input::stem(name);
                 output["export"]["download"]["fileName"] = format!("{stem}.{extension}").into();

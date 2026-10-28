@@ -65,7 +65,11 @@ source capture separately from qualified CAD restoration.
 
 The [converter contract](crates/ifccad-convert/README.md) describes supported
 semantics, loss policy, source/target restrictions and the explicit codec repair.
-The Explorer uses this same conversion route. For IFCX / JSON input, the matching
+The Explorer and viewer CLI use the shared Studio `opencaddocument` mapping, with a
+merged upstream typed API and a smaller evidence boundary; see
+[the migration coverage](docs/architecture/explorer-document-route.md).
+The separate reference converter and its tests remain available; Explorer and
+viewer have no dependency on them. For IFCX / JSON input, the matching
 native download retains original source bytes. Experimental CBOR and CBOR + Zstd
 downloads encode the validated IFCCAD drawing projection.
 

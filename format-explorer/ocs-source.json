@@ -1,1 +1,11 @@
-{"tag":"main","commit":"2a2d9b55d9a328fb6e2ec4d4adb6b122aa189459","repository":"https://github.com/HakanSeven12/OpenCADStudio"}
+{
+  "tag": "main",
+  "commit": "aedf475c97463213bd654ae96da8454eb0d7aac9",
+  "repository": "https://github.com/HakanSeven12/OpenCADStudio",
+  "documentCommit": "8e2d60952880066365caba6597762f89999400dd",
+  "codecCommit": "68530d95",
+  "nativeCoreCommit": "14e6562",
+  "explorerCore": "local-workspace-2026.44.0",
+  "explorerDocumentCommit": "47d7888ca6ae1a13b80c8cf5076f5efdbc5a5f2b",
+  "explorerCodecCommit": "eada4ffee23ed4e69c6e0bc2f608a59610e65751"
+}

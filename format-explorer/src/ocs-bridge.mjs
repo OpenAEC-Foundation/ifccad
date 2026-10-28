@@ -43,6 +43,8 @@ export function connectOcsFrame(host,{waitForApi=waitForOcs,sessionFactory=api=>
    }
    const documentId=message.op==='open'&&message.role==='original'
     ?await session.openOriginal(message.base64,message.name)
+    :message.op==='replace'&&message.role==='original'
+     ?await session.replaceOriginal(message.base64,message.name)
     :message.op==='replace'&&message.role==='generated'
      ?await session.replaceGenerated(message.base64,message.name)
      :null;

@@ -12,18 +12,6 @@ impl IfccadInput {
             Self::Binary(value) => value.document(),
         }
     }
-
-    pub(crate) fn to_cad(
-        &self,
-        options: ifccad_convert::IfccadToCadOptions,
-    ) -> Result<ifccad_convert::IfccadToCadOutcome, ifccad_convert::IfccadConversionError> {
-        match self {
-            Self::Ifcx(value) => ifccad_convert::ifccad_source_to_cad_document(value, options),
-            Self::Binary(value) => {
-                ifccad_convert::ifccad_document_to_cad_document(value.document(), options)
-            }
-        }
-    }
 }
 
 pub(crate) fn encoding(name: &str) -> &'static str {
@@ -122,7 +110,7 @@ pub(crate) fn inspect(name: &str, bytes: &[u8]) -> serde_json::Value {
     match ifccad::encode_ifccad_document(drawing.document()) {
         Ok(display) => {
             let graph = serde_json::from_slice(display.bytes()).expect("production JSON writer");
-            crate::ifccad::present_document(&mut output, drawing.document(), &graph);
+            crate::native_inspection::present_document(&mut output, drawing.document(), &graph);
             output["source"]["representation"] = "decoded".into();
             output["nativeSourceText"] = String::from_utf8(display.into_bytes())
                 .expect("JSON UTF-8")

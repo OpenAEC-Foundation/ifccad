@@ -19,6 +19,10 @@ and tests own implemented behavior. Older issue text mentioning CBOR revision 2
 does not override the current mutable revision-1 mapping. Package release
 numbers, profile contracts and physical mapping revisions are separate concerns.
 
+The Explorer has since moved to the [shared Document route](architecture/explorer-document-route.md).
+This dated review’s reference-converter accuracy/preservation evidence does not
+qualify that newer route; native validation and source inspection remain active.
+
 ## How to read the checklist
 
 IFCCAD provides a drawing contract, core implementation and converter. The DWG
@@ -124,7 +128,7 @@ IDs follow the issue's original order, so every requirement remains traceable.
   [from-CAD inventory](../crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md),
   [to-CAD inventory](../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md),
   [current dependency audit](geometry/opencadcodec-update-2026-10-16.md).
-- [CAD output/readback route](../crates/viewer/src/cad.rs),
+- [CAD output/readback route](../crates/viewer/src/document_route.rs),
   [version choices](../format-explorer/src/cad-formats.mjs) and
   [CI/deployment checks](../.github/workflows/format-explorer.yml).
 

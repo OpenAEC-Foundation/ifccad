@@ -1,49 +1,20 @@
 #![recursion_limit = "256"]
 mod binary_download;
-mod cad;
-mod geometry;
-mod hatch_capabilities;
-mod hatch_exchange;
-mod hatch_export_facts;
-mod ifccad;
+mod document_route;
+mod download;
 mod ifccad_input;
 mod inspection_dimension_label;
 mod inspection_ifccad_dimension;
-mod line_pattern_exchange;
+mod inspection_polyline_widths;
+mod native_inspection;
 mod options;
-mod polyline_widths;
-mod selection;
 pub use binary_download::export_ifccad_binary_bytes;
-pub use ifccad::{export_ifccad_bytes, inspect_cad_as_ifccad_bytes, inspect_ifccad_bytes};
+pub use document_route::{
+    document_cad_to_ifccad, document_capabilities, document_export_ifccad, document_open_ifccad,
+};
+pub use native_inspection::inspect_ifccad_bytes;
 use serde_json::{json, Value};
 use std::path::Path;
-pub fn conversion_capabilities() -> Value {
-    json!({"ifccad":{"partialOpening":true,"adjustableTolerance":true,"coordinateToleranceDefault":true,"coordinateToleranceFallback":true,"splinePreservation":true,"hatchExport":hatch_capabilities::metadata()}})
-}
-pub fn export_ifccad_bytes_with_options(
-    name: &str,
-    bytes: &[u8],
-    format: &str,
-    version: &str,
-    options: &str,
-) -> Value {
-    match options::ConversionOptions::parse(options) {
-        Ok(o) => ifccad::export_ifccad_with_options(name, bytes, format, version, &o),
-        Err(e) => options::invalid(name, "ifccad", "INVALID_CONVERSION_OPTIONS", e),
-    }
-}
-pub fn inspect_cad_as_ifccad_bytes_with_options(
-    name: &str,
-    format: &str,
-    bytes: &[u8],
-    timestamp: &str,
-    options: &str,
-) -> Value {
-    match options::ConversionOptions::parse(options) {
-        Ok(o) => ifccad::inspect_cad_as_ifccad_with_options(name, format, bytes, timestamp, &o),
-        Err(e) => options::invalid(name, "ifccad", "INVALID_CONVERSION_OPTIONS", e),
-    }
-}
 pub fn inspect_ifccad(path: &Path) -> Value {
     match std::fs::read(path) {
         Ok(bytes) => inspect_ifccad_bytes(&path.to_string_lossy(), &bytes),

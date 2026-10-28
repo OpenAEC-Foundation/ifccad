@@ -21,7 +21,9 @@
  </nav>
  <div class="conversion-layout"><aside class="conversion-settings">
   <h2 data-i18n="conversionSettings">Conversion settings</h2>
-  <div id="input-conversion-controls"><label id="preservation-control" hidden><span data-i18n="captureSplines">Preserve supported SPLINE source data</span><input id="preserve-splines" type="checkbox" checked></label></div>
+  <button id="conversion-info-open" type="button" popovertarget="conversion-info" data-i18n-label="conversionInfo" data-i18n-title="conversionInfo"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="7.25"/><path d="M10 9.25v4.5"/><circle cx="10" cy="6.25" r=".8" fill="currentColor" stroke="none"/></svg></button>
+  <div id="conversion-info" popover><p data-i18n="documentRouteLimits"></p></div>
+  <div id="input-conversion-controls"><label id="preservation-control" hidden><span data-i18n="captureSplines">Preserve supported SPLINE source data</span><input id="preserve-splines" type="checkbox"></label></div>
   <div id="output-conversion-controls" hidden><h3 data-i18n="cadOutput">CAD output</h3><div id="cad-controls"><label><span data-i18n="exportFormat">Format</span><select id="preview-format"><option value="dxf">DXF</option><option value="dwg">DWG</option></select></label><label><span data-i18n="version">Version</span><select id="preview-version"><option>AC1032</option><option>AC1027</option><option>AC1024</option><option>AC1021</option><option>AC1018</option><option>AC1015</option></select></label><button id="cad-download" class="panel-action download-action" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v10 M6 8l4 4 4-4 M3 13v4h14v-4"/></svg></button></div><p id="cad-source-settings-note" class="secondary" role="status" hidden></p></div>
   <button id="tolerance-open" aria-controls="tolerance-dialog" aria-expanded="false"><span data-i18n="tolerance">Geometric tolerance</span>: <span id="tolerance-summary"></span></button>
   <div id="tolerance-inline"></div><p id="tolerance-effective" class="secondary"></p>

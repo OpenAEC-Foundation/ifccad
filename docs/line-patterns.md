@@ -141,9 +141,11 @@ catalogue. Focused standalone authoring programs `write_line_patterns` and
 Native IFCX and mutable CBOR mapping revision 1 retain upright rotation and its
 finite radian angle for both text and SHX symbol markers. The current unmodified
 codec pin is [audited here](geometry/opencadcodec-update-2026-10-23.md).
-The codec writes upright as relative in DXF before AC1027. Explorer discloses
-that selected-target loss before downloading; actual physical readback compares
-the stored mode independently. Allow returns the file with a located loss;
-Reject offers no download. The requested version is never substituted.
+The reference codec writes upright as relative in DXF before AC1027. Its
+standalone converter qualification compares the stored mode independently. The
+former viewer disclosed a located loss under Allow and refused output under
+Reject. The active Explorer uses the [shared route](architecture/explorer-document-route.md),
+reports its upstream losses and offers no Reject policy or reference preflight.
+The requested version is never substituted.
 Focused physical checks cover the AC1024/AC1027 DXF boundary and DWG AC1024.
 This qualifies stored mode/source linkage, not evaluated glyph display.

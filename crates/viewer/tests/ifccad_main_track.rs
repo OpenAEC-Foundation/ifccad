@@ -5,9 +5,9 @@ fn native_api_rejects_parked_input_and_advertises_only_ifccad() {
     let output = viewer::inspect_ifccad_bytes("old.ocdraw.json", b"{}");
     assert_eq!(output["failure"]["code"], "OCDRAW_PARKED");
     assert!(output.get("export").is_none());
-    let capabilities = viewer::conversion_capabilities();
+    let capabilities = viewer::document_capabilities();
     assert!(capabilities.get("ocdraw").is_none());
-    assert_eq!(capabilities["ifccad"]["coordinateToleranceDefault"], true);
+    assert_eq!(capabilities["ifccad"]["coordinateToleranceDefault"], false);
 }
 
 #[test]
@@ -24,15 +24,11 @@ fn cli_rejects_explicit_legacy_choice_before_reading_source() {
 
 #[test]
 fn cli_defaults_to_ifccad_for_cad_input() {
-    use ifccad_convert::opencadcodec::{CadDocument, DxfWriter};
+    use opencaddocument::{Document, Dxf, Format};
     let directory = std::env::temp_dir().join(format!("ifccad-main-track-{}", std::process::id()));
     std::fs::create_dir_all(&directory).unwrap();
     let path = directory.join("empty.dxf");
-    std::fs::write(
-        &path,
-        DxfWriter::new(&CadDocument::new()).write_to_vec().unwrap(),
-    )
-    .unwrap();
+    std::fs::write(&path, Dxf.write(&Document::new()).unwrap().0).unwrap();
     let output = Command::new(env!("CARGO_BIN_EXE_viewer"))
         .arg("cad")
         .arg(&path)

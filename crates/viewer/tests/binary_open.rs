@@ -43,7 +43,7 @@ fn binary_input_opens_and_can_be_exported_to_json_binary_and_cad() {
         )
         .unwrap();
         assert_eq!(display.document(), original.document());
-        let json = viewer::export_ifccad_bytes(name, &bytes, "ifccad", "AC1032");
+        let json = export(name, &bytes, "ifccad", "AC1032");
         let file = &json["export"]["download"];
         assert_eq!(file["fileName"], "drawing.ifcx");
         let decoded = STANDARD.decode(file["base64"].as_str().unwrap()).unwrap();
@@ -68,7 +68,7 @@ fn binary_input_opens_and_can_be_exported_to_json_binary_and_cad() {
             assert_eq!(decoded, bytes);
         }
         for format in ["dxf", "dwg"] {
-            let output = viewer::export_ifccad_bytes(name, &bytes, format, "AC1032");
+            let output = export(name, &bytes, format, "AC1032");
             assert!(output["failure"].is_null(), "{output}");
             assert!(output["export"]["download"]["base64"].is_string());
             assert!(
@@ -104,4 +104,8 @@ fn binary_input_rejects_malformed_bytes_and_wrong_transport() {
         assert!(result["presentation"].is_null());
         assert!(result["nativeSourceText"].is_null());
     }
+}
+
+fn export(name: &str, bytes: &[u8], format: &str, version: &str) -> serde_json::Value {
+    viewer::document_export_ifccad(name, bytes, format, version, "{}")
 }

@@ -1,4 +1,3 @@
-use ifccad_convert::IfccadGeometryTolerance;
 use serde::Deserialize;
 use serde_json::{json, Value};
 #[derive(Default, Deserialize)]
@@ -19,14 +18,6 @@ pub(crate) enum ExportLossPolicy {
     #[default]
     Allow,
     Reject,
-}
-impl ExportLossPolicy {
-    pub(crate) fn ifccad(self) -> ifccad_convert::IfccadLossPolicy {
-        match self {
-            Self::Allow => ifccad_convert::IfccadLossPolicy::Allow,
-            Self::Reject => ifccad_convert::IfccadLossPolicy::Reject,
-        }
-    }
 }
 #[derive(Default, Deserialize)]
 #[serde(tag = "mode", rename_all = "lowercase", deny_unknown_fields)]
@@ -53,33 +44,28 @@ fn coordinate_fallback<'de, D: serde::Deserializer<'de>>(
 impl ConversionOptions {
     pub(crate) fn parse(text: &str) -> Result<Self, String> {
         let value: Self = serde_json::from_str(text).map_err(|e| e.to_string())?;
-        value.ifccad_tolerance()?;
-        Ok(value)
-    }
-    pub(crate) fn ifccad_tolerance(&self) -> Result<IfccadGeometryTolerance, String> {
-        match &self.tolerance {
-            Tolerance::Default => Ok(IfccadGeometryTolerance::default()),
-            Tolerance::Exact => Ok(IfccadGeometryTolerance::exact()),
-            Tolerance::Custom {
-                value,
-                unit,
-                coordinate_fallback,
-            } => {
-                let tolerance = match unit.as_str() {
-                    "mm" => IfccadGeometryTolerance::millimetres(*value),
-                    "m" => IfccadGeometryTolerance::metres(*value),
-                    "drawing" => IfccadGeometryTolerance::drawing_units(*value),
-                    _ => return Err("Unknown tolerance unit".into()),
+        if let Tolerance::Custom {
+            value,
+            unit,
+            coordinate_fallback,
+        } = &value.tolerance
+        {
+            if !value.is_finite() || *value < 0.0 {
+                return Err("Tolerance must be finite and nonnegative".into());
+            }
+            if !matches!(unit.as_str(), "mm" | "m" | "drawing") {
+                return Err("Unknown tolerance unit".into());
+            }
+            if let Some(fallback) = coordinate_fallback {
+                if !fallback.is_finite() || *fallback < 0.0 {
+                    return Err("Coordinate fallback must be finite and nonnegative".into());
                 }
-                .map_err(|e| e.to_string())?;
-                match coordinate_fallback {
-                    Some(value) => tolerance
-                        .with_coordinate_fallback(*value)
-                        .map_err(|e| e.to_string()),
-                    None => Ok(tolerance),
+                if unit == "drawing" {
+                    return Err("A coordinate fallback requires a physical tolerance".into());
                 }
             }
         }
+        Ok(value)
     }
     pub(crate) fn value(&self) -> Value {
         let tolerance = match &self.tolerance {

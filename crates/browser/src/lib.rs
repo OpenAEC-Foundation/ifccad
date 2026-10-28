@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub fn conversion_capabilities() -> String {
-    viewer::conversion_capabilities().to_string()
+    viewer::document_capabilities().to_string()
 }
 
 #[wasm_bindgen]
@@ -12,8 +12,7 @@ pub fn convert_cad_to_ifccad_with_options(
     timestamp: &str,
     options: &str,
 ) -> String {
-    viewer::inspect_cad_as_ifccad_bytes_with_options(name, format, bytes, timestamp, options)
-        .to_string()
+    viewer::document_cad_to_ifccad(name, format, bytes, timestamp, options).to_string()
 }
 #[wasm_bindgen]
 pub fn export_ifccad_with_options(
@@ -23,22 +22,22 @@ pub fn export_ifccad_with_options(
     version: &str,
     options: &str,
 ) -> String {
-    viewer::export_ifccad_bytes_with_options(name, bytes, format, version, options).to_string()
+    viewer::document_export_ifccad(name, bytes, format, version, options).to_string()
 }
 
 #[wasm_bindgen]
 pub fn open_ifccad(name: &str, bytes: &[u8]) -> String {
-    viewer::inspect_ifccad_bytes(name, bytes).to_string()
+    viewer::document_open_ifccad(name, bytes).to_string()
 }
 
 #[wasm_bindgen]
 pub fn convert_cad_to_ifccad(name: &str, format: &str, bytes: &[u8], timestamp: &str) -> String {
-    viewer::inspect_cad_as_ifccad_bytes(name, format, bytes, timestamp).to_string()
+    viewer::document_cad_to_ifccad(name, format, bytes, timestamp, "{}").to_string()
 }
 
 #[wasm_bindgen]
 pub fn export_ifccad(name: &str, bytes: &[u8], format: &str, version: &str) -> String {
-    viewer::export_ifccad_bytes(name, bytes, format, version).to_string()
+    viewer::document_export_ifccad(name, bytes, format, version, "{}").to_string()
 }
 
 #[wasm_bindgen]
@@ -83,7 +82,7 @@ mod tests {
             r#"{"lossPolicy":"reject"}"#,
         ))
         .unwrap();
-        assert_eq!(rejected["failure"]["code"], "CAD_EXCHANGE_LOSS_REJECTED");
+        assert_eq!(rejected["failure"]["code"], "DOCUMENT_OPTION_UNAVAILABLE");
         assert!(rejected["export"]["download"].is_null());
     }
     #[test]
@@ -94,6 +93,6 @@ mod tests {
         let capabilities: serde_json::Value =
             serde_json::from_str(&super::conversion_capabilities()).unwrap();
         assert!(capabilities.get("ocdraw").is_none());
-        assert_eq!(capabilities["ifccad"]["splinePreservation"], true);
+        assert_eq!(capabilities["ifccad"]["splinePreservation"], false);
     }
 }

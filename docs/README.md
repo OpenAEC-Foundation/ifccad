@@ -18,7 +18,7 @@ connect those sources without replacing them.
 | Understand CBOR and optional Zstd | [Encoding guide](experiments/ifccad-cbor.md), [CBOR mapping](../schemas/ifccad/cbor-mapping-1.md) and [Zstd transport](../schemas/ifccad/cbor-zstd-transport-1.md) |
 | Assess DXF/DWG exchange | [Converter contract](../crates/ifccad-convert/README.md), then [CAD-to-IFCCAD coverage](../crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md) or [IFCCAD-to-CAD coverage](../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) |
 | Investigate conversion failures | [Conversion diagnosis](conversion-diagnostics.md) |
-| Work on browser processing and inspection | [Browser architecture](architecture/browser-processing.md), then the [Explorer development guide](../format-explorer/README.md#development-and-checks) |
+| Work on browser processing and inspection | [Browser architecture](architecture/browser-processing.md), then the [Explorer development guide](../format-explorer/README.md#development-and-verification) |
 | Contribute or maintain a checkout | [Working agreements](../AGENTS.md), [verification](../README.md#verification) and [local maintenance](local-maintenance.md) |
 
 ## Drawing topics

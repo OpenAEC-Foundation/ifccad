@@ -6,7 +6,7 @@ export function inspectionReport(input={},cadResult){
  // Older result payloads may have only basic CAD readback evidence.
  const readback=!exported?.fileCheck&&cadResult?.failure===null&&exported?.download&&['dxf','dwg'].includes(exported.format)?{cadReadback:true,versionMatched:true,version:exported.requestedVersion}:undefined;
  return {
-  input:{reader:input?.reader,validation:input?.validation,conversion:input?.conversion,failure:input?.failure},
+  input:{preview:input?.preview?{backend:input.preview.backend,rendering:input.preview.rendering,diagnostics:[...(input.preview.diagnostics||[]),...(input.preview.failure?[{code:'IFCX_VIEWER_PROJECTION_FAILED',message:input.preview.failure.message}]:[])]}:undefined,reader:input?.reader,validation:input?.validation,conversion:input?.conversion,failure:input?.failure},
   output:{restoration:conversion&&Object.hasOwn(conversion,'restoration')?conversion.restoration:conversion,failure:cadResult?.failure,readback,
    export:exported?{format:exported.format,requestedVersion:exported.requestedVersion,options:exported.options,geometry:exported.geometry,geometryAssessment:exported.geometryAssessment,text:exported.text,diagnostics:exported.diagnostics,fileCheck:exported.fileCheck}:undefined},
  };

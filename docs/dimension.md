@@ -195,13 +195,17 @@ Horizontal/diagonal fractions have an escaped, accessible text preview. That
 preview is not a CAD glyph-layout or graphical bounds certificate. Full-width
 identities and the original source view remain available.
 
-DWG text placement uses the explicitly selected
+The standalone reference converter’s DWG text placement uses the explicitly selected
 [text-position polarity repair](../patches/opencadcodec-dimension/README.md)
 alongside the viewport-off repair. DWG flags bit 0 is the opposite of DXF 70 bit
 128; independent raw-bit tests prevent matching codec reader/writer errors from
 masking one another. This does not qualify the unmodified dependency or introduce
 rotated automatic placement. The normal explicit native placement remains the
 representation for user-positioned source text.
+
+The active Explorer uses the [shared Document mapping](architecture/explorer-document-route.md).
+Its host rendering and numerical error bounds remain unassessed; the reference
+codec qualification below is not a current Explorer guarantee.
 
 ### CAD decimal-separator default
 

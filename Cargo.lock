@@ -26,6 +26,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "acadrust"
+version = "0.6.6"
+source = "git+https://github.com/HakanSeven12/acadrust.git?rev=eada4ff#eada4ffee23ed4e69c6e0bc2f608a59610e65751"
+dependencies = [
+ "anyhow",
+ "bitflags",
+ "byteorder",
+ "encoding_rs",
+ "flate2",
+ "foldhash",
+ "indexmap",
+ "itoa",
+ "memchr",
+ "memmap2",
+ "nom",
+ "oem_cp",
+ "once_cell",
+ "rayon",
+ "ryu",
+ "thiserror 2.0.21",
+ "web-time",
+]
+
+[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -149,7 +173,7 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 name = "cad-dimension"
 version = "2026.44.0"
 dependencies = [
- "acadrust",
+ "acadrust 0.6.6",
  "cad-geometry-convert",
  "cad-presentation-convert",
  "fpmath",
@@ -164,7 +188,7 @@ dependencies = [
 name = "cad-geometry-convert"
 version = "2026.44.0"
 dependencies = [
- "acadrust",
+ "acadrust 0.6.6",
  "fpmath",
  "ifccad",
  "num-bigint",
@@ -178,7 +202,7 @@ dependencies = [
 name = "cad-presentation-convert"
 version = "2026.44.0"
 dependencies = [
- "acadrust",
+ "acadrust 0.6.6",
  "thiserror 1.0.69",
 ]
 
@@ -186,7 +210,7 @@ dependencies = [
 name = "cad-preservation"
 version = "2026.44.0"
 dependencies = [
- "acadrust",
+ "acadrust 0.6.6",
  "base64",
  "serde",
  "serde_json",
@@ -197,7 +221,7 @@ dependencies = [
 name = "cad-text"
 version = "2026.44.0"
 dependencies = [
- "acadrust",
+ "acadrust 0.6.6",
  "cad-geometry-convert",
  "ifccad",
  "num-rational",
@@ -210,7 +234,7 @@ dependencies = [
 name = "cad-workspace-convert"
 version = "2026.44.0"
 dependencies = [
- "acadrust",
+ "acadrust 0.6.6",
  "ifccad",
  "serde_json",
  "thiserror 1.0.69",
@@ -623,7 +647,7 @@ dependencies = [
 name = "ifccad-convert"
 version = "2026.44.0"
 dependencies = [
- "acadrust",
+ "acadrust 0.6.6",
  "cad-dimension",
  "cad-geometry-convert",
  "cad-presentation-convert",
@@ -913,6 +937,16 @@ name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
+
+[[package]]
+name = "opencaddocument"
+version = "0.1.0"
+source = "git+https://github.com/HakanSeven12/opencaddocument.git?rev=47d7888ca6ae1a13b80c8cf5076f5efdbc5a5f2b#47d7888ca6ae1a13b80c8cf5076f5efdbc5a5f2b"
+dependencies = [
+ "acadrust 0.6.6 (git+https://github.com/HakanSeven12/acadrust.git?rev=eada4ff)",
+ "ifccad",
+ "web-time",
+]
 
 [[package]]
 name = "outref"
@@ -1413,7 +1447,7 @@ version = "2026.44.0"
 dependencies = [
  "base64",
  "ifccad",
- "ifccad-convert",
+ "opencaddocument",
  "serde",
  "serde_json",
  "sha2",

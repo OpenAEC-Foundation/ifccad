@@ -1,5 +1,11 @@
 # IFCCAD conversion proof
 
+This crate is retained as a standalone reference converter and regression suite.
+Explorer and the active viewer use `opencaddocument` and have no dependency on
+this crate or its codec. The old viewer integration is retired; see
+[recovery and coverage boundaries](../../docs/architecture/retired-viewer-converter.md).
+The numerical and preservation contracts below qualify this reference converter.
+
 The [standalone CBOR candidate](../../docs/experiments/ifccad-cbor.md) is core
 storage for the same typed CAD document. Use `ifccad_document_to_cad_document`
 with the validated CBOR document; IFCX source-graph audits remain specific to

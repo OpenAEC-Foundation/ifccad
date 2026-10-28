@@ -1,6 +1,6 @@
 //! Generate small CAD inputs for a reproducible local viewer smoke test.
-use ifccad_convert::opencadcodec::{
-    CadDocument, Circle, DwgWriter, DxfWriter, EntityType, Line, LwPolyline, Vector2,
+use opencaddocument::{
+    Circle, Document, DwgWriter, DxfWriter, EntityType, Line, LwPolyline, Vector2,
 };
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let root = std::env::args_os()
@@ -8,7 +8,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(std::path::PathBuf::from)
         .ok_or("provide an output directory")?;
     std::fs::create_dir_all(&root)?;
-    let mut doc = CadDocument::new();
+    let mut doc = Document::new();
     doc.add_entity(EntityType::Line(Line::from_coords(
         0., 0., 0., 10., 10., 0.,
     )))?;

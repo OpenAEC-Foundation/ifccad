@@ -1,5 +1,12 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 const reports=await import('../src/inspection-report.mjs').catch(()=>({}));
+
+test('host projection losses remain visible separately from native validation and CAD export',()=>{
+ const input={validation:{strictAvailable:true},conversion:null,preview:{backend:'opencaddocument',rendering:'unassessed',diagnostics:[{code:'DOCUMENT_CONVERSION_LOSS',message:'picture unavailable'}],viewerSelection:{entities:['transient map']}}};
+ const report=reports.inspectionReport(input);
+ assert.ok(report.input.preview);assert.equal(report.input.preview.rendering,'unassessed');assert.deepEqual(report.input.preview.diagnostics,input.preview.diagnostics);
+ assert.equal(report.input.preview.viewerSelection,undefined);assert.equal(report.input.conversion,null);assert.equal(report.output.export,undefined);
+});
 test('input conversion evidence survives a successful roundtrip with distinct output restoration and readback',()=>{
  assert.equal(typeof reports.inspectionReport,'function');
  const input={reader:{status:'ok'},validation:{strictAvailable:true},conversion:{diagnostics:['input loss']},failure:{message:'previous output failed'}};
