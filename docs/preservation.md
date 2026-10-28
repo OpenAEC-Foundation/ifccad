@@ -1,5 +1,9 @@
 # Preservation direction
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](converter-parking.md);
+the [shared Document route](architecture/explorer-document-route.md) has its own coverage.
+
 IFCCAD is the active track. OCDraw descriptions below retain historical context;
 its implementation and fixtures are parked. See [parking](ocdraw-parking.md).
 Only IFCCAD code, schemas and current converter coverage define active behavior.
@@ -93,8 +97,8 @@ architecture and qualification; it does not establish current IFCCAD coverage.
 The authoritative serialized contract is the
 [IFCCAD profile](../schemas/ifccad/experimental-contract-0.1.0.md), with current
 conversion limits in the converter's
-[FROM-CAD](../crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md) and
-[TO-CAD](../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) inventories.
+[FROM-CAD](../legacy/ifccad-convert/reference/crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md) and
+[TO-CAD](../legacy/ifccad-convert/reference/crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) inventories.
 
 The independent IFCCAD pilot verifies all supported owners, nested/unused block
 definitions, optional exact common state, unknown-provider storage, uint64
@@ -104,10 +108,10 @@ storage, including Paper5inch=127mm equivalence and change/reversion of coordina
 meaning. Eight native-edit cases exercise actual DXF/AC1032 DWG restoration
 against independent control-point oracles; create-new filesystem coverage saves,
 reopens and restores to a fresh DWG. See
-[capture](../crates/ifccad-convert/tests/spline_capture.rs),
-[restore](../crates/ifccad-convert/tests/spline_restore.rs),
-[native-edit exchange](../crates/ifccad-convert/tests/spline_edit_exchange.rs) and
-[record-order](../crates/ifccad-convert/tests/spline_record_order.rs) tests.
+[capture](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/spline_capture.rs),
+[restore](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/spline_restore.rs),
+[native-edit exchange](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/spline_edit_exchange.rs) and
+[record-order](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/spline_record_order.rs) tests.
 
 The 2026-10-07 delivery checkpoint used codec `063c106` plus the explicit
 viewport-off repair. It recorded 772 passing Rust tests, one existing ignored

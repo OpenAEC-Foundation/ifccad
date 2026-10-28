@@ -163,6 +163,6 @@ leaves use ACI; true-color overrides require an unsupported transport profile.
 Coupled native leaves must retain qualified factoring on output.
 
 DWG text-position polarity requires the explicitly selected
-[codec repair](../../patches/opencadcodec-dimension/README.md). The raw-bit test
+[codec repair](../../legacy/ifccad-convert/reference/patches/opencadcodec-dimension/README.md). The raw-bit test
 checks both positions independently of matching reader/writer behavior. Native
 models, CAD definition anchors and strict-validation rules are unchanged.

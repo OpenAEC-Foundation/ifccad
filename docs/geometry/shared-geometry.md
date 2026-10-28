@@ -1,5 +1,9 @@
 # Shared geometry and conversion accuracy
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](../converter-parking.md);
+the [shared Document route](../architecture/explorer-document-route.md) has its own coverage.
+
 The active IFCCAD core uses `ifccad::geometry_kernel` for primitive values,
 coordinate frames, length-unit tokens, intrinsic validation, conservative bounds
 and analytic Paper clip containment. `GeometryRef` is borrowed and carries no
@@ -105,8 +109,8 @@ an extracted angle or a definition-local result alone.
 
 The current qualification is recorded by the
 [dependency audit](opencadcodec-update-2026-10-16.md),
-[block tests](../../crates/ifccad-convert/tests/blocks.rs) and the converter's
-[directional coverage](../../crates/ifccad-convert/README.md#supported-slice).
+[block tests](../../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/blocks.rs) and the converter's
+[directional coverage](../../legacy/ifccad-convert/reference/crates/ifccad-convert/README.md#supported-slice).
 These checks concern retained codec semantics, not every downstream CAD host
 or source information already lost before `CadDocument` construction.
 
@@ -151,7 +155,7 @@ collections remain unchanged. See the [geometry sample](../../tests/fixtures/ifc
 The expanded AC1032 family corpus, including signed arcs, partial ellipses,
 dormant outgoing bulges and spatial paths, passes production DXF/DWG readback.
 Viewport ellipse/bulged clip exchange uses the explicitly documented three
-[development codec patches](../../patches/opencadcodec-viewports/README.md)
+[development codec patches](../../legacy/ifccad-convert/reference/patches/opencadcodec-viewports/README.md)
 against `fe69506cb99dea6f4c4a73b690a27fdf04403ea0`. Those repaired viewport
 results do not qualify the unmodified pin. No controlled size experiment was rerun.
 The unmodified pin was separately exercised: the expanded non-viewport family

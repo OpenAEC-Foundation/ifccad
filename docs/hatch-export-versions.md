@@ -1,5 +1,9 @@
 # Hatch DXF/DWG output qualification
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](converter-parking.md);
+the [shared Document route](architecture/explorer-document-route.md) has its own coverage.
+
 This document qualifies the standalone reference converter, not the shared
 Explorer mapping. See [the current route](architecture/explorer-document-route.md)
 and [retired viewer integration](architecture/retired-viewer-converter.md).
@@ -13,7 +17,7 @@ The converter and physical file each have separate loss boundaries.
 ## Target matrix
 
 Every cell is actually written and production-read in
-`crates/ifccad-convert/tests/hatch_version_matrix.rs`. Versions are checked against
+`legacy/ifccad-convert/reference/crates/ifccad-convert/tests/hatch_version_matrix.rs`. Versions are checked against
 the emitted header and reader; export never substitutes a different version.
 
 | Format | Version | Sources, provenance, TextIsland | Active gradient |

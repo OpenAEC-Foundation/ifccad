@@ -1,5 +1,9 @@
 # Layout media and effective plot settings
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](converter-parking.md);
+the [shared Document route](architecture/explorer-document-route.md) has its own coverage.
+
 IFCCAD is the active track. OCDraw descriptions below retain historical context;
 its implementation and fixtures are parked. See [parking](ocdraw-parking.md).
 Only IFCCAD code, schemas and current converter coverage define active behavior.
@@ -116,8 +120,8 @@ Paper evidence stores a mapping rather than a coordinate-unit label. Browser
 uint64 identities remain decimal strings. Native opening remains independent of CAD.
 
 See the separate [OCDraw](../legacy/ocdraw/crates/ocdraw-convert/docs/TO-CAD-COVERAGE.md) and
-[IFCCAD](../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) coverage contracts and
-[codec qualification fixture](../crates/cad-geometry-convert/tests/fixtures/layout-plot-PROVENANCE.md).
+[IFCCAD](../legacy/ifccad-convert/reference/crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) coverage contracts and
+[codec qualification fixture](../legacy/ifccad-convert/reference/crates/cad-geometry-convert/tests/fixtures/layout-plot-PROVENANCE.md).
 
 Viewport plotShadingOverride is a mode-only value, independent of render mode;
 quality/DPI remains in these effective layout settings. Paper linetype scaling

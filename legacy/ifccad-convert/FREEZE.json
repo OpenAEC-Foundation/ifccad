@@ -1,0 +1,1517 @@
+{
+  "freezeCommit": "13b5ef740b61f1e7b891b374fa8efe2e3a07cf91",
+  "sourceTree": "d9ba80a85b3ebb0f99be38eded507fdcb1d04262",
+  "status": "historical source reference; restore complete checkpoint before building",
+  "codec": {
+    "repository": "https://github.com/HakanSeven12/opencadcodec.git",
+    "revision": "bd10efc2c54dfe1e6288c5f10486dce9be0d7f32",
+    "patch": "reference/patches/opencadcodec-polyline-widths/0001-preserve-polyline-widths.patch"
+  },
+  "lockfile": {
+    "path": "reproduction/Cargo.lock.snapshot",
+    "sha256": "1e00b36fe369c1ade3745f6cd6c6f261f61d507b437b1cdd244068708f58c1b2"
+  },
+  "configuration": {
+    "path": "reproduction/cargo-config.toml.snapshot",
+    "sha256": "4be7a85399e2cdd2209f1760f1b8a5f3161df593e8ca28d4ba738c246588d78a",
+    "note": "Portable codec path; isolated per-checkout target; debug=0 development/test profiles matching the recorded local setup. No absolute dependency paths."
+  },
+  "toolchain": {
+    "rust": "1.98.0",
+    "python": "3.14.7",
+    "node": "24.20.0",
+    "host": "x86_64-pc-windows-msvc"
+  },
+  "archivedPaths": [
+    {
+      "source": ".github/actions/viewport-codec/action.yml",
+      "path": "reference/.github/actions/viewport-codec/action.yml.snapshot",
+      "sha256": "c729f028c3584273d889c2e18957ce2657eb7481917a2a4627edcd64ffaee97e"
+    },
+    {
+      "source": "crates/cad-dimension/Cargo.toml",
+      "path": "reference/crates/cad-dimension/Cargo.toml.snapshot",
+      "sha256": "848ef35d372dfdeeb13895b107341b540f216a34d826cbea95b4fd980d5ab4f0"
+    },
+    {
+      "source": "crates/cad-dimension/README.md",
+      "path": "reference/crates/cad-dimension/README.md",
+      "sha256": "0adbe44644e49b3a5076312a9d4a8f20ed8b1ecec5c78a9639b0fa7607b57721"
+    },
+    {
+      "source": "crates/cad-dimension/src/association.rs",
+      "path": "reference/crates/cad-dimension/src/association.rs",
+      "sha256": "842b81c2335e5103903c42579a6528923c5f0bf8761eb10837a9a389ae82b82d"
+    },
+    {
+      "source": "crates/cad-dimension/src/diagnostics.rs",
+      "path": "reference/crates/cad-dimension/src/diagnostics.rs",
+      "sha256": "df9f838bd1da1c90c49960189b6ee56f90918677a061bb6bb60439559785d597"
+    },
+    {
+      "source": "crates/cad-dimension/src/lib.rs",
+      "path": "reference/crates/cad-dimension/src/lib.rs",
+      "sha256": "b8ae63587267661c85348b3e9a9676e34f6c990eb357f9c35544bcf428b4cdb6"
+    },
+    {
+      "source": "crates/cad-dimension/src/overrides.rs",
+      "path": "reference/crates/cad-dimension/src/overrides.rs",
+      "sha256": "37596333285e3aa9ef275e8e37f8270dae823e632f3026dedb439d8e009ad9f4"
+    },
+    {
+      "source": "crates/cad-dimension/src/picture.rs",
+      "path": "reference/crates/cad-dimension/src/picture.rs",
+      "sha256": "e931b689cfb1f75eb9fe65e5cdf4f2b19a992bee63fb1095385a369f3bfc6dd3"
+    },
+    {
+      "source": "crates/cad-dimension/src/placement.rs",
+      "path": "reference/crates/cad-dimension/src/placement.rs",
+      "sha256": "d90f773a10a453774975360b6f75f3c9abf8f05eec223e27624eabe65ee26b08"
+    },
+    {
+      "source": "crates/cad-dimension/src/source_overrides.rs",
+      "path": "reference/crates/cad-dimension/src/source_overrides.rs",
+      "sha256": "a08e47243cd8c3deb4372b48f6f07bab99add87acf289ff2db131a353a36a56a"
+    },
+    {
+      "source": "crates/cad-dimension/src/styles.rs",
+      "path": "reference/crates/cad-dimension/src/styles.rs",
+      "sha256": "c3932f75298a78b90b406f7031eac716009ce4f57819411ad2f02e1718a3b9a2"
+    },
+    {
+      "source": "crates/cad-dimension/tests/associations.rs",
+      "path": "reference/crates/cad-dimension/tests/associations.rs",
+      "sha256": "05f81ed28303dfd915473a2163fa125589d557a6b30398bac84b201fa9e48c2c"
+    },
+    {
+      "source": "crates/cad-dimension/tests/codec_boundary.rs",
+      "path": "reference/crates/cad-dimension/tests/codec_boundary.rs",
+      "sha256": "79aa97ca917a91cbb1263a1b8f9dd2f50a13c37497c379c2c479a69197add706"
+    },
+    {
+      "source": "crates/cad-dimension/tests/overrides.rs",
+      "path": "reference/crates/cad-dimension/tests/overrides.rs",
+      "sha256": "8f39e83ef5e894e7f30b31cd98d6019640b7f0d2a807385ba2d3f5edd9aff0e7"
+    },
+    {
+      "source": "crates/cad-dimension/tests/picture.rs",
+      "path": "reference/crates/cad-dimension/tests/picture.rs",
+      "sha256": "8b2e47be260a90c1e01fa581baa78900590a471f7b9bdc0509fcef737c6afb05"
+    },
+    {
+      "source": "crates/cad-dimension/tests/placement.rs",
+      "path": "reference/crates/cad-dimension/tests/placement.rs",
+      "sha256": "40d219dbf0fd738fd8755c5b56052982ee8dab7922209e682583d0cadb073a64"
+    },
+    {
+      "source": "crates/cad-dimension/tests/repair.rs",
+      "path": "reference/crates/cad-dimension/tests/repair.rs",
+      "sha256": "54992cecd25e8d23f43d2cbc6663f2d4bf4e2c60e6dc1cbc9e5c960b4b312df0"
+    },
+    {
+      "source": "crates/cad-dimension/tests/styles.rs",
+      "path": "reference/crates/cad-dimension/tests/styles.rs",
+      "sha256": "2dba8d5f99b2ccb09cdfdb456c005cae37ac467445e6070cb947a031a30c70dc"
+    },
+    {
+      "source": "crates/cad-geometry-convert/Cargo.toml",
+      "path": "reference/crates/cad-geometry-convert/Cargo.toml.snapshot",
+      "sha256": "b27f149d5bed256309dc8545d6b3fe0a11951ad036d0468e74b0bbd7e3114b3d"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/assessment.rs",
+      "path": "reference/crates/cad-geometry-convert/src/assessment.rs",
+      "sha256": "0fb89c2ff9ed193e2472a3b80f17debdaed1af81d2793fcc7e813346ba76a2bc"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/exchange.rs",
+      "path": "reference/crates/cad-geometry-convert/src/exchange.rs",
+      "sha256": "74711cb5a6b62b6eb94f85fb31631e6a6f1ec7376443b0f8414991d6736fed98"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/geometry/blocks.rs",
+      "path": "reference/crates/cad-geometry-convert/src/geometry/blocks.rs",
+      "sha256": "e3bddeb584a0a567406a93344ebbf43bd4b5660cfa8334157f70573af0f0e056"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/geometry/circular.rs",
+      "path": "reference/crates/cad-geometry-convert/src/geometry/circular.rs",
+      "sha256": "307ef9e6a5e616dd37238ff6f4d5ca9ddd33339e9f7652cecd33cb7ddf95b392"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/geometry/filled.rs",
+      "path": "reference/crates/cad-geometry-convert/src/geometry/filled.rs",
+      "sha256": "d829a0381dc0f7e6836085afa4968bca745f0b285e580215241d74ac31173f42"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/geometry/mod.rs",
+      "path": "reference/crates/cad-geometry-convert/src/geometry/mod.rs",
+      "sha256": "69d48f9eaccc4b973de359abd62b471716a5363b2f6f29b505174176ded14cf2"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/geometry/numeric.rs",
+      "path": "reference/crates/cad-geometry-convert/src/geometry/numeric.rs",
+      "sha256": "e5bb2dc6ada7199156c91cdc7157c6742e0939d95a78bd8d2df5bb0674e876af"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/geometry/polyline_width.rs",
+      "path": "reference/crates/cad-geometry-convert/src/geometry/polyline_width.rs",
+      "sha256": "f358fff42abb3db2dd04e31bf569b81cda4941117bc2996cf03b9a0438f5ab2f"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/audit.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/audit.rs",
+      "sha256": "3817ba5921eb9ef7310572d52bfeaf1f860ea32fa8792f2bc8b3de3a98ba25a9"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/editing.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/editing.rs",
+      "sha256": "6820240be616d0ae00b43fb748ab09bead508c1e1ca202e637bb798beb691dc0"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/evidence.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/evidence.rs",
+      "sha256": "af07846afc63c39474563ee8af6381368afb54f11123ac1c698ccb250c5af791"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/from_cad.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/from_cad.rs",
+      "sha256": "0f29cbdaafdde0baa50ebb4e3be51a9733fdbc0bc254bc644ffed0185f7e3ea7"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/gradient.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/gradient.rs",
+      "sha256": "df730fc28ce48ee7177c16d4e59137baae49daf68924251908cd6207a7d8b204"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/loop_flags.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/loop_flags.rs",
+      "sha256": "4e8c57e0f32ce34b33b433d7f17337e6ced0d9de7ab42f6644bfcb9f9fa1c65c"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/mod.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/mod.rs",
+      "sha256": "ffae65a7934cb4bc28e3f4087e90e80efc929a814eb4d46cb6d1fecc6e68492c"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/pattern/audit.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/pattern/audit.rs",
+      "sha256": "60c8d8a0d0c2b7eb8ba3c56e9666328c507c434a918999ae6902df53c6f20775"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/pattern/evidence.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/pattern/evidence.rs",
+      "sha256": "f6eea8e19273ed87b165f3cb0bcf14431f0226582ca790c9f6d3e7e6bb53b09a"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/pattern/math.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/pattern/math.rs",
+      "sha256": "1804c9f688b2453557dca22a2b8666220aeffa0c129c6dd8990f6fca2b783296"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/pattern/mod.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/pattern/mod.rs",
+      "sha256": "25179346912ea880c012a8d9f542c3563dfe0c6c9797c32e1b90a8deca39a34f"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/pattern/projection.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/pattern/projection.rs",
+      "sha256": "4f77dcc89c4040e71cda023bf53d74ae342bcaedfd7fe2091efa35630437fd57"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/hatch/to_cad.rs",
+      "path": "reference/crates/cad-geometry-convert/src/hatch/to_cad.rs",
+      "sha256": "96408d411a7a3fe747276ceb58c3ad31aa59d0d1fa9152090d706e618ff2cd36"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/lib.rs",
+      "path": "reference/crates/cad-geometry-convert/src/lib.rs",
+      "sha256": "0e4e61269a438005a005237ead0c0fb8e76ac4b40515642131336ec4efd253ea"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/plot_units.rs",
+      "path": "reference/crates/cad-geometry-convert/src/plot_units.rs",
+      "sha256": "207abf70031f1fa9ffe0a3de8d79f50df77521d732f00c896163e79104fa333c"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/prepare.rs",
+      "path": "reference/crates/cad-geometry-convert/src/prepare.rs",
+      "sha256": "779cb0dbd701a53697d59c1bc4bcdad8b0da257e6ead7b43a7803475c947a178"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/tolerance.rs",
+      "path": "reference/crates/cad-geometry-convert/src/tolerance.rs",
+      "sha256": "ee22c1aa283af1a246110419777dafcd28a11f5b889e1284e8c3ae6af3ea507c"
+    },
+    {
+      "source": "crates/cad-geometry-convert/src/units.rs",
+      "path": "reference/crates/cad-geometry-convert/src/units.rs",
+      "sha256": "0536b246926222247a2bd13de0a051ad7b408867c036b7130b2ca9d72fa0964c"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/accuracy.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/accuracy.rs",
+      "sha256": "4d04a4f5f9fa7474b49c2cd4abb2fee9c02e523056888e337d0d21c4a727cbc6"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/filled_preparation.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/filled_preparation.rs",
+      "sha256": "5c891ced16efc2e3a6106d3c0235a7122d1a1bbe723dd7bbf7edb55e8199308a"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/fixtures/hatch-9aa.json",
+      "path": "reference/crates/cad-geometry-convert/tests/fixtures/hatch-9aa.json",
+      "sha256": "b5e1f21958f468f86cea957c19768055bcb324a2d72a5f362ef54ed79145425d"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/fixtures/hatch-gradient-reference.dxf",
+      "path": "reference/crates/cad-geometry-convert/tests/fixtures/hatch-gradient-reference.dxf",
+      "sha256": "0551ecc02ec0410dc227d88c59ea70573a9577ca4bd0cbf8772b58a1cb456c98"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/fixtures/hatch-gradient-reference.md",
+      "path": "reference/crates/cad-geometry-convert/tests/fixtures/hatch-gradient-reference.md",
+      "sha256": "0b26f11462776895357bdc2b5d6ce676f6fcdff6933f667a235a0671fa27abec"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/fixtures/hatch-text-island-reference.dxf",
+      "path": "reference/crates/cad-geometry-convert/tests/fixtures/hatch-text-island-reference.dxf",
+      "sha256": "7ba7d882ed7ab9dc8b3f2b1a033676b3798db95abff6f0bd1c7a2b0cc10d0ab1"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/fixtures/hatch-text-island-reference.md",
+      "path": "reference/crates/cad-geometry-convert/tests/fixtures/hatch-text-island-reference.md",
+      "sha256": "268031b9d01706d3eb662f261d0546bf70e473f322cf1b6d38a6b367ef086a0a"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/fixtures/layout-plot-PROVENANCE.md",
+      "path": "reference/crates/cad-geometry-convert/tests/fixtures/layout-plot-PROVENANCE.md",
+      "sha256": "dcd0b354a8ab23d7c10732b39e7f7822f6173de1a50e446d8287a70f0d7aad54"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/fixtures/layout-plot-reference.dxf",
+      "path": "reference/crates/cad-geometry-convert/tests/fixtures/layout-plot-reference.dxf",
+      "sha256": "29d8be4b77305f49c4ecd2697c7429e1c6ec27bf2d517d1986e32917f64c4739"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/hatch_clockwise.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/hatch_clockwise.rs",
+      "sha256": "d71fd5387566ce5645529edc16b007fc61a1a6787d494244c3430378a973d871"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/hatch_editing.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/hatch_editing.rs",
+      "sha256": "784f7cd987572709910f29fa452e7c7e188dc84964718ff4dbe70b5da1b5497a"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/hatch_gradient.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/hatch_gradient.rs",
+      "sha256": "f9c9a0d5dc815e0977962ee1b4726911b97b8f4828426c7aa42ef3750a49c157"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/hatch_gradient_codec_limits.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/hatch_gradient_codec_limits.rs",
+      "sha256": "31a2a21d1c09c418fa04229af7a95941f6ebcf9486aa02529b786e446dcd927b"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/hatch_loop_flags.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/hatch_loop_flags.rs",
+      "sha256": "79af60babd8cd7e7afb3a8c1c74447b79f191bb9786be1d28f35f16793587a5a"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/hatch_original_candidate.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/hatch_original_candidate.rs",
+      "sha256": "09eac7c014badf404c2dc7ea49381587ccf8d441d9b73f7fccc8fa570129612b"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/hatch_pattern.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/hatch_pattern.rs",
+      "sha256": "70afab5530d67b313deece3df367f01838f7ea7d37f30cbf70e0d9c19d4e1d50"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/hatch_solid.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/hatch_solid.rs",
+      "sha256": "1493fa12c9674bbbdc281c853fd51b9ca98760f809cf07e2f45e0f309e0ce430"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/layout_plot_codec.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/layout_plot_codec.rs",
+      "sha256": "a40d19b5f7e63b840612c71f0efb60d037e147aaa49926472132ffe33e246362"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/occurrences.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/occurrences.rs",
+      "sha256": "30261a8bf561c4b3249bb097eef6e6a4749cb7ae23fd0b72bcde21e31f318cab"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/pattern_envelope.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/pattern_envelope.rs",
+      "sha256": "2b0028d7cbdeaf262072439ae75032a88094fb2eebb1651c0f35a4d33cfcaf13"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/picture_pair.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/picture_pair.rs",
+      "sha256": "095eee55347b148f2a542ee890bb54e8b39ef02388a9d6bd506ea8407f60e22a"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/plot_units.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/plot_units.rs",
+      "sha256": "bafd4de0b4d2b340428015345e9d6c1afe1b3f4e64b5148cb987772c1f48a354"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/polyline_width_accuracy.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/polyline_width_accuracy.rs",
+      "sha256": "8606a5738f126921cb2fa8d19584f1e91b0d53d2c6486b4645d6726099e214b2"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/preparation.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/preparation.rs",
+      "sha256": "a46b8f2533faed847da66038b7d54d71e2251c62fb7e165afa369677ecaff48e"
+    },
+    {
+      "source": "crates/cad-geometry-convert/tests/tolerance_fallback.rs",
+      "path": "reference/crates/cad-geometry-convert/tests/tolerance_fallback.rs",
+      "sha256": "776fd75980c809f14217b10e644ac43a7e2dae5ec9ecc5eacd793286fa00a8b2"
+    },
+    {
+      "source": "crates/cad-presentation-convert/Cargo.toml",
+      "path": "reference/crates/cad-presentation-convert/Cargo.toml.snapshot",
+      "sha256": "7b852029411993abc1952d36fd1b9fb80f665d438b6fea64fe8745e264faca3a"
+    },
+    {
+      "source": "crates/cad-presentation-convert/README.md",
+      "path": "reference/crates/cad-presentation-convert/README.md",
+      "sha256": "1862cfd470466bcee9b70fb740affcc0db1c5dbc013ebdda6377a198b83a6439"
+    },
+    {
+      "source": "crates/cad-presentation-convert/src/color.rs",
+      "path": "reference/crates/cad-presentation-convert/src/color.rs",
+      "sha256": "6e8000ada5d89e6422d251c3190d649e5527229612db95f836558fefcbdc3b86"
+    },
+    {
+      "source": "crates/cad-presentation-convert/src/lib.rs",
+      "path": "reference/crates/cad-presentation-convert/src/lib.rs",
+      "sha256": "b3e2d9c7398a8fd8ea601c4a025c848e7c9a82c6100b669a761c56090d7c465a"
+    },
+    {
+      "source": "crates/cad-presentation-convert/src/line_pattern.rs",
+      "path": "reference/crates/cad-presentation-convert/src/line_pattern.rs",
+      "sha256": "18ae6701930fdae1e6eda4ccb3f2824e39691d4bfc050d210e9026247d5077e8"
+    },
+    {
+      "source": "crates/cad-presentation-convert/src/quantization.rs",
+      "path": "reference/crates/cad-presentation-convert/src/quantization.rs",
+      "sha256": "5955325e4609dba1a4670257093036351bf66cc89bc8989746d390b5bc40af50"
+    },
+    {
+      "source": "crates/cad-presentation-convert/src/viewport_overrides.rs",
+      "path": "reference/crates/cad-presentation-convert/src/viewport_overrides.rs",
+      "sha256": "0c1bf32ecc2073ce58fa1da7b6090ab635ec3541fb9e5a8006827224a593189b"
+    },
+    {
+      "source": "crates/cad-presentation-convert/src/xrecord_sections.rs",
+      "path": "reference/crates/cad-presentation-convert/src/xrecord_sections.rs",
+      "sha256": "bef9f2b671ea08c40c448a1fcf6e9c13874ca1bf84f4e6dfadb3f456967831d1"
+    },
+    {
+      "source": "crates/cad-presentation-convert/tests/foreground.rs",
+      "path": "reference/crates/cad-presentation-convert/tests/foreground.rs",
+      "sha256": "5c7f47503d2cbeeeab26917b2c8cb1842ec62a467f32dab91b6c390bb9287dd1"
+    },
+    {
+      "source": "crates/cad-presentation-convert/tests/line_pattern.rs",
+      "path": "reference/crates/cad-presentation-convert/tests/line_pattern.rs",
+      "sha256": "9a622e00a45a817cc6ece29110d0930f687991f699e5a6018b51342db2adea3b"
+    },
+    {
+      "source": "crates/cad-presentation-convert/tests/presentation_scalars.rs",
+      "path": "reference/crates/cad-presentation-convert/tests/presentation_scalars.rs",
+      "sha256": "5e05f0559b02cc3e4abcdef02fd61d94a1f52bcd9a03fb46a6f30d83d5db433c"
+    },
+    {
+      "source": "crates/cad-presentation-convert/tests/viewport_scalars.rs",
+      "path": "reference/crates/cad-presentation-convert/tests/viewport_scalars.rs",
+      "sha256": "294b00afbe8528ec45b08a3928fdd91e989741f6d47ff9c8469dc5416d849feb"
+    },
+    {
+      "source": "crates/cad-presentation-convert/tests/viewport_sections.rs",
+      "path": "reference/crates/cad-presentation-convert/tests/viewport_sections.rs",
+      "sha256": "359597fb54611185036e7b2b97a29ea690910949df96d4500225d92067ce212d"
+    },
+    {
+      "source": "crates/cad-preservation/Cargo.toml",
+      "path": "reference/crates/cad-preservation/Cargo.toml.snapshot",
+      "sha256": "99c39359bf7c1ba202ea6be3249edaa2c1f2dcae0e38f6e9d46d944f66f2a85c"
+    },
+    {
+      "source": "crates/cad-preservation/README.md",
+      "path": "reference/crates/cad-preservation/README.md",
+      "sha256": "5742e82ae5e7b832e6adc3fa887df6820d039e6f521ed4796171bb743c99ada0"
+    },
+    {
+      "source": "crates/cad-preservation/src/common_snapshot.rs",
+      "path": "reference/crates/cad-preservation/src/common_snapshot.rs",
+      "sha256": "ade6dc7713080f4f940339a631147dae35cb4cf175721327d77921b154d569df"
+    },
+    {
+      "source": "crates/cad-preservation/src/lib.rs",
+      "path": "reference/crates/cad-preservation/src/lib.rs",
+      "sha256": "a27692a63a09fc024f39c02d259d3c30610f79c4b032bbf8da1bbed77a4718d7"
+    },
+    {
+      "source": "crates/cad-preservation/src/spline_snapshot.rs",
+      "path": "reference/crates/cad-preservation/src/spline_snapshot.rs",
+      "sha256": "23c7c96ad4bb068981a61223621b4041d2beb852307d320208f9a2e2d587dbf9"
+    },
+    {
+      "source": "crates/cad-preservation/src/tests.rs",
+      "path": "reference/crates/cad-preservation/src/tests.rs",
+      "sha256": "3b482a3231b3c4faf9e568523f11b90c7f4994e9d9cefd99d47cf47120eafc1b"
+    },
+    {
+      "source": "crates/cad-preservation/tests/fixtures/spline-v1.json",
+      "path": "reference/crates/cad-preservation/tests/fixtures/spline-v1.json",
+      "sha256": "48d309f1c71a4df16cd0a125493e0042331e4dfcb2131aeb0385ea5868f35da5"
+    },
+    {
+      "source": "crates/cad-preservation/tests/fixtures/spline-v2.json",
+      "path": "reference/crates/cad-preservation/tests/fixtures/spline-v2.json",
+      "sha256": "218c207126cea094cc37fff0aabdffa4de06df85e0800a0573ad14826ce29ed2"
+    },
+    {
+      "source": "crates/cad-text/Cargo.toml",
+      "path": "reference/crates/cad-text/Cargo.toml.snapshot",
+      "sha256": "14802accec2c6b4eac280a5c9890804dc20b1ee2d2fba5a067c81b7137c7ab40"
+    },
+    {
+      "source": "crates/cad-text/README.md",
+      "path": "reference/crates/cad-text/README.md",
+      "sha256": "dc69abf251b7aff5af75c23cf2931614387382e65ef9ddb9299240d7e5a10b8b"
+    },
+    {
+      "source": "crates/cad-text/src/content.rs",
+      "path": "reference/crates/cad-text/src/content.rs",
+      "sha256": "9b6a96fed5561c843152f8161c3371967b651f0f4b68f9b087d5a81b6f244ba4"
+    },
+    {
+      "source": "crates/cad-text/src/diagnostics.rs",
+      "path": "reference/crates/cad-text/src/diagnostics.rs",
+      "sha256": "f4a10d97ff0023aaccd93c1ba21b6029c3f7a468fe1043dd0eb89395e2599fc8"
+    },
+    {
+      "source": "crates/cad-text/src/emit.rs",
+      "path": "reference/crates/cad-text/src/emit.rs",
+      "sha256": "aa40bce565e299afcbba0472c0e4ed88a8008f1e0fdec3db5061f7e18197179d"
+    },
+    {
+      "source": "crates/cad-text/src/layout.rs",
+      "path": "reference/crates/cad-text/src/layout.rs",
+      "sha256": "957521228c5e01aa7998685ec61f877b0107f3fc4df6578168fcc698002c4533"
+    },
+    {
+      "source": "crates/cad-text/src/lib.rs",
+      "path": "reference/crates/cad-text/src/lib.rs",
+      "sha256": "4b65ef4efabdae6b6f25ea27dda8cdfe0a49e55315760d3c25678d50ce2fd8aa"
+    },
+    {
+      "source": "crates/cad-text/src/markup/escape.rs",
+      "path": "reference/crates/cad-text/src/markup/escape.rs",
+      "sha256": "06d26cf62e311a5a77890b690dcedfbd0a1e4c259faff1dea3ed66c4a5be6ddc"
+    },
+    {
+      "source": "crates/cad-text/src/markup/lexer.rs",
+      "path": "reference/crates/cad-text/src/markup/lexer.rs",
+      "sha256": "dbe4612e1bf698d4c7fcbc89774de4797b166837070051ad71c9e702e8337db3"
+    },
+    {
+      "source": "crates/cad-text/src/markup/mod.rs",
+      "path": "reference/crates/cad-text/src/markup/mod.rs",
+      "sha256": "b876814abd83688f670ac0781bc85c558e0822663207cc7847ec63cb7673a97c"
+    },
+    {
+      "source": "crates/cad-text/src/markup/syntax.rs",
+      "path": "reference/crates/cad-text/src/markup/syntax.rs",
+      "sha256": "1a0b724d3c280ca74f7384c27ca4743294493db41af80b0543060245b0001c0b"
+    },
+    {
+      "source": "crates/cad-text/src/markup/tests.rs",
+      "path": "reference/crates/cad-text/src/markup/tests.rs",
+      "sha256": "76af3a8bb4bfd8fcdd7c7183103076e1b222a4a46a854f054b74f1ed3ddd3ef5"
+    },
+    {
+      "source": "crates/cad-text/src/paragraph.rs",
+      "path": "reference/crates/cad-text/src/paragraph.rs",
+      "sha256": "e13c2d597bceca651eaecfe59739c62ba881318bf875eb96698828e4c8591ab2"
+    },
+    {
+      "source": "crates/cad-text/src/placement.rs",
+      "path": "reference/crates/cad-text/src/placement.rs",
+      "sha256": "7bc3c0d204c8de0b581485883dec3903adc14c8a8db9476e7acafe3dffbab652"
+    },
+    {
+      "source": "crates/cad-text/src/styles.rs",
+      "path": "reference/crates/cad-text/src/styles.rs",
+      "sha256": "027ba3272abc8631f1e06f9c33abd7aca2e2eacf3d53e4d2354b775f28f8aba6"
+    },
+    {
+      "source": "crates/cad-text/tests/content.rs",
+      "path": "reference/crates/cad-text/tests/content.rs",
+      "sha256": "8b90078c7fa95e81c07e7737e6b01dbb57d378ff165082396a741940ef78bace"
+    },
+    {
+      "source": "crates/cad-text/tests/exchange.rs",
+      "path": "reference/crates/cad-text/tests/exchange.rs",
+      "sha256": "efb147edcf2a5aac19ddbf9c7cc2090ebcd3d2248bd6fe56d6a3a655ef249426"
+    },
+    {
+      "source": "crates/cad-text/tests/fixtures/mtext_manual_auto_tail_ac1032.dxf",
+      "path": "reference/crates/cad-text/tests/fixtures/mtext_manual_auto_tail_ac1032.dxf",
+      "sha256": "49fafefb259ac263c9511e6c20fb3502e327fdfcd99fb048c61690496af8302e"
+    },
+    {
+      "source": "crates/cad-text/tests/layout.rs",
+      "path": "reference/crates/cad-text/tests/layout.rs",
+      "sha256": "a7ce1e26ed9639462b136c378582fbb0e7f8ffc47d382a469cc6e421ad1e26ce"
+    },
+    {
+      "source": "crates/cad-text/tests/manual_column_tail.rs",
+      "path": "reference/crates/cad-text/tests/manual_column_tail.rs",
+      "sha256": "dd7444f644ba03c3e4589970dc6a9ef2ed5f754d5ca7100eb68169a3a6e59b00"
+    },
+    {
+      "source": "crates/cad-text/tests/paragraph_state.rs",
+      "path": "reference/crates/cad-text/tests/paragraph_state.rs",
+      "sha256": "d46419a31e80db968d05b18653387b6d4b8b2bd12835b6658005d717febf467b"
+    },
+    {
+      "source": "crates/cad-text/tests/placement.rs",
+      "path": "reference/crates/cad-text/tests/placement.rs",
+      "sha256": "3ff98df662ab34bf87e2ad08ba332252cbb126cad1458e2a6c709569b7d2a683"
+    },
+    {
+      "source": "crates/cad-text/tests/styles.rs",
+      "path": "reference/crates/cad-text/tests/styles.rs",
+      "sha256": "34a772c38257eda088dc88d6ab2a8fe520d06a6c314362338f97254904a28a6e"
+    },
+    {
+      "source": "crates/cad-workspace-convert/Cargo.toml",
+      "path": "reference/crates/cad-workspace-convert/Cargo.toml.snapshot",
+      "sha256": "ccf2f5b613aa8cfb2311f67837eed35e13f630307111d4cb5c5524b63e17a98b"
+    },
+    {
+      "source": "crates/cad-workspace-convert/README.md",
+      "path": "reference/crates/cad-workspace-convert/README.md",
+      "sha256": "77cab895f15d7c8a618aa4fa0f383097264297975a4b0f52dba4801dd805699e"
+    },
+    {
+      "source": "crates/cad-workspace-convert/src/diagnostics.rs",
+      "path": "reference/crates/cad-workspace-convert/src/diagnostics.rs",
+      "sha256": "38d2bdb90bd5f672ef1ceccf2726f490e59d3dc41039377ed3c386ddeea7ecaa"
+    },
+    {
+      "source": "crates/cad-workspace-convert/src/lib.rs",
+      "path": "reference/crates/cad-workspace-convert/src/lib.rs",
+      "sha256": "78931d6abd053a366e6071783edf11d7429656fa1960bcf0b4cc6b1f014aa3dc"
+    },
+    {
+      "source": "crates/cad-workspace-convert/src/read.rs",
+      "path": "reference/crates/cad-workspace-convert/src/read.rs",
+      "sha256": "142896d13f460dd5aeedaeb04833708bd9f196960514d3c759ad49131a2a9367"
+    },
+    {
+      "source": "crates/cad-workspace-convert/src/write.rs",
+      "path": "reference/crates/cad-workspace-convert/src/write.rs",
+      "sha256": "0e393d143f519c552eade9d8a62d171c4f4b66914ffd44e18bb33fecb1bdc7dc"
+    },
+    {
+      "source": "crates/cad-workspace-convert/tests/codec_capabilities.rs",
+      "path": "reference/crates/cad-workspace-convert/tests/codec_capabilities.rs",
+      "sha256": "efd7e81b3195183e596311de76220f20e7f804b07c0ab956619f95aa328e7c7b"
+    },
+    {
+      "source": "crates/cad-workspace-convert/tests/fields.rs",
+      "path": "reference/crates/cad-workspace-convert/tests/fields.rs",
+      "sha256": "56d09aa2ebe8b83f122ca7537e7ec6099bc339289a8937e2a070b17cdc5f99aa"
+    },
+    {
+      "source": "crates/cad-workspace-convert/tests/fixtures/PROVENANCE.md",
+      "path": "reference/crates/cad-workspace-convert/tests/fixtures/PROVENANCE.md",
+      "sha256": "0e30825d85428ec60cb7503ccab9ffc7f52df56a9c6342b2667437827fe53ef2"
+    },
+    {
+      "source": "crates/cad-workspace-convert/tests/fixtures/workspace-reference.dxf",
+      "path": "reference/crates/cad-workspace-convert/tests/fixtures/workspace-reference.dxf",
+      "sha256": "ff559b7965acd4eb020144811ab14316cde5457b4a72f21d09ee6f48849942e4"
+    },
+    {
+      "source": "crates/ifccad-convert/Cargo.toml",
+      "path": "reference/crates/ifccad-convert/Cargo.toml.snapshot",
+      "sha256": "a243fc47229ffdcced47e85ed2931ca033e1d42c29d6b56930cc9cb3391a577c"
+    },
+    {
+      "source": "crates/ifccad-convert/README.md",
+      "path": "reference/crates/ifccad-convert/README.md",
+      "sha256": "cbbbe98bfd26b539a4ea2a8468eee011349b9274a730c2dd5480fc012218fe7d"
+    },
+    {
+      "source": "crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md",
+      "path": "reference/crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md",
+      "sha256": "d4a2d3a4bf11f7aad01fef84f2be1275544b597cd6f6d037bfaaa2ebaeb9ba11"
+    },
+    {
+      "source": "crates/ifccad-convert/docs/TO-CAD-COVERAGE.md",
+      "path": "reference/crates/ifccad-convert/docs/TO-CAD-COVERAGE.md",
+      "sha256": "c3083bbfa5deb838f3d3e4626b922b5a4a766c296b96b4c1616c6ca55562895d"
+    },
+    {
+      "source": "crates/ifccad-convert/examples/cbor_baseline.rs",
+      "path": "reference/crates/ifccad-convert/examples/cbor_baseline.rs",
+      "sha256": "0fb85dd1d5b9a6ba11da506e81e69b78c8daf1099a7946d9a230b97f2847743f"
+    },
+    {
+      "source": "crates/ifccad-convert/examples/cbor_baseline/inventory.rs",
+      "path": "reference/crates/ifccad-convert/examples/cbor_baseline/inventory.rs",
+      "sha256": "9a2b8df617dc99259e0e235c561134a13c8127e41d2ad9b3813c95f212aea691"
+    },
+    {
+      "source": "crates/ifccad-convert/examples/cbor_baseline/measure.rs",
+      "path": "reference/crates/ifccad-convert/examples/cbor_baseline/measure.rs",
+      "sha256": "b8439a15f583769ea03b75a3c67a6b432e7c591c2b9e8609cdd65833ea35fa06"
+    },
+    {
+      "source": "crates/ifccad-convert/examples/cbor_baseline/recipes.rs",
+      "path": "reference/crates/ifccad-convert/examples/cbor_baseline/recipes.rs",
+      "sha256": "422b78296ef9e607643998b30621614a0d4ea022669c497d131c7f6c7fadda0e"
+    },
+    {
+      "source": "crates/ifccad-convert/examples/cbor_foundation_size_probe.rs",
+      "path": "reference/crates/ifccad-convert/examples/cbor_foundation_size_probe.rs",
+      "sha256": "62daaa7ce38bf13c03f67b5bf6479462938d9e90e295e789e9adb30fa0de0feb"
+    },
+    {
+      "source": "crates/ifccad-convert/examples/polyline_width_acceptance.rs",
+      "path": "reference/crates/ifccad-convert/examples/polyline_width_acceptance.rs",
+      "sha256": "d496cf0cfdffcc26c3030c833242f41641cc789568bdbd3e76fbcf46385547ff"
+    },
+    {
+      "source": "crates/ifccad-convert/examples/polyline_width_acceptance/selection.rs",
+      "path": "reference/crates/ifccad-convert/examples/polyline_width_acceptance/selection.rs",
+      "sha256": "f3decbdeb2a9b50b3050d10d6a353fb517ce8b4166c16cdb299462ac6f342d6c"
+    },
+    {
+      "source": "crates/ifccad-convert/src/audit.rs",
+      "path": "reference/crates/ifccad-convert/src/audit.rs",
+      "sha256": "ec5b0474cc4a89e09624a1458735a7c44f80993027c7835c78622f25235d43aa"
+    },
+    {
+      "source": "crates/ifccad-convert/src/audit/report.rs",
+      "path": "reference/crates/ifccad-convert/src/audit/report.rs",
+      "sha256": "ae0e0331e92a97235e97f7b94a3c44460b83e50a92f0543840be714fd1f6bbea"
+    },
+    {
+      "source": "crates/ifccad-convert/src/bin/diagnose_cad.rs",
+      "path": "reference/crates/ifccad-convert/src/bin/diagnose_cad.rs",
+      "sha256": "2447407b16959f2f8018c8c8dc75fbe4414d1449097f6f49333fc052421da7b2"
+    },
+    {
+      "source": "crates/ifccad-convert/src/diagnostics.rs",
+      "path": "reference/crates/ifccad-convert/src/diagnostics.rs",
+      "sha256": "1684f8866cb1cc129d8bfb1dfc259376cde327609f6dd1da803297564aa92105"
+    },
+    {
+      "source": "crates/ifccad-convert/src/dimension_assessment.rs",
+      "path": "reference/crates/ifccad-convert/src/dimension_assessment.rs",
+      "sha256": "6b6f052aca962e6126de8c69493646102c115cfed0395adafbd178698b6455a4"
+    },
+    {
+      "source": "crates/ifccad-convert/src/dimension_graphics_context.rs",
+      "path": "reference/crates/ifccad-convert/src/dimension_graphics_context.rs",
+      "sha256": "09820c733ae5ae74eae11c51c901a9bf21e605fa4ea3151df5fd6c966f158e07"
+    },
+    {
+      "source": "crates/ifccad-convert/src/filled_surface_assessment.rs",
+      "path": "reference/crates/ifccad-convert/src/filled_surface_assessment.rs",
+      "sha256": "febe92a88741226cbd82a8554d43760f6b94e0cc58abd336655bce8f9e88e2fe"
+    },
+    {
+      "source": "crates/ifccad-convert/src/from_cad/entities.rs",
+      "path": "reference/crates/ifccad-convert/src/from_cad/entities.rs",
+      "sha256": "a96dc21d8c445e7f104481aa6423fb5de8d28c5d33321fd318ebd314aeb381fc"
+    },
+    {
+      "source": "crates/ifccad-convert/src/from_cad/mod.rs",
+      "path": "reference/crates/ifccad-convert/src/from_cad/mod.rs",
+      "sha256": "317e64ddebb2913531105168d5caf85b8d195c43c25291d5ff559ea339d89f2b"
+    },
+    {
+      "source": "crates/ifccad-convert/src/geometry_assessment.rs",
+      "path": "reference/crates/ifccad-convert/src/geometry_assessment.rs",
+      "sha256": "5e7f09b50e26380265dd75446f0c316795ee165bbdd03bdc492ae994b9ca044c"
+    },
+    {
+      "source": "crates/ifccad-convert/src/geometry_context.rs",
+      "path": "reference/crates/ifccad-convert/src/geometry_context.rs",
+      "sha256": "7b35385d40156f63f56d42b22e97b0ece79b013a65c236f1f184fafe47f5b2c8"
+    },
+    {
+      "source": "crates/ifccad-convert/src/lib.rs",
+      "path": "reference/crates/ifccad-convert/src/lib.rs",
+      "sha256": "35f48b054fd67253afca998eba409e11107891537bcbc16cb1b6a5c962ff0ca8"
+    },
+    {
+      "source": "crates/ifccad-convert/src/loss.rs",
+      "path": "reference/crates/ifccad-convert/src/loss.rs",
+      "sha256": "7fd2beecde60d11db4273feff5bf2fcde2e6e539baf898d833b83c7f5b2d966f"
+    },
+    {
+      "source": "crates/ifccad-convert/src/loss/defaults.rs",
+      "path": "reference/crates/ifccad-convert/src/loss/defaults.rs",
+      "sha256": "e7e73f9242a6d85b8e71eb0395e8061c61be009090e3049fee56e250a3d3c78a"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/appearance.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/appearance.rs",
+      "sha256": "9d6cd9f2eb88faed5b2eda0a97216378814ad40cc50831f91d55c81d85b2b100"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/blocks.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/blocks.rs",
+      "sha256": "dd732af288b5bef72747b55c87bb3c57c06f585968c9e48c995f261c4f48e655"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/dimension.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/dimension.rs",
+      "sha256": "9b4102633dcf777d5ad3f2064f49c9fa7aa5b8023a2931e03d8fe5621fdae4ff"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/dimension_graphics.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/dimension_graphics.rs",
+      "sha256": "aeefbe4952a1329821c895c90dea2759d5d3c9cb4ee8b0233312fa1b66932023"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/dimension_graphics_target.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/dimension_graphics_target.rs",
+      "sha256": "a79ba3cae32be3995b4f4d40f1dc06170474777e5c437a8403a80a03bb7c4d21"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/geometry.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/geometry.rs",
+      "sha256": "ce12a6b40e765bd750cf4bcdaa482597267a647e8e048f0568fc45de9e6372c4"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/hatch.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/hatch.rs",
+      "sha256": "6e4a3c8f95573a07394125655797c5d41fded5f78adbe2407b51deb6ab8cb6ac"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/hatch_gradient.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/hatch_gradient.rs",
+      "sha256": "94a6b41f1b8942edddbb21afdee4ef76119a79fe2191f8814a2c846f773e8a12"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/layout.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/layout.rs",
+      "sha256": "dbecdbb5c2a641022148efe469e6b250526ed16602aa44464a7d1bb868017c79"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/line_pattern.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/line_pattern.rs",
+      "sha256": "676786a020edf3c37db297bc0c6056832b0c535c3ca2ad3d9ebf5e785c8dc384"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/marker_coverage.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/marker_coverage.rs",
+      "sha256": "3f5b42474f8baf83ef66954584ba2c670853095ebe58875f68f4dce9ea3ea3ec"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/mod.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/mod.rs",
+      "sha256": "6c3c8d034f5c96f07f350d1fe8e0031fafac5f9b60552dfcc0fb0c40209ed4e8"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/point_display.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/point_display.rs",
+      "sha256": "fb77cf1f584abee6ba25c22b245f3027106d42929c771b8feca6c595418bcaa5"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/polyline_width.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/polyline_width.rs",
+      "sha256": "73d71e251588b85c45380df271d18e336875c2867f7e84aa00f65fba1be86913"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/symbol_source.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/symbol_source.rs",
+      "sha256": "196e1df691d4a06691ac1ecc308a6c0ebec7394e714632ad5829d48a4e90ca02"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/text.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/text.rs",
+      "sha256": "1eef0aa298296ae140bd57903c72bcf3a18e2324380673c0c2276b4859b175a9"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/viewport.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/viewport.rs",
+      "sha256": "f90473c175e83192236cd6c6fdd868da6d1f99dff1d7124ddda6a5aa88cfa173"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/viewport_overrides.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/viewport_overrides.rs",
+      "sha256": "7efa5b6a5e7bf993076c583c339de9de410cb32bc12ccd22d36bf91d8037b2db"
+    },
+    {
+      "source": "crates/ifccad-convert/src/mapping/workspace.rs",
+      "path": "reference/crates/ifccad-convert/src/mapping/workspace.rs",
+      "sha256": "0587fd0c4692e541d447a5a8514d298e9ba3dd8cefcaa88c3c9000c99d45176f"
+    },
+    {
+      "source": "crates/ifccad-convert/src/options.rs",
+      "path": "reference/crates/ifccad-convert/src/options.rs",
+      "sha256": "feb76bffbcf79f37de05c074640d56657c60505fb6c013fff1ef194f3a3dd717"
+    },
+    {
+      "source": "crates/ifccad-convert/src/outcome.rs",
+      "path": "reference/crates/ifccad-convert/src/outcome.rs",
+      "sha256": "d2b486bde21bdcd62dca93795faebb7eff3a39eaf9b0ca7f9d22005449931cc1"
+    },
+    {
+      "source": "crates/ifccad-convert/src/partial.rs",
+      "path": "reference/crates/ifccad-convert/src/partial.rs",
+      "sha256": "a71d58a02ed09f0770c6ef48d11f92a22f9bb4ee370f217e1ce738e14d22c77a"
+    },
+    {
+      "source": "crates/ifccad-convert/src/polyline_width_assessment.rs",
+      "path": "reference/crates/ifccad-convert/src/polyline_width_assessment.rs",
+      "sha256": "8f123ce7a47067b034ec6698ae08e4bcf245071d1411d604aa4df3d0093ae41e"
+    },
+    {
+      "source": "crates/ifccad-convert/src/polyline_width_target.rs",
+      "path": "reference/crates/ifccad-convert/src/polyline_width_target.rs",
+      "sha256": "ef4eb825997c80516f18d93e699c5bebc335aa03fdeb2177d8629f7d82f6cfe5"
+    },
+    {
+      "source": "crates/ifccad-convert/src/preservation/capture.rs",
+      "path": "reference/crates/ifccad-convert/src/preservation/capture.rs",
+      "sha256": "f8d98b20b8f8a10e1604afd992bf13d433c8db5dc118ea974bfdea626a1b448b"
+    },
+    {
+      "source": "crates/ifccad-convert/src/preservation/conditions.rs",
+      "path": "reference/crates/ifccad-convert/src/preservation/conditions.rs",
+      "sha256": "1e8565698889cdf5f6c80ed66f5e49415336832aa6ef9778b40def7e88954952"
+    },
+    {
+      "source": "crates/ifccad-convert/src/preservation/mod.rs",
+      "path": "reference/crates/ifccad-convert/src/preservation/mod.rs",
+      "sha256": "9acb259fd38f0a32fb45717bce1d2431769eba329750a1b6bef81d36dbc0c99e"
+    },
+    {
+      "source": "crates/ifccad-convert/src/preservation/references.rs",
+      "path": "reference/crates/ifccad-convert/src/preservation/references.rs",
+      "sha256": "c18ef258b3a4da62b5057191beeac81cd0fc1039214d417cec95c6651174c898"
+    },
+    {
+      "source": "crates/ifccad-convert/src/preservation/report.rs",
+      "path": "reference/crates/ifccad-convert/src/preservation/report.rs",
+      "sha256": "37ec897775cb35a3868dbe111eba28be4eb20d5fbfe687298f7a81ceab39a455"
+    },
+    {
+      "source": "crates/ifccad-convert/src/preservation/restore.rs",
+      "path": "reference/crates/ifccad-convert/src/preservation/restore.rs",
+      "sha256": "180f8639e9fe169422549f58d3c7ceb22fd19d2590178ac0dd18529c2b1192b6"
+    },
+    {
+      "source": "crates/ifccad-convert/src/source/dimension_graphics.rs",
+      "path": "reference/crates/ifccad-convert/src/source/dimension_graphics.rs",
+      "sha256": "6ac89d28d3ec48e410754ddda058150a93b0da7c23dd7bbede5659baed65e1e2"
+    },
+    {
+      "source": "crates/ifccad-convert/src/source/entities.rs",
+      "path": "reference/crates/ifccad-convert/src/source/entities.rs",
+      "sha256": "2a46aef69873a16305197133ee2fb566b901a7d9742346ce1c90beda6cf7927b"
+    },
+    {
+      "source": "crates/ifccad-convert/src/source/hatch.rs",
+      "path": "reference/crates/ifccad-convert/src/source/hatch.rs",
+      "sha256": "45faa94bf9fc960d130e0d5129626ab270fb735cabe8333615b0d3b8be4233c1"
+    },
+    {
+      "source": "crates/ifccad-convert/src/source/layouts.rs",
+      "path": "reference/crates/ifccad-convert/src/source/layouts.rs",
+      "sha256": "bc466cbc0bc89ecb44caa0add225eeec4d96438d4e0ab187f1618fc597686526"
+    },
+    {
+      "source": "crates/ifccad-convert/src/source/mod.rs",
+      "path": "reference/crates/ifccad-convert/src/source/mod.rs",
+      "sha256": "fd80aeea036ab2d6ff063653ed3383b1a31a35e9852da30cebd7521271eb5ef4"
+    },
+    {
+      "source": "crates/ifccad-convert/src/source/scaffold.rs",
+      "path": "reference/crates/ifccad-convert/src/source/scaffold.rs",
+      "sha256": "4e14c212d1da2a54ece0ec6cba5f3dcdef290ddc83d8cb1c681859c28f653d44"
+    },
+    {
+      "source": "crates/ifccad-convert/src/source/workspace.rs",
+      "path": "reference/crates/ifccad-convert/src/source/workspace.rs",
+      "sha256": "d1f3d6dc7aa0389e3062873649ae01484a3445a8859dc683d8816c3b184012d2"
+    },
+    {
+      "source": "crates/ifccad-convert/src/text_assessment.rs",
+      "path": "reference/crates/ifccad-convert/src/text_assessment.rs",
+      "sha256": "14254e7cd67b8018b1ee4220f98055a5d9480a16e6e3f2ea3e6a76452457a6b6"
+    },
+    {
+      "source": "crates/ifccad-convert/src/to_cad/entities.rs",
+      "path": "reference/crates/ifccad-convert/src/to_cad/entities.rs",
+      "sha256": "900ad1781ee0e65697a8be1c1506b5cd844014efc8ec5e52ba159d06229989cd"
+    },
+    {
+      "source": "crates/ifccad-convert/src/to_cad/hatch_recipes.rs",
+      "path": "reference/crates/ifccad-convert/src/to_cad/hatch_recipes.rs",
+      "sha256": "d2a4352700fd6e3db1c9081035778621649dfa445a39724912b2a20184660242"
+    },
+    {
+      "source": "crates/ifccad-convert/src/to_cad/layouts.rs",
+      "path": "reference/crates/ifccad-convert/src/to_cad/layouts.rs",
+      "sha256": "30aeafda6f820b15f8dccfda0925bb204bbcb6796daa5656edcf9a40592d7b28"
+    },
+    {
+      "source": "crates/ifccad-convert/src/to_cad/mod.rs",
+      "path": "reference/crates/ifccad-convert/src/to_cad/mod.rs",
+      "sha256": "d8c7d5d70027dc5760e4db48f8af9e2b0319a1de8bf520e8fd55e67463179a20"
+    },
+    {
+      "source": "crates/ifccad-convert/src/units.rs",
+      "path": "reference/crates/ifccad-convert/src/units.rs",
+      "sha256": "8df24bd0d70ee84c8d194e14a6c714ccaa0752e4873d4aeb8364059651b9de5b"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/audit.rs",
+      "path": "reference/crates/ifccad-convert/tests/audit.rs",
+      "sha256": "7130173dc8c4c5f5a4cb90337c6ea147f0995eab06ea0d566e9612d795810b72"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/blocks.rs",
+      "path": "reference/crates/ifccad-convert/tests/blocks.rs",
+      "sha256": "eb7506cdc0c7b26b16db34037a828f88566adf205c66e7d6e2a49fdde62cb94b"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/cbor_document.rs",
+      "path": "reference/crates/ifccad-convert/tests/cbor_document.rs",
+      "sha256": "8da1cd317165a4fc6b80f925c356ad7357fa00410261a2c6c48018b68c96cb02"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/codec_update.rs",
+      "path": "reference/crates/ifccad-convert/tests/codec_update.rs",
+      "sha256": "4b9a82c6036d08fabd6d498cb0285a9e1a8725c0ff8a06b1493ccd4e1e8f2143"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/coincident_polyline.rs",
+      "path": "reference/crates/ifccad-convert/tests/coincident_polyline.rs",
+      "sha256": "d1b9d2883f250e0c0debdfc13c04119b3790f7e32589fc5d15ac56a251327fb6"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/common/mod.rs",
+      "path": "reference/crates/ifccad-convert/tests/common/mod.rs",
+      "sha256": "85fd9274d0da79a1a5cc9179c8b5b968d1597733b5c759e10127ec19e7646685"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/common/perspective_reference.rs",
+      "path": "reference/crates/ifccad-convert/tests/common/perspective_reference.rs",
+      "sha256": "a1e548c59d2d8d961e72066ed77b957fe96d121d4cd8f0819347319aaed8cd8a"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/complex_line_pattern_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/complex_line_pattern_exchange.rs",
+      "sha256": "e317ad21a5d35a2365f194f7e3400f0ce6ec09921627718765d902b6eec97c02"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/complex_line_patterns.rs",
+      "path": "reference/crates/ifccad-convert/tests/complex_line_patterns.rs",
+      "sha256": "0123be123bffb98ea100d9f5434ba2c079c60c1dfc07976c1adc0d89bbe07113"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/conversion.rs",
+      "path": "reference/crates/ifccad-convert/tests/conversion.rs",
+      "sha256": "b8800120219bb58506df3afc583d9989f6a1ab9d484e92bf72caac56571d04ec"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/defaults_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/defaults_exchange.rs",
+      "sha256": "853d95f1dc26301b094a6a1aba0a6227510074e2f062c19e4c1d169b0ca4c53f"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/diagnose_cli.rs",
+      "path": "reference/crates/ifccad-convert/tests/diagnose_cli.rs",
+      "sha256": "63ea7aa3894d34e5c362063a6f586f30d22c6a9b8a1cb3590a3eeee1cc8d0721"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/dimension_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/dimension_exchange.rs",
+      "sha256": "ea90f2fc9b5c1e6d18485ab642884c131bf8ec4172e1aeaf616f7145b0a93ed4"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/dimension_from_cad.rs",
+      "path": "reference/crates/ifccad-convert/tests/dimension_from_cad.rs",
+      "sha256": "9810f019231c942bdda95aac3b051861937f59017a2443325e396bf0a847803d"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/dimension_graphics_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/dimension_graphics_exchange.rs",
+      "sha256": "9859123dbd8578e016778dab70d577654a20928819958106ea89c1e1342e7e40"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/dimension_graphics_import.rs",
+      "path": "reference/crates/ifccad-convert/tests/dimension_graphics_import.rs",
+      "sha256": "98af7f447b437fabfa9d8d1bc76d916b946fd4d452776c5870faab4e436e5728"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/dimension_graphics_source.rs",
+      "path": "reference/crates/ifccad-convert/tests/dimension_graphics_source.rs",
+      "sha256": "d26737c836cd629b0fb04bad827bc88bc37be14d469e7287b0c57ea3aff1777e"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/dimension_pattern_selectors.rs",
+      "path": "reference/crates/ifccad-convert/tests/dimension_pattern_selectors.rs",
+      "sha256": "af0c3ee217c9d821559e5a3e8ca5de79cc52e1cdf3ae84094dc73fcd598ea9c2"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/dimension_repair.rs",
+      "path": "reference/crates/ifccad-convert/tests/dimension_repair.rs",
+      "sha256": "961f8548b6f19d34d9944b88b9dd29cb67011c09639e03772d37d0873db011ec"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/dimension_spatial.rs",
+      "path": "reference/crates/ifccad-convert/tests/dimension_spatial.rs",
+      "sha256": "6cf49d9f9dec9e52dcfd2ab234f22960c18e51e2f40a60fd6f36a371ef2cb14b"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/dimension_to_cad.rs",
+      "path": "reference/crates/ifccad-convert/tests/dimension_to_cad.rs",
+      "sha256": "8836e06b2598036ef352498be2764a79428ec3115b1a590165f900ad0743c73a"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/document_lifecycle.rs",
+      "path": "reference/crates/ifccad-convert/tests/document_lifecycle.rs",
+      "sha256": "7d8170a401ecbd28a195441ba6dfa18076616af6638718a98e8bcbf1dc9f17f1"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/exchange.rs",
+      "sha256": "9028fede62f67e61695af1c89bc090a5efd4b69866e5f4f50941474d945416af"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/filled_entities.rs",
+      "path": "reference/crates/ifccad-convert/tests/filled_entities.rs",
+      "sha256": "e35178107344cf3b6af2a5762e2f336fa30f645c924fccebe7a870e5c0972e41"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/filled_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/filled_exchange.rs",
+      "sha256": "cf44e81dde0577cb8c07108eec4f65c974f65c1921aa3c86171b115e6d19c168"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/fixtures/dimension-picture-text-PROVENANCE.md",
+      "path": "reference/crates/ifccad-convert/tests/fixtures/dimension-picture-text-PROVENANCE.md",
+      "sha256": "72a8d061dc9c2401ba6666f755aae6921ade338e46115a3100448230f66e1c04"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/fixtures/dimension-picture-text-reference.dxf",
+      "path": "reference/crates/ifccad-convert/tests/fixtures/dimension-picture-text-reference.dxf",
+      "sha256": "e43dfaeea3612e24f57ec7bdb85a2a90bea8758f2dd4477d508f76c10714b322"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/fixtures/filled-primitives-PROVENANCE.md",
+      "path": "reference/crates/ifccad-convert/tests/fixtures/filled-primitives-PROVENANCE.md",
+      "sha256": "d83c2aa3eabcee832bda6c58d9ae6202b391ad99cf5d3bc014cf13c355628d35"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/fixtures/filled-primitives-reference.dxf",
+      "path": "reference/crates/ifccad-convert/tests/fixtures/filled-primitives-reference.dxf",
+      "sha256": "1d36ec408e808e65d5d8fbff20a09d7d2642ede78ca97296314953fbb5aa87dd"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/fixtures/polyline-width-defaults.PROVENANCE.md",
+      "path": "reference/crates/ifccad-convert/tests/fixtures/polyline-width-defaults.PROVENANCE.md",
+      "sha256": "521807e7358a62b3ddd240dd77c4a65cdb2e9ef5e6db1e22d95eb81f9598554b"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/fixtures/polyline-width-defaults.dxf",
+      "path": "reference/crates/ifccad-convert/tests/fixtures/polyline-width-defaults.dxf",
+      "sha256": "fac06f8300db27914e4c060fc9296e3ea0d0458a9b31bb7f459da0d5aeae02d1"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/fixtures/viewports/PROVENANCE.md",
+      "path": "reference/crates/ifccad-convert/tests/fixtures/viewports/PROVENANCE.md",
+      "sha256": "1fbcc9e0616931773fea80b186d55e4f18f26135b3860d94ccc40eb55a52d44b"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/fixtures/viewports/presentation-xrecord-scalars.json",
+      "path": "reference/crates/ifccad-convert/tests/fixtures/viewports/presentation-xrecord-scalars.json",
+      "sha256": "77d78c97064d4c0cc9e9f507de40a1b65b5d508f3ded74adbd642ae370a6df31"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/fixtures/viewports/reference-clip-activation.dxf",
+      "path": "reference/crates/ifccad-convert/tests/fixtures/viewports/reference-clip-activation.dxf",
+      "sha256": "ae3fed1aa164bb6d1d06ec5765b0b7f31c33fd066628dabf75441fd0ec03ab3f"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/fixtures/viewports/reference-perspective.dxf",
+      "path": "reference/crates/ifccad-convert/tests/fixtures/viewports/reference-perspective.dxf",
+      "sha256": "da7b488c88cec8f2880e650c918d5b84b4c6660f2e13a138656cb685875395a1"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/fixtures/viewports/reference-perspective.json",
+      "path": "reference/crates/ifccad-convert/tests/fixtures/viewports/reference-perspective.json",
+      "sha256": "412b6f6b0c980690450629e5d892fee2fa04dadc152cc25288a399e50bed7832"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/foreground_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/foreground_exchange.rs",
+      "sha256": "91b3f47d061ec74cd1fe5f145da6cfe3dc9d65d0f286fed2d2386e9e6aec489b"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/geometry_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/geometry_exchange.rs",
+      "sha256": "35ed1423d8837ce15e75d712e0672f5862150288f16611d12f8506f7d5287a9f"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/geometry_from_cad.rs",
+      "path": "reference/crates/ifccad-convert/tests/geometry_from_cad.rs",
+      "sha256": "dd1dff026a98301ffe53c2bb63fd26c56565c184902cefc8353071a3a79b5140"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/geometry_policy.rs",
+      "path": "reference/crates/ifccad-convert/tests/geometry_policy.rs",
+      "sha256": "eda4fed8a4dd05d40941eaff4fe67d9159f9edd954e86572b66759be5461b4c1"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/geometry_to_cad.rs",
+      "path": "reference/crates/ifccad-convert/tests/geometry_to_cad.rs",
+      "sha256": "f63f1aa4ab40a5074bd7af1ceffc57b94ed3cfe40aac26348556aa8664343e3a"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/hatch_associations.rs",
+      "path": "reference/crates/ifccad-convert/tests/hatch_associations.rs",
+      "sha256": "de975abdfdc9d6f5ef85fcb0df5d6d30b314ab6b1b80cc4bc6c276d50e981085"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/hatch_editing.rs",
+      "path": "reference/crates/ifccad-convert/tests/hatch_editing.rs",
+      "sha256": "55b0f94a22be6dfa22a634d225c289ed8d62b5aefb1e957b51604f4c19671119"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/hatch_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/hatch_exchange.rs",
+      "sha256": "0a5f29a6c8e088b9e3d4e7a0a6df632fff49acc7c28a4a75050607fac93f66ee"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/hatch_from_cad.rs",
+      "path": "reference/crates/ifccad-convert/tests/hatch_from_cad.rs",
+      "sha256": "4c82f51df5dda53b321d5e9ca79cc4689f838416a2775049b07e131117b7eaf6"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/hatch_gradient.rs",
+      "path": "reference/crates/ifccad-convert/tests/hatch_gradient.rs",
+      "sha256": "5f99172123c3c01f08b7844d7481e20f4b401c0b2ca368356b1112e8972fc118"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/hatch_gradient_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/hatch_gradient_exchange.rs",
+      "sha256": "ed71394dc3a70f120a504c360cb17e09f5fe1d1172a22b15875f8007183c2e78"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/hatch_original_recipe.rs",
+      "path": "reference/crates/ifccad-convert/tests/hatch_original_recipe.rs",
+      "sha256": "e16d853059ee0e5eabb9bce96768a125bee62e62c867796010c2b8e22d28e22b"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/hatch_pattern_accuracy.rs",
+      "path": "reference/crates/ifccad-convert/tests/hatch_pattern_accuracy.rs",
+      "sha256": "10ddc41b76e62a320b97637c96f39a2469f2edc9b988e61ed49e9208f4497ed0"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/hatch_to_cad.rs",
+      "path": "reference/crates/ifccad-convert/tests/hatch_to_cad.rs",
+      "sha256": "ecc175d51a18035551bbe0b409d08915836fd53d5ebecb5917aa84122fb82546"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/hatch_version_matrix.rs",
+      "path": "reference/crates/ifccad-convert/tests/hatch_version_matrix.rs",
+      "sha256": "8f7d3194eac350e6ca8de5e78957b1bb2cd80dfbbc86b7c432d3b2a89a58d37e"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/import_recovery.rs",
+      "path": "reference/crates/ifccad-convert/tests/import_recovery.rs",
+      "sha256": "ec926c9eb101dd8ddf3578f673843c906b19ec701b432f341ea2fcfd2a1fae91"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/layer_names.rs",
+      "path": "reference/crates/ifccad-convert/tests/layer_names.rs",
+      "sha256": "e8e1984e6395ea9821d2b934ba318c252636d09afdfca63ee0a26e70294c2933"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/layer_transparency.rs",
+      "path": "reference/crates/ifccad-convert/tests/layer_transparency.rs",
+      "sha256": "04059e41bec6005ea5812ae3d26b4c1c05775a781d8f57b9e6a521604ea18f4d"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/layout_references.rs",
+      "path": "reference/crates/ifccad-convert/tests/layout_references.rs",
+      "sha256": "c770e851c1a15aeb5304ada5996cb961f0df2bd70c38419197232d3116181075"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/line_patterns.rs",
+      "path": "reference/crates/ifccad-convert/tests/line_patterns.rs",
+      "sha256": "822938eb6d9e34f9aea465b4325ce2956c6ea09f31bfb46590e1bc8833b2d645"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/loss_policy.rs",
+      "path": "reference/crates/ifccad-convert/tests/loss_policy.rs",
+      "sha256": "c3ac45a5dab00e3e7685dabc5ccc1aa5ebcf7c8de8b3e8eb3d6a58a7b176b909"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/metadata_relationships.rs",
+      "path": "reference/crates/ifccad-convert/tests/metadata_relationships.rs",
+      "sha256": "0c8665327aecaf567c4bc0c94655facbef4680a8840497890036b63a542a0fe7"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/mtext_overflow.rs",
+      "path": "reference/crates/ifccad-convert/tests/mtext_overflow.rs",
+      "sha256": "f0bb01a92985c460414f11328fcda4a881e3d52821061a5d9ba355de444f093c"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/mtext_paragraph_state.rs",
+      "path": "reference/crates/ifccad-convert/tests/mtext_paragraph_state.rs",
+      "sha256": "385b0c210cbd6ce2b29e619edf38264421dcaf1bc41ae0bfadd653bb1fba7335"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/paper_plot_accuracy.rs",
+      "path": "reference/crates/ifccad-convert/tests/paper_plot_accuracy.rs",
+      "sha256": "353d2304cedbbeb5f2d1f4c84d2dcbc149c52203a0eeb8042d0540a2944cd990"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/paperspace.rs",
+      "path": "reference/crates/ifccad-convert/tests/paperspace.rs",
+      "sha256": "303ed02f46f5d78b37bdc36531b308285ba49fb354ef07f4174c0e46b6288d33"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/partial_open.rs",
+      "path": "reference/crates/ifccad-convert/tests/partial_open.rs",
+      "sha256": "aa073de0b463b9dfcdc9dc1d1d35e156c1a4553a1b02a72ceb9323fa56fe5c4b"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/plot_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/plot_exchange.rs",
+      "sha256": "922e3705e205e95da00a80cf16536543c511706dab36d005d95b52019cc3af68"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/plot_settings.rs",
+      "path": "reference/crates/ifccad-convert/tests/plot_settings.rs",
+      "sha256": "3bbf2a2bd50453645be2531ddcac19e4beb08fd1a62e6072202a4131d8f68a06"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/point_display.rs",
+      "path": "reference/crates/ifccad-convert/tests/point_display.rs",
+      "sha256": "5c6f5210ff3d1c73f6fd9a8b835b6a51f92f5761cb31da56f57543915a5a0534"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/polyline_width_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/polyline_width_exchange.rs",
+      "sha256": "ac2375f19dabd469445348f6c72d54a33fc7130deb234d4fb6f6b0510c603695"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/polyline_width_graphics.rs",
+      "path": "reference/crates/ifccad-convert/tests/polyline_width_graphics.rs",
+      "sha256": "1060358095c2e6d652d129015c463a487a67ead51179f107fd204c982312b0bb"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/polyline_width_import.rs",
+      "path": "reference/crates/ifccad-convert/tests/polyline_width_import.rs",
+      "sha256": "c755f9371163e9757588cc7c6fd7228d94bd41607ae65e2c40fb3371fb919ec0"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/presentation_policy.rs",
+      "path": "reference/crates/ifccad-convert/tests/presentation_policy.rs",
+      "sha256": "b7e1e16a12f2517110071ccdfe70b390161a671b2a3e30886046ecf104b88cff"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/presentation_state.rs",
+      "path": "reference/crates/ifccad-convert/tests/presentation_state.rs",
+      "sha256": "44a24abf10d4b2363fda9a34a3f35898434e9a3b909444dc47216ae37ad726b1"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/reserved_paper_block.rs",
+      "path": "reference/crates/ifccad-convert/tests/reserved_paper_block.rs",
+      "sha256": "119e156b13aef3ae80fe2fe7b1a9c60ae9987a227281f48f3eb958c9095528e0"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/spline_capture.rs",
+      "path": "reference/crates/ifccad-convert/tests/spline_capture.rs",
+      "sha256": "12e3376968c6744c63f516b126e764144c54ef29f15a03f9a44bd3a09677487d"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/spline_edit_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/spline_edit_exchange.rs",
+      "sha256": "3deca3fcd11deb2c489265f517df5f5abaa8ed9c6dcdfb92f152367aef5b1413"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/spline_record_order.rs",
+      "path": "reference/crates/ifccad-convert/tests/spline_record_order.rs",
+      "sha256": "dc4ae7f0812f3b9f2c51f4f24fcc9ce85c4accb62d0d2869e468aae50f640b4f"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/spline_restore.rs",
+      "path": "reference/crates/ifccad-convert/tests/spline_restore.rs",
+      "sha256": "913de773605f2bfc0918ee6c5ef37e3ef915c441b12d03b527fb142779e1af0f"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/spline_support/mod.rs",
+      "path": "reference/crates/ifccad-convert/tests/spline_support/mod.rs",
+      "sha256": "1568ac16d94c446951365aa9b4f7c7b27ccc56a3d826af5fbd31c2ed4cda07b9"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/support/dimension_graphics.rs",
+      "path": "reference/crates/ifccad-convert/tests/support/dimension_graphics.rs",
+      "sha256": "4dd387138961b6e58a5227f82bf0bf122f9230de9e84d13f1c4aac159e4bc870"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/support/filled_type_oracle.rs",
+      "path": "reference/crates/ifccad-convert/tests/support/filled_type_oracle.rs",
+      "sha256": "412bd4b89f57c39a755572a8baf792a347a6ed8362e0d67519a420526a7d679f"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/support/foreground.rs",
+      "path": "reference/crates/ifccad-convert/tests/support/foreground.rs",
+      "sha256": "fb999693e12330e2f3c1b2edf052075a1937832daa978599bf832c1137f86d18"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/support/polyline_width_oracle.rs",
+      "path": "reference/crates/ifccad-convert/tests/support/polyline_width_oracle.rs",
+      "sha256": "bebc8a0d19378af712dfcba5347bebfe4e28ef5e8c58aecfb56a757610afa5f7"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/text_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/text_exchange.rs",
+      "sha256": "46d7e23f19ce014cb222e5131494aed5fc87341c8aa9ff9ea3b10984d62fb293"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/text_source.rs",
+      "path": "reference/crates/ifccad-convert/tests/text_source.rs",
+      "sha256": "ab16e7acf005cb1598db623643a535149df552b740aee2e79145d0b1b6fe64f4"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/viewport_codec.rs",
+      "path": "reference/crates/ifccad-convert/tests/viewport_codec.rs",
+      "sha256": "5d4f1aa36630a0a82c7a65a0f18439a7ce45b32d08a5766223e113a9cc4f839f"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/viewport_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/viewport_exchange.rs",
+      "sha256": "2dc87e533069819ea969cbec498409abc99fb10cd90cff1dbba94d02f3b8910c"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/viewport_presentation.rs",
+      "path": "reference/crates/ifccad-convert/tests/viewport_presentation.rs",
+      "sha256": "86fa3f3c30fb82badc543ebd3d9338e72722485d5f4b01125bf9a45a15db7ced"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/viewport_source.rs",
+      "path": "reference/crates/ifccad-convert/tests/viewport_source.rs",
+      "sha256": "2b4cc7badfe49b8c7174f956a21a8e84bd04595d23dc7257a6840e9f425c0534"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/viewports.rs",
+      "path": "reference/crates/ifccad-convert/tests/viewports.rs",
+      "sha256": "fe1e303ab4b57dcadc083eb54b9a4dbc05e7d4a640a838533aa9563cb9b3c173"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/workspace_conversion.rs",
+      "path": "reference/crates/ifccad-convert/tests/workspace_conversion.rs",
+      "sha256": "4f66cd9e16ee72b0c9144906b479b6ea250f366f713347ae19907a274f78923a"
+    },
+    {
+      "source": "crates/ifccad-convert/tests/workspace_exchange.rs",
+      "path": "reference/crates/ifccad-convert/tests/workspace_exchange.rs",
+      "sha256": "bf932617857ff3ae93fe8ca7ffcde354f668726e5618e4c2ac160f7cf5bcd12c"
+    },
+    {
+      "source": "patches/opencadcodec-dimension/0001-text-position-flag.patch",
+      "path": "reference/patches/opencadcodec-dimension/0001-text-position-flag.patch",
+      "sha256": "75118ce9d4af548dff84519f3476d7a750a6d1ad5c45dce54d6e43d5091ce7e8"
+    },
+    {
+      "source": "patches/opencadcodec-dimension/README.md",
+      "path": "reference/patches/opencadcodec-dimension/README.md",
+      "sha256": "222083121bfea5f14a32b0ccc6cae35769d34e4cdb61e602aa8daf9833008bf8"
+    },
+    {
+      "source": "patches/opencadcodec-polyline-widths/0001-preserve-polyline-widths.patch",
+      "path": "reference/patches/opencadcodec-polyline-widths/0001-preserve-polyline-widths.patch",
+      "sha256": "e99416c870edf16f2c1094c200cff2909bd5359c98c893f21615cc84732402de"
+    },
+    {
+      "source": "patches/opencadcodec-polyline-widths/README.md",
+      "path": "reference/patches/opencadcodec-polyline-widths/README.md",
+      "sha256": "1492f8fca72c67665a793dded07ab6e0ca041c13dbd7248a833fc870fb5c2cd8"
+    },
+    {
+      "source": "patches/opencadcodec-viewports.toml",
+      "path": "reference/patches/opencadcodec-viewports.toml",
+      "sha256": "5bc35dcc217e66675700a190e71f4db56a6b90a14ea453427af82391e07bc6c3"
+    },
+    {
+      "source": "patches/opencadcodec-viewports/0001-viewport-clipping.patch",
+      "path": "reference/patches/opencadcodec-viewports/0001-viewport-clipping.patch",
+      "sha256": "7251a130c411f6b04cbbc2c443d5881123f89cfd1073e5109d86fd03bb96a269"
+    },
+    {
+      "source": "patches/opencadcodec-viewports/0002-viewport-angle-units.patch",
+      "path": "reference/patches/opencadcodec-viewports/0002-viewport-angle-units.patch",
+      "sha256": "2dc4fdfad86217ffc2d3dbdf22c6d7ea75050c4cf8d4b4ecf9123ce8adbde56c"
+    },
+    {
+      "source": "patches/opencadcodec-viewports/0003-viewport-off-state.patch",
+      "path": "reference/patches/opencadcodec-viewports/0003-viewport-off-state.patch",
+      "sha256": "59c7cc50e4fb07caee5c5577af0cb506bf23d16aad97b18393cbaf156fa771a6"
+    },
+    {
+      "source": "patches/opencadcodec-viewports/README.md",
+      "path": "reference/patches/opencadcodec-viewports/README.md",
+      "sha256": "5bd9dbbeaff7d18d78fb1bd800da45f9ff43fda64cd5b02e800667e2aa6ceef8"
+    },
+    {
+      "source": "scripts/ifccad_cbor_baseline.py",
+      "path": "reference/scripts/ifccad_cbor_baseline.py",
+      "sha256": "8ab96f47b391683ac266d5d42e66bb26dfa7a0916d8668a601501c498491779d"
+    },
+    {
+      "source": "tests/support/cad_dimension_repair.rs",
+      "path": "reference/tests/support/cad_dimension_repair.rs",
+      "sha256": "bc67c7c1e769f8148e47a70100ee6596838ee2212525043f1e9865e86fdeb26f"
+    },
+    {
+      "source": "tests/support/cad_hatch_associations.rs",
+      "path": "reference/tests/support/cad_hatch_associations.rs",
+      "sha256": "2c8bb55bccc1e2e861e8ea1562856ee90afac9577213458a6bf86c262116f06c"
+    },
+    {
+      "source": "tests/support/far_hatch_pattern.rs",
+      "path": "reference/tests/support/far_hatch_pattern.rs",
+      "sha256": "8315c04ec7c99774762bf8128ed06085b51ac2001b20ec5bc07e99d4a3a56c5f"
+    },
+    {
+      "source": "tests/support/hatch.rs",
+      "path": "reference/tests/support/hatch.rs",
+      "sha256": "86b4b009abcaa056d9024a8b99e65bf2a250fac1be2bd490bb17c886b152beec"
+    }
+  ],
+  "sharedInputs": "Complete frozen checkpoint retains core source, schemas, fixtures, examples, benchmark corpus, shared native test helpers and historical docs at original paths. They are not duplicated or consumed from current main.",
+  "reproductionVerification": {
+    "date": "2026-10-28",
+    "rust": "1.98.0",
+    "sourceHashesVerified": 296,
+    "command": "cargo +1.98.0 test --locked --offline -p ifccad-convert --test polyline_width_exchange --test cbor_document",
+    "result": "10 passed; 0 failed",
+    "fullReferenceSuite": "Not rerun for archival; optional historical qualification, not an active gate.",
+    "codecPreparation": "Independent pristine checkout of recorded base plus only recorded polyline-width patch; no user-local codec edits copied."
+  }
+}

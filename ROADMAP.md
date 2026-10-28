@@ -26,7 +26,7 @@ IFCCAD development now has two cooperating implementation boundaries:
 | Dimensions | Linear/aligned definitions, styles, formatting, bounded source relations and optional stored graphics | Seven remaining definition kinds, broader selectors and annotation contexts are not implemented |
 | Planar polyline widths | Constant, PerVertex and classic Defaulted modes; ordinary entities and Dimension graphics | Extrusion thickness for polylines and complete joins/display qualification remain later work |
 | Explorer/CLI migration | Integrated and published; active conversion no longer depends on `ifccad-convert` | Shared-route losses, numerical fidelity, physical CAD readback and host display have their own evidence limits |
-| Reference-converter retirement | Archival candidate prepared and verified separately; not yet integrated at this review | Finish integration and documentation cleanup; no new product features in the old route |
+| Reference-converter retirement | Archived outside ordinary workspace builds/tests, with source/test/fixture hashes and complete-checkpoint reproduction | Historical contracts remain reference evidence; no second product route |
 | OCDraw | Parked outside ordinary development | No parity or compatibility-restoration requirement |
 
 Hatch B, SOLID/TRACE, stored Dimension graphics and polyline widths are completed
@@ -46,11 +46,12 @@ Native opaque storage remains independent of CAD capture/restoration support.
 
 ### 1. Consolidate the shared conversion route
 
-Finish retiring `ifccad-convert` from ordinary workspace builds and tests, keeping
-its source, applicable fixtures and complete-checkpoint reproduction available.
-Audit each `cad-*` adapter for actual active callers; preserve runtime-independent
-native kernels. Do not maintain two product converters or require full historical
-parity before completing retirement.
+`ifccad-convert` and all six individually audited `cad-*` adapters are now
+[archived](docs/converter-parking.md), outside ordinary builds/tests and active
+dependencies. Source, owned tests/fixtures, contracts and exact checkpoint/codec/
+lock/config reproduction remain available. No adapter had another active caller;
+runtime-independent native kernels remain in the core. Do not maintain two product
+converters or require full historical parity.
 
 Adopt upstream fixes through an explicit dependency update with focused
 regressions. The placement and numerical/picture corrections in

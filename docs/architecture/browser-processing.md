@@ -27,7 +27,7 @@ CAD serialization/readback is an optional export operation.
 
 The core owns logical validation, encoding and storage without a CAD runtime.
 `opencaddocument` owns the active shared Studio mapping. The reference
-`ifccad-convert` crate and its own tests remain separate; the browser and viewer
+`ifccad-convert` crate and its own tests are archived outside the workspace; the browser and viewer
 dependency graphs exclude it. The merged typed API and
 [new evidence boundary](explorer-document-route.md) define migration coverage. Presentation metadata belongs to the adapter rather
 than a new native extension protocol. CAD-to-IFCX header provenance uses the

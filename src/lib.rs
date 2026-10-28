@@ -2,7 +2,7 @@
 //!
 //! Public model and IO types are exported directly from this crate. Geometry,
 //! text, dimensions, line patterns, plot and workspace kernels remain independent
-//! of CAD runtimes. Direct CAD exchange lives in `ifccad-convert`.
+//! of CAD runtimes. Active CAD exchange uses the shared `opencaddocument` route in the viewer.
 #![allow(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
 pub mod color;

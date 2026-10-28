@@ -1,5 +1,9 @@
 # Drawing workspace state
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](converter-parking.md);
+the [shared Document route](architecture/explorer-document-route.md) has its own coverage.
+
 Current dependency qualification (2026-10-23): unmodified codec `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`
 (package `acadrust` 0.6.6, local alias `opencadcodec`). Dimension and viewport repairs are upstream.
 The [current audit](geometry/opencadcodec-update-2026-10-23.md) supersedes dated
@@ -14,7 +18,7 @@ qualified codec limits.
 
 Base: package `acadrust` 0.6.6 at `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`, exposed under
 the existing `opencadcodec` dependency alias, without local source patches.
-See [checkout provenance](../patches/opencadcodec-viewports/README.md).
+See [checkout provenance](../legacy/ifccad-convert/reference/patches/opencadcodec-viewports/README.md).
 
 | Field or relation | Evidence | Qualified boundary |
 | --- | --- | --- |
@@ -27,7 +31,7 @@ See [checkout provenance](../patches/opencadcodec-viewports/README.md).
 | Isometric pair bits | Four raw status-bit combinations | Both pair bits remain separately available; the workspace adapter must interpret their joint meaning |
 
 Tests and the independent literal source live in
-[`cad-workspace-convert/tests`](../crates/cad-workspace-convert/tests).
+[`cad-workspace-convert/tests`](../legacy/ifccad-convert/reference/crates/cad-workspace-convert/tests).
 They compare semantic fields rather than unstable handles. The literal fixture
 qualifies field parsing and is not a complete native conversion source. Fresh
 CadDocument cases separately exercise complete runtime layout infrastructure.

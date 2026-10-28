@@ -1,5 +1,9 @@
 # Dimension graphics mapping
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](../converter-parking.md);
+the [shared Document route](../architecture/explorer-document-route.md) has its own coverage.
+
 Current follow-up: [native polyline widths](../geometry/polyline-widths.md) now extend
 the historical zero-width boundary below. The original red source passes storage
 acceptance and bounded unchanged-host comparison. Historical slice scope and earlier

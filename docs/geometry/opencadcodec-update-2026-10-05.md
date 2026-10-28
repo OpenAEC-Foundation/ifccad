@@ -26,7 +26,7 @@ supported geometry, Viewport or the semantic-inventory categories.
 ## Authorized OCDraw development adoption
 
 The user authorized taking both local codec repairs from `ifcx-cad-paperspace`
-on 2026-10-05. [Patch provenance and setup](../../patches/opencadcodec-viewports/README.md)
+on 2026-10-05. [Patch provenance and setup](../../legacy/ifccad-convert/reference/patches/opencadcodec-viewports/README.md)
 record the exact base, clipping production diff from PR #88 and separate DXF
 angle-unit diff. The repairs remain byte-identical to the selected local patches.
 Local checkouts opt in through an ignored `.cargo/config.toml`; default

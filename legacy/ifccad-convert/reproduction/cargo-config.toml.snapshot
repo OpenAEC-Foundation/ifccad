@@ -1,0 +1,10 @@
+# Explicit width-patched codec; base and patch in opencadcodec-polyline-widths/README.md.
+[patch."https://github.com/HakanSeven12/opencadcodec.git"]
+opencadcodec = { package = "acadrust", path = ".superpowers/dependencies/opencadcodec-viewports-development" }
+
+[build]
+target-dir = "target"
+[profile.dev]
+debug = 0
+[profile.test]
+debug = 0

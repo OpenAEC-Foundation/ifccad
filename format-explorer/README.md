@@ -60,7 +60,7 @@ The migration is deliberately bounded. See the detailed
   dimension-text rendering discrepancy remains open host evidence. Counts of
   stored graphics nodes alone do not qualify correct rendering.
 
-The separate `ifccad-convert` crate remains a reference for research and its own
+The archived `ifccad-convert` crate remains a reference for research and its own
 regression suite. Explorer and viewer have no dependency on it. The old viewer
 conversion APIs, codec helpers and route-specific tests have been retired; see
 [retirement and recovery](../docs/architecture/retired-viewer-converter.md).

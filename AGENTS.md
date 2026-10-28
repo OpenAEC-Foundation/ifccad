@@ -4,7 +4,9 @@
 
 IFCCAD is the active CAD drawing profile using IFCX. The root Rust package is
 `ifccad`, with public model/IO types exported directly; implementation remains
-under `src/ifccad`. `ifccad-convert` and the CAD companions own direct CAD exchange.
+under `src/ifccad`. Active CAD exchange uses the shared `opencaddocument` route through viewer/browser.
+The direct converter and six codec companions are archived under
+`legacy/ifccad-convert`, outside ordinary builds/tests and active dependencies.
 The viewer/browser/Explorer support IFCCAD only. OCDraw is parked under
 `legacy/ocdraw`, excluded from ordinary builds/tests and active dependencies.
 Do not restore parity, import archived helpers or add an OCDraw compatibility
@@ -28,14 +30,15 @@ Start with:
   dependencies, and exit criteria;
 - `docs/vision.md` for long-term use cases, design principles, and success
   criteria;
-- `crates/ifccad-convert/README.md` for conversion terminology and the boundary
-  between IFCCAD and opencadcodec `CadDocument`;
-- `crates/ifccad-convert/README.md` for pinned codec coverage and loss classification.
+- `docs/architecture/explorer-document-route.md` for active conversion coverage;
+- `docs/converter-parking.md` and `legacy/ifccad-convert/README.md` for historical
+  direct-converter contracts and complete-checkpoint reproduction.
 
 For measurement or encoding work, also read
 `docs/benchmarks/ocdraw-size-exchange-v1.md` for the standalone controlled experiment, its limits,
 and reproduction instructions. Import changes must also consult
-`crates/ifccad-convert/README.md`. Historical OCDraw contracts live in the archive.
+`docs/architecture/explorer-document-route.md`. Archived converter proofs do not
+qualify the active route. Historical OCDraw contracts live in the archive.
 
 For performance work, also read `docs/benchmarks/placement-preparation-v1.md`
 for the current preparation measurements and practice-file inventory. Prefer
@@ -85,8 +88,9 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
 - The core `ifccad` crate owns the drawing model, shared validation, typed
   construction, encoding, and standalone file storage.
 - The core crate must remain independent of opencadcodec and other CAD runtimes.
-- The `ifccad-convert` companion crate owns conversion between validated IFCCAD
-  drawings and opencadcodec `CadDocument`.
+- The active viewer/browser use shared `opencaddocument` conversion. Keep the
+  archived direct converter and CAD companions out of active dependencies. Restore
+  the complete fixed checkpoint only for explicitly requested historical work.
 - Keep conversion, logical package construction, physical encoding, and
   filesystem storage as separate responsibilities.
 - Add new entity semantics to the language-neutral logical contract and shared
@@ -179,10 +183,11 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
   build-cache entries with `-Apply -CleanBuildCache` and reports other `target/`
   content for review. Run cache cleanup only when no build or test process is
   using those directories.
-- When updating opencadcodec, review public-model changes against the active IFCCAD converter
-  coverage contract, including added fields on existing types. Keep local
-  codec patches explicit and tied to a base revision; do not edit the Cargo
-  cache or treat patched results as evidence for the unmodified dependency.
+- When updating the shared Document/CAD dependencies, review public-model and
+  mapping changes against the active route coverage, including added fields on
+  existing types. Historical converter coverage is reference evidence only. Keep
+  any local dependency patch explicit and tied to a base revision; never edit the
+  Cargo cache or attribute patched evidence to an unmodified dependency.
 
 ## Verification
 

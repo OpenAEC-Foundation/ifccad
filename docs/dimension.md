@@ -1,5 +1,9 @@
 # Dimension support
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](converter-parking.md);
+the [shared Document route](architecture/explorer-document-route.md) has its own coverage.
+
 IFCCAD stores ordinary linear and aligned dimensions, local named
 DimensionStyles, authored overrides, optional same-owner source relations and
 optional worked-out graphics. The neutral values and formatter do not depend
@@ -196,7 +200,7 @@ preview is not a CAD glyph-layout or graphical bounds certificate. Full-width
 identities and the original source view remain available.
 
 The standalone reference converter’s DWG text placement uses the explicitly selected
-[text-position polarity repair](../patches/opencadcodec-dimension/README.md)
+[text-position polarity repair](../legacy/ifccad-convert/reference/patches/opencadcodec-dimension/README.md)
 alongside the viewport-off repair. DWG flags bit 0 is the opposite of DXF 70 bit
 128; independent raw-bit tests prevent matching codec reader/writer errors from
 masking one another. This does not qualify the unmodified dependency or introduce

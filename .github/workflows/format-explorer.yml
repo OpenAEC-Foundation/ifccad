@@ -25,9 +25,7 @@ jobs:
         id: browser-cache
         with:
           path: format-explorer/wasm-build
-          key: ifccad-browser-wasm-ubuntu24-v3-${{ hashFiles('Cargo.toml', 'Cargo.lock', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'crates/ifccad-convert/README.md', 'scripts/check_explorer_dependencies.py', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', 'patches/opencadcodec-polyline-widths/**', '.github/actions/viewport-codec/**') }}
-      - uses: ./.github/actions/viewport-codec
-        if: steps.browser-cache.outputs.cache-hit != 'true'
+          key: ifccad-browser-wasm-ubuntu24-v4-${{ hashFiles('Cargo.toml', 'Cargo.lock', 'crates/**/Cargo.toml', 'src/**/*.rs', 'crates/**/src/**/*.rs', 'schemas/**', 'rust-toolchain.toml', 'scripts/check_explorer_dependencies.py') }}
       - uses: dtolnay/rust-toolchain@stable
         if: steps.browser-cache.outputs.cache-hit != 'true'
         with:
@@ -137,9 +135,7 @@ jobs:
         id: rust-checks-cache
         with:
           path: target/explorer-rust-checks-passed
-          key: ifccad-rust-checks-debian12-v4-${{ hashFiles('Cargo.toml', 'Cargo.lock', 'scripts/check_active_workspace.py', 'scripts/tests/test_active_workspace.py', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'examples/**', 'scripts/check_explorer_dependencies.py', 'patches/opencadcodec-viewports*', 'patches/opencadcodec-viewports/**', 'patches/opencadcodec-dimension/**', 'patches/opencadcodec-polyline-widths/**', '.github/actions/viewport-codec/**', '.github/workflows/format-explorer.yml') }}
-      - uses: ./.github/actions/viewport-codec
-        if: steps.rust-checks-cache.outputs.cache-hit != 'true'
+          key: ifccad-rust-checks-debian12-v5-${{ hashFiles('Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', 'scripts/check_active_workspace.py', 'scripts/tests/test_active_workspace.py', 'crates/**', 'src/**', 'tests/**', 'schemas/**', 'conformance/**', 'examples/**', 'scripts/check_explorer_dependencies.py', '.github/workflows/format-explorer.yml') }}
       - name: Install Rust check tools
         if: steps.rust-checks-cache.outputs.cache-hit != 'true'
         run: rustup component add rustfmt clippy

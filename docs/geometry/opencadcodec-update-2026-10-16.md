@@ -13,7 +13,7 @@ are merged upstream. Gradient state repair #109 is included. The former local
 viewport patches remain historical evidence and must not be reapplied.
 
 The only selected local patch is
-[`0001-text-position-flag.patch`](../../patches/opencadcodec-dimension/0001-text-position-flag.patch).
+[`0001-text-position-flag.patch`](../../legacy/ifccad-convert/reference/patches/opencadcodec-dimension/0001-text-position-flag.patch).
 It applies without changes to this exact base and fixes the inverse polarity
 between DWG dimension flags bit 0 and DXF 70 bit 128. It remains local repair
 evidence, tracked upstream in [issue #117](https://github.com/HakanSeven12/opencadcodec/issues/117).

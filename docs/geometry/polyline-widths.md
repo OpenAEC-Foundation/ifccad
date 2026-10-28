@@ -1,5 +1,9 @@
 # Native planar polyline widths
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](../converter-parking.md);
+the [shared Document route](../architecture/explorer-document-route.md) has its own coverage.
+
 IFCCAD stores full local-coordinate widths independently of presentation lineweight.
 Both ordinary planar polylines and owned Dimension graphics use the same three modes:
 
@@ -39,7 +43,7 @@ and viewport clip contours keep their existing centerline semantics.
 ## Physical exchange qualification
 
 The converter uses the explicit named-base patch in
-[`patches/opencadcodec-polyline-widths`](../../patches/opencadcodec-polyline-widths/README.md),
+[`patches/opencadcodec-polyline-widths`](../../legacy/ifccad-convert/reference/patches/opencadcodec-polyline-widths/README.md),
 on acadrust/opencadcodec `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`.
 The core crate has no codec runtime dependency. `Vertex2D` exposes optional width
 leaves; classic DXF output must choose `Polyline2DWriteMode::PreserveClassic`.

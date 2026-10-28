@@ -1,5 +1,9 @@
 # Physical tolerance and symbolic units
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](../converter-parking.md);
+the [shared Document route](../architecture/explorer-document-route.md) has its own coverage.
+
 OCDraw and IFCCAD coordinate units use the same 25 symbolic values. Their
 physical definitions are in the
 [historical OCDraw logical contract](../../legacy/ocdraw/schemas/ocdraw/logical-contract-0.1.0.md).

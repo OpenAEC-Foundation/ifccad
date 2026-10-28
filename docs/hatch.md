@@ -1,5 +1,9 @@
 # Hatch
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](converter-parking.md);
+the [shared Document route](architecture/explorer-document-route.md) has its own coverage.
+
 IFCCAD is the active track. OCDraw descriptions below retain historical context;
 its implementation and fixtures are parked. See [parking](ocdraw-parking.md).
 Only IFCCAD code, schemas and current converter coverage define active behavior.

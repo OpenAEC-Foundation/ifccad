@@ -85,6 +85,26 @@ class ReleaseTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'unsafe'):
                 release.core_package_files(package, '2026.44.0')
 
+    def test_native_package_rejects_shared_document_runtime(self):
+        import io
+        import tarfile
+        with tempfile.TemporaryDirectory() as directory:
+            for direct in (True, False):
+                with self.subTest(direct=direct):
+                    package = Path(directory) / 'document.crate'
+                    manifest = '[package]\nname="ifccad"\nversion="2026.44.0"\n'
+                    if direct:
+                        manifest += '[dependencies]\nopencaddocument="0.1"\n'
+                    files = {'Cargo.toml': manifest.encode(),
+                             'Cargo.lock': b'version=4\n[[package]]\nname="opencaddocument"\nversion="0.1.0"\n'}
+                    with tarfile.open(package, 'w:gz') as archive:
+                        for name, data in files.items():
+                            info = tarfile.TarInfo('ifccad-2026.44.0/' + name)
+                            info.size = len(data)
+                            archive.addfile(info, io.BytesIO(data))
+                    with self.assertRaisesRegex(ValueError, 'native core'):
+                        release.core_package_files(package, '2026.44.0')
+
 
 if __name__ == '__main__':
     unittest.main()

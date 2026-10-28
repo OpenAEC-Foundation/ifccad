@@ -50,5 +50,23 @@ class WorkspaceBoundary(unittest.TestCase):
         self.assertEqual(result.returncode, 1, result.stderr)
         self.assertIn('tests/leak.rs', result.stderr)
 
+    def test_reference_converter_and_companions_are_rejected(self):
+        for name in ('ifccad-convert', 'cad-preservation', 'cad-workspace-convert',
+                     'cad-geometry-convert', 'cad-presentation-convert', 'cad-text', 'cad-dimension'):
+            with self.subTest(name=name):
+                result = self.check_workspace(f'[package]\nname="{name}"\nversion="0.1.0"\n')
+                self.assertEqual(result.returncode, 1, result.stdout)
+                self.assertIn(name, result.stderr)
+
+    def test_reference_converter_api_and_fixture_are_rejected(self):
+        for source in ('use ifccad_convert::IfccadLossPolicy;',
+                       'use cad_geometry_convert::GeometryPair;',
+                       'const X: &str = include_str!("../legacy/ifccad-convert/data.json");'):
+            with self.subTest(source=source):
+                result = self.check_workspace('[package]\nname="ifccad"\nversion="0.1.0"\n',
+                                              {'tests/leak.rs': source})
+                self.assertEqual(result.returncode, 1, result.stdout)
+                self.assertIn('tests/leak.rs', result.stderr)
+
 if __name__ == '__main__':
     unittest.main()

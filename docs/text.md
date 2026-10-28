@@ -1,5 +1,9 @@
 # IFCCAD Text and MText
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](converter-parking.md);
+the [shared Document route](architecture/explorer-document-route.md) has its own coverage.
+
 IFCCAD supports authored Text/MText, drawing-local text styles, typed rich
 content and strict native readback without a CAD or font runtime in the core.
 The active schemas, code/tests and directional converter coverage define the
@@ -177,9 +181,9 @@ Simple Text/MText pass production native IO and actual DXF/DWG exchange tests.
 Placement/content/style/column/background tests qualify a bounded profile;
 they do not establish a font engine, application rendering, every file version
 or full CAD/native parity. See the converter's
-[FROM-CAD](../crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md) and
-[TO-CAD](../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) inventories and
-[cad-text](../crates/cad-text/README.md). Fonts remain requested rather than bundled.
+[FROM-CAD](../legacy/ifccad-convert/reference/crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md) and
+[TO-CAD](../legacy/ifccad-convert/reference/crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) inventories and
+[cad-text](../legacy/ifccad-convert/reference/crates/cad-text/README.md). Fonts remain requested rather than bundled.
 
 The [IFCCAD example](../examples/ifccad/text.ifcx) includes
 Text/MText in Model, Paper and a local block, explicit paragraph colour and

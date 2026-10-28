@@ -8,7 +8,8 @@ The Explorer/CLI defaults to IFCCAD; explicit old routes/files report `OCDRAW_PA
 Neutral kernels remain in the active core, without CAD runtime dependencies.
 Unicode name equality uses an active internal helper and its frozen Unicode-17
 source/license. Coordinate-unit validation uses the neutral enum, preserving the
-same 25 tokens. CAD companions and `ifccad-convert` keep their existing boundaries.
+same 25 tokens. CAD companions and `ifccad-convert` were later archived separately; see
+[converter parking](converter-parking.md).
 No new abstraction or renamed generic model is introduced to support legacy.
 
 OCDraw-specific model, converter, schemas, candidate fixtures, tests and generators

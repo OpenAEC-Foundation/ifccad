@@ -20,10 +20,10 @@ CAD serialization/readback, native readback and typed import selection.
 
 ## Reference and recovery
 
-The separate `crates/ifccad-convert` crate and its standalone tests remain in the
-workspace pending a dedicated archival task. Its numerical, source-loss and
-preservation proofs continue to describe that converter. They do not qualify
-the shared mapping; see [current route coverage](explorer-document-route.md).
+The converter, its six CAD adapters, owned fixtures and tests are now
+[archived](../../legacy/ifccad-convert/README.md) outside ordinary workspace gates.
+Their numerical, source-loss and preservation proofs describe that historical
+converter, not the [current shared mapping](explorer-document-route.md).
 
 The complete former viewer implementation and tests are recoverable from
 [`f80d7bd84389b9dff5c01befa3e4bccc87f10ee8`](https://github.com/OpenAEC-Foundation/ifccad/tree/f80d7bd84389b9dff5c01befa3e4bccc87f10ee8/crates/viewer).
@@ -31,7 +31,5 @@ Use an isolated checkout of that revision with its documented reference codec
 patch preparation for reproduction. Restore the complete recorded slice rather
 than reintroducing isolated old helpers into the active Explorer.
 
-The reference workspace's CI preparation can still select its patched codec for
-standalone converter tests and workspace dependency resolution. The browser
-artifact excludes those packages; after their separate archival, that preparation
-can be retired with them.
+Active CI no longer prepares the old codec. The archived preparation and exact
+lock/config/patch identities are available for complete-checkpoint reproduction.

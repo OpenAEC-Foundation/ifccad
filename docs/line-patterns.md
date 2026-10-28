@@ -1,5 +1,9 @@
 # Complex line patterns
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](converter-parking.md);
+the [shared Document route](architecture/explorer-document-route.md) has its own coverage.
+
 OCDraw and the independent IFCCAD profile support ordered line pattern elements
 with optional text or symbol markers. The core model stores requests and local
 references; it does not load fonts, resolve filesystem paths or render SHX glyphs.

@@ -21,9 +21,9 @@ version = "2026.44.0"
 ifccad = { path = "." }
 
 [workspace]
-members = ["crates/cad-preservation", "crates/cad-workspace-convert", "crates/cad-geometry-convert", "crates/cad-presentation-convert", "crates/cad-text", "crates/cad-dimension", "crates/viewer", "crates/browser", "crates/ifccad-convert"]
+members = ["crates/viewer", "crates/browser"]
 resolver = "2"
-exclude = ["legacy/ocdraw", "legacy/ocdraw/crates/ocdraw-convert"]
+exclude = ["legacy/ifccad-convert", "legacy/ocdraw", "legacy/ocdraw/crates/ocdraw-convert"]
 
 [features]
 default = []

@@ -148,7 +148,7 @@ def core_package_files(package, version, allow_unused_patch=False):
         raise ValueError('expected a normalized standalone native core package')
     for kind in ('dependencies', 'dev-dependencies', 'build-dependencies'):
         for name, spec in manifest.get(kind, {}).items():
-            if (name.startswith('cad-') or name in ('acadrust', 'opencadcodec', 'ifccad-convert', 'viewer', 'browser')
+            if (name.startswith('cad-') or name in ('acadrust', 'opencadcodec', 'opencaddocument', 'ifccad-convert', 'viewer', 'browser')
                     or isinstance(spec, dict) and ('path' in spec or 'git' in spec)):
                 raise ValueError(f'non-registry dependency in native core: {name}')
     for name in files:
@@ -160,7 +160,7 @@ def core_package_files(package, version, allow_unused_patch=False):
     if lock.get('patch') and not allow_unused_patch:
         raise ValueError('workspace patch metadata in native core lockfile')
     for package in lock.get('package', []):
-        if package['name'].startswith('cad-') or package['name'] in ('acadrust', 'opencadcodec', 'ifccad-convert', 'viewer', 'browser'):
+        if package['name'].startswith('cad-') or package['name'] in ('acadrust', 'opencadcodec', 'opencaddocument', 'ifccad-convert', 'viewer', 'browser'):
             raise ValueError('CAD/application dependency in native core lockfile')
     return files
 

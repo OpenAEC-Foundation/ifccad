@@ -54,8 +54,9 @@ experimental CBOR + Zstd downloads; ordinary IFCX download remains the default c
 Neutral geometry, color, text, dimension, line-pattern, plot and workspace kernels
 remain in the core. Active DWG/DXF exchange belongs to the shared
 `opencaddocument` mapping used by Explorer and the viewer CLI. The older
-`ifccad-convert` and its CAD adapters are being retired into a reproducible
-reference archive; they are not dependencies of the active viewer/browser route.
+`ifccad-convert` and its six CAD adapters are [archived](docs/converter-parking.md)
+with reproducible source, tests and contracts, outside ordinary workspace builds
+and tests. They are not dependencies of the active viewer/browser route.
 Conversion, logical construction, encoding and storage remain separate responsibilities.
 
 Current native support includes primitive and planar/spatial path geometry, local blocks,
@@ -72,7 +73,7 @@ describes the shared mapping, exact dependency pins and evidence limits. Preview
 opens the actual IFCX snapshot in Open CAD Studio; DWG/DXF regeneration is optional.
 Native validation, mapping losses, numerical fidelity, physical CAD readback and
 host rendering are separate claims. Historical converter guarantees do not carry
-over automatically; see the [reference contract](crates/ifccad-convert/README.md).
+over automatically; see the [reference contract](legacy/ifccad-convert/reference/crates/ifccad-convert/README.md).
 For IFCX / JSON input, the matching
 native download retains original source bytes. Experimental CBOR and CBOR + Zstd
 downloads encode the validated IFCCAD drawing projection.
@@ -89,8 +90,8 @@ The native alpha and shared Explorer/CLI route are published. Hatch editing,
 SOLID/TRACE, Dimension graphics and planar polyline widths are implemented native
 foundations. The next steps are:
 
-1. **Consolidate the shared conversion route.** Finish reference-converter
-   retirement, adopt merged placement/numerical fixes through explicit dependency
+1. **Consolidate the shared conversion route.** Reference-converter retirement
+   is complete. Adopt merged placement/numerical fixes through explicit dependency
    updates, and qualify the actual IFCX preview and representative CAD cases.
    Upstream fixes are not automatically present in deployed dependency pins.
 2. **Extend native Dimensions with the seven remaining kinds.** Extend the
@@ -119,7 +120,7 @@ requirements. Measurements require a separate explicit request.
 | Path | Responsibility |
 | --- | --- |
 | `src/ifccad`, `src/*_kernel`, `src/text`, `src/dimension` | Active model and neutral kernels |
-| `crates/ifccad-convert`, `crates/cad-*` | Reference converter/adapters pending archive integration; not used by Explorer |
+| `legacy/ifccad-convert` | Historical direct converter, adapters and complete-checkpoint reproduction |
 | `crates/viewer`, `crates/browser`, `format-explorer` | IFCCAD CLI, WASM and Explorer |
 | `schemas/ifccad`, `conformance/next/ifccad` | Active alpha contract and evolving conformance |
 | `tests/fixtures/ifccad`, `examples/ifccad` | Active readback fixtures and curated examples |
@@ -153,9 +154,9 @@ cargo test --workspace
 ```
 
 On a fresh checkout, run `cargo fetch --locked` once before the offline boundary
-audit. These commands cover the current active workspace. Converter retirement
-removes the reference converter/adapters from those ordinary gates; historical
-reproduction uses its recorded checkpoint. The Explorer dependency guard can be
+audit. These commands cover only the active core, viewer and browser; no reference
+codec patch/configuration is needed. Archived converter/adapters are excluded;
+historical reproduction uses its recorded complete checkpoint. The Explorer dependency guard can be
 run with `python scripts/check_explorer_dependencies.py`. OCDraw remains excluded;
 the boundary guard rejects parked packages, dependency paths and active Rust
 references to parked fixtures.

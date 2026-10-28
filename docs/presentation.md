@@ -1,5 +1,9 @@
 # Drawing presentation and CAD exchange
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](converter-parking.md);
+the [shared Document route](architecture/explorer-document-route.md) has its own coverage.
+
 Current dependency qualification (2026-10-23): unmodified codec `bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`
 (package `acadrust` 0.6.6, local alias `opencadcodec`). Dimension and viewport repairs are upstream.
 The [current audit](geometry/opencadcodec-update-2026-10-23.md) supersedes dated

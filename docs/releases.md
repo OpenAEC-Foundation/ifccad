@@ -79,8 +79,8 @@ without claiming that historical `conformance/1.0.0` is an IFCCAD stable release
 The first deliverable is a **native core source alpha**: only `ifccad`, its
 schemas, core tests, examples and release documentation. `ifccad-convert`, all
 CAD companions, acadrust/opencadcodec, opencaddocument, viewer/browser and Explorer
-are excluded. The core has registry-only production dependencies. Workspace
-companions remain `publish = false`; synchronized repository software versions
+are excluded. The core has registry-only production dependencies. Active viewer/browser remain `publish = false`; the old converter and CAD
+companions are archived and excluded from routine gates as well as packaging; synchronized repository software versions
 do not imply inclusion in this release. No Studio/Explorer deployment is included.
 
 `python scripts/prepare_release.py package --staging FRESH_DIRECTORY` produces a
@@ -116,14 +116,10 @@ Native Zstd needs the platform's ordinary C build toolchain. Core tests use the
 production readers and strict validation. No CAD codec is required for these
 commands. A `.crate` can also be extracted directly as a gzip-compressed tar.
 
-The **repository integration gate** still covers the whole workspace under
-AGENTS.md. Its codec patch is a test/conversion dependency, not a released core
-dependency. For repository verification, reconstruct the codec from the
-[documented base and patch](../patches/opencadcodec-polyline-widths/README.md),
-select it explicitly and retain its exact content/config identity separately
-from the native package's dependency record. Do not replace it with an arbitrary
-warm local codec. Current standalone codec failures remain documented and are
-not claimed passing by the IFCCAD workspace gate.
+The **repository integration gate** covers the active core, viewer and browser
+under AGENTS.md, using the pinned shared Document dependencies. No historical
+codec patch is needed. The [reference converter](converter-parking.md) and its
+optional checkpoint reproduction are outside that gate and the native package.
 
 ```text
 python scripts/prepare_release.py check

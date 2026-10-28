@@ -16,8 +16,9 @@ connect those sources without replacing them.
 | Load, edit, validate and save drawings | [Lifecycle and API conventions](experiments/ifccad-document-lifecycle.md), [ID management](experiments/ifccad-id-management.md) and [drawing defaults](drawing-defaults.md) |
 | Implement or validate the format | [Profile contract](../schemas/ifccad/experimental-contract-0.1.0.md), [rule catalog](../schemas/ifccad/profile-rules-0.1.0.md) and [candidate conformance](../conformance/next/README.md) |
 | Understand CBOR and optional Zstd | [Encoding guide](experiments/ifccad-cbor.md), [CBOR mapping](../schemas/ifccad/cbor-mapping-1.md) and [Zstd transport](../schemas/ifccad/cbor-zstd-transport-1.md) |
-| Assess DXF/DWG exchange | [Converter contract](../crates/ifccad-convert/README.md), then [CAD-to-IFCCAD coverage](../crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md) or [IFCCAD-to-CAD coverage](../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) |
-| Investigate conversion failures | [Conversion diagnosis](conversion-diagnostics.md) |
+| Assess active DXF/DWG exchange | [Shared Document route coverage](architecture/explorer-document-route.md) |
+| Reproduce historical direct-converter proofs | [Converter archive](../legacy/ifccad-convert/README.md), [reference coverage](../legacy/ifccad-convert/reference/crates/ifccad-convert/README.md) |
+| Investigate historical converter failures | [Conversion diagnosis](conversion-diagnostics.md) |
 | Work on browser processing and inspection | [Browser architecture](architecture/browser-processing.md), then the [Explorer development guide](../format-explorer/README.md#development-and-verification) |
 | Contribute or maintain a checkout | [Working agreements](../AGENTS.md), [verification](../README.md#verification) and [local maintenance](local-maintenance.md) |
 

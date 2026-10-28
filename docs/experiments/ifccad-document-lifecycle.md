@@ -1,5 +1,9 @@
 # IFCCAD document lifecycle
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](../converter-parking.md);
+the [shared Document route](../architecture/explorer-document-route.md) has its own coverage.
+
 `IfccadDocument` is the owned logical CAD projection used by validation,
 encoding and direct CAD conversion. It contains typed entities, ordered owner
 contents, layers, layouts, shared blocks, named patterns, units and allocation
@@ -172,7 +176,7 @@ Fresh CAD imports allocate fresh native IDs; a CAD-runtime roundtrip does not
 preserve native allocation history automatically. Multiple authored Paper
 layouts, tab order, optional media, supported effective plot settings and
 viewport state have their own qualified mappings. See the
-[converter contract](../../crates/ifccad-convert/README.md),
+[converter contract](../../legacy/ifccad-convert/reference/crates/ifccad-convert/README.md),
 [workspace state](../workspace-state.md) and [layout output](../layout-output.md)
 for current coverage and codec limits. A historical viewport repair or practice
 conversion does not establish coverage for a later dependency.
@@ -186,15 +190,15 @@ conversion does not establish coverage for a later dependency.
 | Physical mapping and backing validation | Core `codec/json/`, `codec/cbor/` and the separate Zstd transport |
 | Validation, encoding and production readback | Core `encode.rs` |
 | Encoded bytes and standalone file IO | Core `storage.rs` and `storage/` |
-| CAD orchestration, identities and source audits | Companion `ifccad-convert` |
-| CAD numerical, text, dimension, presentation, workspace and snapshot preparation | The corresponding `cad-*` companions |
+| Active application CAD mapping | Shared `opencaddocument`, through viewer/browser |
+| Historical source audits, certified CAD preparation and snapshot restoration | Archived `ifccad-convert` and its six `cad-*` adapters |
 
 Keep construction, logical validation, conversion, physical encoding and file
 storage distinct. Public mutable records permit editing but do not certify
 validity. No encode/load bridge or CAD runtime is required for logical validation.
 No deprecated OCDraw or former `IfcxCad*` facade is exported.
 
-The four converter routes name both direction and backing explicitly:
+The archived reference API's four converter routes name both direction and backing explicitly:
 
 | Route | Result and scope |
 | --- | --- |
@@ -208,8 +212,8 @@ directions require their own options: `CadToIfccadOptions` and
 `IfccadToCadOptions`; `Default::default()` selects Allow. Outcomes expose
 `document()`/`into_document()` or `encoded()`/`into_encoded()`, diagnostics and
 mappings. Directional coverage remains in the converter's
-[FROM-CAD](../../crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md) and
-[TO-CAD](../../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) inventories.
+[FROM-CAD](../../legacy/ifccad-convert/reference/crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md) and
+[TO-CAD](../../legacy/ifccad-convert/reference/crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) inventories.
 Located recovery, certified rounding and semantic loss remain distinct.
 Unit-aware hard numerical limits are explained in
 [shared geometry](../geometry/shared-geometry.md).

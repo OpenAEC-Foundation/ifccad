@@ -271,5 +271,5 @@ with their own input/configuration provenance.
   datatype or node-profile syntax is introduced.
 
 Evidence: [line-pattern tests](../../tests/ifccad_line_patterns.rs),
-[conversion tests](../../crates/ifccad-convert/tests/line_patterns.rs) and
+[conversion tests](../../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/line_patterns.rs) and
 [profile contract](../../schemas/ifccad/experimental-contract-0.1.0.md#named-line-patterns).

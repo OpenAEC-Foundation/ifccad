@@ -1,5 +1,9 @@
 # Native SOLID and TRACE
 
+Native model/validation/storage sections remain active. Direct `ifccad-convert`
+exchange and codec qualification below describe the [archived reference](../converter-parking.md);
+the [shared Document route](../architecture/explorer-document-route.md) has its own coverage.
+
 Design revised on 21 October 2026 after the OCS investigation and the user's
 decision to admit every finite local corner combination. Both the convex-only
 and later simple-nonzero-area validity restrictions are superseded. The revised

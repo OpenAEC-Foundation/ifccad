@@ -1,5 +1,11 @@
 # Initial IFCCAD JSON / base-CBOR baseline
 
+Historical evidence: these reports keep their original checkpoints and scope.
+The converter example and launcher now belong to the
+[reference archive](../../legacy/ifccad-convert/README.md). Reproduction commands
+in the reports run in their applicable historical checkout, not current main.
+This archival change does not extend their measurements to the shared Document route.
+
 The [final five-case summary](../../docs/benchmarks/ifccad-cbor-results-summary-v1.md)
 contains the qualified initial results. The user agreed to defer test.dxf after
 conversion preparation proved too expensive for this first comparison. The

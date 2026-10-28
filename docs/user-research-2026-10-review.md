@@ -1,5 +1,9 @@
 # October 2026 user-research requirements review
 
+This review records native support and direct-converter evidence at its original
+checkpoint. That converter is now [archived](converter-parking.md); assess current
+Explorer exchange through the [shared route coverage](architecture/explorer-document-route.md).
+
 Reviewed 2026-10-21 against the active IFCCAD checkout and
 [DutchSailor's issue #17](https://github.com/OpenAEC-Foundation/ifccad/issues/17)
 (updated 2026-10-21). The issue contains 17 Must and 13 Should items. It says
@@ -124,9 +128,9 @@ IDs follow the issue's original order, so every requirement remains traceable.
 - [Active contract](../schemas/ifccad/experimental-contract-0.1.0.md),
   [candidate cases](../conformance/next/ifccad/README.md) and
   [production-reader conformance test](../tests/ifccad_conformance_next.rs).
-- [Converter coverage and policy](../crates/ifccad-convert/README.md),
-  [from-CAD inventory](../crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md),
-  [to-CAD inventory](../crates/ifccad-convert/docs/TO-CAD-COVERAGE.md),
+- [Converter coverage and policy](../legacy/ifccad-convert/reference/crates/ifccad-convert/README.md),
+  [from-CAD inventory](../legacy/ifccad-convert/reference/crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md),
+  [to-CAD inventory](../legacy/ifccad-convert/reference/crates/ifccad-convert/docs/TO-CAD-COVERAGE.md),
   [current dependency audit](geometry/opencadcodec-update-2026-10-16.md).
 - [CAD output/readback route](../crates/viewer/src/document_route.rs),
   [version choices](../format-explorer/src/cad-formats.mjs) and
@@ -137,31 +141,31 @@ IDs follow the issue's original order, so every requirement remains traceable.
 - [Media/plot mappings/margins](layout-output.md),
   [presentation and viewport overrides](presentation.md),
   [workspace restrictions](workspace-state.md).
-- [Plot exchange tests](../crates/ifccad-convert/tests/plot_exchange.rs),
-  [viewport exchange tests](../crates/ifccad-convert/tests/viewport_exchange.rs),
-  [override exchange tests](../crates/ifccad-convert/tests/viewport_presentation.rs).
+- [Plot exchange tests](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/plot_exchange.rs),
+  [viewport exchange tests](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/viewport_exchange.rs),
+  [override exchange tests](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/viewport_presentation.rs).
 - [Color and plot-style design issue #16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
 
 ### Annotation evidence
 
 - [Dimensions and later kinds/selectors/annotation](dimension.md),
   [implemented definition variants](../src/dimension/values.rs),
-  [Dimension exchange tests](../crates/ifccad-convert/tests/dimension_exchange.rs),
+  [Dimension exchange tests](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/dimension_exchange.rs),
   [text profile](text.md).
 - [Future associative updates #13](https://github.com/OpenAEC-Foundation/ifccad/issues/13).
 
 ### Hatch evidence
 
 - [Fill/profile/association boundaries](hatch.md),
-  [Hatch exchange tests](../crates/ifccad-convert/tests/hatch_exchange.rs),
-  [association tests](../crates/ifccad-convert/tests/hatch_associations.rs),
-  [gradient exchange](../crates/ifccad-convert/tests/hatch_gradient_exchange.rs).
+  [Hatch exchange tests](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/hatch_exchange.rs),
+  [association tests](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/hatch_associations.rs),
+  [gradient exchange](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/hatch_gradient_exchange.rs).
 
 ### Resources and pattern evidence
 
 - [Text and symbolic font requests](text.md),
   [complex patterns/SHX/upright restrictions](line-patterns.md),
-  [complex-pattern exchange tests](../crates/ifccad-convert/tests/complex_line_pattern_exchange.rs).
+  [complex-pattern exchange tests](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/complex_line_pattern_exchange.rs).
 - [Source identity/resolution #15](https://github.com/OpenAEC-Foundation/ifccad/issues/15),
   [codec upright #108](https://github.com/HakanSeven12/opencadcodec/issues/108),
   [upstream upright implementation](https://github.com/HakanSeven12/opencadcodec/commit/8d995b85f098db31448d6c6a12e4fdb0446007fb).
@@ -172,8 +176,8 @@ IDs follow the issue's original order, so every requirement remains traceable.
 ### Blocks and preservation evidence
 
 - [Native entity variants](../src/ifccad/logical/model.rs),
-  [block regression tests](../crates/ifccad-convert/tests/blocks.rs),
-  [source omissions](../crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md).
+  [block regression tests](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/blocks.rs),
+  [source omissions](../legacy/ifccad-convert/reference/crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md).
 - [Preservation boundary and raw-record exclusions](preservation.md),
   [IFCCAD lifecycle/source writeback boundary](experiments/ifccad-document-lifecycle.md),
   [additional typed families #2](https://github.com/OpenAEC-Foundation/ifccad/issues/2),
@@ -181,10 +185,10 @@ IDs follow the issue's original order, so every requirement remains traceable.
 
 ### Loss and recovery evidence
 
-- [Converter outcomes and policies](../crates/ifccad-convert/README.md#conversion-diagnosis),
+- [Converter outcomes and policies](../legacy/ifccad-convert/reference/crates/ifccad-convert/README.md#conversion-diagnosis),
   [report-only diagnosis](conversion-diagnostics.md),
-  [partial-import tests](../crates/ifccad-convert/tests/partial_open.rs),
-  [loss-policy tests](../crates/ifccad-convert/tests/loss_policy.rs).
+  [partial-import tests](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/partial_open.rs),
+  [loss-policy tests](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/loss_policy.rs).
 - [Explorer recovery/reporting](../format-explorer/README.md),
   [separate input/output report](../format-explorer/src/inspection-report.mjs),
   [partial-open UI tests](../format-explorer/tests/partial-open.test.mjs).
@@ -192,9 +196,9 @@ IDs follow the issue's original order, so every requirement remains traceable.
 ### Numeric and performance evidence
 
 - [Shared accuracy contract](geometry/shared-geometry.md),
-  [unit implementation](../crates/ifccad-convert/src/units.rs),
-  [all-unit conversion regression](../crates/ifccad-convert/tests/conversion.rs),
-  [per-domain numeric policy tests](../crates/ifccad-convert/tests/geometry_policy.rs).
+  [unit implementation](../legacy/ifccad-convert/reference/crates/ifccad-convert/src/units.rs),
+  [all-unit conversion regression](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/conversion.rs),
+  [per-domain numeric policy tests](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/geometry_policy.rs).
 - [Scoped five-case CBOR results](benchmarks/ifccad-cbor-results-summary-v1.md),
   [placement workload evidence](benchmarks/placement-preparation-v1.md),
   [measurement policy/reproduction](benchmarks/ocdraw-size-exchange-v1.md).

@@ -24,10 +24,10 @@ de beschrijving rechtvaardigt niet om die weg te schrijven als nul.
 Zie Autodesk [gemeenschappelijke Dimension-codes](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-EDD54EAC-A339-4EBA-AEA6-EC8066505E2B.htm)
 en [aligned-definitiepunten](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-7A123D5D-AC98-4A9A-A8CF-1A7EF5030418.htm).
 
-De codeplaatsen zijn `crates/cad-dimension/src/placement.rs`
+De codeplaatsen zijn `legacy/ifccad-convert/reference/crates/cad-dimension/src/placement.rs`
 (`prepare_dimension_from_cad`, `project`, `world`) en
 `src/dimension/values.rs` (`DimensionDefinition`). De converter controleert
-de voorbereide puntparen in `crates/ifccad-convert/src/mapping/dimension.rs`.
+de voorbereide puntparen in `legacy/ifccad-convert/reference/crates/ifccad-convert/src/mapping/dimension.rs`.
 `evaluate_dimension` in `src/dimension/measurement.rs` rekent bewust met XY.
 
 Het oorspronkelijke bestand bevat 658 DIMENSION-records. Voor precies de 267

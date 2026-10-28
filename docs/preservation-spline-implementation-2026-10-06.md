@@ -73,7 +73,7 @@ checkout, on this same base. Its only modified files have these SHA256 values:
 | src/io/dxf/reader/section_reader.rs | B10938421575C21B158038980FE458C5CA7EC3E4D7643EA34E6301140513AFC7 |
 | src/io/dxf/writer/section_writer.rs | 344AF75E7236AAD4F2E435E3201CC0D1A24AAF124F5F679B8B84636543E362F6 |
 
-See `patches/opencadcodec-viewports/README.md` for reproduction. Patched verification
+See `legacy/ifccad-convert/reference/patches/opencadcodec-viewports/README.md` for reproduction. Patched verification
 does not establish unmodified-upstream behavior. The copied local Cargo.lock
 retains package versions, with only direct dependency edges for already locked
 Base64/Serde declarations. No Cargo cache or codec source was patched by this task.

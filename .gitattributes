@@ -18,3 +18,7 @@ examples/ifccad/house.ifcx text eol=lf
 legacy/ocdraw/** -text whitespace=cr-at-eol
 # Unified-diff context lines deliberately contain a space.
 legacy/ocdraw/reproduction/selected-codec.patch -whitespace
+
+# Historical converter hashes use raw Git bytes, independent of checkout EOLs.
+legacy/ifccad-convert/** -text whitespace=cr-at-eol
+legacy/ifccad-convert/reference/patches/**/*.patch -whitespace

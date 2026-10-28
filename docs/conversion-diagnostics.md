@@ -1,7 +1,11 @@
 # Diagnosing CAD conversion
 
+Historical reference tooling: the commands below run only after restoring the
+[complete converter checkpoint](../legacy/ifccad-convert/README.md#reconstruct-and-test).
+They are not active-workspace commands or shared-route guarantees.
+
 For explicitly authorized partial import, see `CadImportErrorPolicy::SkipInvalidEntities`
-in the [converter contract](../crates/ifccad-convert/README.md#conversion-diagnosis).
+in the [converter contract](../legacy/ifccad-convert/reference/crates/ifccad-convert/README.md#conversion-diagnosis).
 It produces a strictly validated retained drawing with a separate omission report.
 This report-only diagnosis API keeps collecting hard failures without output, even
 when supplied partial-import options; it never disguises a failed source check as
@@ -112,8 +116,8 @@ Model VPORT table references and Paper VIEWPORT entity references are checked
 against their distinct roles. Paper references must resolve in their own owner;
 unsupported Model selection remains diagnosed rather than becoming invented
 native state. The exact current missing-reference and loss boundaries are in
-[layout-reference tests](../crates/ifccad-convert/tests/layout_references.rs),
-the [source resolver](../crates/ifccad-convert/src/source/layouts.rs) and
+[layout-reference tests](../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/layout_references.rs),
+the [source resolver](../legacy/ifccad-convert/reference/crates/ifccad-convert/src/source/layouts.rs) and
 [workspace coverage](workspace-state.md). This recovery is not geometric repair
 and does not relax either semantic loss policy or hard numeric limits.
 
@@ -134,7 +138,7 @@ supported-subset conversion, not complete source or rendering fidelity.
 The exact 3bm basename was `2705_model Funderingsherstel - Constructie - Sheet -
 CP-21 - Constructietekening`. The codec was
 `fe69506cb99dea6f4c4a73b690a27fdf04403ea0` with the existing three-patch
-[viewport development configuration](../patches/opencadcodec-viewports/README.md).
+[viewport development configuration](../legacy/ifccad-convert/reference/patches/opencadcodec-viewports/README.md).
 Those repaired results did not qualify the unmodified dependency. No dependency
 change or size/performance measurement was part of the correction.
 
