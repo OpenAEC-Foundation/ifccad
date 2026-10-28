@@ -13,8 +13,10 @@ the format contract. OCDraw remains [parked](ocdraw-parking.md).
 This candidate advances the logical profile to **0.2.0** and CBOR mapping to
 **2**; Zstd framing remains transport 1. Published alpha 2026.44.0 retains its
 fixed profile 0.1.0/CBOR 1 contracts. The expanded native core and paired Document
-conversion are under verification; deployed Explorer/Studio adoption awaits CAD
-file review. See [the design](dimension/remaining-kinds-design.md) for boundaries.
+conversion passed the recorded development checks. The user accepted the CAD
+review files and sample_AC1032 in the matching local Explorer/Studio reader.
+No new software release or live deployment is implied. See
+[the design](dimension/remaining-kinds-design.md) for boundaries.
 
 ## Definition, measurement and text
 
@@ -194,15 +196,19 @@ rendering guarantee.
 
 The approved design includes nine kinds: linear, aligned, two-line angular,
 three-point angular, radius, diameter, ordinate, arc length and jogged radius.
-Only linear/aligned entity definitions are implemented in this slice. The other
-seven kinds remain separate implementation slices, with their own measurement,
-validation, bounds and CAD qualification.
+The development candidate implements all nine definitions, shared measurement,
+validation, formatting and profile 0.2.0/CBOR2 storage. Paired Document conversion
+and its bounded CAD qualification are described in the active route coverage.
 
-Curve parameters, occurrence paths, intersections, trans-space references and
-external sources require a later selector/update contract. Annotative Text/MText
+Bounded circle, arc and segment point selectors are stored and validated natively;
+their physical CAD conversion remains explicitly diagnosed as unqualified.
+Occurrence paths, intersections, trans-space references and external sources
+require a later selector/update contract. Annotative Text/MText
 and Dimension belong in one later shared annotation slice. Dynamic fields,
 attributes and font resolution remain separate work. Generating Dimension
-graphics and executing associative updates belong to editors or external engines. This development does not publish or freeze version 0.1.0.
+graphics and executing associative updates belong to editors or external engines.
+The published alpha profile 0.1.0 remains fixed; this development does not publish
+a new software release.
 
 The maintained writer `write_ifccad_dimension` demonstrates
 ordinary styles, kind/local overrides, Model/Paper/block owners and source

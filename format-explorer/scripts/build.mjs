@@ -1,6 +1,7 @@
 import {mkdir,readdir,access,rm,readFile,writeFile,lstat} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
 import {examples} from '../src/examples.mjs';
 export const output=new URL('../dist/',import.meta.url);
 const localPath=value=>value instanceof URL?fileURLToPath(value):path.resolve(value);
@@ -54,6 +55,16 @@ export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',i
  const source=localPath(ocsRoot),target=path.resolve(destination,'ocs','app');
  if(!target.startsWith(path.resolve(destination)+path.sep))throw Error('Viewer output escapes build directory');
  if(await access(path.join(source,'index.html')).then(()=>true,()=>false)){
+  const pins=JSON.parse(await readFile(new URL('../ocs-source.json',import.meta.url),'utf8'));
+  if(pins.profile==='0.2.0'){
+   const provenance=JSON.parse(await readFile(path.join(source,'IFCCAD-BUILD.json'),'utf8'));
+   if(JSON.stringify(provenance.pins)!==JSON.stringify(pins))throw Error('Studio bundle uses different pinned dependencies');
+   for(const [name,expected]of Object.entries(provenance.files)){
+    const file=path.resolve(source,name);
+    if(!file.startsWith(path.resolve(source)+path.sep))throw Error('Studio provenance path escapes bundle');
+    if(createHash('sha256').update(await readFile(file)).digest('hex')!==expected)throw Error('Studio bundle differs from its build provenance: '+name);
+   }
+  }
   const html=await readFile(path.join(source,'index.html'),'utf8');
   if(!html.includes('</body>'))throw Error('Open CAD Studio HTML has no body end');
   await bundle(source,target,{

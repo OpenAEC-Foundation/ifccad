@@ -10,6 +10,10 @@ initSync({module:await readFile(new URL('../wasm-build/browser_bg.wasm',import.m
 const wasm={conversion_capabilities,open_ifccad,convert_cad_to_ifccad,export_ifccad,export_ifccad_binary,export_ifccad_with_options,convert_cad_to_ifccad_with_options};
 const capabilities=JSON.parse(conversion_capabilities()).ifccad;
 assert.equal(capabilities.backend,'opencaddocument');
+const pins=JSON.parse(await readFile(new URL('../ocs-source.json',import.meta.url)));
+assert.equal(capabilities.revision,pins.explorerDocumentCommit,'built processor matches recorded Document revision');
+assert.equal(pins.documentCommit,pins.explorerDocumentCommit,'Studio and Explorer use the same IFCX mapping');
+assert.equal(pins.codecCommit,pins.explorerCodecCommit,'Studio and Explorer use the same CAD model');
 for(const key of ['partialOpening','splinePreservation','adjustableTolerance','coordinateToleranceDefault','coordinateToleranceFallback'])assert.equal(capabilities[key],false,key);
 assert.equal(capabilities.numericalAssessment,'unassessed');
 const bytesOf=file=>Uint8Array.from(Buffer.from(file.base64,'base64'));
@@ -26,7 +30,7 @@ for(const example of examples){
  assert.ok(opened.preview.viewerSelection.entities.length);
  const model=createInspection(opened,opened.nativeSourceText);
  assert.ok(model.valid);assert.ok(model.nodes.size>0);
- const labels=(example.name==='House floor plan'?['10000','6100','3900','12000']:['58','56.92']).sort();
+ const labels=(example.name==='House floor plan'?['10000','6100','3900','12000']:['18','21.63','15','30','90','90','9','23.56','15']).sort();
  assert.deepEqual(opened.presentation.dimensions.map(d=>d.geometry.label.primary).sort(),labels);
  if(example.name==='Entity catalogue')for(const type of ['point','lineSegment','circle','arc','ellipse','ellipseArc','planarPolyline','spatialPolyline','text','mText','hatch','dimension','blockInstance','viewport','solid','trace'])assert.ok([...model.nodes.values()].some(node=>node.type===type),type);
  for(const encoding of ['cbor','cbor-zstd']){
@@ -63,6 +67,29 @@ for(const fixture of ['hello-cad.ifcx','hello-geometry.ifcx','hello-hatch-solid.
  assert.deepEqual(Buffer.from(saved.export.download.base64,'base64'),bytes);
  assert.equal(opened.presentation.hatchExportPreflight,undefined,'no reference-codec preflight is attributed to the new route');
  if(fixture==='workspace-state.ifcx')assert.equal(opened.presentation.ucsDefinitions[0].path,'/cad/d1/ucs/9007199254740993');
+}
+
+{
+ const bytes=await readFile(new URL('../../tests/fixtures/ifccad/dimension-kinds-gallery.ifcx',import.meta.url)),source=request('dimension-kinds.ifcx',bytes),opened=checked(source);
+ const dimensions=opened.presentation.dimensions;
+ assert.equal(dimensions.length,9);
+ assert.equal(new Set(dimensions.map(d=>d.geometry.definition.kind)).size,9);
+ assert.ok(dimensions.every(d=>d.geometry.graphics.state==='stored'));
+ assert.equal(opened.preview.viewerSelection.entities.length,9);
+ assert.deepEqual(Buffer.from(bytesOf(opened.nativeFile)),bytes,'all-nine host preview receives the reviewed native snapshot');
+ for(const encoding of ['cbor','cbor-zstd']){
+  const file=checked(nativeExportRequest(source,opened,{format:'ifccad',encoding})).export.download;
+  assert.deepEqual(checked(request(file.fileName,bytesOf(file))).presentation.dimensions,dimensions);
+ }
+ for(const format of ['dxf','dwg']){
+  const file=checked(nativeExportRequest(source,opened,{format,version:'AC1032'})).export.download;
+  const returned=checked(request(file.fileName,bytesOf(file),'cad'));
+  assert.equal(returned.presentation.dimensions.length,9);
+  assert.equal(new Set(returned.presentation.dimensions.map(d=>d.geometry.definition.kind)).size,9);
+ }
+ const old=new TextDecoder().decode(bytes).replaceAll('0.2.0','0.1.0');
+ assert.ok(processBrowserRequest(request('old-profile.ifcx',new TextEncoder().encode(old)),wasm).failure,'old alpha profile must not silently use the new reader');
+ console.log('All nine Dimension kinds: actual native preview snapshot, owner bindings, stored graphics, CBOR/Zstd and physical CAD downloads.');
 }
 
 const large=(await readFile(new URL('../../tests/fixtures/ifccad/hello-line-patterns.ifcx',import.meta.url),'utf8')).replace(/("next(?:Entity|Layer|Layout|Block|LinePattern|Ucs|ModelWindow)Id"\s*:\s*)\d+/g,(_,prefix)=>prefix+'9007199254740993');

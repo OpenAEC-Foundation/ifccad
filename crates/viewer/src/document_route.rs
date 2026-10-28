@@ -5,10 +5,10 @@ use opencaddocument::{Document, Dwg, Dxf, DxfVersion, Format, IfccadImportOutcom
 use serde_json::{json, Value};
 use std::{collections::BTreeMap, path::Path};
 
-const LIMITATIONS: &str = "Shared Studio mapping: fixed parameter rounding; numerical error bounds and rendered appearance are unassessed. Partial recovery, spline preservation and Reject policy are unavailable. Reported losses are not an exhaustive preservation audit.";
+const LIMITATIONS: &str = "Shared Studio mapping: numerical error bounds and rendered appearance are unassessed. Partial recovery, spline preservation and Reject policy are unavailable. Reported losses are not an exhaustive preservation audit.";
 
 pub fn document_capabilities() -> Value {
-    json!({"ifccad":{"backend":"opencaddocument","revision":"47d7888ca6ae1a13b80c8cf5076f5efdbc5a5f2b","partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
+    json!({"ifccad":{"backend":"opencaddocument","revision":"ad6fec3f99dae5f7f0e93aca8ef5e4c98ca680ea","partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
 }
 
 fn parse_options(

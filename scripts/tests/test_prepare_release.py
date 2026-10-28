@@ -32,7 +32,7 @@ class ReleaseTests(unittest.TestCase):
             (root / 'format-explorer/package.json').write_text(
                 '{"version":"0.1.0"}', encoding='utf-8')
             (root / 'release/manifest.json').write_text(
-                '{"softwareVersion":"0.1.0","profileVersion":"0.2.0",'
+                '{"softwareVersion":"0.1.0","profileVersion":"0.1.0",'
                 '"cborMappingRevision":1,"zstdTransportRevision":1}', encoding='utf-8')
             release.set_version(root, '2026.44.0')
             import json

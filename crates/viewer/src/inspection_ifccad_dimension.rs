@@ -58,7 +58,8 @@ pub(crate) fn entities(doc: &IfccadDocument) -> Value {
                 DimensionMeasurement::Distance(v) => json!({"kind":"distance","value":v}),
                 DimensionMeasurement::Angle(v) => json!({"kind":"angle","value":v}),
             };
-            let label = match format_dimension_label(
+            let label = match format_dimension_kind_label(
+                d.definition.kind(),
                 measurement,
                 &effective.numbers,
                 DimensionFormatContext { is_paper },

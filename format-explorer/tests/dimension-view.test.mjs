@@ -14,6 +14,16 @@ function panel(format,language,inspector='properties') {
  const f=fixture(format);
  return {...f,...renderInspection(f.model,{language,view:'drawing',grouping:'type',selection:f.key,expanded:new Set(),inspector})};
 }
+
+test('calculated angles use radians while calculated lengths keep the drawing unit',()=>{
+ const {model,key}=fixture('ifccad'),node=model.nodes.get(key);
+ node.unit='mm';node.derived.rawMeasurement={kind:'angle',value:Math.PI/2};
+ let details=renderInspection(model,{language:'nl',view:'drawing',grouping:'type',selection:key,expanded:new Set(),inspector:'properties'}).details;
+ assert.match(details,/1\.5707963267948966 · rad/);assert.doesNotMatch(details,/1\.5707963267948966 · mm/);
+ node.derived.rawMeasurement={kind:'distance',value:48.25};
+ details=renderInspection(model,{language:'nl',view:'drawing',grouping:'type',selection:key,expanded:new Set(),inspector:'properties'}).details;
+ assert.match(details,/48\.25 · mm/);
+});
 test('Dimension properties use localized labels and separate stored and calculated data in both formats',()=>{
  for(const format of ['ifccad'])for(const language of ['nl','en']){
   const {details,model,key}=panel(format,language);
@@ -47,4 +57,12 @@ test('horizontal stacks keep the relative scale, accessible text and literal dec
  assert.match(html,/font-size:0.8em/);
  assert.match(html,/text-decoration:underline overline line-through/);
  assert.match(html,/aria-label="note 1\/2"/);
+});
+
+test('arc markers keep before and above presentation and accessible text',()=>{
+ for(const placement of ['before','above']){
+  const html=renderDimensionLabel({state:'visible',runs:[{text:'⌒5.00'}],fragments:[{kind:'arcSymbol',placement},{kind:'run',run:{text:'5.00'}}]},'nl');
+  assert.match(html,new RegExp('dimension-arc-symbol '+placement));
+  assert.match(html,/aria-label="⌒5.00"/);
+ }
 });

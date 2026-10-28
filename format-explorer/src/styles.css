@@ -209,6 +209,8 @@
 .inspector-field[open]>summary>svg{transform:rotate(90deg)}
 
 .dimension-label{font-size:18px;line-height:2.1;white-space:pre;max-width:100%;overflow:auto;padding:6px 0}
+.dimension-arc-symbol.before{margin-right:.1em}
+.dimension-arc-symbol.above{display:inline-block;position:relative;top:-.65em;left:.3em;margin-right:-.7em}
 .dimension-fraction{display:inline-grid;vertical-align:middle;text-align:center;line-height:1.1;margin:0 .1em}
 .dimension-fraction.horizontal{grid-template-columns:1fr;grid-template-rows:auto auto}
 .dimension-fraction.horizontal .numerator{border-bottom:1px solid currentColor;padding:0 .12em .08em}

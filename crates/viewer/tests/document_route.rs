@@ -1,5 +1,9 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
-use opencaddocument::{entities::Line, types::Vector3, Document, Dxf, EntityType, Format};
+use opencaddocument::{
+    entities::{Circle, Line},
+    types::Vector3,
+    Document, Dxf, EntityType, Format,
+};
 use serde_json::Value;
 
 fn line() -> Vec<u8> {
@@ -11,6 +15,51 @@ fn line() -> Vec<u8> {
         )))
         .unwrap();
     Dxf.write(&drawing).unwrap().0
+}
+
+#[test]
+fn cad_placement_keeps_sub_snap_coordinates_through_strict_native_readback() {
+    let center = Vector3::new(12.3456789012345, -23.4567890123456, 0.0);
+    let mut drawing = Document::new();
+    let mut circle = Circle::from_center_radius(center, 3.0);
+    circle.normal = Vector3::UNIT_Y;
+    drawing.add_entity(EntityType::Circle(circle)).unwrap();
+    let input = Dxf.write(&drawing).unwrap().0;
+    let (source, _) = Dxf.read(&input).unwrap();
+    let EntityType::Circle(source) = source.model_space_entities().next().unwrap() else {
+        panic!("circle source missing")
+    };
+    assert_eq!(source.center, center);
+    assert_eq!(source.normal, Vector3::UNIT_Y);
+    let result =
+        viewer::document_cad_to_ifccad("precise.dxf", "dxf", &input, "2026-10-28T00:00:00Z", "{}");
+    assert!(result["failure"].is_null(), "{result}");
+    let bytes = STANDARD
+        .decode(result["export"]["download"]["base64"].as_str().unwrap())
+        .unwrap();
+    let native = ifccad::load_ifccad_bytes(&bytes, Default::default()).unwrap();
+    let entity = native.document().model.entities[0].as_native().unwrap();
+    let ifccad::IfccadEntityKind::Circle { radius, placement } = &entity.kind else {
+        panic!("native circle missing")
+    };
+    assert_eq!(*radius, 3.0);
+    // For +Y extrusion, the arbitrary-axis basis is (-X, +Z, +Y).
+    // This reference does not use the converter's placement helpers.
+    assert_eq!(placement.origin, [-center.x, center.z, center.y]);
+    assert_eq!(placement.x_axis, [-1.0, 0.0, 0.0]);
+    assert_eq!(placement.y_axis, [0.0, 0.0, 1.0]);
+    let exported = viewer::document_export_ifccad("precise.ifcx", &bytes, "dxf", "AC1032", "{}");
+    assert!(exported["failure"].is_null(), "{exported}");
+    let output = STANDARD
+        .decode(exported["export"]["download"]["base64"].as_str().unwrap())
+        .unwrap();
+    let (cad, _) = Dxf.read(&output).unwrap();
+    let EntityType::Circle(actual) = cad.model_space_entities().next().unwrap() else {
+        panic!("exported circle missing")
+    };
+    assert_eq!(actual.center, center);
+    assert_eq!(actual.normal, Vector3::UNIT_Y);
+    assert_eq!(actual.radius, 3.0);
 }
 
 #[test]

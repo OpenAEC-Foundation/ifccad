@@ -11,7 +11,7 @@ export function dimensionFieldLabel(key,language){
  const label=translate(language,'dimension.field.'+field);
  return label.startsWith('dimension.field.')?translate(language,field):label;
 }
-const enumFields=new Set(['type','kind','variant','state','format','angleFormat','application','role','attachment','insideOrientation','outsideOrientation','movement','preferredPlacement','arcSymbol','fractionLayout','mode','alignment','associationUpdate','displayEvaluation','origin','purpose']);
+const enumFields=new Set(['type','kind','variant','state','format','angleFormat','application','role','attachment','insideOrientation','outsideOrientation','movement','preferredPlacement','arcSymbol','fractionLayout','mode','alignment','associationUpdate','displayEvaluation','origin','purpose','traversal','ray1Sign','ray2Sign','valueMode']);
 export function dimensionValueLabel(field,value,language){
  if(!enumFields.has(field)||typeof value!=='string')return value;
  const key='dimension.value.'+value.slice(0,1).toLowerCase()+value.slice(1),label=translate(language,key);
@@ -29,6 +29,7 @@ export function renderDimensionLabel(label,language){
  const plain=label.runs?.map(run=>run.text).join('')??fragments.map(p=>p.kind==='fraction'?p.numerator+'/'+p.denominator:p.run?.text||'').join('');
  const content=fragments.map(part=>{
   if(part.kind==='run')return textRun(part.run);
+  if(part.kind==='arcSymbol')return '<span class="dimension-arc-symbol '+(part.placement==='above'?'above':'before')+'">⌒</span>';
   if(part.kind!=='fraction')return '';
   if(!['horizontal','diagonal'].includes(part.layout))return escape(part.numerator+'/'+part.denominator);
   const scale=Number.isFinite(part.textScale)&&part.textScale>0?part.textScale:1;

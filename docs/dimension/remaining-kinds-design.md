@@ -1,8 +1,10 @@
 # Remaining Dimension kinds: design decisions
 
-Recorded on 26 October; updated on **28 October 2026**. **Design only; not implemented.**
-The implementation plan requires review before execution. This document records the design discussion, not
-newly supported schema, Rust API or CAD exchange coverage.
+Recorded on 26 October; updated on **28 October 2026**. The native implementation
+and paired Document conversion are implemented as a development candidate. The
+user accepted the CAD review package and sample_AC1032 in the matching local
+Explorer/Studio reader. Document PR #7 is open with all three CI platforms green. Current schemas, Rust APIs and tests define the
+implemented contract; this document retains the design rationale.
 
 ## Intent and scope
 
@@ -11,12 +13,11 @@ radius, diameter, two-line angular, three-point angular, ordinate, arc length
 and jogged radius. Keep measurement definitions, optional source associations,
 presentation and optional stored graphics distinct.
 
-The seven kinds form **one future implementation task**, with shared model,
+The seven kinds form **one implementation task**, with shared model,
 validation, storage, inspection and test infrastructure. Radius/diameter,
 angular kinds and the remaining kinds can be internal implementation steps.
 Each step receives focused checks; the final combined candidate receives the
-applicable full verification. This is an execution direction, not a schedule
-or authorization to start implementation.
+applicable full verification. The user authorized execution and subsequently accepted the CAD review files.
 
 The active conversion route belongs to **opencaddocument**, through viewer/browser.
 The direct converter and six CAD companions are archived and remain outside this
@@ -352,8 +353,8 @@ The relevant open issues were reviewed on 26 October 2026:
   do not authorize new placement representations or a proof-backend project here.
 
 These issues provide context, not normative requirements. The roadmap still
-governs sequencing. The opencaddocument conversion direction is the user's
-decision for this future work, not a claim about the current converter route.
+governs sequencing. The opencaddocument conversion direction is the active route; the archived
+direct converter is not an implementation target.
 
 Technical references used in the discussion:
 

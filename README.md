@@ -97,8 +97,10 @@ foundations. The next steps are:
 2. **Extend native Dimensions with the seven remaining kinds.** Extend the
    [current Dimension model](docs/dimension.md) as one task with
    internal stages, with native readback and conversion contributions to
-   `opencaddocument` in both directions. The native/Document candidate is under
-   verification; CAD review and Explorer adoption remain pending.
+   `opencaddocument` in both directions. The native/Document candidate and matching local Explorer are implemented;
+   the user accepted CAD and sample_AC1032 Explorer review. The grouped entity
+   catalogue includes all nine kinds and native source relationships. Integration/
+   release remain separate; see the [checkpoint](docs/dimension/checkpoint-2026-10-28.md).
 3. **Add shared annotation contexts and bounded association updates.** Establish
    scale contexts and their exchange before claiming viewport-dependent updates
    or general regeneration.

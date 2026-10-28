@@ -51,8 +51,9 @@ The migration is deliberately bounded. See the detailed
 - Core native validation, source inspection and binary codecs remain available.
 - Shared mapping diagnostics are retained verbatim; upstream losses are often
   aggregated without source locations. Reader notifications remain separate.
-- The backend uses fixed parameter rounding. Certified numerical intervals and
-  rendered appearance are **unassessed**. Old converter proofs are not borrowed.
+- Placement and derived values use the upstream finite-arithmetic mapping without
+  automatic parameter quantization. Certified numerical intervals and rendered
+  appearance remain **unassessed**. Old converter proofs are not borrowed.
 - Adjustable/Exact tolerance, spline capture, partial recovery and
   Reject policy are unavailable. UI controls are hidden with an explanation;
   explicit API requests are rejected, never silently ignored.
@@ -68,10 +69,25 @@ Native core validation, composed source inspection and binary codecs remain acti
 
 ## Development and verification
 
-The merged typed API is pinned to Document
-`47d7888ca6ae1a13b80c8cf5076f5efdbc5a5f2b` (upstream PR #4). The workspace-root
-Cargo patch selects this checkout's core for the shared Rust model identity.
-No local Document API patch or preparation script is needed.
+The development candidate pins Document
+`ad6fec3f99dae5f7f0e93aca8ef5e4c98ca680ea` ([PR #7](https://github.com/HakanSeven12/opencaddocument/pull/7),
+including typed API PR #4 and placement/numerical PRs #5/#6). Studio uses the same Document and codec pins.
+The workspace-root Cargo patch selects this checkout's core for the shared Rust
+model identity.
+No local Document source patch is needed. The candidate reader uses profile
+0.2.0/CBOR2; the published alpha reader remains separate.
+
+Prepare the Studio checkout at the commit in `ocs-source.json` with
+`python scripts/prepare_explorer_ocs.py <studio-checkout>` before building it.
+This applies the main/save/worker/plugin dependency overrides and frozen
+`ocs-inputs/Cargo.lock`. Build its main and parser-worker bundles, complete the
+LICENSE/supporters assets, then record/verify the bundle with the same script's
+`--record-build` / `--verify-build` options. CI performs these steps explicitly.
+The cache key includes dependency, lock and build configuration; changing only
+attribution JSON cannot qualify old binaries. The actual asset hashes and resolved
+reader identities are retained in `IFCCAD-BUILD.json`. Explorer's WASM is a separate
+build. To assemble a local candidate, provide the host bundle as `OCS_ROOT` to
+the development server; the build rejects stale host assets.
 
 ```text
 python scripts/check_explorer_dependencies.py

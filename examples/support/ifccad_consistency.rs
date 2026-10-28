@@ -75,6 +75,10 @@ fn rewrite_paths(value: &mut Value, paths: &BTreeMap<String, String>) {
         Value::String(text) => {
             if let Some(new) = paths.get(text) {
                 *text = new.clone();
+            } else if let Some((owner, suffix)) = text.split_once("/graphics") {
+                if let Some(new) = paths.get(owner) {
+                    *text = format!("{new}/graphics{suffix}");
+                }
             }
         }
         Value::Array(values) => values.iter_mut().for_each(|v| rewrite_paths(v, paths)),

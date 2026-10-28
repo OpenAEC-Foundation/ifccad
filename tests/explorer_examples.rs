@@ -38,21 +38,15 @@ fn adding_catalogue_samples_grows_the_grid_and_saved_views() {
     let loaded = ifccad::load_ifccad_bytes(&bytes, Default::default()).unwrap();
     let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
     let nodes = json["data"].as_array().unwrap();
-    for number in [
-        "22  Point",
-        "23  Point",
-        "24  Point",
-        "25  Point",
-        "26  Point",
-    ] {
-        assert!(String::from_utf8_lossy(&bytes).contains(number));
+    for number in catalogue::SAMPLES.len() + 1..=samples.len() {
+        assert!(String::from_utf8_lossy(&bytes).contains(&format!("{number:02}  Point")));
     }
     let viewport = nodes
         .iter()
         .find_map(|n| n["attributes"].get("ifccad::viewport"))
         .unwrap();
-    assert_eq!(viewport["view"]["height"].as_f64(), Some(616.)); // Seven rows * 78 + 70.
-    assert_eq!(loaded.document().model_windows[0].view.height, 736.);
+    assert_eq!(viewport["view"]["height"].as_f64(), Some(834.)); // Six rows, grouped dimensions and sheet margin.
+    assert_eq!(loaded.document().model_windows[0].view.height, 954.);
 }
 
 // Exhaustive on purpose: a new native kind requires a catalogue coverage decision.
@@ -79,7 +73,7 @@ fn family(kind: &ifccad::IfccadEntityKind) -> &'static str {
 }
 
 #[test]
-fn catalogue_covers_every_native_family_and_both_dimension_kinds() {
+fn catalogue_covers_every_native_family_and_all_nine_dimension_kinds() {
     use std::collections::BTreeSet;
     let bytes = std::fs::read(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -118,13 +112,24 @@ fn catalogue_covers_every_native_family_and_both_dimension_kinds() {
         ])
     );
     let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
-    for kind in ["linear", "aligned"] {
+    for kind in [
+        "linear",
+        "aligned",
+        "radius",
+        "diameter",
+        "angularTwoLines",
+        "angularThreePoints",
+        "ordinate",
+        "arcLength",
+        "joggedRadius",
+    ] {
         assert!(json["data"]
             .as_array()
             .unwrap()
             .iter()
             .any(|n| n["attributes"]["ifccad::dimension"]["definition"]["kind"] == kind));
     }
+    assert_eq!(entities.iter().filter(|e| matches!(&e.kind, ifccad::IfccadEntityKind::Dimension(d) if d.graphics.is_some())).count(), 9);
     for kind in ["solid", "linePattern", "gradient"] {
         assert!(json["data"]
             .as_array()
@@ -172,6 +177,115 @@ fn examples_use_native_dimensions_without_duplicate_text_stand_ins() {
         assert_eq!(numbers["suffix"], "");
         assert_eq!(numbers["zeroSuppression"]["trailing"], true);
     }
+}
+
+#[test]
+fn catalogue_reference_geometry_and_names_are_independent_of_dimension_pictures() {
+    use ifccad::{dimension::DimensionDefinition, IfccadEntity, IfccadEntityKind};
+    let bytes = catalogue::build().unwrap();
+    let loaded = ifccad::load_ifccad_bytes(&bytes, Default::default()).unwrap();
+    let d = loaded.document();
+    let linear = d
+        .model
+        .entities
+        .iter()
+        .filter_map(IfccadEntity::as_native)
+        .find_map(|e| match &e.kind {
+            IfccadEntityKind::Dimension(v)
+                if matches!(v.definition, DimensionDefinition::Linear { .. }) =>
+            {
+                Some(v)
+            }
+            _ => None,
+        })
+        .unwrap();
+    let DimensionDefinition::Linear {
+        first_point,
+        second_point,
+        direction_angle,
+        ..
+    } = &linear.definition
+    else {
+        unreachable!()
+    };
+    assert_eq!(*direction_angle, 0.);
+    assert_eq!(second_point[0] - first_point[0], 18.);
+    assert_ne!(
+        second_point[1], first_point[1],
+        "linear must visibly project an oblique reference"
+    );
+    for title in [
+        "Linear",
+        "Aligned",
+        "Radius",
+        "Diameter",
+        "Two-line angle",
+        "Three-point angle",
+        "Ordinate",
+        "Arc length",
+        "Jogged radius",
+    ] {
+        assert!(d.model.entities.iter().filter_map(IfccadEntity::as_native).any(|e| matches!(&e.kind, IfccadEntityKind::Text(t) if t.content.iter().any(|r| r.text==title))), "ordinary example title missing: {title}");
+    }
+    for entity in &d.model.entities {
+        let Some(e) = entity.as_native() else {
+            continue;
+        };
+        if let IfccadEntityKind::Dimension(v) = &e.kind {
+            assert!(
+                v.associations.len() >= 2,
+                "each sample retains native source roles"
+            );
+            assert_eq!(
+                v.graphics
+                    .as_ref()
+                    .unwrap()
+                    .parts
+                    .iter()
+                    .filter(|p| matches!(p.kind, ifccad::IfccadDimensionGraphicsKind::Text(_)))
+                    .count(),
+                1,
+                "picture stores the measurement, not its example caption"
+            );
+        }
+    }
+    let relations: Vec<_> = d
+        .model
+        .entities
+        .iter()
+        .filter_map(IfccadEntity::as_native)
+        .filter_map(|e| match &e.kind {
+            IfccadEntityKind::Dimension(v) => Some(v.associations.clone()),
+            _ => None,
+        })
+        .collect();
+    let mut edited = loaded.into_document();
+    for entity in &mut edited.model.entities {
+        if let Some(e) = entity.as_native_mut() {
+            if let IfccadEntityKind::Dimension(v) = &mut e.kind {
+                v.graphics = None;
+            }
+        }
+    }
+    ifccad::recompute_ifccad_document_bounds(&mut edited).unwrap();
+    let cbor = ifccad::encode_ifccad_cbor_document(&edited).unwrap();
+    let read = ifccad::load_ifccad_cbor_bytes(cbor.bytes(), Default::default()).unwrap();
+    let after: Vec<_> = read
+        .document()
+        .model
+        .entities
+        .iter()
+        .filter_map(IfccadEntity::as_native)
+        .filter_map(|e| match &e.kind {
+            IfccadEntityKind::Dimension(v) => Some(v.associations.clone()),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        after, relations,
+        "native source roles survive picture removal and CBOR"
+    );
+    assert!(read.document().model.entities.iter().filter_map(IfccadEntity::as_native).any(|e| matches!(&e.kind, IfccadEntityKind::Text(t) if t.content.iter().any(|r| r.text=="Two-line angle"))));
 }
 
 #[test]

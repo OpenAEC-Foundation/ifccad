@@ -16,7 +16,7 @@ on `ifccad-convert` or its reference codec.
 | CAD semantic mapping | Shared Studio mapping and upstream losses | Coverage differs from reference converter |
 | Located losses | Original messages/optional handles retained | Most upstream losses are aggregated and unlocated |
 | Reader recovery | Backend-default read and notifications | No reference dictionary audit or entity-local recovery qualification |
-| Numerical accuracy | Unassessed, fixed upstream rounding | No old tolerance intervals, hard-error bounds or numeric guarantees |
+| Numerical accuracy | No automatic parameter quantization; runtime error bounds unassessed | No old tolerance intervals, hard-error bounds or numeric guarantees |
 | Spline preservation | Unavailable | Source splines may be reported/omitted, no opaque capture guarantee |
 | Partial opening | Unavailable | Explicit requests rejected |
 | Reject policy | Unavailable | Explicit requests rejected; loss detection is incomplete |
@@ -24,12 +24,18 @@ on `ifccad-convert` or its reference codec.
 | IFCX host selection | Explicit typed import maps, exact owner/layout and current session checks | No physical serialization/readback needed; excludes shared block contents |
 | Host rendering | Unassessed | Known foundation dimension-text observation remains unresolved |
 
-The [pinned mapping](https://github.com/HakanSeven12/opencaddocument/blob/47d7888ca6ae1a13b80c8cf5076f5efdbc5a5f2b/src/ifcx/mod.rs)
-uses selected position snapping at `1e-8`, selected angle snapping at `1e-12`,
-and 40-significant-bit settling for some derived lengths. These are upstream
-parameter rules, **not** a universal drawing/physical tolerance or a certified
-source-to-native error bound. Unchanged values, rounded values and unassessed
-geometric consequences must not inherit the reference converter's `1e-9` proof.
+The [pinned mapping](https://github.com/HakanSeven12/opencaddocument/blob/8a31478370c1b877c7bcb42c5298d033354ad4e4/docs/ifcx-numerics.md)
+writes directly calculated placement origins/axes and derived binary64 values
+without automatic `snap`, `settle` or OCS-parameter quantization. Representable
+signed INSERT scales are retained; setter substitutions are diagnosed rather
+than silently changing magnitude or handedness. Dimension pictures use shared
+frame validity and finite arithmetic, without the former residual/extent budget.
+This removes avoidable quantization; binary64 rounding, overflow, unsupported
+content and diagnostic coverage remain separate limitations. Upstream's bounded
+3D/nested/unit/transport regression budgets are test-specific evidence, not
+runtime tolerances or general source-to-native error certificates. Explorer's
+tilted-circle regression checks actual DXF import, strict production native
+readback and CAD export/readback without borrowing the archived converter's proof.
 
 Stored entity families and core inspection have not changed. The shared mapping
 covers tables, blocks, paper layouts/viewports, workspace, primitive/path/text,
@@ -48,21 +54,36 @@ tabs survive replacement. The host receives real `.ifcx` bytes and imports them
 internally into Document. Native validity, conversion losses, numerical proof,
 physical CAD readback and host rendering remain distinct claims.
 
-Dependencies are recorded in `format-explorer/ocs-source.json`. The typed API
-was merged in [opencaddocument PR #4](https://github.com/HakanSeven12/opencaddocument/pull/4)
-and is pinned to `47d7888ca6ae1a13b80c8cf5076f5efdbc5a5f2b`. The workspace-root
-Cargo patch unifies its core model with the current IFCCAD workspace. Studio's
-own historical Document/core pins are recorded separately. The codec change
-between Studio's `68530d9` and Explorer's `eada4ff` only changes DXF spline write
-flags; model construction and IFCX import allocation are unchanged. Exact host
-selection still requires successful host-side selection confirmation.
-Verification records dependency contents, not matching package names alone.
+Dependencies are recorded in `format-explorer/ocs-source.json`. The development
+candidate adopts [Document PR #7](https://github.com/HakanSeven12/opencaddocument/pull/7),
+`ad6fec3f99dae5f7f0e93aca8ef5e4c98ca680ea`, including upstream PRs #4/#5/#6.
+It adds the seven remaining ordinary Dimension kinds. Its
+[coverage contract](https://github.com/BjornFidder/opencaddocument/blob/ad6fec3f99dae5f7f0e93aca8ef5e4c98ca680ea/docs/ifcx-dimension-kinds.md)
+records qualified cases and explicit losses. CAD review of sample_AC1032 and a
+nine-kind gallery was accepted by the user; that does not certify all host rendering.
+
+Studio base `4d1cd17dafd7d47cd76f8674835636776eb90fd6` is built with explicit
+Document overrides in its main, save, worker and plugin API manifests. Both host
+and Explorer select codec `501b694eee3433b157e56a32da4268dc8b3b5bd3`; the host
+selects native core `bce9da06a8e1684e86e35f0302e3870141e6f9f9`. Explorer's
+workspace-root patch unifies the typed core with this checkout. The development
+reader requires profile 0.2.0/CBOR2; the fixed published alpha reader is separate.
+No live deployment is implied by these candidate pins.
+
+`scripts/prepare_explorer_ocs.py` applies the overrides and frozen host lockfile.
+The host cache identity includes those inputs, workflow/build configuration and
+Studio revision. `IFCCAD-BUILD.json` records the actual main/worker assets and
+resolved dependency identities. Reused bundles are checked against this record;
+the Explorer build rejects mismatched reader pins or asset hashes. Explorer WASM
+is rebuilt separately. Exact host selection still requires successful host-side
+selection confirmation. Package-name agreement alone is insufficient evidence.
 
 The [retired viewer route](retired-viewer-converter.md) records removed APIs,
 helpers and route-specific tests, retained native core coverage, and recovery
 of the former reference implementation from Git history.
 
-No native contract identifiers, schema/conformance releases or storage
-architecture change here. Open issues #4 (splines), #12/#18 (accuracy), #20
+The candidate advances the active logical profile to 0.2.0 and CBOR mapping to 2;
+Zstd framing stays at 1 with the new inner mapping. This is not a software release.
+Open issues #4 (splines), #12/#18 (accuracy), #20
 (evaluation API) and #6 (encoding research) overlap in evidence boundaries and
 remain separate work. No automatic size/exchange measurement is authorized.

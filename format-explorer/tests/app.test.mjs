@@ -14,6 +14,19 @@ const conversionOptions=()=>({tolerance:{mode:'default'}});
 const examples=[];
 const withNativeSnapshot=client=>({async open(...args){const result=await client.open(...args);return {...result,...(result.validation?.strictAvailable&&!result.failure?{nativeFile:{format:'ifccad',fileName:'drawing.ifcx',base64:'AQI=',byteLength:2}}:{})};}});
 
+test('pane switches keep unsupported shared-route tolerance controls hidden',async()=>{
+ const elements=new Map(),element=id=>{if(!elements.has(id))elements.set(id,{hidePopover(){},disabled:false,textContent:'',hidden:true,value:''});return elements.get(id);};
+ let onTab;
+ const code=(await readFile(new URL('../src/app.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'').replace('client=createFileClient()', 'client=withNativeSnapshot(createFileClient())');
+ vm.runInNewContext(code,{nativeExportRequest,withNativeSnapshot,initializeWorkspace:options=>{onTab=options.onTab;return {...initializeWorkspace(),state:{tab:'overview'}};},conversionOptions,examples,ifccadEncoding,...cadFormats,...hatchExport,document:{getElementById:element},createFileClient:()=>({async open(){return {validation:{strictAvailable:true},conversionCapabilities:{ifccad:{adjustableTolerance:false}}};}}),initializeCadPreview:()=>({clear(){},setSource(){},updateSource(){},cancel(){},show(){},hide(){},select:async()=>{}}),initializeToleranceSettings:()=>({selected:()=>({mode:'default'}),setReport(){},apply(){},setView(view){element('tolerance-open').hidden=view==='conversion';element('tolerance-fields').hidden=false;}}),AbortController});
+ element('file').files=[{name:'drawing.ifcx',size:1,arrayBuffer:async()=>new ArrayBuffer(1)}];await element('open').onclick();
+ for(const view of ['drawing','overview','conversion','overview']){
+  onTab(view);
+  assert.equal(element('tolerance-open').hidden,true,view+' must not advertise an unsupported numeric guarantee');
+  assert.equal(element('tolerance-fields').hidden,true,view+' must not expose unsupported options');
+ }
+});
+
 test('native download asks for an encoding before starting the requested download',async()=>{
  const elements=new Map(),requests=[];
  const element=id=>{if(!elements.has(id))elements.set(id,{hidePopover(){},disabled:false,hidden:true,value:'',setAttribute(){},getBoundingClientRect:()=>({left:20,bottom:80}),style:{},showPopover(){this.visible=true;},hidePopover(){this.visible=false;}});return elements.get(id);};

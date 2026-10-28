@@ -62,7 +62,8 @@ export function renderInspection(model,state){
   if(computed){
    const raw=computed.rawMeasurement;
    details+='<h3>'+e(t('dimension.calculatedMeasurement'))+'</h3><p class="secondary">'+e(t('dimension.calculatedHelp'))+'</p>';
-   if(raw)details+='<p>'+e(raw.value??raw.reason??t('unavailable'))+(node.unit?' · '+e(node.unit):'')+'</p>';
+   const rawUnit=raw?.kind==='angle'?'rad':node.unit;
+   if(raw)details+='<p>'+e(raw.value??raw.reason??t('unavailable'))+(rawUnit?' · '+e(rawUnit):'')+'</p>';
    details+='<h3>'+e(t('dimension.formattedLabel'))+'</h3>'+renderDimensionLabel(computed.label,language);
    if(computed.effectiveSettings)details+='<h3>'+e(t('dimension.effectiveSettings'))+'</h3><div class="inspector-fields">'+fields(computed.effectiveSettings,['derived','effectiveSettings'],0,node.key)+'</div>';
   }

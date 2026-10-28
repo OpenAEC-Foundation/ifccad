@@ -4,6 +4,7 @@ import {mkdtemp,mkdir,writeFile,readFile,rm,stat,utimes,access} from 'node:fs/pr
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {build} from '../scripts/build.mjs';
+import {recordBundle} from './support/ocs-bundle.mjs';
 
 test('unchanged viewer and converter assets retain their files while changed and removed assets are synchronized',async()=>{
  const root=await mkdtemp(path.join(tmpdir(),'explorer-reuse-')),ocs=path.join(root,'ocs'),wasm=path.join(root,'wasm'),dist=path.join(root,'dist');
@@ -11,12 +12,14 @@ test('unchanged viewer and converter assets retain their files while changed and
   await mkdir(ocs);await mkdir(wasm);
   for(const [name,body]of [['index.html','<body>viewer</body>'],['app.wasm','viewer-one'],['old.js','obsolete']])await writeFile(path.join(ocs,name),body);
   await writeFile(path.join(wasm,'browser_bg.wasm'),'runtime-one');await writeFile(path.join(wasm,'browser.js'),'module-one');
+  await mkdir(path.join(ocs,'worker_pkg'));await writeFile(path.join(ocs,'worker_pkg/ocs_web_worker_bg.wasm'),'worker');await recordBundle(ocs);
   await build({outputRoot:dist,ocsRoot:ocs,wasmRoot:wasm});
   const checked=['ocs/app/app.wasm','ocs/app/index.html','ocs/app/ocs-bridge.mjs','wasm/browser_bg.wasm'].map(name=>path.join(dist,name)),stamp=new Date('2001-01-01T00:00:00Z');
   for(const file of checked)await utimes(file,stamp,stamp);
   await build({outputRoot:dist,ocsRoot:ocs,wasmRoot:wasm});
   for(const file of checked)assert.equal((await stat(file)).mtimeMs,stamp.getTime(),file);
   await writeFile(path.join(wasm,'browser_bg.wasm'),'runtime-two');await writeFile(path.join(ocs,'app.wasm'),'viewer-two');await rm(path.join(ocs,'old.js'));
+  await recordBundle(ocs);
   await build({outputRoot:dist,ocsRoot:ocs,wasmRoot:wasm});
   assert.equal(await readFile(path.join(dist,'wasm/browser_bg.wasm'),'utf8'),'runtime-two');assert.equal(await readFile(path.join(dist,'ocs/app/app.wasm'),'utf8'),'viewer-two');
   assert.equal((await stat(path.join(dist,'ocs/app/index.html'))).mtimeMs,stamp.getTime());assert.equal((await stat(path.join(dist,'ocs/app/ocs-bridge.mjs'))).mtimeMs,stamp.getTime());

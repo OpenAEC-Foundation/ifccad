@@ -4,13 +4,22 @@ The Explorer offers two curated drawings:
 
 | File | Purpose |
 | --- | --- |
-| `ifccad/entities.ifcx` | A numbered catalogue: all 16 native entity families, three Hatch fills, linear/aligned Dimensions, layers, simple/text line patterns, block transforms and an A3 Paper viewport. |
+| `ifccad/entities.ifcx` | A numbered catalogue: all 16 native entity families, three Hatch fills, all nine Dimension kinds in one shared section, layers, simple/text line patterns, block transforms and an A3 Paper viewport. |
 | `ifccad/house.ifcx` | A fictitious 10000 x 12000 mm ground floor with wall hatching, actual openings, repeated door/window/furniture blocks, room labels, dimensions, north arrow and an A3 sheet at 1:100. |
 
 Both open with an authored Model view. Their Paper tabs contain locked orthographic
-viewports and explicit millimetre plot mappings. The catalogue's linear Dimension
-owns a small Generated picture with extension/dimension lines, native SOLID
-arrowheads and Text. Its aligned case and the house dimensions retain independent
+viewports and explicit millimetre plot mappings. One wide Dimensions section
+groups all nine kinds in a three-by-three illustration. Each remains an ordinary
+Model entity with an independent definition and an authored Generated picture,
+including native SOLID arrowheads and measurement Text. Example captions and
+reference lines/circles/arcs are independent ordinary entities, so rebuilding a
+Dimension picture after a grip edit does not erase them. Linear projects the
+same oblique reference span that the aligned example measures along its slope.
+Each example stores native point-role links to its reference geometry. These
+stored relationships do not certify automatic editor updates. Line/angle point
+links have the active CAD mapping; circular parameter selectors and some arc
+endpoint links are diagnosed if the DWG/DXF route cannot retain them. The
+house dimensions retain independent
 definitions without stored graphics and rely on CAD-host regeneration. Owned
 parts do not add ordinary scope entities or duplicate stand-ins. The house uses whole millimetres; the catalogue uses up to two decimals
 with trailing zeros suppressed. Units are stated on the drawing, not repeated in
@@ -45,6 +54,10 @@ Paper viewport and initial Model view. Use the common authoring helpers in
 `support/explorer_drawing.rs`; keep family-specific content in the sample.
 Append entries to preserve the reading order. New resources need ordinary
 drawing-local references and allocation counters, just like existing samples.
+The grouped Dimension section is authored separately from those small cards.
+It reuses the reviewed native gallery fixture, explicitly scales the illustrated
+geometry and authors new labels through the shared formatter. It is an example
+recipe, not a general regeneration engine. Model and Paper views grow with it.
 
 Regenerate both maintained assets. The tests check recipe reproducibility,
 strict validity, every current native family and catalogue growth across an
