@@ -1,344 +1,223 @@
 # IFCCAD development roadmap
 
-This document is authoritative for sequencing and status. Schemas/conformance
-and current Rust code define contracts; dated local plans retain their slice scope.
+Status reviewed on **28 October 2026**. This document owns development order,
+dependencies and completion criteria. Schemas/conformance define the format;
+current code and tests define implementation support. Dated designs, issue
+checklists and historical conversion reports do not override those sources.
 
-## Current sequence and worktrees
+## Current baseline
 
-IFCCAD is the active track. OCDraw is parked as a reference archive, without
-feature parity, routine builds or tests; see [parking](docs/ocdraw-parking.md).
-The native CBOR/Zstd checkpoint precedes this migration; the current CBOR mapping
-is revision 1, published with native source alpha 2026.44.0. Later normative
-changes follow the [release/version policy](docs/releases.md).
+IFCCAD development now has two cooperating implementation boundaries:
 
-1. The IFCCAD-main-track migration is integrated: workspace/API ownership, archive
-   and application routing now use IFCCAD.
-2. Hatch B is resumed on that basis: classic editing/construction state belongs to
-   IFCCAD/IFCX and CBOR revision 1. Its separate DXF/DWG target profiles
-   qualify all six offered versions, disclose losses before export, and retain the
-   original AC1024 foundation drawing as local correctness acceptance. This does
-   not reopen the completed Dimension graphics slice or deferred spline contours.
-3. Native SOLID and TRACE are implemented and verified: two kinds retaining every
-   finite local corner combination, native IFCX/CBOR storage and qualified CAD
-   type retention, with coordinate/surface/display evidence kept separate.
-4. Add bounded worked-out Dimension graphics on that basis, keeping polyline
-   widths outside the slice. Graphics and Hatch contract changes require explicit
-   dependency assessment when they overlap.
-   The implementation is complete and verified: optional owned
-   graphics, IFCX/CBOR storage, atomic CAD picture transfer, occurrence proof
-   and Explorer support.
-5. Native polyline widths are implemented as a separate candidate: Constant,
-   PerVertex and classic Defaulted state, segment-band proof, partial bounds and
-   qualified exchange. Original red sample_AC1032 storage acceptance passes; final
-   verification is recorded separately; bounded unchanged-host comparison passes. Extrusion
-   thickness remains a later slice.
-6. Continue remaining Dimension kinds/selectors and later joint annotation support
-   according to their dependencies.
-7. Expand supported CAD semantics; assess whole-document storage/performance
-   using representative evidence as described below.
+- **Native core:** the CAD drawing model, construction, validation, source
+  inspection/composition, IFCX JSON, CBOR and optional CBOR + Zstd. The core
+  remains independent of CAD runtimes.
+- **CAD exchange and applications:** DWG/DXF conversion through the shared
+  `opencaddocument` mapping; viewer/browser and Explorer consume it. Open CAD
+  Studio opens the actual IFCX snapshot for preview. A regenerated DWG/DXF is
+  an optional export, not the required preview intermediate.
 
-The independent xformop worktree remains separate. One broad structural task runs
-at a time. Independent narrow work can use focused checks; coordinate expensive
-full gates and verify one explicitly authorized final integration candidate.
-Migration execution alone does not authorize merging, pushing or resuming Hatch B.
+| Area | Implemented status | Remaining boundary |
+| --- | --- | --- |
+| Native source alpha | `2026.44.0` published; profile `0.1.0`, CBOR mapping `1`, Zstd transport `1` | Release contains the native core only; alpha compatibility is not guaranteed |
+| Drawing foundations | Primitive/path geometry, shared/nested blocks, Model/Paper layouts, presentation, Text/MText, line patterns, workspace and viewport data | Native storage does not establish complete CAD mapping or rendering |
+| Hatch | Solid, line-pattern and gradient fills; source/association state; classic editing and boundary-construction records | Fill evaluation, automatic updates and shared-route coverage remain separate |
+| SOLID/TRACE | Native kinds, planar corner state and extrusion thickness | Surface and display evidence remain distinct from stored coordinates |
+| Dimensions | Linear/aligned definitions, styles, formatting, bounded source relations and optional stored graphics | Seven remaining definition kinds, broader selectors and annotation contexts are not implemented |
+| Planar polyline widths | Constant, PerVertex and classic Defaulted modes; ordinary entities and Dimension graphics | Extrusion thickness for polylines and complete joins/display qualification remain later work |
+| Explorer/CLI migration | Integrated and published; active conversion no longer depends on `ifccad-convert` | Shared-route losses, numerical fidelity, physical CAD readback and host display have their own evidence limits |
+| Reference-converter retirement | Archival candidate prepared and verified separately; not yet integrated at this review | Finish integration and documentation cleanup; no new product features in the old route |
+| OCDraw | Parked outside ordinary development | No parity or compatibility-restoration requirement |
 
-## IFCCAD development track
+Hatch B, SOLID/TRACE, stored Dimension graphics and polyline widths are completed
+native prerequisites, not a queue of unfinished implementation candidates.
+Their earlier direct-converter/file/host results qualify the recorded route and
+cases only. See [Hatch](docs/hatch.md), [Dimensions](docs/dimension.md),
+[SOLID/TRACE](docs/geometry/solid-trace-design.md) and
+[polyline widths](docs/geometry/polyline-widths.md).
 
-Native opening, composition inspection and direct DXF/DWG roundtrip use the
-`ifccad` core and `ifccad-convert` with independent validation and codec mapping.
-The experiment includes points, lines, circles/signed arcs, full/partial ellipses,
-straight/bulged planar paths, straight spatial paths and local block geometry,
-native Model/Paper layouts, named simple and complex text/SHX line patterns, scales and polyline
-pattern generation, with strict readback and pinned DXF/DWG tests.
-Allow/Reject conversion policies expose or reject supported loss classifications.
-Optional scope bounds have explicit atomic preparation. Native Text/MText and
-independent local text styles now use the same enclosing/estimated/partial
-quality meanings as OCDraw, with separate schemas, conversion and file tests.
-Font contours and layout remain unassessed; numeric text evidence covers anchors.
-Geometry validation and
-CAD accuracy are shared with OCDraw through neutral helpers; converters expose
-adjustable hard tolerances and per-coordinate-domain numerical evidence.
-Model and multiple Paper layouts now convert with explicit tab order, optional media and explicit plot mappings. The viewport slice adds camera, perspective/depth/display state and circle/full-ellipse/closed straight-or-bulged path clipping, with CAD exchange verified using explicit codec development repairs; upstream dependency adoption remains a separate follow-up; qualified complex text/SHX patterns retain independent source/style references through AC1032 exchange. Unsupported active dependencies use a diagnosed whole-definition fallback under Allow; external glyph outlines remain unassessed.
-This integration does not freeze IFCCAD compatibility or expand the standalone
-OCDraw contract. Continued IFCCAD development expands drawing semantics and
-conversion coverage in bounded slices, including later annotations and
-authored view/plot state. Its long-term direction is a CAD drawing module
-that can participate in the evolving IFCX ecosystem. IFC object associations,
-source-graph writeback and collaborative updates require concrete future designs.
+The [active exchange coverage](docs/architecture/explorer-document-route.md)
+records the current mapping, pins and unsupported requests. Do not attribute the
+reference converter's adjustable hard tolerances, numerical certificates,
+Allow/Reject policies, partial opening or spline restoration to the shared route.
+Native opaque storage remains independent of CAD capture/restoration support.
 
-The layout-output slice implements standalone medium dimensions and effective
-plot settings in both models, including Model/Paper limits and IFCCAD plot-style
-mode and Paper-space linetype-scaling parity. Plot mappings replace IFCCAD's
-independent Paper coordinate unit; both converters assess physical Paper accuracy
-per layout. Native media-only states remain valid. Exact binary64 scalar conversion
-and unqualified raster CAD output retain explicit restrictions; see
-[layout output](docs/layout-output.md). Current active schemas remain provisional.
+## Development sequence
 
-The workspace slice adds IFCCAD UCS and Model windows, Paper canvases and
-authored viewport aids, with optional current choices, exact references and
-independent allocation watermarks. OCDraw conversion uses the same scalar rules.
-Active Paper tabs are qualified through consistent reserved block/layout roles.
-Paper current-context/UCS selection and VIEWPORT file grid behavior retain
-qualified codec limitations; see [workspace state](docs/workspace-state.md).
-Other layer/entity/block presentation differences remain separate.
+### 1. Consolidate the shared conversion route
 
-opaque SPLINE preservation pilot now uses this output boundary, including exact
-Paper coordinate-meaning predicates, durable IFCX transport and qualified fresh
-CAD restoration. It does not depend on workspace state, add native spline geometry,
-freeze the profile or expand raw/private/shared storage; see [preservation](docs/preservation.md).
+Finish retiring `ifccad-convert` from ordinary workspace builds and tests, keeping
+its source, applicable fixtures and complete-checkpoint reproduction available.
+Audit each `cad-*` adapter for actual active callers; preserve runtime-independent
+native kernels. Do not maintain two product converters or require full historical
+parity before completing retirement.
+
+Adopt upstream fixes through an explicit dependency update with focused
+regressions. The placement and numerical/picture corrections in
+[Document PR #5](https://github.com/HakanSeven12/opencaddocument/pull/5) and
+[PR #6](https://github.com/HakanSeven12/opencaddocument/pull/6) are merged upstream,
+but the reviewed Explorer pin `47d7888` and Studio pin `8e2d609` predate them.
+Updating upstream alone does not update a deployed Explorer or its embedded host.
+Audit intervening public-model changes and record both pins separately.
+
+Use the foundation, hatch-legend and sample_AC1032 practice cases where relevant,
+plus portable 3D/nested-placement regressions. Trace remaining Dimension-display
+differences through the actual IFCX host-open path. Correct picture counts or a
+working IFCX-to-DWG conversion do not prove correct direct IFCX display.
+
+**Exit criteria:** the active dependency guard excludes the reference route;
+retirement has reconstructible provenance; adopted dependencies pass applicable
+regressions and integration checks; known loss/display gaps are explicitly
+recorded. This does not require certifying every CAD entity or reader.
+
+### 2. Extend native Dimensions with the seven remaining kinds
+
+Extend the [current Dimension model](docs/dimension.md)
+as **one task with internal stages**: radius, diameter, two-line angular,
+three-point angular, ordinate, arc length and jogged radius. The design is recorded;
+the kinds are not implemented merely because style enums can name them.
+
+Keep stored measurement definitions, optional role-specific source relations,
+presentation and optional graphics separate. Ordinary IO must not invent
+associations, refresh stale definitions or guess an arc sector. Extend only the
+bounded selectors required by this slice; general geometric queries, trans-space
+associations and an automatic update engine are later work.
+
+The core owns language-neutral semantics, shared validation and native encodings.
+Companion contributions to `opencaddocument` own conversion in both directions.
+Develop and test the pair against explicit revisions; the core must not depend
+on a local CAD fork. No new implementation in `ifccad-convert` is required.
+
+**Exit criteria:** implemented kinds pass strict production JSON/CBOR readback,
+schema/conformance and inspection tests, measurement/formatting regressions and
+bounded CAD exchange tests. Unsupported source state is diagnosed. Advance
+published contract identifiers as required by the release policy.
+
+### 3. Add shared annotation contexts and bounded association updates
+
+After the definition/selector boundary is established, design common annotation
+scale contexts for Text/MText and Dimensions; assess Hatch participation and
+drawing scale lists explicitly. Cover mm, m and inch drawings and multiple
+viewport scales. Existing text height, Dimension factors and Paper linetype
+scaling do not already provide this feature.
+
+Stored source relations and automatic updates are distinct. Treat viewport/
+trans-space selection, stable generated-geometry identity and refresh behavior as
+explicitly bounded follow-ups under
+[#13](https://github.com/OpenAEC-Foundation/ifccad/issues/13). Do not make a general
+dependency engine a prerequisite for all annotation storage.
+
+**Exit criteria:** a bounded context/identity contract, native readback, shared
+validation and qualified exchange for each selected use case; host regeneration
+and rendering claims tested independently.
+
+### 4. Expand resources and selected drawing semantics
+
+Establish font/symbol-source identity and application-owned resolution under
+[#15](https://github.com/OpenAEC-Foundation/ifccad/issues/15), with explicit missing
+or substitute status. The core describes resources without resolving filesystem
+or network locations. A bounded PAT/NLCS importer can be a narrow independent
+contribution where existing semantics suffice.
+
+Select block attributes and multileaders before tables or dynamic-block authoring
+as separate use-case-backed slices under
+[#2](https://github.com/OpenAEC-Foundation/ifccad/issues/2). Native splines need
+their own profile under [#4](https://github.com/OpenAEC-Foundation/ifccad/issues/4);
+the historical opaque spline pilot is not a native evaluable spline model or a
+general preservation protocol. Layer states/groups/filters also need a bounded
+contract rather than an unqualified extension of layer flags.
+
+**Exit criteria per slice:** logical meaning and dependencies agreed; shared
+validation, native mappings, source-detail/loss rules and production-reader/CAD
+regressions implemented together. No universal payload framework is required.
+
+### 5. Qualify plotting and external drawing workflows
+
+Build on resources, annotations and rendering evidence before claiming faithful
+PDF or batch publishing. Resolve native color/palette and CTB/STB authority under
+[#16](https://github.com/OpenAEC-Foundation/ifccad/issues/16), including indices
+251–255. Stored page sizes, ratios and plot-style names do not prove scale-correct
+output. PDF generation and its UI belong to a selected host/integration.
+
+Xrefs additionally need document ownership, origin, cycles, reload/bind and
+archive rules. Dynamic-block retention requires a concrete dependency-preservation
+design and codec support. Neither follows automatically from the spline pilot.
+
+**Exit criteria:** selected workflows have explicit ownership/resource rules and
+tests in named readers/hosts, including physical output where claimed.
 
 ## Construction-workflow priorities from the October 2026 review
 
-[Issue #17](https://github.com/OpenAEC-Foundation/ifccad/issues/17) proposes
-30 CAD requirements. The [item-by-item review](docs/user-research-2026-10-review.md)
-records implemented subsets, evidence, gaps, ownership and relative effort.
-Its Must/Should ordering is an unvalidated market proposal, not a replacement
-for the dependencies in the current sequence. The following priorities refine
-that sequence without resuming paused work or changing current contracts.
+The [requirements review](docs/user-research-2026-10-review.md) of
+[#17](https://github.com/OpenAEC-Foundation/ifccad/issues/17) remains useful input,
+not evidence that all market requirements or its old converter claims are met.
+The sequence above replaces its stale migration/prerequisite status.
 
-1. **Make qualified exchange visible.** Alongside existing work, publish a
-   development compatibility matrix by feature, DXF/DWG version and named reader.
-   Distinguish internal codec readback from independently verified opening,
-   repair/audit behavior and display. Record candidate, codec pin/patch, fixture
-   identity and redistribution provenance; untested cells remain untested.
-   Extend existing conversion diagnostics into an accessible retained/changed/
-   omitted/preserved/unassessed summary. Retain the explicit fatal boundary for
-   codec parsing and shared structure despite entity-local partial opening.
-   These are correctness/reporting tasks, not automatic performance measurements.
-2. **Finish construction annotations in the queued order.** Keep SOLID/TRACE,
-   bounded Dimension graphics and polyline widths before the remaining kinds.
-   Within those kinds, prioritize radius, diameter and angular dimensions using
-   representative construction drawings. Follow with joint Text/MText/Dimension
-   annotation contexts, assessing Hatch participation and drawing scale lists
-   explicitly across mm, m and inch. Viewport/trans-space selectors and automatic
-   dependent updates need their later contract; stored relations alone are not
-   an update engine ([#13](https://github.com/OpenAEC-Foundation/ifccad/issues/13)).
-   Hatch changes must respect the paused Hatch B boundary and its migration
-   dependency; this review does not authorize resuming it.
-3. **Add resource and library workflows, then selected missing semantics.** Use
-   [#15](https://github.com/OpenAEC-Foundation/ifccad/issues/15) for font/symbol
-   identity, application-owned resolution and explicit missing/substitute status.
-   A bounded PAT importer or supported NLCS-library subset can proceed separately
-   where current semantics suffice; select exact source/version and diagnose gaps.
-   After queued annotation work, prioritize block attributes and multileaders as
-   separate [#2](https://github.com/OpenAEC-Foundation/ifccad/issues/2) slices,
-   ahead of tables and dynamic-block authoring. Layer states/groups/filters need
-   their own contract. Upstream codec #108 was completed in `8d995b8` on
-   2026-10-20; upright line-pattern rotation now needs an audited dependency
-   adoption and native mapping, including explicit older-DXF restrictions.
-   Existing relative/absolute markers remain implemented.
-4. **Qualify plot fidelity and external drawing exchange.** Work out CTB/STB
-   authority, table resources and color-index behavior under
-   [#16](https://github.com/OpenAEC-Foundation/ifccad/issues/16), including indices
-   251–255. PDF output and batch publishing belong to a selected host/integration
-   after fonts, line/fill rendering, Dimension display and plot styles are
-   qualified; stored page settings alone do not prove scale-correct output.
-   Xrefs build on resource identity but additionally require referenced-document
-   ownership, origin, cycles, reload/bind and archive rules. Dynamic-block retention
-   needs an approved dependency-preservation design and qualified codec support;
-   the spline pilot does not provide it. These are separate later slices, not
-   prerequisites for completing current annotation work.
-5. **Establish large-drawing targets from representative evidence.** Under
-   [#6](https://github.com/OpenAEC-Foundation/ifccad/issues/6), define licensed
-   workloads, reference hardware, retained content and separate parsing,
-   conversion, validation, display and peak/resident-memory costs. The proposed
-   15-second and 20-times-file-size figures remain hypotheses. Measurements run
-   only on explicit request, without automatic timing gates. Consider indexed
-   access ([#3](https://github.com/OpenAEC-Foundation/ifccad/issues/3)) only when
-   the workload justifies it; do not promote deferred placement/proof tuning
-   solely from this issue.
+Alongside the selected semantic slice, improve a public feature/version/reader
+matrix and an understandable retained/changed/omitted/unassessed report. Separate
+native validity, semantic mapping, numerical error, physical CAD readback and
+host display. Reader recovery cannot promise that every corrupt record is safe
+to skip. Internal codec readback is not independent-reader certification.
 
-Keep command/script migration, DWT selection, desktop packaging/parity, dynamic
-authoring and MCP/dry-run UI in the selected application's backlog or a separately
-approved integration. Public compatibility/release evidence can build on the
-development matrix. Review calendar package versioning
-([#19](https://github.com/OpenAEC-Foundation/ifccad/issues/19)) independently of
-profile and physical-encoding revisions. No weekly release, general CAD editor,
-universal recovery or byte-identical regenerated DWG-section contract is adopted.
-Every future slice still needs its own bounded design and relevant verification.
-
-## Later semantic coverage and exchange
-
-Expand supported CAD entity families and authored drawing semantics with
-language-neutral rules, shared validation, production readback and actual
-DXF/DWG tests. Diagnose losses and target restrictions. Review conversion
-coverage whenever the pinned CAD codec public model changes.
-
-Consider CAD meaning and reference cases, then implement the IFCCAD mapping and coverage. Keep unsupported
-families and numerical policies visible in the separate converter contracts.
-
-The named simple line-pattern slice adds drawing-local definitions (including
-Continuous), local references, global/entity scale and polyline generation.
-Unused definitions survive. Complex text/shape definitions retain their named
-identity and references with an explicitly diagnosed continuous fallback under
-Allow; Reject refuses that loss. Native shapes, external assets, current
-creation defaults and model-tab annotation scaling remain later work. This is
-semantic expansion of the provisional contract, not its publication.
-
-The earlier Text/MText slice implemented native styles, typed rich content, authored
-inheritance, strict JSON readback and enclosing/estimated/partial bounds evidence.
-Its separate CAD route qualifies a bounded profile with anchor accuracy and
-unassessed font geometry. Native content and CAD editing-dependency normalization
-are distinguished in diagnostics. The independent IFCCAD slice now provides
-its own native model, schemas, validation and CAD exchange tests, retaining
-the same bounds-quality meanings. Text annotations,
-dynamic fields, attributes and font engines remain separate work. See
-[text support](docs/text.md). This does not publish or freeze the initial contract.
-
-## Hatch and pattern checkpoint
-
-The Solid Hatch slice implements independent OCDraw/IFCCAD typed storage,
-structural/join/source validation, contour bounds, CAD conversion and inspection.
-Actual AC1032 DXF/DWG tests retain area rules, loops and associations, with
-contour/occurrence numerical evidence and separately unassessed fill.
-The Solid slice was verified and accepted on main before LinePattern implementation.
-The pattern slice adds embedded families, authored phase and qualified CAD conversion
-with contour/pattern numerical evidence and separately unassessed fill; native spline boundaries,
-intersection auditing and runtime associative updates remain separate work.
-The gradient slice adds nine predefined types, two stored colors, independent mode/tint and partial inactive settings in both native models. CAD exchange is qualified for exact retained local axes and AC1032; inactive DXF settings and unavailable named color metadata remain diagnosed codec limitations. Gradient fields/pixels are unassessed.
-See [Hatch support](docs/hatch.md). No initial contract publication is implied.
-
-## SOLID and TRACE checkpoint
-
-Before Dimension graphics, the SOLID/TRACE slice adds native SOLID and TRACE as ordinary Model/Paper/block
-entities sharing one planar four-corner descriptor with signed extrusion thickness.
-All finite local corner combinations are supported, including crossing, retraced
-and wholly collapsed states. Preserve their distinct CAD types in qualified exchange and reuse the
-same payloads in later graphics parts. This replaces the proposed conversion to
-Solid Hatch and avoids a new opaque preservation family. The concrete
-[design](docs/geometry/solid-trace-design.md), revised after the
-[OCS behaviour investigation](docs/geometry/solid-trace-cad-behaviour.md), is
-implemented and verified. Required coordinate/envelope guarantees, optional filled-surface
-evidence and unassessed viewer display remain separate. Missing surface evidence
-does not refuse or omit an otherwise supported finite record.
-The checkpoint includes native schemas, readers, CAD exchange and inspection. It does not expand
-Hatch-source, viewport-clip or Dimension-selector eligibility or add polyline widths.
-
-## Ordinary Dimension checkpoint
-
-The ordinary Dimension slice adds independent native linear/aligned entities and
-styles, typed source selectors, pure measurement/formatting and qualified CAD
-exchange/inspection. Definition and explicit text anchors use the existing hard
-tolerance; complete display and picture regeneration remain unassessed. Seven
-additional kinds, extended selectors and joint annotative Text/MText/Dimension
-remain subsequent slices. The repair round adds native fraction presentation,
-qualified CAD override coverage and localized inspector properties within this
-checkpoint. Following the native SOLID/TRACE precursor, the graphics
-slice implements optional native worked-out Dimension graphics and qualified CAD
-picture-block capture/reuse, initially for linear and
-aligned. It precedes the remaining kinds and extended selectors; annotative
-per-context graphics stay with the later joint annotation slice. The active experimental graphics contract and its bounded transfer profile are
-documented in
-[Dimension support](docs/dimension.md). This adds
-content within the existing sequence; it does not reopen layout/workspace work
-or publish the initial contract.
-
-The original bounded graphics slice deferred widths and used zero-width paths
-and native SOLID/TRACE arrows for positive cases. The separate width candidate
-below now extends that primitive coverage and runs the original linked red case.
-Whole-picture rollback, complete-resource transfer and independent Allow/Reject
-versus entity-recovery policies retain their existing meaning.
+The optional file-set evaluation proposal
+[#20](https://github.com/OpenAEC-Foundation/ifccad/issues/20) can provide common
+input identity and reporting for this work. It is not a prerequisite framework
+for the next feature or authorization for full-corpus/benchmark runs. Numerical
+research in #11/#12/#18 remains route-specific evidence; adopting its techniques
+into the shared route requires a selected, justified scope.
 
 <a id="planned-polyline-width-follow-up"></a>
 
-## Polyline-width implementation candidate
+## Completed polyline-width prerequisite
 
-The separate [native polyline width contract](docs/geometry/polyline-widths.md)
-is implemented as a review candidate on top of bounded Dimension graphics.
-Constant, explicit vertex pairs and classic defaults/optional overrides retain
-explicit zeros and dormant records in IFCX/CBOR. Mandatory segment-band proofs and
-located Partial display bounds cover ordinary Model/Paper/block and graphics use.
-Six ordinary CAD versions have explicit qualification/loss rules; stored wide
-Dimension pictures are AC1032-only. Final gate status is recorded with the candidate;
-bounded planar comparison in the unchanged host passes for both originals and
-all six AC1032 files.
-Presentation lineweight remains independent; extrusion thickness stays deferred.
-
-The original red linear/aligned Dimension `0x527` in sample_AC1032, its pictureblock
-`*D8`, and both INSERTs of `_ArchTick` are the concrete follow-up acceptance case.
-Retain marker LWPOLYLINE width 0.15 (source entity `4A6`), its layer/ByBlock context,
-the placed graphics and the original MText wrap width zero/stacked-fraction text.
-Qualify complete picture capture, native IFCX/CBOR readback and actual supported
-DXF/DWG re-export; numerical/visual claims retain the graphics design's existing
-limits. Test the relevant source content/resources without requiring unrelated
-unsupported content elsewhere in the full sample to become lossless. Source
-handles locate evidence, not stable output identities. No narrower or zero-width
-replacement of the marker satisfies this acceptance case.
+The [three-mode width contract](docs/geometry/polyline-widths.md) is integrated,
+including widths in stored Dimension graphics. The original linked red
+sample_AC1032 Dimension/tick case has bounded reference-route acceptance evidence;
+it is not an unfinished zero-width-marker workaround or a universal display pass.
+Keep the selected input/resource closure and provenance when reusing that case
+for the shared route. Polyline extrusion thickness remains a separate future slice.
 
 ## Later physical encodings and performance
 
-Provisional decision on 2026-10-21: focus on standalone CAD-profile documents
-within IFCX; see the [scope and lifecycle boundary](docs/experiments/ifccad-document-lifecycle.md#provisional-standalone-cad-scope--2026-10-21).
-Mixed IFCX editing/writeback, full-source-plus-CAD-cache storage and a general
-IFCX fragment encoding wait for a concrete application. Existing source
-retention, composition and conversion-loss behavior remain unchanged.
+Compact, directly openable storage remains an adoption goal. Current native
+formats are IFCX JSON, standalone CBOR and optional CBOR + Zstd; Studio interchange
+currently uses IFCX JSON. CBOR encodes the typed drawing projection, not arbitrary
+IFCX fragments/composition. Whole-file compression supplies neither indexed
+access nor partial save. See the [storage boundary](docs/experiments/ifccad-cbor.md).
 
-CAD semantic coverage and qualified exchange retain the sequence above. Keep
-CBOR/Zstd correct as those semantics evolve. The next optional storage step is
-a separately requested whole-document JSON/CBOR/native-Zstd comparison of
-opening/writing time and peak/resident memory on agreed inputs and hardware;
-see the [bounded proposal](docs/experiments/ifccad-cbor.md#next-investigation).
-This records no measurement authorization. Indexed chunks and partial save wait
-for a consumer that can exploit partial access/updates or profiling that shows
-another sufficient benefit. Full conversion through `CadDocument` alone does
-not establish such a need. Columnar encoding remains a later measured choice.
+Under [#6](https://github.com/OpenAEC-Foundation/ifccad/issues/6), a separately
+requested investigation can compare equal retained content, bytes, loading/
+writing time and peak/resident memory on agreed representative inputs and hardware.
+Disclose source-graph retention, omissions and failure coverage. Do not improve a
+size ratio by silently dropping content or quantizing geometry.
 
-IFCCAD has an [experimental base-CBOR candidate](docs/experiments/ifccad-cbor.md)
-with local fixed numeric field codes, a separate mapping revision, production
-readback and shared document validation. It is a standalone CAD-document encoding,
-not a binary serialization of arbitrary IFCX graphs. Its
-[controlled comparison](docs/benchmarks/ifccad-cbor-results-summary-v1.md) records
-the qualified baseline scope. Optional experimental whole-file Zstd compression
-has configurable levels with default 3; raw CBOR remains the default. These
-experiments select no columns, chunking or final storage recommendation, and
-do not publish a supported version.
+Indexed chunks/partial access
+([#3](https://github.com/OpenAEC-Foundation/ifccad/issues/3)), columnar packing and
+further placement/proof optimizations wait for a demonstrated consumer or workload
+benefit. The separate xformop experiment is not an adopted production placement
+contract. Existing benchmark reports remain evidence for their recorded checkpoints.
+Measurements require an explicit request, fresh outputs and applicable provenance;
+they are never automatic CI or task-completion gates. `test.dxf` remains outside
+the currently selected practice-file scope.
 
-Logical semantics remain independent of streams' physical packing, compression
-and chunking. Measure representative workloads and expand controlled recipes
-before using results to justify physical encoding choices. A future physical
-encoding may use shared buffers/ranges without changing ownership meaning.
-Historical package benchmarks remain retained evidence for their old corpus;
-the [standalone OCDraw report](docs/benchmarks/ocdraw-size-exchange-v1.md)
-records its own applicable results.
+## Release and completion rules
 
-Compact, directly openable storage is an IFCCAD adoption goal. Compare
-size, full/partial opening time and peak/resident memory on representative
-drawings before selecting binary storage, integrated compression or indexed
-chunks. IFCCAD storage experiments
-must identify compatibility boundaries and coordinate with evolving IFCX
-technology. Current JSON/gzip probes do not establish native compressed formats
-or future IFCX capabilities. Measurements run only on explicit user request,
-for the full experiment or a requested selection; they are never automatic
-completion gates, including after relevant code or dependency changes.
+The first source alpha is already published. Follow
+[release/version policy](docs/releases.md) for subsequent software releases and
+normative profile/encoding changes; do not edit a tagged contract in place.
+Maintain the single active mapping and `conformance/next` together. Historical
+readers/migrations are optional during alpha; numbered conformance collections
+remain immutable. No fixed weekly release cadence is required.
 
-## Verification and freeze criteria
+Every implementation slice needs strict production readback, shared validation,
+semantic tests and honest coverage/loss disclosure. A conversion fix should have
+a portable regression; reader/version/render claims need their own evidence.
+Run the [verification gate](AGENTS.md#verification) on the final integration
+candidate, including frontend/WASM checks when applicable. Prose-only updates
+need content/link checks, not a Rust rebuild.
 
-- All current entities, ownership, order and shared blocks survive strict
-  production reader/writer readback and semantic conversion tests.
-- Unknown core fields and invalid references are rejected.
-- Candidate conformance/schema/mapping/model agree; numbered collections are
-  untouched. All new entity schemas begin at v1.
-- Full format, lint and workspace tests pass, as do applicable inspector checks.
-- Explicitly requested measurements use the pinned dependency and fresh directories; they are not automatic gates.
-- Only then record the first supported 0.1.0 contract. Release operations
-  require a separate explicit request.
-
-The implemented lifecycle API conventions and provisional caller migration are
-documented in the [IFCCAD lifecycle and API conventions](docs/experiments/ifccad-document-lifecycle.md). This
-organization refinement does not change milestone order or semantic coverage.
-
-The complex line-pattern slice extends the existing drawing model and converter
-coverage without adding external asset resolution to the core. The IFCCAD route keeps closed text/SHX markers, independent source identity/watermarks, and separate
-producer/derived bounds evidence. Resource resolution and future source kinds
-remain deferred to issue 15; upright requires adoption and qualification of the
-upstream codec repair (issue 108), followed by its native semantic slice.
-See [line patterns](docs/line-patterns.md). Milestone ordering is unchanged.
-
-## Parked OCDraw checkpoint
-
-OCDraw 0.1.0 remains provisional and unpublished. Its model/JSON separation,
-ordered scope ownership, package retirement and bounded spline preservation
-were implemented before parking. Those milestones are historical, not ongoing
-parallel obligations. Frozen sources, tests and exact checkpoint/dependency
-identity are indexed by [FREEZE.json](legacy/ocdraw/FREEZE.json). Restoring OCDraw
-requires the complete checkpoint and a new explicit development decision.
+Keep one broad structural task active at a time. Narrow independent work may
+proceed with explicit dependencies and coordinated expensive verification.
+Publishing, committing or merging still requires an explicit request. Mixed-IFCX
+editing, IFC-object links, source writeback, collaboration, application command/UI
+parity and a general CAD editor are not implicit requirements of this roadmap.
