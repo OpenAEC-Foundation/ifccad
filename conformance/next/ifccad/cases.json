@@ -534,5 +534,33 @@
   {
     "file": "valid/text-paragraph-overflow.ifcx",
     "valid": true
+  },
+  {
+    "file": "valid/dimension-radius.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/dimension-diameter.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/dimension-angular-two-lines.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/dimension-angular-three-points.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/dimension-ordinate-signed.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/dimension-arc-length-full.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/dimension-jogged-radius.ifcx",
+    "valid": true
   }
 ]

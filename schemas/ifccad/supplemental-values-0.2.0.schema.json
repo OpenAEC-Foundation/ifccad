@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:example:ifccad:supplemental-values:0.1.0",
+  "$id": "urn:example:ifccad:supplemental-values:0.2.0",
   "title": "IFCCAD supplemental local value constraints",
   "$defs": {
     "mTextBackground": {
@@ -3804,6 +3804,9 @@
               "minItems": 3,
               "maxItems": 3
             },
+            "directionAngle": {
+              "type": "number"
+            },
             "dimensionLinePoint": {
               "type": "array",
               "items": {
@@ -3814,17 +3817,14 @@
             },
             "extensionDirectionAngle": {
               "type": "number"
-            },
-            "directionAngle": {
-              "type": "number"
             }
           },
           "required": [
             "kind",
             "firstPoint",
             "secondPoint",
-            "dimensionLinePoint",
-            "directionAngle"
+            "directionAngle",
+            "dimensionLinePoint"
           ]
         },
         {
@@ -3867,6 +3867,413 @@
             "firstPoint",
             "secondPoint",
             "dimensionLinePoint"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "angularTwoLines"
+            },
+            "line1Start": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "line1End": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "line2Start": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "line2End": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "ray1Sign": {
+              "enum": [
+                "positive",
+                "negative"
+              ]
+            },
+            "ray2Sign": {
+              "enum": [
+                "positive",
+                "negative"
+              ]
+            },
+            "traversal": {
+              "enum": [
+                "counterclockwise",
+                "clockwise"
+              ]
+            },
+            "dimensionArcPoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "required": [
+            "kind",
+            "line1Start",
+            "line1End",
+            "line2Start",
+            "line2End",
+            "ray1Sign",
+            "ray2Sign",
+            "traversal",
+            "dimensionArcPoint"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "angularThreePoints"
+            },
+            "vertex": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "firstPoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "secondPoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "traversal": {
+              "enum": [
+                "counterclockwise",
+                "clockwise"
+              ]
+            },
+            "dimensionArcPoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "required": [
+            "kind",
+            "vertex",
+            "firstPoint",
+            "secondPoint",
+            "traversal",
+            "dimensionArcPoint"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "radius"
+            },
+            "center": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "curvePoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "leaderLength": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "center",
+            "curvePoint",
+            "leaderLength"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "diameter"
+            },
+            "firstDiameterPoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "secondDiameterPoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "leaderLength": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "firstDiameterPoint",
+            "secondDiameterPoint",
+            "leaderLength"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "ordinate"
+            },
+            "origin": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "featurePoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "axisAngle": {
+              "type": "number"
+            },
+            "leaderEnd": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "valueMode": {
+              "enum": [
+                "absolute",
+                "signed"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "origin",
+            "featurePoint",
+            "axisAngle",
+            "leaderEnd",
+            "valueMode"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "arcLength"
+            },
+            "center": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "radius": {
+              "type": "number"
+            },
+            "startParameter": {
+              "type": "number"
+            },
+            "sweep": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "partial"
+                    },
+                    "radians": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "radians"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "kind": {
+                      "const": "full"
+                    },
+                    "traversal": {
+                      "enum": [
+                        "counterclockwise",
+                        "clockwise"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "traversal"
+                  ]
+                }
+              ]
+            },
+            "dimensionArcPoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "leader": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "start": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "end": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "required": [
+                "start",
+                "end"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "center",
+            "radius",
+            "startParameter",
+            "sweep",
+            "dimensionArcPoint"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "joggedRadius"
+            },
+            "center": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "curvePoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "displayCenter": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "jogPoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "jogAngle": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "center",
+            "curvePoint",
+            "displayCenter",
+            "jogPoint",
+            "jogAngle"
           ]
         }
       ]
@@ -4072,6 +4479,60 @@
             "kind",
             "index"
           ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "circlePoint"
+            },
+            "angle": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "angle"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "arcPoint"
+            },
+            "fraction": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "fraction"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "segmentPoint"
+            },
+            "index": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "fraction": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "index",
+            "fraction"
+          ]
         }
       ]
     },
@@ -4082,7 +4543,22 @@
         "role": {
           "enum": [
             "firstPoint",
-            "secondPoint"
+            "secondPoint",
+            "center",
+            "curvePoint",
+            "firstDiameterPoint",
+            "secondDiameterPoint",
+            "line1Start",
+            "line1End",
+            "line2Start",
+            "line2End",
+            "vertex",
+            "firstLegPoint",
+            "secondLegPoint",
+            "origin",
+            "featurePoint",
+            "arcStart",
+            "arcEnd"
           ]
         },
         "selector": {

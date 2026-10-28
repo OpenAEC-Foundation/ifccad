@@ -1,10 +1,10 @@
 {
   "softwareVersion": "2026.44.0",
   "channel": "alpha",
-  "profileVersion": "0.1.0",
-  "profileImport": "urn:example:ifccad:0.1.0",
+  "profileVersion": "0.2.0",
+  "profileImport": "urn:example:ifccad:0.2.0",
   "ifcxVersion": "ifcx_alpha",
-  "cborMappingRevision": 1,
+  "cborMappingRevision": 2,
   "zstdTransportRevision": 1,
   "candidateFiles": [
     "Cargo.lock",

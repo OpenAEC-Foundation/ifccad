@@ -23,7 +23,7 @@ IFCCAD development now has two cooperating implementation boundaries:
 | Drawing foundations | Primitive/path geometry, shared/nested blocks, Model/Paper layouts, presentation, Text/MText, line patterns, workspace and viewport data | Native storage does not establish complete CAD mapping or rendering |
 | Hatch | Solid, line-pattern and gradient fills; source/association state; classic editing and boundary-construction records | Fill evaluation, automatic updates and shared-route coverage remain separate |
 | SOLID/TRACE | Native kinds, planar corner state and extrusion thickness | Surface and display evidence remain distinct from stored coordinates |
-| Dimensions | Linear/aligned definitions, styles, formatting, bounded source relations and optional stored graphics | Seven remaining definition kinds, broader selectors and annotation contexts are not implemented |
+| Dimensions | Published linear/aligned foundation; all-nine native definitions and paired Document conversion in development | Expanded-contract final verification/CAD review and Explorer adoption pending; shared annotation contexts remain later work |
 | Planar polyline widths | Constant, PerVertex and classic Defaulted modes; ordinary entities and Dimension graphics | Extrusion thickness for polylines and complete joins/display qualification remain later work |
 | Explorer/CLI migration | Integrated and published; active conversion no longer depends on `ifccad-convert` | Shared-route losses, numerical fidelity, physical CAD readback and host display have their own evidence limits |
 | Reference-converter retirement | Archived outside ordinary workspace builds/tests, with source/test/fixture hashes and complete-checkpoint reproduction | Historical contracts remain reference evidence; no second product route |
@@ -75,8 +75,11 @@ recorded. This does not require certifying every CAD entity or reader.
 
 Extend the [current Dimension model](docs/dimension.md)
 as **one task with internal stages**: radius, diameter, two-line angular,
-three-point angular, ordinate, arc length and jogged radius. The design is recorded;
-the kinds are not implemented merely because style enums can name them.
+three-point angular, ordinate, arc length and jogged radius. The development
+candidate now implements the native definitions/measurement/formatting and
+profile 0.2.0/CBOR2 IO, with a paired Document conversion candidate. It is not
+an integrated or published expansion; final checks, CAD review and Explorer
+adoption remain pending.
 
 Keep stored measurement definitions, optional role-specific source relations,
 presentation and optional graphics separate. Ordinary IO must not invent

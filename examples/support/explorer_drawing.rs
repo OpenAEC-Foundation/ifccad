@@ -21,7 +21,7 @@ impl Drawing {
     pub fn new(id: &str) -> Self {
         let mut d = Self {
             nodes: vec![
-                json!({"path":"/cad/d1","children":{"model":"/cad/d1/layout/1","continuous":"/cad/d1/linePattern/0","text":"/cad/d1/textStyle/0","dimensions":"/cad/d1/dimensionStyle/0"},"attributes":{"ifccad::drawing":{"profileVersion":"0.1.0","lengthUnit":"mm","nextEntityId":1,"nextLayerId":1,"nextLayoutId":2,"nextBlockId":1,"nextLinePatternId":1,"nextTextStyleId":1,"nextDimensionStyleId":1,"nextUcsId":1,"nextModelWindowId":1,"nextSymbolSourceId":1}}}),
+                json!({"path":"/cad/d1","children":{"model":"/cad/d1/layout/1","continuous":"/cad/d1/linePattern/0","text":"/cad/d1/textStyle/0","dimensions":"/cad/d1/dimensionStyle/0"},"attributes":{"ifccad::drawing":{"profileVersion":"0.2.0","lengthUnit":"mm","nextEntityId":1,"nextLayerId":1,"nextLayoutId":2,"nextBlockId":1,"nextLinePatternId":1,"nextTextStyleId":1,"nextDimensionStyleId":1,"nextUcsId":1,"nextModelWindowId":1,"nextSymbolSourceId":1}}}),
                 json!({"path":"/cad/d1/layout/1","children":{},"attributes":{"ifccad::layout":{"kind":"Model","tabIndex":0}}}),
                 json!({"path":"/cad/d1/linePattern/0","attributes":{"ifccad::linePattern":{"name":"Continuous","pattern":[]}}}),
                 json!({"path":"/cad/d1/textStyle/0","attributes":{"ifccad::textStyle":{"name":"Drawing labels","font":{"cadFontName":"Arial"}}}}),
@@ -230,7 +230,7 @@ impl Drawing {
         drawing["nextEntityId"] = json!(self.next_entity);
         drawing["nextLayerId"] = json!(self.next_layer);
         drawing["nextBlockId"] = json!(self.next_block);
-        let value = json!({"header":{"id":id,"ifcxVersion":"ifcx_alpha","dataVersion":"0.1.0","author":"OpenAEC","timestamp":"2026-10-20T00:00:00Z"},"imports":[{"uri":"urn:example:ifccad:0.1.0"}],"schemas":{},"data":self.nodes});
+        let value = json!({"header":{"id":id,"ifcxVersion":"ifcx_alpha","dataVersion":"0.1.0","author":"OpenAEC","timestamp":"2026-10-20T00:00:00Z"},"imports":[{"uri":"urn:example:ifccad:0.2.0"}],"schemas":{},"data":self.nodes});
         let loaded = ifccad::load_ifccad_bytes(&serde_json::to_vec(&value)?, Default::default())?;
         let mut document = loaded.into_document();
         ifccad::recompute_ifccad_document_bounds(&mut document)?;

@@ -47,7 +47,42 @@ fn settings(
     }
 }
 fn eligible(kind: &IfccadEntityKind, s: DimensionPointSelector) -> bool {
+    let fraction_valid = |value: f64| value.is_finite() && (0.0..=1.0).contains(&value);
     match (kind, s) {
+        (IfccadEntityKind::Circle { .. }, DimensionPointSelector::CirclePoint { angle }) => {
+            angle.is_finite()
+        }
+        (IfccadEntityKind::Arc { .. }, DimensionPointSelector::ArcPoint { fraction }) => {
+            fraction_valid(fraction)
+        }
+        (
+            IfccadEntityKind::PlanarPolyline {
+                vertices, closed, ..
+            },
+            DimensionPointSelector::SegmentPoint { index, fraction },
+        ) => {
+            fraction_valid(fraction)
+                && (index as usize)
+                    < if *closed {
+                        vertices.len()
+                    } else {
+                        vertices.len().saturating_sub(1)
+                    }
+        }
+        (
+            IfccadEntityKind::SpatialPolyline {
+                vertices, closed, ..
+            },
+            DimensionPointSelector::SegmentPoint { index, fraction },
+        ) => {
+            fraction_valid(fraction)
+                && (index as usize)
+                    < if *closed {
+                        vertices.len()
+                    } else {
+                        vertices.len().saturating_sub(1)
+                    }
+        }
         (IfccadEntityKind::Point { .. }, DimensionPointSelector::Position) => true,
         (
             IfccadEntityKind::LineSegment { .. }
@@ -149,8 +184,7 @@ pub(super) fn validate_dimensions(d: &IfccadDocument) -> Result<(), IfccadReport
         let path = format!("{prefix}/e{id}/ifccad::dimension");
         let frame = v.placement.coordinate_frame()?;
         validate_dimension_definition(&v.definition).map_err(|e| fail(&path, e))?;
-        let (a, b) = v.definition.reference_points();
-        for p in [a, b] {
+        for (_, p) in v.definition.measurement_anchors() {
             frame
                 .try_to_scope_spatial_point(crate::geometry_kernel::Point3::new(p[0], p[1], p[2]))
                 .map_err(|e| fail(&path, e))?;
@@ -189,6 +223,9 @@ pub(super) fn validate_dimensions(d: &IfccadDocument) -> Result<(), IfccadReport
         let mut roles = BTreeSet::new();
         for (i, a) in v.associations.iter().enumerate() {
             let where_ = format!("{path}/associations/{i}");
+            if !v.definition.accepts_role(a.role) {
+                return Err(fail(&where_, "role is ineligible for dimension kind"));
+            }
             if !roles.insert(a.role) {
                 return Err(fail(&where_, "duplicate point role"));
             }

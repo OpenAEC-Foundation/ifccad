@@ -4,15 +4,22 @@ Native model/validation/storage sections remain active. Direct `ifccad-convert`
 exchange and codec qualification below describe the [archived reference](converter-parking.md);
 the [shared Document route](architecture/explorer-document-route.md) has its own coverage.
 
-IFCCAD stores ordinary linear and aligned dimensions, local named
+The development candidate stores all nine ordinary Dimension kinds, local named
 DimensionStyles, authored overrides, optional same-owner source relations and
 optional worked-out graphics. The neutral values and formatter do not depend
 on a CAD runtime or font engine. Active schemas and `conformance/next` define
 the format contract. OCDraw remains [parked](ocdraw-parking.md).
 
+This candidate advances the logical profile to **0.2.0** and CBOR mapping to
+**2**; Zstd framing remains transport 1. Published alpha 2026.44.0 retains its
+fixed profile 0.1.0/CBOR 1 contracts. The expanded native core and paired Document
+conversion are under verification; deployed Explorer/Studio adoption awaits CAD
+file review. See [the design](dimension/remaining-kinds-design.md) for boundaries.
+
 ## Definition, measurement and text
 
-A dimension owns its definition points and presentation state. Both reference
+A dimension owns its definition points and presentation state. For linear and
+aligned dimensions, both reference
 points are required local XYZ coordinates. The dimension-line point is XY in
 the local dimension plane, placed in 3D by the common placement. Reference Z
 uses the exact cross product of the stored X/Y axes; stored axes are not
@@ -23,6 +30,14 @@ do not change either planar measurement. Zero measurements are valid. Numeric ov
 evaluation is an error, never a replacement zero. ExtensionDirectionAngle is an
 absolute local direction when explicitly present; absence requests ordinary
 automatic extension placement.
+
+Radius/jogged radius measure projected center-to-curve distance, and diameter
+measures its ordered projected endpoint distance; these require a positive
+measure. Two-line angles retain four endpoints, ray signs and traversal; three-
+point angles retain vertex, legs and traversal. Ordinate retains origin, feature,
+axis and signed/absolute mode. Arc length retains center, radius, unreduced start
+parameter, directed partial/full span and optional leader. Presentation points
+remain local XY and never select another native measurement implicitly.
 
 The authoritative native data contains no cached measurement. Editors and viewers
 evaluate the stored definition, then format that result. Formatting is pure and
@@ -46,6 +61,10 @@ their existing complete-profile replacement behavior. The derived formatted
 label exposes typed text/fraction fragments alongside the existing plain text
 projection. Literal TextRuns never become fractions by parsing their contents.
 The exact formatter reduces fractions and carries rounded inches into feet.
+`format_dimension_kind_label` additionally inserts R, Ø and the selected arc
+marker into generated measurement tokens. Structured arc fragments distinguish
+Before and Above; plain text projects either as a preceding arc glyph. The
+existing scalar formatter remains available without an entity kind.
 
 Text placement is style-driven or explicit with local position, rotation and
 attachment. Rotation is an offset from the dimension's default text orientation,
@@ -70,7 +89,11 @@ in unused definitions. Construction updates allocation counters atomically.
 ## Associations
 
 Relations identify a dimension role, source entity and typed point selector:
-`position`, `start`, `end`, `center`, or `vertex` with an index. These selector
+`position`, `start`, `end`, `center`, `vertex(index)`, `circlePoint(angle)`,
+`arcPoint(fraction)`, or `segmentPoint(index,fraction)`. Angles use the source
+Circle's local basis. Fractions follow stored directed curve/segment order and
+must lie in [0,1]. Segment indexes address active planar/spatial polyline
+segments, including the closing segment only for closed polylines. These selector
 names are semantic API names; coincident entity field names are intentional.
 Only eligible source/selector pairs in the same owner are accepted. Each role
 may be associated once. Forward references are valid after final binding.
@@ -79,7 +102,9 @@ Loading, saving, formatting and conversion never update the definition from the
 source. A stored dimension can therefore measure 4000 while its linked source
 now measures 4500. An editor or a separate associative-update engine decides when
 and how to refresh definition points. Detaching an unsupported CAD relation
-retains the stored definition and produces a located diagnostic.
+retains the stored definition and produces an explicit diagnostic. The native
+registry uses kind-specific center, curve, diameter, line-endpoint, angular-leg,
+origin/feature and arc-endpoint roles; display/jog/leader points are not sources.
 
 ## Bounds, inspection and CAD exchange
 

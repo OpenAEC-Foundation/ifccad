@@ -82,6 +82,7 @@ fn plain_fragments(parts: &[DimensionFormattedFragment]) -> String {
         .iter()
         .map(|part| match part {
             DimensionFormattedFragment::Run(r) => r.text.clone(),
+            DimensionFormattedFragment::ArcSymbol { .. } => "⌒".into(),
             DimensionFormattedFragment::Fraction {
                 numerator,
                 denominator,
@@ -329,6 +330,29 @@ pub fn format_dimension_label(
     context: DimensionFormatContext,
     label: &DimensionLabel,
 ) -> Result<DimensionFormattedLabel, DimensionValueError> {
+    format_label(None, measurement, format, context, label)
+}
+
+/// Formats a kind's generated measurement, including its radius, diameter or
+/// arc marker. Literal label parts remain authored text. The scalar formatter
+/// remains available when no definition kind is known.
+pub fn format_dimension_kind_label(
+    kind: DimensionKind,
+    measurement: DimensionMeasurement,
+    format: &DimensionNumberSettings,
+    context: DimensionFormatContext,
+    label: &DimensionLabel,
+) -> Result<DimensionFormattedLabel, DimensionValueError> {
+    format_label(Some(kind), measurement, format, context, label)
+}
+
+fn format_label(
+    kind: Option<DimensionKind>,
+    measurement: DimensionMeasurement,
+    format: &DimensionNumberSettings,
+    context: DimensionFormatContext,
+    label: &DimensionLabel,
+) -> Result<DimensionFormattedLabel, DimensionValueError> {
     validate_dimension_numbers(format)?;
     let primary = &format.primary;
     let (raw, angle) = match measurement {
@@ -434,11 +458,24 @@ pub fn format_dimension_label(
         &format.tolerance,
         primary.decimal_separator,
     )?;
+    let symbol = match kind {
+        Some(DimensionKind::Radius | DimensionKind::JoggedRadius) => "R",
+        Some(DimensionKind::Diameter) => "Ø",
+        Some(DimensionKind::ArcLength) if primary.arc_symbol != DimensionArcSymbol::None => "⌒",
+        _ => "",
+    };
     let mut generated = format!(
-        "{}{}{}{}",
-        primary.prefix, primary_text, primary.suffix, primary_tolerance
+        "{}{}{}{}{}",
+        symbol, primary.prefix, primary_text, primary.suffix, primary_tolerance
     );
     let mut generated_fragments = Vec::new();
+    if kind == Some(DimensionKind::ArcLength) && primary.arc_symbol != DimensionArcSymbol::None {
+        generated_fragments.push(DimensionFormattedFragment::ArcSymbol {
+            placement: primary.arc_symbol,
+        });
+    } else {
+        push_text(&mut generated_fragments, symbol.into());
+    }
     push_text(&mut generated_fragments, primary.prefix.clone());
     if angle {
         push_text(&mut generated_fragments, primary_text.clone());

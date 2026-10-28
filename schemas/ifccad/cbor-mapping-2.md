@@ -1,11 +1,11 @@
-# Experimental IFCCAD CBOR mapping, revision 1
+# Experimental IFCCAD CBOR mapping, revision 2
 
 This is a standalone encoding of `IfccadDocument`, not a general IFCX binary
 serialization. It retains the complete supported CAD projection, including
 opaque CAD preservation, but no original IFCX fragments, imports or foreign
 nodes. JSON/IFCX remains a separate mapping through the same typed document.
 
-The normative field/type inventory is [cbor-mapping-1.json](cbor-mapping-1.json).
+The normative field/type inventory is [cbor-mapping-2.json](cbor-mapping-2.json).
 It enumerates concrete records and generic instantiations reachable from the
 document. Names in that registry are explanatory, not transmitted type names.
 Record field codes are local to their record type. Codes and enum variants are
@@ -14,11 +14,12 @@ values and never inferred from field codes, vector indices or content.
 
 ## Envelope and revision
 
-Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 1, 2: Document}`.
+Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 2, 2: Document}`.
 All three fields are required. Other revisions are rejected; no migration,
 forward-compatible skipping, feature negotiation or historical decoder is
-provided. Revision 1 is first published with native source alpha 2026.44.0,
-alongside IFCCAD profile 0.1.0. This tagged contract is fixed. Subsequent normative
+provided. Revision 2 is the unpublished development mapping for profile 0.2.0.
+Revision 1 and profile 0.1.0 were published in native source alpha 2026.44.0;
+that tagged contract is fixed. Subsequent normative
 changes to language, semantics, codes, defaults or normalization advance the
 appropriate identifiers under the [release policy](../../docs/releases.md).
 Keep one active mapping; historical readers are not required. No compatibility

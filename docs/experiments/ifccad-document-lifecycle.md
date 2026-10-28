@@ -11,7 +11,7 @@ history. The active root package exports these types directly from `ifccad`;
 implementation lives under `src/ifccad`. The core remains independent of
 opencadcodec. OCDraw is [parked](../ocdraw-parking.md).
 
-## Provisional standalone CAD scope — 2026-10-21
+## Provisional standalone CAD scope â€” 2026-10-21
 
 Near-term development targets standalone CAD-profile documents in IFCX: one
 supported drawing with its geometry, tables, styles, layouts, workspace state,
@@ -258,7 +258,7 @@ boundary, an independently identified boundary: sharing one boundary between
 viewports is invalid. Editors must update those references before validation.
 The JSON encoding canonicalizes frozen-layer sets by numeric ID while preserving
 all other viewport payload semantics and strict whole-attribute composition.
-The [viewport contract](../../schemas/ifccad/experimental-contract-0.1.0.md#paper-viewports)
+The [viewport contract](../../schemas/ifccad/experimental-contract-0.2.0.md#paper-viewports)
 and candidate conformance fixtures define the current independent profile.
 
 ## Typed failures

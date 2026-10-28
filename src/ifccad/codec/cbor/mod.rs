@@ -42,7 +42,7 @@ pub(crate) fn encode_bytes(
     w.u64(0)?;
     w.str("IFCCAD-CBOR")?;
     w.u64(1)?;
-    w.u64(1)?;
+    w.u64(2)?;
     w.u64(2)?;
     document.encode(&mut w)?;
     w.finish()
@@ -62,10 +62,10 @@ pub(crate) fn decode_bytes(
         return Err(r.error("incorrect format identifier"));
     }
     let revision: u32 = fields.take(1, None)?;
-    if revision != 1 {
+    if revision != 2 {
         return Err(IfccadCborReadError::UnsupportedRevision {
             found: revision,
-            supported: 1,
+            supported: 2,
         });
     }
     let document = fields.take(2, None)?;
@@ -132,16 +132,16 @@ mod tests {
     #[test]
     fn registry_remains_explicit() {
         let registry: serde_json::Value = serde_json::from_str(codes::MAPPING).unwrap();
-        assert_eq!(registry["mappingRevision"], 1);
+        assert_eq!(registry["mappingRevision"], 2);
     }
     #[test]
-    fn style_only_dimension_kinds_are_not_entity_definitions() {
+    fn unregistered_dimension_definitions_are_rejected() {
         use crate::dimension::{DimensionDefinition, DimensionKind};
         assert_eq!(
             DimensionKind::decode(&mut CborReader::new(&[2], 0, "/style-kind".into())).unwrap(),
             DimensionKind::AngularTwoLines
         );
-        let bytes = [0xa2, 0, 2, 1, 0xa0];
+        let bytes = [0xa2, 0, 9, 1, 0xa0];
         let error =
             DimensionDefinition::decode(&mut CborReader::new(&bytes, 0, "/definition".into()))
                 .unwrap_err();

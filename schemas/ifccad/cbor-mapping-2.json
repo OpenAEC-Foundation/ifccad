@@ -1,6 +1,6 @@
 {
   "format": "IFCCAD-CBOR",
-  "mappingRevision": 1,
+  "mappingRevision": 2,
   "rootType": "IfccadDocument",
   "types": {
     "IfccadDocument": {
@@ -7905,9 +7905,273 @@
               "presence": "optional"
             }
           ]
+        },
+        {
+          "name": "AngularTwoLines",
+          "code": 2,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "line1_start",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "line1_end",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "line2_start",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 3,
+              "name": "line2_end",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 4,
+              "name": "ray1_sign",
+              "type": "DimensionRaySign",
+              "presence": "required"
+            },
+            {
+              "code": 5,
+              "name": "ray2_sign",
+              "type": "DimensionRaySign",
+              "presence": "required"
+            },
+            {
+              "code": 6,
+              "name": "traversal",
+              "type": "DimensionTraversal",
+              "presence": "required"
+            },
+            {
+              "code": 7,
+              "name": "dimension_arc_point",
+              "type": "[f64;2]",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "AngularThreePoints",
+          "code": 3,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "vertex",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "first_point",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "second_point",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 3,
+              "name": "traversal",
+              "type": "DimensionTraversal",
+              "presence": "required"
+            },
+            {
+              "code": 4,
+              "name": "dimension_arc_point",
+              "type": "[f64;2]",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Radius",
+          "code": 4,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "center",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "curve_point",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "leader_length",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Diameter",
+          "code": 5,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "first_diameter_point",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "second_diameter_point",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "leader_length",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Ordinate",
+          "code": 6,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "origin",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "feature_point",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "axis_angle",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 3,
+              "name": "leader_end",
+              "type": "[f64;2]",
+              "presence": "required"
+            },
+            {
+              "code": 4,
+              "name": "value_mode",
+              "type": "DimensionOrdinateMode",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "ArcLength",
+          "code": 7,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "center",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "radius",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "start_parameter",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 3,
+              "name": "sweep",
+              "type": "DimensionArcSpan",
+              "presence": "required"
+            },
+            {
+              "code": 4,
+              "name": "dimension_arc_point",
+              "type": "[f64;2]",
+              "presence": "required"
+            },
+            {
+              "code": 5,
+              "name": "leader",
+              "type": "Option<DimensionArcLeader>",
+              "presence": "optional"
+            }
+          ]
+        },
+        {
+          "name": "JoggedRadius",
+          "code": 8,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "center",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "curve_point",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "display_center",
+              "type": "[f64;2]",
+              "presence": "required"
+            },
+            {
+              "code": 3,
+              "name": "jog_point",
+              "type": "[f64;2]",
+              "presence": "required"
+            },
+            {
+              "code": 4,
+              "name": "jog_angle",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
         }
       ],
       "dependencies": [
+        "DimensionArcSpan",
+        "DimensionOrdinateMode",
+        "DimensionRaySign",
+        "DimensionTraversal",
+        "Option<DimensionArcLeader>",
         "Option<f64>",
         "[f64;2]",
         "[f64;3]",
@@ -8982,6 +9246,96 @@
           "code": 1,
           "shape": "unit",
           "fields": []
+        },
+        {
+          "name": "Center",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "CurvePoint",
+          "code": 3,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "FirstDiameterPoint",
+          "code": 4,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "SecondDiameterPoint",
+          "code": 5,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Line1Start",
+          "code": 6,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Line1End",
+          "code": 7,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Line2Start",
+          "code": 8,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Line2End",
+          "code": 9,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Vertex",
+          "code": 10,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "FirstLegPoint",
+          "code": 11,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "SecondLegPoint",
+          "code": 12,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Origin",
+          "code": 13,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "FeaturePoint",
+          "code": 14,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ArcStart",
+          "code": 15,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ArcEnd",
+          "code": 16,
+          "shape": "unit",
+          "fields": []
         }
       ],
       "dependencies": []
@@ -9026,9 +9380,55 @@
               "presence": "required"
             }
           ]
+        },
+        {
+          "name": "CirclePoint",
+          "code": 5,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "angle",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "ArcPoint",
+          "code": 6,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "fraction",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "SegmentPoint",
+          "code": 7,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "index",
+              "type": "u32",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "fraction",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
         }
       ],
       "dependencies": [
+        "f64",
         "u32"
       ]
     },
@@ -10437,6 +10837,128 @@
       ],
       "dependencies": [
         "IfccadPolylineVertexWidthOverride"
+      ]
+    },
+    "DimensionTraversal": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "Counterclockwise",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Clockwise",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "DimensionRaySign": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "Positive",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Negative",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "DimensionOrdinateMode": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "Absolute",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Signed",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "DimensionArcSpan": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "Partial",
+          "code": 0,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "radians",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Full",
+          "code": 1,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "traversal",
+              "type": "DimensionTraversal",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "DimensionTraversal",
+        "f64"
+      ]
+    },
+    "DimensionArcLeader": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "start",
+          "type": "[f64;2]",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "end",
+          "type": "[f64;2]",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "[f64;2]"
+      ]
+    },
+    "Option<DimensionArcLeader>": {
+      "kind": "optional",
+      "items": [
+        "DimensionArcLeader"
+      ],
+      "dependencies": [
+        "DimensionArcLeader"
       ]
     }
   }

@@ -5,21 +5,23 @@ the existing IFCX JSON CAD profile and this standalone CBOR candidate. The
 binary file is not a general IFCX serialization and is not automatically
 readable by IFCX JSON applications. OCDraw is parked as a frozen reference outside the active workspace.
 
-The [revision-1 contract](../../schemas/ifccad/cbor-mapping-1.md) and
-[complete field register](../../schemas/ifccad/cbor-mapping-1.json) define the
+The [development revision-2 contract](../../schemas/ifccad/cbor-mapping-2.md) and
+[complete field register](../../schemas/ifccad/cbor-mapping-2.json) define the
 language-neutral physical mapping. Conformance is in
-`conformance/next/ifccad-cbor`; its first published alpha snapshot is 2026.44.0.
+`conformance/next/ifccad-cbor`; published alpha 2026.44.0 fixes the previous
+revision-1 snapshot. The active revision-2 candidate adds the remaining Dimension
+kinds and bounded selectors, alongside profile 0.2.0.
 This remains experimental, with no stable-format or compatibility promise.
 
 ## Structure and evolution
 
 The complete file is one definite-length CBOR map:
-`{0: "IFCCAD-CBOR", 1: 1, 2: Document}`. File names conventionally use
+`{0: "IFCCAD-CBOR", 1: 2, 2: Document}`. File names conventionally use
 `.ifccad.cbor`. Each record has its own small unsigned field codes; entity
 kind codes and document identities have separate meanings. Source order in
 Rust does not assign codes. The registry explicitly fixes every field/variant.
 
-The reader accepts only mapping revision 1. Unknown fields, variants or
+The candidate reader accepts only mapping revision 2. Unknown fields, variants or
 revisions are errors; there is no compatibility migration or silent skipping.
 Revision 1 is published with native source alpha 2026.44.0. Later normative
 changes advance the single active mapping and fixtures under the

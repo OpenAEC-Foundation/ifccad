@@ -7,6 +7,7 @@ fn fragment_text(label: &DimensionFormattedLabel) -> String {
         .iter()
         .map(|part| match part {
             DimensionFormattedFragment::Run(run) => run.text.clone(),
+            DimensionFormattedFragment::ArcSymbol { .. } => "⌒".into(),
             DimensionFormattedFragment::Fraction {
                 numerator,
                 denominator,
@@ -148,6 +149,67 @@ fn formatted(
         label,
     )
     .unwrap()
+}
+
+#[test]
+fn kind_symbols_belong_to_generated_measurement_and_leave_literals_alone() {
+    for (kind, symbol) in [
+        (DimensionKind::Radius, "R"),
+        (DimensionKind::JoggedRadius, "R"),
+        (DimensionKind::Diameter, "Ø"),
+        (DimensionKind::ArcLength, "⌒"),
+        (DimensionKind::Aligned, ""),
+    ] {
+        let settings = DimensionNumberSettings::default();
+        let render = |label: &DimensionLabel| {
+            format_dimension_kind_label(
+                kind,
+                DimensionMeasurement::Distance(5.),
+                &settings,
+                DimensionFormatContext { is_paper: false },
+                label,
+            )
+            .unwrap()
+        };
+        let result = render(&DimensionLabel::Generated);
+        assert_eq!(
+            result
+                .runs
+                .iter()
+                .map(|r| r.text.as_str())
+                .collect::<String>(),
+            format!("{symbol}5.00")
+        );
+        assert_eq!(result.primary, "5.00");
+        let literal = DimensionLabel::Template(vec![DimensionLabelPart::Literal(vec![
+            ifccad::text::TextRun {
+                text: "R<>".into(),
+                ..Default::default()
+            },
+        ])]);
+        assert_eq!(render(&literal).runs[0].text, "R<>");
+        assert!(render(&DimensionLabel::Suppressed).fragments.is_empty());
+    }
+}
+
+#[test]
+fn above_arc_symbol_retains_its_placement_in_structured_output() {
+    let mut settings = DimensionNumberSettings::default();
+    settings.primary.arc_symbol = DimensionArcSymbol::Above;
+    let result = format_dimension_kind_label(
+        DimensionKind::ArcLength,
+        DimensionMeasurement::Distance(5.),
+        &settings,
+        DimensionFormatContext { is_paper: false },
+        &DimensionLabel::Generated,
+    )
+    .unwrap();
+    assert!(matches!(
+        result.fragments.first(),
+        Some(DimensionFormattedFragment::ArcSymbol {
+            placement: DimensionArcSymbol::Above
+        })
+    ));
 }
 
 #[test]

@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 
 fn registry() -> Value {
     let path =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("schemas/ifccad/cbor-mapping-1.json");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("schemas/ifccad/cbor-mapping-2.json");
     serde_json::from_slice(&std::fs::read(path).expect("CBOR register must exist")).unwrap()
 }
 
@@ -11,7 +11,7 @@ fn registry() -> Value {
 fn registry_pins_root_document_and_current_families() {
     let r = registry();
     assert_eq!(r["format"], "IFCCAD-CBOR");
-    assert_eq!(r["mappingRevision"], 1);
+    assert_eq!(r["mappingRevision"], 2);
     let types = r["types"].as_object().unwrap();
     assert_eq!(
         types["IfccadDocument"]["fields"].as_array().unwrap().len(),
@@ -39,7 +39,7 @@ fn registry_pins_root_document_and_current_families() {
             .as_array()
             .unwrap()
             .len(),
-        2
+        9
     );
     for variant in types["DimensionDefinition"]["variants"].as_array().unwrap() {
         for field in variant["fields"].as_array().unwrap() {

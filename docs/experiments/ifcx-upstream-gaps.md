@@ -1,6 +1,6 @@
 # IFCX alpha assumptions used by the native CAD experiment
 
-Checked against [buildingSMART's IFCX alpha TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp), examples and linked issues on 2026-09-30. This is a living record of choices the [native CAD profile](../../schemas/ifccad/experimental-contract-0.1.0.md) relies on but IFCX has not yet specified sufficiently for independent interchange. It is not a list of accepted buildingSMART proposals. Update an entry when the experiment starts relying on a new rule, upstream clarifies it, or an independent implementation disagrees. Keep the exact CAD rule in the profile contract; record the general IFCX question and evidence here.
+Checked against [buildingSMART's IFCX alpha TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp), examples and linked issues on 2026-09-30. This is a living record of choices the [native CAD profile](../../schemas/ifccad/experimental-contract-0.2.0.md) relies on but IFCX has not yet specified sufficiently for independent interchange. It is not a list of accepted buildingSMART proposals. Update an entry when the experiment starts relying on a new rule, upstream clarifies it, or an independent implementation disagrees. Keep the exact CAD rule in the profile contract; record the general IFCX question and evidence here.
 
 The schema-capability review of 2026-10-08 updates G4/G6 and adds G7/G8 using
 the public TypeSpec and prototype validator. This does not re-qualify the older
@@ -12,13 +12,13 @@ supplements. A second permanent schema language is not an agreed goal.
 
 Each entry records: **current IFCX surface**, **our tested rule**, **open question**, **broader use**, and **evidence / upstream overlap**. `Profile-only` means the rule may never belong in IFCX core. `Candidate` means a general IFCX clarification or mechanism could help other domains. `Interoperability risk` means current implementations may produce different results.
 
-## G1 — Local, compact node paths (`Candidate`)
+## G1 â€” Local, compact node paths (`Candidate`)
 
 - **Current IFCX surface:** `IfcxNode.path` is a string constrained by a TypeSpec pattern. The [path issue #63](https://github.com/buildingSMART/IFC5-development/issues/63) notes that this pattern and published UUID examples disagree; its maintainer discussion calls for removing the earlier USD-style angle brackets and allowing `/` and `-`. The current TypeSpec pattern has not yet caught up. It also does not define the uniqueness domain or cross-file reference resolution for local paths. The [composition probe](ifcx-composition-probe.md) found that the upstream root finder excluded paths containing `/`, so the then-current complete fixture produced no roots until its paths were temporarily replaced with slashless aliases.
 - **Our tested rule:** Paths such as `/cad/d1/e42` use a drawing-local canonical `uint64` segment. The complete path is a node's identity within this experiment, and references use that complete string. A drawing ID distinguishes drawings in the file. The reader rejects the earlier bracketed CAD paths.
 - **Open question:** Can a dataset identifier plus a local path form a stable globally referencable identity? How do imports, merging, renaming, and cross-file references resolve it? Which path characters and normalization rules are normative?
 - **Broader use:** Compact, human-readable identifiers for repeated model elements, sensor points, assembly members, and external annotations without a UUID in every node. This needs an explicit collision and reference model before proposing it upstream.
-- **Evidence:** [profile paths](../../schemas/ifccad/experimental-contract-0.1.0.md#file-and-identity), [fixture](../../tests/fixtures/ifccad/hello-cad.ifcx), [composition probe](ifcx-composition-probe.md), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
+- **Evidence:** [profile paths](../../schemas/ifccad/experimental-contract-0.2.0.md#file-and-identity), [fixture](../../tests/fixtures/ifccad/hello-cad.ifcx), [composition probe](ifcx-composition-probe.md), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
 ### Native ID lifecycle (2026-10-02)
 
@@ -38,47 +38,47 @@ consumers still needs an independent probe; no generic IFCX precision guarantee
 is claimed. The broader question also applies to exact counters and identifiers
 outside CAD, independently of compact paths.
 
-## G2 — Ordered relationships through `children` (`Candidate`)
+## G2 â€” Ordered relationships through `children` (`Candidate`)
 
 - **Current IFCX surface:** `children` is a keyed record of references or `null`; the TypeSpec does not give its keys a general ordering meaning.
 - **Our tested rule:** Model-layout, Paper-layout and block-definition children named `"0"`, `"1"`, etc. are contiguous and define CAD draw order separately per scope. Exactly one layout or block definition owns each drawable entity. JSON object member order is irrelevant; drawing children do not define layout-tab order.
 - **Open question:** Should IFCX offer an explicit ordered relationship, or should ordering remain a profile convention? If a generic mechanism is added, how are insertion, removal, and concurrent edits handled without renumbering every later relation?
 - **Broader use:** Order of assembly steps, presentation items, ordered spatial sections, and other graph traversals where order changes meaning. CAD draw order and single ownership remain profile-specific.
-- **Evidence:** [profile ownership and order](../../schemas/ifccad/experimental-contract-0.1.0.md#scope-and-order), [nested-block fixture](../../tests/fixtures/ifccad/hello-nested-blocks.ifcx), [paper-layout fixture](../../tests/fixtures/ifccad/hello-paper-layouts.ifcx), [strict order tests](../../tests/ifccad_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
+- **Evidence:** [profile ownership and order](../../schemas/ifccad/experimental-contract-0.2.0.md#scope-and-order), [nested-block fixture](../../tests/fixtures/ifccad/hello-nested-blocks.ifcx), [paper-layout fixture](../../tests/fixtures/ifccad/hello-paper-layouts.ifcx), [strict order tests](../../tests/ifccad_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
-## G3 — Composition of repeated path fragments (`Interoperability risk`)
+## G3 â€” Composition of repeated path fragments (`Interoperability risk`)
 
 - **Current IFCX surface:** `data` is an array of nodes; upstream composition code implements layered merging, while the TypeSpec alone does not define collision, deletion, or duplicate-key behavior. [Issue #132](https://github.com/buildingSMART/IFC5-development/issues/132) reports differing `null` deletion behavior for children/inherits and attributes in the current implementation.
 - **Our tested rule:** By default, repeated fragments with the same path merge in file order, with the later value winning per `children`, `inherits`, or `attributes` key on CAD and non-CAD nodes alike. An explicit reader option rejects differing repeated values for development diagnostics. CAD constraints are checked on the composed result in both modes. Duplicate JSON object keys in one object still fail. In the default mode, the parser removes an `inherits` key when overwritten by `null` and retains `null` markers for children and attributes, following upstream flattening; graph expansion and attribute deletion remain unresolved. The [composition probe](ifcx-composition-probe.md) measured the upstream behavior that motivated this change.
 - **Open question:** What is the normative result of repeated paths, conflicting values, duplicate keys, and explicit `null` across one file or imported layers? Is source order meaningful?
 - **Broader use:** Predictable federation, extensions, diffs, and collaboration for all IFCX nodes. File-order overwrites are useful for layered changes, while CAD validation can still reject an invalid final drawing. We need concrete CAD cases before arguing that last-wins causes unacceptable ambiguity or should be non-normative in IFCX. A domain-specific format such as OCDraw remains an alternative if the IFCX graph or composition rules prove unsuitable.
-- **Evidence:** [profile fragment rule](../../schemas/ifccad/experimental-contract-0.1.0.md#file-and-identity), [composition probe](ifcx-composition-probe.md), [upstream composer](https://github.com/buildingSMART/IFC5-development/blob/main/src/ifcx-core/composition/compose.ts), [upstream issue #132](https://github.com/buildingSMART/IFC5-development/issues/132).
+- **Evidence:** [profile fragment rule](../../schemas/ifccad/experimental-contract-0.2.0.md#file-and-identity), [composition probe](ifcx-composition-probe.md), [upstream composer](https://github.com/buildingSMART/IFC5-development/blob/main/src/ifcx-core/composition/compose.ts), [upstream issue #132](https://github.com/buildingSMART/IFC5-development/issues/132).
 
-## G4 — Node profiles and cross-attribute requirements (`Candidate`)
+## G4 â€” Node profiles and cross-attribute requirements (`Candidate`)
 
 - **Current IFCX surface:** `schemas` describes individual attribute values. The alpha TypeSpec does not provide a normative way to say that a node with one role must also have specified attributes, exactly one of several payloads, and valid references. [Issue #72](https://github.com/buildingSMART/IFC5-development/issues/72) discusses how class properties could be described, but does not establish this validation contract.
 - **Our tested rule:** An owned native drawable must have `ifccad::entity` and exactly one supported primitive, viewport, block-instance or Text/MText payload; opaque content has its separate role. A circle or Text/MText also needs placement. A Paper layout requires a unique name and explicit tab index; coordinate meaning follows its plot mapping rather than an independent stored Paper unit. Its optional physical medium has positive dimensions and a physical unit; Model requires tab zero and forbids Paper naming metadata. Exactly one Model layout is required; Paper layouts are optional. Text requires a same-drawing text-style target with the correct role and drawing membership; present styles require a sufficient allocation watermark. These conditional value and graph requirements, references, ownership, draw order and appearance modes are checked by the strict profile reader.
 - **Open question:** Is there a reusable IFCX profile or node-type mechanism for required attribute sets, alternatives, reference targets and cardinalities? How does it coexist with unknown extension attributes?
 - **Broader use:** Independent validation of domain-specific nodes, including building elements, infrastructure and linked observations. The CAD primitive set and its exact geometry rules remain profile-specific.
-- **Evidence:** [profile validation](../../schemas/ifccad/experimental-contract-0.1.0.md), [strict reader and tests](../../tests/ifccad_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
+- **Evidence:** [profile validation](../../schemas/ifccad/experimental-contract-0.2.0.md), [strict reader and tests](../../tests/ifccad_native.rs), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
-## G5 — Versioned schema imports and reproducible resolution (`Candidate`)
+## G5 â€” Versioned schema imports and reproducible resolution (`Candidate`)
 
 - **Current IFCX surface:** `imports` contains a URI and optional `integrity`, but the TypeSpec does not define a complete resolver, version policy, or offline behavior.
 - **Our tested rule:** The drawing imports `urn:example:ifccad:0.1.0`; the reader resolves only its bundled experimental schema module offline. Missing definitions fail. The `example` namespace and version are provisional: schema meaning currently follows the reader revision, without an immutable-publication promise.
 - **Open question:** How are imports located, verified, cached and kept stable across versions? Can a file carry both an immutable schema identity and a resolvable location without assuming network access?
 - **Broader use:** Reproducible exchange and validation of any domain extension, especially archived models and disconnected workflows.
-- **Evidence:** [profile import rule](../../schemas/ifccad/experimental-contract-0.1.0.md#file-and-identity), [schema module](../../schemas/ifccad/ifccad-profile-0.1.0.ifcx), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
+- **Evidence:** [profile import rule](../../schemas/ifccad/experimental-contract-0.2.0.md#file-and-identity), [schema module](../../schemas/ifccad/ifccad-profile-0.2.0.ifcx), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp).
 
-## G6 — Reusable value schemas and unions (`Candidate`)
+## G6 â€” Reusable value schemas and unions (`Candidate`)
 
 - **Current IFCX surface:** The alpha TypeSpec supports nested arrays/objects, enums and optional properties, and `IfcxValueDescription.inherits` names other schemas. The prototype validator applies each inherited value description additively. This is not an exclusive union or a discriminator-selected conditional branch. Its restriction fields are also listed independently of `dataType`. [Schema wishlist issue #51](https://github.com/buildingSMART/IFC5-development/issues/51) discusses datatype-specific restrictions, schema references and unions; these are discussion points, not adopted rules. Whether inheritance provides suitable reusable nested schemas needs a focused declaration/runtime probe; absence of a separate reference keyword alone does not establish absence of reuse. Value-schema inheritance here is separate from `IfcxNode.inherits`.
 - **Our tested rule:** The experimental schema repeats three-real arrays for line endpoints and placement vectors, while planar-polyline vertices use two-real arrays. The Text/MText implementation adds closed alternatives: anchored/wholeTextMiddle/aligned/fit layouts; run/tab/lineBreak/columnBreak/stack inlines; relative/absolute heights; three column states; and fill/padding choices. Each discriminator selects its own required and permitted members. For example aligned requires length/widthFactor and has no height, while fit requires length/height and has no widthFactor. The provisional reader currently supplements the ordinary IFCX declarations with a text-specific JSON Schema and semantic checks. This is a local implementation choice, not IFCX syntax or a settled general IFCCAD validation architecture.
 - **Open question:** Can a value schema refer to another named value schema, and can an array element be one of several named shapes? How are restrictions tied to their declared datatype, including validation of mismatched or unused restriction fields?
 - **Broader use:** One reusable point or placement definition and a typed union of curve segments would improve independent validation of procedural geometry. The same mechanisms would serve non-CAD structured values. They would not by themselves require `ifccad::entity` and geometry attributes on the same node; that remains G4.
-- **Evidence:** [upstream issue #51](https://github.com/buildingSMART/IFC5-development/issues/51), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp), [experimental schema module](../../schemas/ifccad/ifccad-profile-0.1.0.ifcx).
+- **Evidence:** [upstream issue #51](https://github.com/buildingSMART/IFC5-development/issues/51), [upstream TypeSpec](https://github.com/buildingSMART/IFC5-development/blob/main/schema/ifcx.tsp), [experimental schema module](../../schemas/ifccad/ifccad-profile-0.2.0.ifcx).
 
-## G7 — Precise value constraints and presence (`Candidate`)
+## G7 â€” Precise value constraints and presence (`Candidate`)
 
 - **Current IFCX surface:** The reviewed value-description model offers enums,
   nested object properties with optionality and array min/max/item descriptions.
@@ -112,7 +112,7 @@ outside CAD, independently of compact paths.
   [presence/reference tests](../../tests/ifccad_text_wire.rs),
   [bounds tests](../../tests/ifccad_text_bounds.rs).
 
-## G8 — Discoverable supplemental profile rules (`Candidate`)
+## G8 â€” Discoverable supplemental profile rules (`Candidate`)
 
 - **Current IFCX surface:** Schema imports and per-attribute value descriptions
   do not provide the reviewed experiment with a defined mechanism to discover
@@ -121,7 +121,7 @@ outside CAD, independently of compact paths.
   knows which validation obligations accompany an imported profile.
 - **Our tested rule:** A drawing imports one IFCCAD profile. The local reader
   bundles its ordinary IFCX declarations, general local-value JSON Schema
-  supplements and semantic validators. The [rule catalog](../../schemas/ifccad/profile-rules-0.1.0.md)
+  supplements and semantic validators. The [rule catalog](../../schemas/ifccad/profile-rules-0.2.0.md)
   identifies applicability, evidence and upstream-migration conditions for all
   current families; an independent implementation also needs those graph/domain
   requirements and conformance cases.
@@ -138,7 +138,7 @@ outside CAD, independently of compact paths.
   shapes, with discoverable obligations, precise validation reports and a path
   to migrate temporary rules into upstream schema capabilities.
 - **Evidence / overlap:** G4/G5/G6/G7;
-  [profile contract](../../schemas/ifccad/experimental-contract-0.1.0.md),
+  [profile contract](../../schemas/ifccad/experimental-contract-0.2.0.md),
   [current text validator](../../src/ifccad/codec/json/text.rs),
   [core semantic validation](../../src/ifccad/logical/document_validation.rs).
 
@@ -152,8 +152,8 @@ Local value rules can use an established formal notation such as JSON Schema;
 graph/calculation rules need precise language-neutral requirements and named
 algorithms/tests where that notation cannot express them. Explanatory prose
 supports those rules; vague prose or only Rust code is not a portable contract.
-The [normative rule catalog](../../schemas/ifccad/profile-rules-0.1.0.md) covers all
-current families. The [offline local-value supplement](../../schemas/ifccad/supplemental-values-0.1.0.schema.json)
+The [normative rule catalog](../../schemas/ifccad/profile-rules-0.2.0.md) covers all
+current families. The [offline local-value supplement](../../schemas/ifccad/supplemental-values-0.2.0.schema.json)
 is dispatched by the [IFCCAD codec](../../src/ifccad/codec/json/supplemental.rs),
 while typed projection and domain algorithms retain graph/calculation checks.
 Each catalog entry records applicability, evidence, G-number and a migration
@@ -205,7 +205,7 @@ retain source composition and auditing while deferring mixed-document writeback.
 ## Suggested order of investigation
 
 1. Follow up the [completed G1/G3 composition probe](ifcx-composition-probe.md) with a full upstream expansion check for G2 using the current unwrapped CAD paths. The TypeSpec still requires old-style brackets while the issue discussion recommends removing them; record actual implementation differences before drafting an upstream proposal.
-2. Use the current [viewport contract](../../schemas/ifccad/experimental-contract-0.1.0.md#paper-viewports) and qualified converter tests for CAD layout coverage. Native nested-block/Paper readback and CAD exchange do not establish compatibility with the upstream IFCX composer or a general IFCX viewer.
+2. Use the current [viewport contract](../../schemas/ifccad/experimental-contract-0.2.0.md#paper-viewports) and qualified converter tests for CAD layout coverage. Native nested-block/Paper readback and CAD exchange do not establish compatibility with the upstream IFCX composer or a general IFCX viewer.
 3. When a concrete mixed-document application is selected, test non-CAD references to CAD paths across documents. That later investigation must address import/identity requirements in G1/G5; it is not a prerequisite for standalone CAD development.
 4. Keep physical-encoding research aligned with [IFCCAD issue #6](https://github.com/OpenAEC-Foundation/ifccad/issues/6) and the current roadmap. Existing CBOR evidence has its own scope; additional measurements require an explicit request.
 
@@ -272,4 +272,4 @@ with their own input/configuration provenance.
 
 Evidence: [line-pattern tests](../../tests/ifccad_line_patterns.rs),
 [conversion tests](../../legacy/ifccad-convert/reference/crates/ifccad-convert/tests/line_patterns.rs) and
-[profile contract](../../schemas/ifccad/experimental-contract-0.1.0.md#named-line-patterns).
+[profile contract](../../schemas/ifccad/experimental-contract-0.2.0.md#named-line-patterns).

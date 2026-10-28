@@ -1,6 +1,6 @@
 # IFCCAD
 
-**[Web page](https://open-aec.com/ifccad/) · [Open the Explorer](https://ifccad-explorer.open-aec.com/) · [Discussions](https://github.com/OpenAEC-Foundation/ifccad/discussions)**
+**[Web page](https://open-aec.com/ifccad/) Â· [Open the Explorer](https://ifccad-explorer.open-aec.com/) Â· [Discussions](https://github.com/OpenAEC-Foundation/ifccad/discussions)**
 
 IFCCAD is an experimental, open CAD drawing profile built on IFCX. It describes
 geometry, layers, blocks, layouts and drawing styles as typed,
@@ -97,7 +97,8 @@ foundations. The next steps are:
 2. **Extend native Dimensions with the seven remaining kinds.** Extend the
    [current Dimension model](docs/dimension.md) as one task with
    internal stages, with native readback and conversion contributions to
-   `opencaddocument` in both directions. This work is designed, not implemented.
+   `opencaddocument` in both directions. The native/Document candidate is under
+   verification; CAD review and Explorer adoption remain pending.
 3. **Add shared annotation contexts and bounded association updates.** Establish
    scale contexts and their exchange before claiming viewport-dependent updates
    or general regeneration.
@@ -141,7 +142,7 @@ cargo run -p viewer -- export-ifccad examples/ifccad/house.ifcx dxf
 CAD input defaults to IFCCAD. `--drawing-format ifccad` remains accepted;
 `--drawing-format ocdraw` reports `OCDRAW_PARKED` before reading the input.
 See the [IFCCAD lifecycle and API conventions](docs/experiments/ifccad-document-lifecycle.md),
-[experimental contract](schemas/ifccad/experimental-contract-0.1.0.md) and
+[experimental contract](schemas/ifccad/experimental-contract-0.2.0.md) and
 [CBOR experiment](docs/experiments/ifccad-cbor.md).
 
 ## Verification

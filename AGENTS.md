@@ -189,6 +189,32 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
   any local dependency patch explicit and tied to a base revision; never edit the
   Cargo cache or attribute patched evidence to an unmodified dependency.
 
+## Efficient implementation and verification
+
+- Before coding, bound the implementation slice, acceptance criteria and focused
+  checks. Settle dependency revisions, local patches and build configuration up
+  front; reuse the existing architecture and warm per-worktree caches.
+- Implement shared behavior once and batch related variants as internal steps.
+  Do not build parallel frameworks or run a workspace gate for each variant.
+- Develop with focused tests that expose meaningful behavior or a demonstrated
+  failure. Broaden checks when changed interfaces or actual failures justify it,
+  rather than repeatedly testing unrelated code.
+- Finish the implementation review and fix demonstrated in-scope defects before
+  starting the full gate. Freeze that candidate, run the required full gate once,
+  and record its evidence. A gate failure requires a focused fix first, followed
+  by a fresh full gate on the resulting final candidate, as specified below.
+- Do not keep expanding a working slice with speculative edge cases or adjacent
+  improvements during final verification. Record those as follow-up work.
+  Demonstrated loss, corruption or an unmet agreed acceptance criterion within
+  scope must still be fixed; explain the concrete reason for any extra work.
+- After successful verification, deliver the promised review files and result
+  promptly. A further idea or another inspection alone does not invalidate a
+  passing gate. Reuse equivalent evidence under the rules below; prose-only
+  instruction/documentation changes do not trigger Rust builds.
+- If verification has to repeat, record which input changed or which failure is
+  being resolved. Do not turn implementation into open-ended qualification
+  research or repeatedly promise completion while adding new scope.
+
 ## Verification
 
 Use focused tests while developing. A worktree may be ready for integration

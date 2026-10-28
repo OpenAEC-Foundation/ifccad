@@ -1,10 +1,10 @@
-# IFCCAD supplemental profile rules 0.1.0
+# IFCCAD supplemental profile rules 0.2.0
 
-This is a normative companion to the [experimental contract](experimental-contract-0.1.0.md),
-the ordinary [IFCX declarations](ifccad-profile-0.1.0.ifcx), and the
-[local-value supplement](supplemental-values-0.1.0.schema.json). All apply after
+This is a normative companion to the [experimental contract](experimental-contract-0.2.0.md),
+the ordinary [IFCX declarations](ifccad-profile-0.2.0.ifcx), and the
+[local-value supplement](supplemental-values-0.2.0.schema.json). All apply after
 fragment composition. It is not an IFCX schema extension or an independent drawing format.
-The existing `urn:example:ifccad:0.1.0` import remains the only drawing import needed
+The existing `urn:example:ifccad:0.2.0` import remains the only drawing import needed
 by the bundled offline reader. Full IFCCAD validation includes local values,
 graph relationships and domain algorithms, not just ordinary IFCX attribute shapes.
 
@@ -99,7 +99,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 
 | ID | Requirement and algorithm | Phase / gap | Positive and negative evidence |
 |---|---|---|---|
-| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.1.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
+| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.2.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
 | IFCCAD-WIRE-002 | Duplicate keys within one JSON object MUST fail. Same-path fragments merge children/inherits/attributes by key in file order; repeated values replace whole values, not nested arrays/overrides. Null inheritance removes its key; child/attribute null remains a marker. RejectConflicts MUST reject differing repeated values, including foreign nodes. | C; G3 | [composer](../../src/ifccad/source/composition.rs), [text wire](../../tests/ifccad_text_wire.rs) |
 | IFCCAD-WIRE-003 | CAD validation MUST run on the composed graph, retaining exact immutable original bytes and foreign context. Foreign children confer no CAD ownership. No supplement may validate all foreign objects or interpret provider bytes as CAD fields. | C/V/G; G3/G8 | [profile rules tests](../../tests/ifccad_profile_rules.rs), [native](../../tests/ifccad_native.rs) |
 | IFCCAD-WIRE-004 | Closed native value objects MUST reject unknown members and forbidden nulls as specified in the contract and local variant definitions. Unsupported CAD namespaces/payloads MUST fail at their existing role boundaries. No legacy unknown-field or null acceptance exception is provided. | V/G; G7 | [geometry](../../tests/ifccad_geometry.rs), [text codec](../../tests/ifccad_text_codec.rs), [workspace](../../tests/ifccad_workspace_state.rs) |
@@ -274,7 +274,7 @@ Evidence: tests/hatch_pattern.rs and tests/hatch_pattern_wire.rs.
 
 | Rule | Requirement | Evidence |
 | --- | --- | --- |
-| IFCCAD-DIMENSION-001 | Native linear/aligned definitions, text placement and effective settings MUST pass shared value validation. Measurement MUST use stored definition; refs MUST resolve to the required kind and same owner; render/block cycles MUST fail. | `tests/ifccad_dimension.rs`, `tests/ifccad_dimension_bounds.rs` |
+| IFCCAD-DIMENSION-001 | All nine native definitions, text placement and effective settings MUST pass shared value validation. Measurement MUST use stored definition; refs MUST resolve to the required kind and same owner; render/block cycles MUST fail. Directed angles/spans and signed ordinate MUST retain their explicit meanings; presentation points MUST NOT change measurement. | `tests/ifccad_dimension.rs`, `tests/ifccad_dimension_bounds.rs`, `tests/dimension_remaining_kinds.rs`, `tests/ifccad_dimension_remaining_relations.rs` |
 | IFCCAD-DIMENSION-002 | Dimension and style values MUST obey their closed supplemental/IFCX declarations. Style/TextStyle/marker/pattern/source refs MUST be canonical complete same-drawing paths. Authored override presence and atomic LaterWins replacement MUST survive strict readback. | `tests/ifccad_dimension_wire.rs` |
 | IFCCAD-ID-002 | `nextDimensionStyleId` MUST be positive and exceed all live zero-valid uint64 style IDs; deletion MUST NOT lower it and allocation exhaustion MUST be atomic. | `tests/ifccad_dimension.rs` |
 

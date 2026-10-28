@@ -1,5 +1,5 @@
 {
-  "mappingRevision": 1,
+  "mappingRevision": 2,
   "cases": [
     {
       "file": "valid/empty.ifccad.cbor",
@@ -455,6 +455,77 @@
       "valid": false,
       "diagnostic": "invalid/polyline-width-count.ifccad.cbor.diag",
       "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "valid/dimension-radius.ifccad.cbor",
+      "diagnostic": "valid/dimension-radius.ifccad.cbor.diag",
+      "valid": true
+    },
+    {
+      "file": "valid/dimension-diameter.ifccad.cbor",
+      "diagnostic": "valid/dimension-diameter.ifccad.cbor.diag",
+      "valid": true
+    },
+    {
+      "file": "valid/dimension-angular-two-lines.ifccad.cbor",
+      "diagnostic": "valid/dimension-angular-two-lines.ifccad.cbor.diag",
+      "valid": true
+    },
+    {
+      "file": "valid/dimension-angular-three-points.ifccad.cbor",
+      "diagnostic": "valid/dimension-angular-three-points.ifccad.cbor.diag",
+      "valid": true
+    },
+    {
+      "file": "valid/dimension-ordinate-signed.ifccad.cbor",
+      "diagnostic": "valid/dimension-ordinate-signed.ifccad.cbor.diag",
+      "valid": true
+    },
+    {
+      "file": "valid/dimension-arc-length-full.ifccad.cbor",
+      "diagnostic": "valid/dimension-arc-length-full.ifccad.cbor.diag",
+      "valid": true
+    },
+    {
+      "file": "valid/dimension-jogged-radius.ifccad.cbor",
+      "diagnostic": "valid/dimension-jogged-radius.ifccad.cbor.diag",
+      "valid": true
+    },
+    {
+      "file": "invalid/dimension-negative-leader.ifccad.cbor",
+      "diagnostic": "invalid/dimension-negative-leader.ifccad.cbor.diag",
+      "valid": false,
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/dimension-short-center.ifccad.cbor",
+      "diagnostic": "invalid/dimension-short-center.ifccad.cbor.diag",
+      "valid": false,
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/dimension-unknown-ray-sign.ifccad.cbor",
+      "diagnostic": "invalid/dimension-unknown-ray-sign.ifccad.cbor.diag",
+      "valid": false,
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/dimension-partial-full-turn.ifccad.cbor",
+      "diagnostic": "invalid/dimension-partial-full-turn.ifccad.cbor.diag",
+      "valid": false,
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/dimension-full-span-extra-field.ifccad.cbor",
+      "diagnostic": "invalid/dimension-full-span-extra-field.ifccad.cbor.diag",
+      "valid": false,
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/dimension-null-display-center.ifccad.cbor",
+      "diagnostic": "invalid/dimension-null-display-center.ifccad.cbor.diag",
+      "valid": false,
+      "errorClass": "Malformed"
     }
   ]
 }

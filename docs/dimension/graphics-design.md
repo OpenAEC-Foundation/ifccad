@@ -29,8 +29,8 @@ constant/per-segment width support and the red sample's full acceptance.
 This mapping preserves the agreed Dimension-owned child group in IFCX and uses
 the same typed value directly in CBOR. It adds neither a Dimension graphics
 generator nor source-graph editing. [Dimension support](../dimension.md),
-[profile rules](../../schemas/ifccad/profile-rules-0.1.0.md),
-[CBOR revision 1](../../schemas/ifccad/cbor-mapping-1.md) and the
+[profile rules](../../schemas/ifccad/profile-rules-0.2.0.md),
+[active CBOR mapping](../../schemas/ifccad/cbor-mapping-2.md) and the
 [document lifecycle](../experiments/ifccad-document-lifecycle.md) are its basis.
 
 ## Logical records

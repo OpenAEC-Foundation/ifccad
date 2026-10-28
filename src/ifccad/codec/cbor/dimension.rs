@@ -1,5 +1,9 @@
 use super::*;
 use crate::dimension::{
+    DimensionArcLeader, DimensionArcSpan, DimensionOrdinateMode, DimensionRaySign,
+    DimensionTraversal,
+};
+use crate::dimension::{
     DimensionDefinition, DimensionKind, DimensionLabel, DimensionLabelPart, DimensionPointSelector,
     DimensionRole, DimensionStyleOverrides, DimensionTextPlacement,
 };
@@ -25,10 +29,93 @@ record!(IfccadDimension;
 6 => associations: Vec<IfccadDimensionAssociation> = None,
 7 => graphics: Option<IfccadDimensionGraphics> = Some(None),
 );
+unit_enum!(DimensionTraversal;0 => Counterclockwise,1 => Clockwise,);
+unit_enum!(DimensionRaySign;0 => Positive,1 => Negative,);
+unit_enum!(DimensionOrdinateMode;0 => Absolute,1 => Signed,);
+record!(DimensionArcLeader;0 => start: [f64;2] = None,1 => end: [f64;2] = None,);
+impl CborValue for DimensionArcSpan {
+    #[cfg(test)]
+    fn registered_codes() -> &'static [(u64, &'static str)] {
+        &[(0, "Partial"), (1, "Full")]
+    }
+    fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
+        match self {
+            Self::Partial { radians } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(0)?;
+                w.u64(1)?;
+                w.map(1)?;
+                w.u64(0)?;
+                radians.encode(w)?;
+                Ok(())
+            }
+            Self::Full { traversal } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(1)?;
+                w.u64(1)?;
+                w.map(1)?;
+                w.u64(0)?;
+                traversal.encode(w)?;
+                Ok(())
+            }
+        }
+    }
+    fn decode(r: &mut CborReader<'_>) -> Result<Self, IfccadCborReadError> {
+        let mut f = RecordFields::new(r, &[(0, "kind"), (1, "body")])?;
+        let code: u64 = f.take(0, None)?;
+        let body = f.span(1)?;
+        let v = match code {
+            0 => {
+                let mut b = RecordFields::new(&body, &[(0, "radians")])?;
+                let radians: f64 = b.take(0, None)?;
+                b.finish()?;
+                Self::Partial { radians }
+            }
+            1 => {
+                let mut b = RecordFields::new(&body, &[(0, "traversal")])?;
+                let traversal: DimensionTraversal = b.take(0, None)?;
+                b.finish()?;
+                Self::Full { traversal }
+            }
+            _ => return Err(r.error("unknown variant code")),
+        };
+        f.finish()?;
+        Ok(v)
+    }
+    fn exact(&self, o: &Self) -> bool {
+        match (self, o) {
+            (
+                Self::Partial { radians },
+                Self::Partial {
+                    radians: radians_other,
+                },
+            ) => radians.exact(radians_other),
+            (
+                Self::Full { traversal },
+                Self::Full {
+                    traversal: traversal_other,
+                },
+            ) => traversal.exact(traversal_other),
+            _ => false,
+        }
+    }
+}
 impl CborValue for DimensionDefinition {
     #[cfg(test)]
     fn registered_codes() -> &'static [(u64, &'static str)] {
-        &[(0, "Linear"), (1, "Aligned")]
+        &[
+            (0, "Linear"),
+            (1, "Aligned"),
+            (2, "AngularTwoLines"),
+            (3, "AngularThreePoints"),
+            (4, "Radius"),
+            (5, "Diameter"),
+            (6, "Ordinate"),
+            (7, "ArcLength"),
+            (8, "JoggedRadius"),
+        ]
     }
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
         match self {
@@ -43,80 +130,16 @@ impl CborValue for DimensionDefinition {
                 w.u64(0)?;
                 w.u64(0)?;
                 w.u64(1)?;
-                let mut __cbor_fields = 0_u64;
-                if first_point.present()
-                    && (None as Option<[f64; 3]>)
-                        .as_ref()
-                        .is_none_or(|d| !first_point.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if second_point.present()
-                    && (None as Option<[f64; 3]>)
-                        .as_ref()
-                        .is_none_or(|d| !second_point.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if direction_angle.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !direction_angle.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if dimension_line_point.present()
-                    && (None as Option<[f64; 2]>)
-                        .as_ref()
-                        .is_none_or(|d| !dimension_line_point.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if extension_direction_angle.present()
-                    && (Some(None) as Option<Option<f64>>)
-                        .as_ref()
-                        .is_none_or(|d| !extension_direction_angle.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if first_point.present()
-                    && (None as Option<[f64; 3]>)
-                        .as_ref()
-                        .is_none_or(|d| !first_point.exact(d))
-                {
-                    w.u64(0)?;
-                    first_point.encode(w)?;
-                }
-                if second_point.present()
-                    && (None as Option<[f64; 3]>)
-                        .as_ref()
-                        .is_none_or(|d| !second_point.exact(d))
-                {
-                    w.u64(1)?;
-                    second_point.encode(w)?;
-                }
-                if direction_angle.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !direction_angle.exact(d))
-                {
-                    w.u64(2)?;
-                    direction_angle.encode(w)?;
-                }
-                if dimension_line_point.present()
-                    && (None as Option<[f64; 2]>)
-                        .as_ref()
-                        .is_none_or(|d| !dimension_line_point.exact(d))
-                {
-                    w.u64(3)?;
-                    dimension_line_point.encode(w)?;
-                }
-                if extension_direction_angle.present()
-                    && (Some(None) as Option<Option<f64>>)
-                        .as_ref()
-                        .is_none_or(|d| !extension_direction_angle.exact(d))
-                {
+                w.map(4 + u64::from(extension_direction_angle.is_some()))?;
+                w.u64(0)?;
+                first_point.encode(w)?;
+                w.u64(1)?;
+                second_point.encode(w)?;
+                w.u64(2)?;
+                direction_angle.encode(w)?;
+                w.u64(3)?;
+                dimension_line_point.encode(w)?;
+                if extension_direction_angle.is_some() {
                     w.u64(4)?;
                     extension_direction_angle.encode(w)?;
                 }
@@ -132,68 +155,187 @@ impl CborValue for DimensionDefinition {
                 w.u64(0)?;
                 w.u64(1)?;
                 w.u64(1)?;
-                let mut __cbor_fields = 0_u64;
-                if first_point.present()
-                    && (None as Option<[f64; 3]>)
-                        .as_ref()
-                        .is_none_or(|d| !first_point.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if second_point.present()
-                    && (None as Option<[f64; 3]>)
-                        .as_ref()
-                        .is_none_or(|d| !second_point.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if dimension_line_point.present()
-                    && (None as Option<[f64; 2]>)
-                        .as_ref()
-                        .is_none_or(|d| !dimension_line_point.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if extension_direction_angle.present()
-                    && (Some(None) as Option<Option<f64>>)
-                        .as_ref()
-                        .is_none_or(|d| !extension_direction_angle.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if first_point.present()
-                    && (None as Option<[f64; 3]>)
-                        .as_ref()
-                        .is_none_or(|d| !first_point.exact(d))
-                {
-                    w.u64(0)?;
-                    first_point.encode(w)?;
-                }
-                if second_point.present()
-                    && (None as Option<[f64; 3]>)
-                        .as_ref()
-                        .is_none_or(|d| !second_point.exact(d))
-                {
-                    w.u64(1)?;
-                    second_point.encode(w)?;
-                }
-                if dimension_line_point.present()
-                    && (None as Option<[f64; 2]>)
-                        .as_ref()
-                        .is_none_or(|d| !dimension_line_point.exact(d))
-                {
-                    w.u64(2)?;
-                    dimension_line_point.encode(w)?;
-                }
-                if extension_direction_angle.present()
-                    && (Some(None) as Option<Option<f64>>)
-                        .as_ref()
-                        .is_none_or(|d| !extension_direction_angle.exact(d))
-                {
+                w.map(3 + u64::from(extension_direction_angle.is_some()))?;
+                w.u64(0)?;
+                first_point.encode(w)?;
+                w.u64(1)?;
+                second_point.encode(w)?;
+                w.u64(2)?;
+                dimension_line_point.encode(w)?;
+                if extension_direction_angle.is_some() {
                     w.u64(3)?;
                     extension_direction_angle.encode(w)?;
                 }
+                Ok(())
+            }
+            Self::AngularTwoLines {
+                line1_start,
+                line1_end,
+                line2_start,
+                line2_end,
+                ray1_sign,
+                ray2_sign,
+                traversal,
+                dimension_arc_point,
+            } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(2)?;
+                w.u64(1)?;
+                w.map(8)?;
+                w.u64(0)?;
+                line1_start.encode(w)?;
+                w.u64(1)?;
+                line1_end.encode(w)?;
+                w.u64(2)?;
+                line2_start.encode(w)?;
+                w.u64(3)?;
+                line2_end.encode(w)?;
+                w.u64(4)?;
+                ray1_sign.encode(w)?;
+                w.u64(5)?;
+                ray2_sign.encode(w)?;
+                w.u64(6)?;
+                traversal.encode(w)?;
+                w.u64(7)?;
+                dimension_arc_point.encode(w)?;
+                Ok(())
+            }
+            Self::AngularThreePoints {
+                vertex,
+                first_point,
+                second_point,
+                traversal,
+                dimension_arc_point,
+            } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(3)?;
+                w.u64(1)?;
+                w.map(5)?;
+                w.u64(0)?;
+                vertex.encode(w)?;
+                w.u64(1)?;
+                first_point.encode(w)?;
+                w.u64(2)?;
+                second_point.encode(w)?;
+                w.u64(3)?;
+                traversal.encode(w)?;
+                w.u64(4)?;
+                dimension_arc_point.encode(w)?;
+                Ok(())
+            }
+            Self::Radius {
+                center,
+                curve_point,
+                leader_length,
+            } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(4)?;
+                w.u64(1)?;
+                w.map(3)?;
+                w.u64(0)?;
+                center.encode(w)?;
+                w.u64(1)?;
+                curve_point.encode(w)?;
+                w.u64(2)?;
+                leader_length.encode(w)?;
+                Ok(())
+            }
+            Self::Diameter {
+                first_diameter_point,
+                second_diameter_point,
+                leader_length,
+            } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(5)?;
+                w.u64(1)?;
+                w.map(3)?;
+                w.u64(0)?;
+                first_diameter_point.encode(w)?;
+                w.u64(1)?;
+                second_diameter_point.encode(w)?;
+                w.u64(2)?;
+                leader_length.encode(w)?;
+                Ok(())
+            }
+            Self::Ordinate {
+                origin,
+                feature_point,
+                axis_angle,
+                leader_end,
+                value_mode,
+            } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(6)?;
+                w.u64(1)?;
+                w.map(5)?;
+                w.u64(0)?;
+                origin.encode(w)?;
+                w.u64(1)?;
+                feature_point.encode(w)?;
+                w.u64(2)?;
+                axis_angle.encode(w)?;
+                w.u64(3)?;
+                leader_end.encode(w)?;
+                w.u64(4)?;
+                value_mode.encode(w)?;
+                Ok(())
+            }
+            Self::ArcLength {
+                center,
+                radius,
+                start_parameter,
+                sweep,
+                dimension_arc_point,
+                leader,
+            } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(7)?;
+                w.u64(1)?;
+                w.map(5 + u64::from(leader.is_some()))?;
+                w.u64(0)?;
+                center.encode(w)?;
+                w.u64(1)?;
+                radius.encode(w)?;
+                w.u64(2)?;
+                start_parameter.encode(w)?;
+                w.u64(3)?;
+                sweep.encode(w)?;
+                w.u64(4)?;
+                dimension_arc_point.encode(w)?;
+                if leader.is_some() {
+                    w.u64(5)?;
+                    leader.encode(w)?;
+                }
+                Ok(())
+            }
+            Self::JoggedRadius {
+                center,
+                curve_point,
+                display_center,
+                jog_point,
+                jog_angle,
+            } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(8)?;
+                w.u64(1)?;
+                w.map(5)?;
+                w.u64(0)?;
+                center.encode(w)?;
+                w.u64(1)?;
+                curve_point.encode(w)?;
+                w.u64(2)?;
+                display_center.encode(w)?;
+                w.u64(3)?;
+                jog_point.encode(w)?;
+                w.u64(4)?;
+                jog_angle.encode(w)?;
                 Ok(())
             }
         }
@@ -201,9 +343,9 @@ impl CborValue for DimensionDefinition {
     fn decode(r: &mut CborReader<'_>) -> Result<Self, IfccadCborReadError> {
         let mut f = RecordFields::new(r, &[(0, "kind"), (1, "body")])?;
         let code: u64 = f.take(0, None)?;
-        let value = match code {
+        let body = f.span(1)?;
+        let v = match code {
             0 => {
-                let body = f.span(1)?;
                 let mut b = RecordFields::new(
                     &body,
                     &[
@@ -229,7 +371,6 @@ impl CborValue for DimensionDefinition {
                 }
             }
             1 => {
-                let body = f.span(1)?;
                 let mut b = RecordFields::new(
                     &body,
                     &[
@@ -251,10 +392,181 @@ impl CborValue for DimensionDefinition {
                     extension_direction_angle,
                 }
             }
+            2 => {
+                let mut b = RecordFields::new(
+                    &body,
+                    &[
+                        (0, "line1_start"),
+                        (1, "line1_end"),
+                        (2, "line2_start"),
+                        (3, "line2_end"),
+                        (4, "ray1_sign"),
+                        (5, "ray2_sign"),
+                        (6, "traversal"),
+                        (7, "dimension_arc_point"),
+                    ],
+                )?;
+                let line1_start: [f64; 3] = b.take(0, None)?;
+                let line1_end: [f64; 3] = b.take(1, None)?;
+                let line2_start: [f64; 3] = b.take(2, None)?;
+                let line2_end: [f64; 3] = b.take(3, None)?;
+                let ray1_sign: DimensionRaySign = b.take(4, None)?;
+                let ray2_sign: DimensionRaySign = b.take(5, None)?;
+                let traversal: DimensionTraversal = b.take(6, None)?;
+                let dimension_arc_point: [f64; 2] = b.take(7, None)?;
+                b.finish()?;
+                Self::AngularTwoLines {
+                    line1_start,
+                    line1_end,
+                    line2_start,
+                    line2_end,
+                    ray1_sign,
+                    ray2_sign,
+                    traversal,
+                    dimension_arc_point,
+                }
+            }
+            3 => {
+                let mut b = RecordFields::new(
+                    &body,
+                    &[
+                        (0, "vertex"),
+                        (1, "first_point"),
+                        (2, "second_point"),
+                        (3, "traversal"),
+                        (4, "dimension_arc_point"),
+                    ],
+                )?;
+                let vertex: [f64; 3] = b.take(0, None)?;
+                let first_point: [f64; 3] = b.take(1, None)?;
+                let second_point: [f64; 3] = b.take(2, None)?;
+                let traversal: DimensionTraversal = b.take(3, None)?;
+                let dimension_arc_point: [f64; 2] = b.take(4, None)?;
+                b.finish()?;
+                Self::AngularThreePoints {
+                    vertex,
+                    first_point,
+                    second_point,
+                    traversal,
+                    dimension_arc_point,
+                }
+            }
+            4 => {
+                let mut b = RecordFields::new(
+                    &body,
+                    &[(0, "center"), (1, "curve_point"), (2, "leader_length")],
+                )?;
+                let center: [f64; 3] = b.take(0, None)?;
+                let curve_point: [f64; 3] = b.take(1, None)?;
+                let leader_length: f64 = b.take(2, None)?;
+                b.finish()?;
+                Self::Radius {
+                    center,
+                    curve_point,
+                    leader_length,
+                }
+            }
+            5 => {
+                let mut b = RecordFields::new(
+                    &body,
+                    &[
+                        (0, "first_diameter_point"),
+                        (1, "second_diameter_point"),
+                        (2, "leader_length"),
+                    ],
+                )?;
+                let first_diameter_point: [f64; 3] = b.take(0, None)?;
+                let second_diameter_point: [f64; 3] = b.take(1, None)?;
+                let leader_length: f64 = b.take(2, None)?;
+                b.finish()?;
+                Self::Diameter {
+                    first_diameter_point,
+                    second_diameter_point,
+                    leader_length,
+                }
+            }
+            6 => {
+                let mut b = RecordFields::new(
+                    &body,
+                    &[
+                        (0, "origin"),
+                        (1, "feature_point"),
+                        (2, "axis_angle"),
+                        (3, "leader_end"),
+                        (4, "value_mode"),
+                    ],
+                )?;
+                let origin: [f64; 3] = b.take(0, None)?;
+                let feature_point: [f64; 3] = b.take(1, None)?;
+                let axis_angle: f64 = b.take(2, None)?;
+                let leader_end: [f64; 2] = b.take(3, None)?;
+                let value_mode: DimensionOrdinateMode = b.take(4, None)?;
+                b.finish()?;
+                Self::Ordinate {
+                    origin,
+                    feature_point,
+                    axis_angle,
+                    leader_end,
+                    value_mode,
+                }
+            }
+            7 => {
+                let mut b = RecordFields::new(
+                    &body,
+                    &[
+                        (0, "center"),
+                        (1, "radius"),
+                        (2, "start_parameter"),
+                        (3, "sweep"),
+                        (4, "dimension_arc_point"),
+                        (5, "leader"),
+                    ],
+                )?;
+                let center: [f64; 3] = b.take(0, None)?;
+                let radius: f64 = b.take(1, None)?;
+                let start_parameter: f64 = b.take(2, None)?;
+                let sweep: DimensionArcSpan = b.take(3, None)?;
+                let dimension_arc_point: [f64; 2] = b.take(4, None)?;
+                let leader: Option<DimensionArcLeader> = b.take(5, Some(None))?;
+                b.finish()?;
+                Self::ArcLength {
+                    center,
+                    radius,
+                    start_parameter,
+                    sweep,
+                    dimension_arc_point,
+                    leader,
+                }
+            }
+            8 => {
+                let mut b = RecordFields::new(
+                    &body,
+                    &[
+                        (0, "center"),
+                        (1, "curve_point"),
+                        (2, "display_center"),
+                        (3, "jog_point"),
+                        (4, "jog_angle"),
+                    ],
+                )?;
+                let center: [f64; 3] = b.take(0, None)?;
+                let curve_point: [f64; 3] = b.take(1, None)?;
+                let display_center: [f64; 2] = b.take(2, None)?;
+                let jog_point: [f64; 2] = b.take(3, None)?;
+                let jog_angle: f64 = b.take(4, None)?;
+                b.finish()?;
+                Self::JoggedRadius {
+                    center,
+                    curve_point,
+                    display_center,
+                    jog_point,
+                    jog_angle,
+                }
+            }
             _ => return Err(r.error("unknown variant code")),
         };
         f.finish()?;
-        Ok(value)
+        Ok(v)
     }
     fn exact(&self, o: &Self) -> bool {
         match (self, o) {
@@ -298,6 +610,160 @@ impl CborValue for DimensionDefinition {
                     && second_point.exact(second_point_other)
                     && dimension_line_point.exact(dimension_line_point_other)
                     && extension_direction_angle.exact(extension_direction_angle_other)
+            }
+            (
+                Self::AngularTwoLines {
+                    line1_start,
+                    line1_end,
+                    line2_start,
+                    line2_end,
+                    ray1_sign,
+                    ray2_sign,
+                    traversal,
+                    dimension_arc_point,
+                },
+                Self::AngularTwoLines {
+                    line1_start: line1_start_other,
+                    line1_end: line1_end_other,
+                    line2_start: line2_start_other,
+                    line2_end: line2_end_other,
+                    ray1_sign: ray1_sign_other,
+                    ray2_sign: ray2_sign_other,
+                    traversal: traversal_other,
+                    dimension_arc_point: dimension_arc_point_other,
+                },
+            ) => {
+                line1_start.exact(line1_start_other)
+                    && line1_end.exact(line1_end_other)
+                    && line2_start.exact(line2_start_other)
+                    && line2_end.exact(line2_end_other)
+                    && ray1_sign.exact(ray1_sign_other)
+                    && ray2_sign.exact(ray2_sign_other)
+                    && traversal.exact(traversal_other)
+                    && dimension_arc_point.exact(dimension_arc_point_other)
+            }
+            (
+                Self::AngularThreePoints {
+                    vertex,
+                    first_point,
+                    second_point,
+                    traversal,
+                    dimension_arc_point,
+                },
+                Self::AngularThreePoints {
+                    vertex: vertex_other,
+                    first_point: first_point_other,
+                    second_point: second_point_other,
+                    traversal: traversal_other,
+                    dimension_arc_point: dimension_arc_point_other,
+                },
+            ) => {
+                vertex.exact(vertex_other)
+                    && first_point.exact(first_point_other)
+                    && second_point.exact(second_point_other)
+                    && traversal.exact(traversal_other)
+                    && dimension_arc_point.exact(dimension_arc_point_other)
+            }
+            (
+                Self::Radius {
+                    center,
+                    curve_point,
+                    leader_length,
+                },
+                Self::Radius {
+                    center: center_other,
+                    curve_point: curve_point_other,
+                    leader_length: leader_length_other,
+                },
+            ) => {
+                center.exact(center_other)
+                    && curve_point.exact(curve_point_other)
+                    && leader_length.exact(leader_length_other)
+            }
+            (
+                Self::Diameter {
+                    first_diameter_point,
+                    second_diameter_point,
+                    leader_length,
+                },
+                Self::Diameter {
+                    first_diameter_point: first_diameter_point_other,
+                    second_diameter_point: second_diameter_point_other,
+                    leader_length: leader_length_other,
+                },
+            ) => {
+                first_diameter_point.exact(first_diameter_point_other)
+                    && second_diameter_point.exact(second_diameter_point_other)
+                    && leader_length.exact(leader_length_other)
+            }
+            (
+                Self::Ordinate {
+                    origin,
+                    feature_point,
+                    axis_angle,
+                    leader_end,
+                    value_mode,
+                },
+                Self::Ordinate {
+                    origin: origin_other,
+                    feature_point: feature_point_other,
+                    axis_angle: axis_angle_other,
+                    leader_end: leader_end_other,
+                    value_mode: value_mode_other,
+                },
+            ) => {
+                origin.exact(origin_other)
+                    && feature_point.exact(feature_point_other)
+                    && axis_angle.exact(axis_angle_other)
+                    && leader_end.exact(leader_end_other)
+                    && value_mode.exact(value_mode_other)
+            }
+            (
+                Self::ArcLength {
+                    center,
+                    radius,
+                    start_parameter,
+                    sweep,
+                    dimension_arc_point,
+                    leader,
+                },
+                Self::ArcLength {
+                    center: center_other,
+                    radius: radius_other,
+                    start_parameter: start_parameter_other,
+                    sweep: sweep_other,
+                    dimension_arc_point: dimension_arc_point_other,
+                    leader: leader_other,
+                },
+            ) => {
+                center.exact(center_other)
+                    && radius.exact(radius_other)
+                    && start_parameter.exact(start_parameter_other)
+                    && sweep.exact(sweep_other)
+                    && dimension_arc_point.exact(dimension_arc_point_other)
+                    && leader.exact(leader_other)
+            }
+            (
+                Self::JoggedRadius {
+                    center,
+                    curve_point,
+                    display_center,
+                    jog_point,
+                    jog_angle,
+                },
+                Self::JoggedRadius {
+                    center: center_other,
+                    curve_point: curve_point_other,
+                    display_center: display_center_other,
+                    jog_point: jog_point_other,
+                    jog_angle: jog_angle_other,
+                },
+            ) => {
+                center.exact(center_other)
+                    && curve_point.exact(curve_point_other)
+                    && display_center.exact(display_center_other)
+                    && jog_point.exact(jog_point_other)
+                    && jog_angle.exact(jog_angle_other)
             }
             _ => false,
         }
@@ -568,10 +1034,7 @@ impl CborValue for DimensionLabelPart {
         }
     }
 }
-unit_enum!(DimensionRole;
-0 => FirstPoint,
-1 => SecondPoint,
-);
+unit_enum!(DimensionRole;0=>FirstPoint,1=>SecondPoint,2=>Center,3=>CurvePoint,4=>FirstDiameterPoint,5=>SecondDiameterPoint,6=>Line1Start,7=>Line1End,8=>Line2Start,9=>Line2End,10=>Vertex,11=>FirstLegPoint,12=>SecondLegPoint,13=>Origin,14=>FeaturePoint,15=>ArcStart,16=>ArcEnd,);
 impl CborValue for DimensionPointSelector {
     #[cfg(test)]
     fn registered_codes() -> &'static [(u64, &'static str)] {
@@ -581,6 +1044,9 @@ impl CborValue for DimensionPointSelector {
             (2, "End"),
             (3, "Center"),
             (4, "Vertex"),
+            (5, "CirclePoint"),
+            (6, "ArcPoint"),
+            (7, "SegmentPoint"),
         ]
     }
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
@@ -614,23 +1080,41 @@ impl CborValue for DimensionPointSelector {
                 w.u64(0)?;
                 w.u64(4)?;
                 w.u64(1)?;
-                let mut __cbor_fields = 0_u64;
-                if index.present()
-                    && (None as Option<u32>)
-                        .as_ref()
-                        .is_none_or(|d| !index.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if index.present()
-                    && (None as Option<u32>)
-                        .as_ref()
-                        .is_none_or(|d| !index.exact(d))
-                {
-                    w.u64(0)?;
-                    index.encode(w)?;
-                }
+                w.map(1)?;
+                w.u64(0)?;
+                index.encode(w)?;
+                Ok(())
+            }
+            Self::CirclePoint { angle } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(5)?;
+                w.u64(1)?;
+                w.map(1)?;
+                w.u64(0)?;
+                angle.encode(w)?;
+                Ok(())
+            }
+            Self::ArcPoint { fraction } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(6)?;
+                w.u64(1)?;
+                w.map(1)?;
+                w.u64(0)?;
+                fraction.encode(w)?;
+                Ok(())
+            }
+            Self::SegmentPoint { index, fraction } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(7)?;
+                w.u64(1)?;
+                w.map(2)?;
+                w.u64(0)?;
+                index.encode(w)?;
+                w.u64(1)?;
+                fraction.encode(w)?;
                 Ok(())
             }
         }
@@ -638,7 +1122,7 @@ impl CborValue for DimensionPointSelector {
     fn decode(r: &mut CborReader<'_>) -> Result<Self, IfccadCborReadError> {
         let mut f = RecordFields::new(r, &[(0, "kind"), (1, "body")])?;
         let code: u64 = f.take(0, None)?;
-        let value = match code {
+        let v = match code {
             0 => Self::Position,
             1 => Self::Start,
             2 => Self::End,
@@ -650,10 +1134,32 @@ impl CborValue for DimensionPointSelector {
                 b.finish()?;
                 Self::Vertex { index }
             }
+            5 => {
+                let body = f.span(1)?;
+                let mut b = RecordFields::new(&body, &[(0, "angle")])?;
+                let angle: f64 = b.take(0, None)?;
+                b.finish()?;
+                Self::CirclePoint { angle }
+            }
+            6 => {
+                let body = f.span(1)?;
+                let mut b = RecordFields::new(&body, &[(0, "fraction")])?;
+                let fraction: f64 = b.take(0, None)?;
+                b.finish()?;
+                Self::ArcPoint { fraction }
+            }
+            7 => {
+                let body = f.span(1)?;
+                let mut b = RecordFields::new(&body, &[(0, "index"), (1, "fraction")])?;
+                let index: u32 = b.take(0, None)?;
+                let fraction: f64 = b.take(1, None)?;
+                b.finish()?;
+                Self::SegmentPoint { index, fraction }
+            }
             _ => return Err(r.error("unknown variant code")),
         };
         f.finish()?;
-        Ok(value)
+        Ok(v)
     }
     fn exact(&self, o: &Self) -> bool {
         match (self, o) {
@@ -664,6 +1170,22 @@ impl CborValue for DimensionPointSelector {
             (Self::Vertex { index }, Self::Vertex { index: index_other }) => {
                 index.exact(index_other)
             }
+            (Self::CirclePoint { angle }, Self::CirclePoint { angle: angle_other }) => {
+                angle.exact(angle_other)
+            }
+            (
+                Self::ArcPoint { fraction },
+                Self::ArcPoint {
+                    fraction: fraction_other,
+                },
+            ) => fraction.exact(fraction_other),
+            (
+                Self::SegmentPoint { index, fraction },
+                Self::SegmentPoint {
+                    index: index_other,
+                    fraction: fraction_other,
+                },
+            ) => index.exact(index_other) && fraction.exact(fraction_other),
             _ => false,
         }
     }

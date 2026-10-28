@@ -1,8 +1,8 @@
 {
   "header": {
-    "id": "urn:example:ifccad:0.1.0",
+    "id": "urn:example:ifccad:0.2.0",
     "ifcxVersion": "ifcx_alpha",
-    "dataVersion": "0.1.0",
+    "dataVersion": "0.2.0",
     "author": "OpenAEC",
     "timestamp": "2026-09-29T00:00:00Z"
   },
@@ -3954,7 +3954,14 @@
                     "enumRestrictions": {
                       "options": [
                         "linear",
-                        "aligned"
+                        "aligned",
+                        "angularTwoLines",
+                        "angularThreePoints",
+                        "radius",
+                        "diameter",
+                        "ordinate",
+                        "arcLength",
+                        "joggedRadius"
                       ]
                     }
                   },
@@ -3966,7 +3973,8 @@
                       },
                       "min": 3,
                       "max": 3
-                    }
+                    },
+                    "optional": true
                   },
                   "secondPoint": {
                     "dataType": "Array",
@@ -3976,7 +3984,12 @@
                       },
                       "min": 3,
                       "max": 3
-                    }
+                    },
+                    "optional": true
+                  },
+                  "directionAngle": {
+                    "dataType": "Real",
+                    "optional": true
                   },
                   "dimensionLinePoint": {
                     "dataType": "Array",
@@ -3986,13 +3999,294 @@
                       },
                       "min": 2,
                       "max": 2
-                    }
+                    },
+                    "optional": true
                   },
                   "extensionDirectionAngle": {
                     "dataType": "Real",
                     "optional": true
                   },
-                  "directionAngle": {
+                  "line1Start": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 3,
+                      "max": 3
+                    },
+                    "optional": true
+                  },
+                  "line1End": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 3,
+                      "max": 3
+                    },
+                    "optional": true
+                  },
+                  "line2Start": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 3,
+                      "max": 3
+                    },
+                    "optional": true
+                  },
+                  "line2End": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 3,
+                      "max": 3
+                    },
+                    "optional": true
+                  },
+                  "ray1Sign": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "positive",
+                        "negative"
+                      ]
+                    },
+                    "optional": true
+                  },
+                  "ray2Sign": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "positive",
+                        "negative"
+                      ]
+                    },
+                    "optional": true
+                  },
+                  "traversal": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "counterclockwise",
+                        "clockwise"
+                      ]
+                    },
+                    "optional": true
+                  },
+                  "dimensionArcPoint": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 2,
+                      "max": 2
+                    },
+                    "optional": true
+                  },
+                  "vertex": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 3,
+                      "max": 3
+                    },
+                    "optional": true
+                  },
+                  "center": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 3,
+                      "max": 3
+                    },
+                    "optional": true
+                  },
+                  "curvePoint": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 3,
+                      "max": 3
+                    },
+                    "optional": true
+                  },
+                  "leaderLength": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "firstDiameterPoint": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 3,
+                      "max": 3
+                    },
+                    "optional": true
+                  },
+                  "secondDiameterPoint": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 3,
+                      "max": 3
+                    },
+                    "optional": true
+                  },
+                  "origin": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 3,
+                      "max": 3
+                    },
+                    "optional": true
+                  },
+                  "featurePoint": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 3,
+                      "max": 3
+                    },
+                    "optional": true
+                  },
+                  "axisAngle": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "leaderEnd": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 2,
+                      "max": 2
+                    },
+                    "optional": true
+                  },
+                  "valueMode": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "absolute",
+                        "signed"
+                      ]
+                    },
+                    "optional": true
+                  },
+                  "radius": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "startParameter": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "sweep": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "kind": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "partial",
+                              "full"
+                            ]
+                          }
+                        },
+                        "radians": {
+                          "dataType": "Real",
+                          "optional": true
+                        },
+                        "traversal": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "counterclockwise",
+                              "clockwise"
+                            ]
+                          },
+                          "optional": true
+                        }
+                      }
+                    },
+                    "optional": true
+                  },
+                  "leader": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "start": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "value": {
+                              "dataType": "Real"
+                            },
+                            "min": 2,
+                            "max": 2
+                          }
+                        },
+                        "end": {
+                          "dataType": "Array",
+                          "arrayRestrictions": {
+                            "value": {
+                              "dataType": "Real"
+                            },
+                            "min": 2,
+                            "max": 2
+                          }
+                        }
+                      }
+                    },
+                    "optional": true
+                  },
+                  "displayCenter": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 2,
+                      "max": 2
+                    },
+                    "optional": true
+                  },
+                  "jogPoint": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "value": {
+                        "dataType": "Real"
+                      },
+                      "min": 2,
+                      "max": 2
+                    },
+                    "optional": true
+                  },
+                  "jogAngle": {
                     "dataType": "Real",
                     "optional": true
                   }
@@ -5411,7 +5705,22 @@
                         "enumRestrictions": {
                           "options": [
                             "firstPoint",
-                            "secondPoint"
+                            "secondPoint",
+                            "center",
+                            "curvePoint",
+                            "firstDiameterPoint",
+                            "secondDiameterPoint",
+                            "line1Start",
+                            "line1End",
+                            "line2Start",
+                            "line2End",
+                            "vertex",
+                            "firstLegPoint",
+                            "secondLegPoint",
+                            "origin",
+                            "featurePoint",
+                            "arcStart",
+                            "arcEnd"
                           ]
                         }
                       },
@@ -5427,12 +5736,23 @@
                                   "start",
                                   "end",
                                   "center",
-                                  "vertex"
+                                  "vertex",
+                                  "circlePoint",
+                                  "arcPoint",
+                                  "segmentPoint"
                                 ]
                               }
                             },
                             "index": {
                               "dataType": "Integer",
+                              "optional": true
+                            },
+                            "angle": {
+                              "dataType": "Real",
+                              "optional": true
+                            },
+                            "fraction": {
+                              "dataType": "Real",
                               "optional": true
                             }
                           }

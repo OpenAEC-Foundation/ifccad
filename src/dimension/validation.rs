@@ -48,33 +48,175 @@ pub(crate) fn point(field: &str, value: [f64; 2]) -> Result<(), DimensionValueEr
 }
 
 pub fn validate_dimension_definition(v: &DimensionDefinition) -> Result<(), DimensionValueError> {
-    let (a, b) = v.reference_points();
-    for (field, p) in [("firstPoint", a), ("secondPoint", b)] {
+    for (role, p) in v.measurement_anchors() {
         for (i, value) in p.into_iter().enumerate() {
-            finite(&format!("definition/{field}/{i}"), value)?;
+            finite(&format!("definition/{}/{i}", role.field_name()), value)?;
         }
     }
-    let (line, extension) = match v {
-        DimensionDefinition::Linear {
+    use DimensionDefinition as D;
+    match v {
+        D::Linear {
             direction_angle,
             dimension_line_point,
             extension_direction_angle,
             ..
         } => {
             finite("definition/directionAngle", *direction_angle)?;
-            (*dimension_line_point, *extension_direction_angle)
+            point("definition/dimensionLinePoint", *dimension_line_point)?;
+            if let Some(a) = extension_direction_angle {
+                finite("definition/extensionDirectionAngle", *a)?;
+            }
         }
-        DimensionDefinition::Aligned {
+        D::Aligned {
             dimension_line_point,
             extension_direction_angle,
             ..
-        } => (*dimension_line_point, *extension_direction_angle),
-    };
-    point("definition/dimensionLinePoint", line)?;
-    if let Some(v) = extension {
-        finite("definition/extensionDirectionAngle", v)?;
+        } => {
+            point("definition/dimensionLinePoint", *dimension_line_point)?;
+            if let Some(a) = extension_direction_angle {
+                finite("definition/extensionDirectionAngle", *a)?;
+            }
+        }
+        D::Radius {
+            center,
+            curve_point,
+            leader_length,
+        } => {
+            nonnegative("definition/leaderLength", *leader_length)?;
+            distinct_xy(*center, *curve_point)?;
+        }
+        D::Diameter {
+            first_diameter_point,
+            second_diameter_point,
+            leader_length,
+        } => {
+            nonnegative("definition/leaderLength", *leader_length)?;
+            distinct_xy(*first_diameter_point, *second_diameter_point)?;
+        }
+        D::AngularTwoLines {
+            line1_start,
+            line1_end,
+            line2_start,
+            line2_end,
+            dimension_arc_point,
+            ..
+        } => {
+            distinct_xy(*line1_start, *line1_end)?;
+            distinct_xy(*line2_start, *line2_end)?;
+            let a = crate::geometry_kernel::numeric::exact;
+            let det = (a(line1_end[0]) - a(line1_start[0])) * (a(line2_end[1]) - a(line2_start[1]))
+                - (a(line1_end[1]) - a(line1_start[1])) * (a(line2_end[0]) - a(line2_start[0]));
+            if det == num_rational::BigRational::from_integer(0.into()) {
+                return Err(failure(
+                    "definition/lines",
+                    DimensionValueReason::InvalidDefinition,
+                ));
+            }
+            point("definition/dimensionArcPoint", *dimension_arc_point)?;
+            let d1x = a(line1_end[0]) - a(line1_start[0]);
+            let d1y = a(line1_end[1]) - a(line1_start[1]);
+            let d2x = a(line2_end[0]) - a(line2_start[0]);
+            let d2y = a(line2_end[1]) - a(line2_start[1]);
+            let t = ((a(line2_start[0]) - a(line1_start[0])) * d2y
+                - (a(line2_start[1]) - a(line1_start[1])) * d2x)
+                / det;
+            let x = a(line1_start[0]) + &t * d1x;
+            let y = a(line1_start[1]) + t * d1y;
+            let bound = a(f64::MAX);
+            if x < -&bound || x > bound || y < -&bound || y > bound {
+                return Err(failure(
+                    "definition/intersection",
+                    DimensionValueReason::NumericUnavailable,
+                ));
+            }
+            if x == a(dimension_arc_point[0]) && y == a(dimension_arc_point[1]) {
+                return Err(failure(
+                    "definition/dimensionArcPoint",
+                    DimensionValueReason::InvalidDefinition,
+                ));
+            }
+            point("definition/dimensionArcPoint", *dimension_arc_point)?;
+        }
+        D::AngularThreePoints {
+            vertex,
+            first_point,
+            second_point,
+            dimension_arc_point,
+            ..
+        } => {
+            distinct_xy(*vertex, *first_point)?;
+            distinct_xy(*vertex, *second_point)?;
+            point("definition/dimensionArcPoint", *dimension_arc_point)?;
+            if vertex[0] == dimension_arc_point[0] && vertex[1] == dimension_arc_point[1] {
+                return Err(failure(
+                    "definition/dimensionArcPoint",
+                    DimensionValueReason::InvalidDefinition,
+                ));
+            }
+        }
+        D::Ordinate {
+            axis_angle,
+            leader_end,
+            ..
+        } => {
+            finite("definition/axisAngle", *axis_angle)?;
+            point("definition/leaderEnd", *leader_end)?;
+        }
+        D::ArcLength {
+            center,
+            radius,
+            start_parameter,
+            sweep,
+            dimension_arc_point,
+            leader,
+        } => {
+            positive("definition/radius", *radius)?;
+            finite("definition/startParameter", *start_parameter)?;
+            if let DimensionArcSpan::Partial { radians } = sweep {
+                finite("definition/sweep/radians", *radians)?;
+                if *radians == 0. || radians.abs() >= std::f64::consts::TAU {
+                    return Err(failure(
+                        "definition/sweep",
+                        DimensionValueReason::OutOfRange,
+                    ));
+                }
+            }
+            point("definition/dimensionArcPoint", *dimension_arc_point)?;
+            if center[0] == dimension_arc_point[0] && center[1] == dimension_arc_point[1] {
+                return Err(failure(
+                    "definition/dimensionArcPoint",
+                    DimensionValueReason::InvalidDefinition,
+                ));
+            }
+            if let Some(l) = leader {
+                point("definition/leader/start", l.start)?;
+                point("definition/leader/end", l.end)?;
+            }
+        }
+        D::JoggedRadius {
+            center,
+            curve_point,
+            display_center,
+            jog_point,
+            jog_angle,
+        } => {
+            distinct_xy(*center, *curve_point)?;
+            point("definition/displayCenter", *display_center)?;
+            point("definition/jogPoint", *jog_point)?;
+            finite("definition/jogAngle", *jog_angle)?;
+        }
     }
     Ok(())
+}
+fn distinct_xy(a: [f64; 3], b: [f64; 3]) -> Result<(), DimensionValueError> {
+    if a[0] == b[0] && a[1] == b[1] {
+        Err(failure(
+            "definition/points",
+            DimensionValueReason::InvalidDefinition,
+        ))
+    } else {
+        Ok(())
+    }
 }
 pub fn validate_dimension_text_placement(
     v: &DimensionTextPlacement,
