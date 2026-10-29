@@ -4,18 +4,18 @@ Native model/validation/storage sections remain active. Direct `ifccad-convert`
 exchange and codec qualification below describe the [archived reference](converter-parking.md);
 the [shared Document route](architecture/explorer-document-route.md) has its own coverage.
 
-The development candidate stores all nine ordinary Dimension kinds, local named
+Native release 2026.44.1 stores all nine ordinary Dimension kinds, local named
 DimensionStyles, authored overrides, optional same-owner source relations and
 optional worked-out graphics. The neutral values and formatter do not depend
 on a CAD runtime or font engine. Active schemas and `conformance/next` define
 the format contract. OCDraw remains [parked](ocdraw-parking.md).
 
-This candidate advances the logical profile to **0.2.0** and CBOR mapping to
+This release advances the logical profile to **0.2.0** and CBOR mapping to
 **2**; Zstd framing remains transport 1. Published alpha 2026.44.0 retains its
 fixed profile 0.1.0/CBOR 1 contracts. The expanded native core and paired Document
 conversion passed the recorded development checks. The user accepted the CAD
 review files and sample_AC1032 in the matching local Explorer/Studio reader.
-No new software release or live deployment is implied. See
+See [the release notes](releases/2026.44.1.md) and
 [the design](dimension/remaining-kinds-design.md) for boundaries.
 
 ## Definition, measurement and text
@@ -196,7 +196,7 @@ rendering guarantee.
 
 The approved design includes nine kinds: linear, aligned, two-line angular,
 three-point angular, radius, diameter, ordinate, arc length and jogged radius.
-The development candidate implements all nine definitions, shared measurement,
+Release 2026.44.1 implements all nine definitions, shared measurement,
 validation, formatting and profile 0.2.0/CBOR2 storage. Paired Document conversion
 and its bounded CAD qualification are described in the active route coverage.
 
@@ -207,8 +207,7 @@ require a later selector/update contract. Annotative Text/MText
 and Dimension belong in one later shared annotation slice. Dynamic fields,
 attributes and font resolution remain separate work. Generating Dimension
 graphics and executing associative updates belong to editors or external engines.
-The published alpha profile 0.1.0 remains fixed; this development does not publish
-a new software release.
+The 2026.44.0 alpha profile 0.1.0 remains fixed; 2026.44.1 uses profile 0.2.0.
 
 The maintained writer `write_ifccad_dimension` demonstrates
 ordinary styles, kind/local overrides, Model/Paper/block owners and source

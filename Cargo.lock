@@ -117,7 +117,7 @@ checksum = "dc0b364ead1874514c8c2855ab558056ebfeb775653e7ae45ff72f28f8f3166c"
 
 [[package]]
 name = "browser"
-version = "2026.44.0"
+version = "2026.44.1"
 dependencies = [
  "js-sys",
  "serde_json",
@@ -531,7 +531,7 @@ dependencies = [
 
 [[package]]
 name = "ifccad"
-version = "2026.44.0"
+version = "2026.44.1"
 dependencies = [
  "base64",
  "fpmath",
@@ -823,7 +823,7 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 [[package]]
 name = "opencaddocument"
 version = "0.1.0"
-source = "git+https://github.com/BjornFidder/opencaddocument.git?rev=ad6fec3f99dae5f7f0e93aca8ef5e4c98ca680ea#ad6fec3f99dae5f7f0e93aca8ef5e4c98ca680ea"
+source = "git+https://github.com/BjornFidder/opencaddocument.git?rev=4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f#4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f"
 dependencies = [
  "acadrust",
  "ifccad",
@@ -1325,7 +1325,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "viewer"
-version = "2026.44.0"
+version = "2026.44.1"
 dependencies = [
  "base64",
  "ifccad",
@@ -1560,7 +1560,3 @@ dependencies = [
  "cc",
  "pkg-config",
 ]
-
-[[patch.unused]]
-name = "acadrust"
-version = "0.6.6"

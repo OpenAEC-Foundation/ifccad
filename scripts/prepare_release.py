@@ -170,7 +170,8 @@ def package_core(root, staging):
     # Resolve the repository's existing workspace unchanged, then isolate the
     # normalized native package so repository codec configuration cannot leak.
     subprocess.run(['cargo', 'package', '-p', 'ifccad', '--locked', '--offline',
-                    '--allow-dirty', '--no-verify'], cwd=root, check=True)
+                    '--allow-dirty', '--no-verify', '--target-dir',
+                    str(root / 'target')], cwd=root, check=True)
     files = core_package_files(root / f'target/package/ifccad-{value}.crate', value,
                                allow_unused_patch=True)
     staging.mkdir(parents=True, exist_ok=False)

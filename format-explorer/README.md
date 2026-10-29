@@ -70,12 +70,14 @@ Native core validation, composed source inspection and binary codecs remain acti
 ## Development and verification
 
 The development candidate pins Document
-`ad6fec3f99dae5f7f0e93aca8ef5e4c98ca680ea` ([PR #7](https://github.com/HakanSeven12/opencaddocument/pull/7),
+`4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f` ([PR #7](https://github.com/HakanSeven12/opencaddocument/pull/7),
 including typed API PR #4 and placement/numerical PRs #5/#6). Studio uses the same Document and codec pins.
 The workspace-root Cargo patch selects this checkout's core for the shared Rust
 model identity.
 No local Document source patch is needed. The candidate reader uses profile
 0.2.0/CBOR2; the published alpha reader remains separate.
+This pin includes the line endpoint-identity fix for associative dimensions.
+The separate Studio grip-undo picture loss remains unresolved.
 
 Prepare the Studio checkout at the commit in `ocs-source.json` with
 `python scripts/prepare_explorer_ocs.py <studio-checkout>` before building it.

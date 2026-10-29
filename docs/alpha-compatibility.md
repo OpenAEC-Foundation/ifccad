@@ -28,6 +28,9 @@ general promise to support all historical files.
 
 The first native source alpha, 2026.44.0, publishes profile 0.1.0, CBOR mapping
 revision 1 and optional Zstd transport revision 1. Its tagged snapshot is fixed.
+Native alpha 2026.44.1 advances to profile 0.2.0 and CBOR mapping revision 2;
+Zstd transport stays at revision 1 with inner mapping 2. The active reader does
+not retain the 2026.44.0 profile/CBOR reader or promise migration.
 The [release and file-version policy](releases.md) defines subsequent increments;
 several unpublished edits can share a next draft identifier. A software version
 is not a statement of file compatibility.

@@ -12,8 +12,8 @@ The profile and its encodings are still experimental, not a published standard.
 During alpha, later releases may be unable to open earlier IFCCAD files;
 backward compatibility and migration are not guaranteed. See the
 [alpha compatibility policy](docs/alpha-compatibility.md) and
-[release/version policy](docs/releases.md). The first native source alpha is
-[2026.44.0](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.44.0).
+[release/version policy](docs/releases.md). The current native source alpha is
+[2026.44.1](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.44.1).
 Its attached artifacts contain only the native core. Explorer and CAD conversion
 are outside that release.
 See the [vision](docs/vision.md) for the long-term direction and the
@@ -47,7 +47,8 @@ The core owns construction, shared validation, encoding and file IO and has no C
 runtime dependency. JSON/IFCX and experimental base-CBOR use the same logical
 model. The first alpha publishes profile 0.1.0, CBOR mapping revision 1 and
 optional native Zstd transport revision 1. Those tagged contracts are fixed;
-subsequent normative changes follow the release policy.
+The current 2026.44.1 alpha advances to profile 0.2.0 and CBOR mapping 2,
+with Zstd transport 1 unchanged; subsequent normative changes follow the release policy.
 The `ifccad-cbor-zstd` core feature is optional. The browser enables it for explicit
 experimental CBOR + Zstd downloads; ordinary IFCX download remains the default choice.
 
@@ -62,7 +63,7 @@ Conversion, logical construction, encoding and storage remain separate responsib
 Current native support includes primitive and planar/spatial path geometry, local blocks,
 Model/Paper layouts, appearance, simple and complex line patterns, Text/MText,
 viewports, workspace state, native SOLID/TRACE, Solid/LinePattern/Gradient Hatch and ordinary
-linear/aligned Dimensions, optional stored Dimension graphics and three-mode planar
+all nine ordinary Dimension kinds, optional stored Dimension graphics and three-mode planar
 polyline widths. Hatch classic editing and boundary-construction records are
 implemented. Font contours, complete dimension display and evaluated Hatch fill
 remain unassessed. Native opaque spline storage does not imply that the active
@@ -85,7 +86,7 @@ source retention and loss diagnostics remain unchanged. See the
 
 ## Development sequence
 
-[ROADMAP.md](ROADMAP.md) is authoritative; reviewed on **28 October 2026**.
+[ROADMAP.md](ROADMAP.md) is authoritative; reviewed on **29 October 2026**.
 The native alpha and shared Explorer/CLI route are published. Hatch editing,
 SOLID/TRACE, Dimension graphics and planar polyline widths are implemented native
 foundations. The next steps are:
@@ -97,10 +98,10 @@ foundations. The next steps are:
 2. **Extend native Dimensions with the seven remaining kinds.** Extend the
    [current Dimension model](docs/dimension.md) as one task with
    internal stages, with native readback and conversion contributions to
-   `opencaddocument` in both directions. The native/Document candidate and matching local Explorer are implemented;
+   `opencaddocument` in both directions. The native expansion is included in 2026.44.1;
    the user accepted CAD and sample_AC1032 Explorer review. The grouped entity
-   catalogue includes all nine kinds and native source relationships. Integration/
-   release remain separate; see the [checkpoint](docs/dimension/checkpoint-2026-10-28.md).
+   catalogue includes all nine kinds and native source relationships. Paired Document
+   conversion uses an explicit development revision; see the [active coverage](docs/architecture/explorer-document-route.md).
 3. **Add shared annotation contexts and bounded association updates.** Establish
    scale contexts and their exchange before claiming viewport-dependent updates
    or general regeneration.

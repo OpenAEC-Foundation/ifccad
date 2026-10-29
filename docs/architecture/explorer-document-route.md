@@ -56,11 +56,15 @@ physical CAD readback and host rendering remain distinct claims.
 
 Dependencies are recorded in `format-explorer/ocs-source.json`. The development
 candidate adopts [Document PR #7](https://github.com/HakanSeven12/opencaddocument/pull/7),
-`ad6fec3f99dae5f7f0e93aca8ef5e4c98ca680ea`, including upstream PRs #4/#5/#6.
+`4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f`, including upstream PRs #4/#5/#6.
 It adds the seven remaining ordinary Dimension kinds. Its
-[coverage contract](https://github.com/BjornFidder/opencaddocument/blob/ad6fec3f99dae5f7f0e93aca8ef5e4c98ca680ea/docs/ifcx-dimension-kinds.md)
+[coverage contract](https://github.com/BjornFidder/opencaddocument/blob/4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f/docs/ifcx-dimension-kinds.md)
 records qualified cases and explicit losses. CAD review of sample_AC1032 and a
 nine-kind gallery was accepted by the user; that does not certify all host rendering.
+The candidate includes PR #7's line endpoint-identity correction: both roles
+on the same source line retain distinct endpoints during Studio refresh.
+Studio's direct-grip undo loss of stored picture blocks remains a separate
+[known editing defect](../dimension/editing-investigation-2026-10-29.md).
 
 Studio base `4d1cd17dafd7d47cd76f8674835636776eb90fd6` is built with explicit
 Document overrides in its main, save, worker and plugin API manifests. Both host

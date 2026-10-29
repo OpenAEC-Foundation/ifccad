@@ -4438,7 +4438,7 @@ dependencies = [
 [[package]]
 name = "opencaddocument"
 version = "0.1.0"
-source = "git+https://github.com/BjornFidder/opencaddocument.git?rev=ad6fec3f99dae5f7f0e93aca8ef5e4c98ca680ea#ad6fec3f99dae5f7f0e93aca8ef5e4c98ca680ea"
+source = "git+https://github.com/BjornFidder/opencaddocument.git?rev=4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f#4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f"
 dependencies = [
  "acadrust",
  "ifccad",
@@ -8138,7 +8138,3 @@ dependencies = [
  "syn 2.0.119",
  "winnow",
 ]
-
-[[patch.unused]]
-name = "acadrust"
-version = "0.6.6"

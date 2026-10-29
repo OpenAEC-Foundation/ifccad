@@ -86,3 +86,73 @@ Other worktrees and unrelated main-checkout changes are preserved. The local
 Document checkout retains only an uncommitted standalone-workspace setup line;
 that setup is deliberately excluded from PR #7. No separate Studio contribution
 is required to reproduce the checked dependency overrides above.
+
+## Completion review, 29 October 2026
+
+Implementation and development Explorer integration are ready for review on
+`remaining-dimensions` at `d0a03ed42554ed1ce9917c5d6db2803e81a5e896`.
+The grouped catalogue includes the oblique linear example, independent captions
+and reference geometry, and native source-role links for all nine kinds.
+Automatic associative updates remain separate follow-up work as agreed.
+
+The resumption compared the candidate's file hashes, paired Document contents,
+tool versions and relevant environment with the retained final Rust gate.
+Rust build/test inputs are unchanged; only the previously checked frontend
+angle-unit fix/test and prose differ from that gate. No full Rust rebuild or
+performance measurement was needed. Fresh frontend checks passed 162 tests
+with five expected skips. The actual browser-WASM smoke passed for both shipped
+examples and the nine-kind fixture, including production native binary codecs
+and physical DWG/DXF readback. These checks retain the stated coverage limits;
+they do not establish complete CAD fidelity or every host update path.
+
+PR #7 remains open, mergeable, at the reviewed `ad6fec3` revision, with green
+Linux/macOS/Windows CI and no review comments as of this check. IFCCAD remote
+main remains `671446dc69417f04d43b958697bf9b7cba785825`; neither remote changed.
+
+The local Explorer was restarted at `http://127.0.0.1:4187/`. Its build checked
+the recorded host provenance and asset hashes. HTTP checks confirm that the
+served catalogue bytes match the maintained example. Select **Entity catalogue**
+again to inspect the final example; an already-open drawing is a snapshot.
+
+The implementation slice is complete; merging, release preparation and live
+deployment await separate instructions. The active worktrees and accepted CAD
+review package remain available. This completion note is a local documentation
+change; no additional commit or push was made during this review.
+
+## Editing defects found after completion review
+
+The user's subsequent edit/undo checks exposed two reproducible defects:
+source endpoint identity collapses linear measurements in the Document/Studio
+connection, and Studio's direct-grip undo restores a Dimension's block name
+without restoring its deleted picture block. See the
+[29 October investigation](editing-investigation-2026-10-29.md) for isolated
+browser comparisons, exact source identities and proposed ownership of fixes.
+Interactive editing is not qualified by the preceding storage/exchange checks.
+
+## Local Explorer endpoint update, 29 October 2026
+
+At the user's request, Explorer and the embedded Studio now both use Document
+`4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f`. Studio base, core and codec pins
+remain unchanged. Both browser WASM and Studio main/worker were rebuilt with
+the recorded profiles and their existing per-worktree caches. Host asset hashes
+and resolved dependency identities were checked before updating the local site.
+
+The fresh native catalogue browser check passes move (18), undo (18), lengthen
+(21), undo (18), redo (21) and final undo (18); each undo restores the exact
+original Linear record and its existing picture block. An initial automated
+undo attempt was blocked by a recovery dialog from an earlier test session;
+the test passed after closing that dialog. This is separate from the confirmed
+direct-grip picture deletion bug, which remains open OCS work.
+
+The final native workspace audit/fmt/Clippy/full tests passed with unchanged
+inputs; frontend checks passed 162 tests with five expected skips, and the new
+browser WASM smoke passed for native/binary/CAD routes. Local testing remains at
+`http://127.0.0.1:4187/`; use a fresh tab/catalogue snapshot. No additional
+commit, push, main merge, release, live deployment or measurement was performed.
+
+Subsequent mouse-grip testing also reproduces a source-line midpoint undo loss:
+the line and Dimension coordinates return correctly with measurement 18, but
+the dependent Dimension's saved-picture link remains empty. The block still
+exists. The passing move/undo check above used the command/API transform path;
+it does not qualify grip gestures. Both this dependent-state omission and the
+direct-Dimension grip's deleted-block omission belong in the OCS history issue.

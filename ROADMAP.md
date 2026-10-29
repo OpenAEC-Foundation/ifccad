@@ -1,6 +1,6 @@
 # IFCCAD development roadmap
 
-Status reviewed on **28 October 2026**. This document owns development order,
+Status reviewed on **29 October 2026**. This document owns development order,
 dependencies and completion criteria. Schemas/conformance define the format;
 current code and tests define implementation support. Dated designs, issue
 checklists and historical conversion reports do not override those sources.
@@ -19,11 +19,11 @@ IFCCAD development now has two cooperating implementation boundaries:
 
 | Area | Implemented status | Remaining boundary |
 | --- | --- | --- |
-| Native source alpha | `2026.44.0` published; profile `0.1.0`, CBOR mapping `1`, Zstd transport `1` | Release contains the native core only; alpha compatibility is not guaranteed |
+| Native source alpha | `2026.44.1`; profile `0.2.0`, CBOR mapping `2`, Zstd transport `1` | Release contains the native core only; alpha compatibility is not guaranteed; 2026.44.0 contracts remain fixed |
 | Drawing foundations | Primitive/path geometry, shared/nested blocks, Model/Paper layouts, presentation, Text/MText, line patterns, workspace and viewport data | Native storage does not establish complete CAD mapping or rendering |
 | Hatch | Solid, line-pattern and gradient fills; source/association state; classic editing and boundary-construction records | Fill evaluation, automatic updates and shared-route coverage remain separate |
 | SOLID/TRACE | Native kinds, planar corner state and extrusion thickness | Surface and display evidence remain distinct from stored coordinates |
-| Dimensions | Published linear/aligned foundation; all-nine native definitions and paired Document conversion in development | CAD and local Explorer review accepted; grouped catalogue verified; integration and release pending; shared annotation contexts remain later work |
+| Dimensions | All nine native definitions, measurement, formatting and storage in `2026.44.1`; paired Document conversion on an explicit development revision | CAD and local Explorer review accepted; grouped catalogue verified; shared annotation contexts and automatic updates remain later work |
 | Planar polyline widths | Constant, PerVertex and classic Defaulted modes; ordinary entities and Dimension graphics | Extrusion thickness for polylines and complete joins/display qualification remain later work |
 | Explorer/CLI migration | Integrated and published; active conversion no longer depends on `ifccad-convert` | Shared-route losses, numerical fidelity, physical CAD readback and host display have their own evidence limits |
 | Reference-converter retirement | Archived outside ordinary workspace builds/tests, with source/test/fixture hashes and complete-checkpoint reproduction | Historical contracts remain reference evidence; no second product route |
@@ -57,7 +57,8 @@ Adopt upstream fixes through an explicit dependency update with focused
 regressions. The placement and numerical/picture corrections in
 [Document PR #5](https://github.com/HakanSeven12/opencaddocument/pull/5) and
 [PR #6](https://github.com/HakanSeven12/opencaddocument/pull/6) are merged upstream,
-but the reviewed Explorer pin `47d7888` and Studio pin `8e2d609` predate them.
+and the current Explorer/Studio Document pin `4723b0e` includes them plus the
+remaining Dimension kinds and explicit line-endpoint identity fix.
 Updating upstream alone does not update a deployed Explorer or its embedded host.
 Audit intervening public-model changes and record both pins separately.
 
@@ -75,12 +76,13 @@ recorded. This does not require certifying every CAD entity or reader.
 
 Extend the [current Dimension model](docs/dimension.md)
 as **one task with internal stages**: radius, diameter, two-line angular,
-three-point angular, ordinate, arc length and jogged radius. The development
-candidate now implements the native definitions/measurement/formatting and
-profile 0.2.0/CBOR2 IO, with a paired Document conversion candidate. It is not
-a published expansion. The user accepted the CAD files and sample_AC1032 in the
-matching local Explorer. A grouped all-nine catalogue with stored source roles is verified. Integration
-and release remain pending. See the [28 October checkpoint](docs/dimension/checkpoint-2026-10-28.md).
+three-point angular, ordinate, arc length and jogged radius. Native release
+2026.44.1 implements the definitions/measurement/formatting and profile 0.2.0/
+CBOR2 IO. Paired conversion uses Document `4723b0e` (upstream PR #7), independently
+of the native artifact. The user accepted the CAD files and sample_AC1032 in the
+matching local Explorer. A grouped all-nine catalogue with stored source roles
+is verified. See the [release notes](docs/releases/2026.44.1.md) and
+[active route coverage](docs/architecture/explorer-document-route.md).
 
 Keep stored measurement definitions, optional role-specific source relations,
 presentation and optional graphics separate. Ordinary IO must not invent

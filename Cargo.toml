@@ -11,10 +11,10 @@ readme = "README.md"
 keywords = ["cad", "drawing", "ifccad", "exchange", "conformance"]
 categories = ["parser-implementations", "encoding"]
 
-include = ["/src/**", "/schemas/**", "/tests/**", "/conformance/next/**", "/examples/*.rs", "/examples/ifccad/**", "/README.md", "/LICENSE", "/Cargo.toml", "/rust-toolchain.toml", "/release/manifest.json", "/docs/alpha-compatibility.md", "/docs/releases.md", "/docs/releases/**"]
+include = ["/src/**", "/schemas/**", "/tests/**", "/conformance/next/**", "/examples/*.rs", "/examples/support/**", "/examples/ifccad/**", "/README.md", "/LICENSE", "/Cargo.toml", "/rust-toolchain.toml", "/release/manifest.json", "/docs/alpha-compatibility.md", "/docs/releases.md", "/docs/releases/**", "/docs/geometry/fixtures/solid-trace-profile/cases.json"]
 
 [workspace.package]
-version = "2026.44.0"
+version = "2026.44.1"
 
 # The shared Document converter and the browser use one IFCCAD model identity.
 [patch."https://github.com/OpenAEC-Foundation/ifccad.git"]
