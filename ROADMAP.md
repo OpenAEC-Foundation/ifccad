@@ -19,7 +19,7 @@ IFCCAD development now has two cooperating implementation boundaries:
 
 | Area | Implemented status | Remaining boundary |
 | --- | --- | --- |
-| Native source alpha | `2026.44.1`; profile `0.2.0`, CBOR mapping `2`, Zstd transport `1` | Release contains the native core only; alpha compatibility is not guaranteed; 2026.44.0 contracts remain fixed |
+| Native source alpha | `2026.44.1`; profile `0.2.0`, CBOR mapping `2`, Zstd transport `1` | Release contains the native core only; alpha compatibility is not guaranteed; published format versions are immutable and format changes receive new identifiers |
 | Drawing foundations | Primitive/path geometry, shared/nested blocks, Model/Paper layouts, presentation, Text/MText, line patterns, workspace and viewport data | Native storage does not establish complete CAD mapping or rendering |
 | Hatch | Solid, line-pattern and gradient fills; source/association state; classic editing and boundary-construction records | Fill evaluation, automatic updates and shared-route coverage remain separate |
 | SOLID/TRACE | Native kinds, planar corner state and extrusion thickness | Surface and display evidence remain distinct from stored coordinates |
@@ -36,6 +36,26 @@ cases only. See [Hatch](docs/hatch.md), [Dimensions](docs/dimension.md),
 [SOLID/TRACE](docs/geometry/solid-trace-design.md) and
 [polyline widths](docs/geometry/polyline-widths.md).
 
+Shared-route consolidation and the seven-kind Dimension expansion are complete,
+not pending milestones. The archived converter has reconstructible provenance
+and is excluded by the active dependency guard. The published Explorer adopts
+Document PRs #5/#6/#7 through pin `e6135a7`, with integration regressions and
+accepted CAD/sample_AC1032 review. All nine Dimension kinds are included in
+[native release 2026.44.1](docs/releases/2026.44.1.md). Known mapping/display
+limits remain in the active coverage; Studio's grip/undo problems are separate
+editor work under
+[OCS #2325](https://github.com/HakanSeven12/OpenCADStudio/issues/2325).
+Future dependency updates are maintenance: audit intervening model/mapping
+changes, record Explorer/host pins and run applicable regressions before adoption.
+
+<a id="planned-polyline-width-follow-up"></a>
+
+The original linked red sample_AC1032 Dimension/tick case has bounded
+reference-route acceptance evidence; it is not an unfinished zero-width-marker
+workaround or a universal display pass. Retain its selected input/resource
+closure and provenance when reusing that case for the shared route. Polyline
+extrusion thickness remains a separate future slice.
+
 The [active exchange coverage](docs/architecture/explorer-document-route.md)
 records the current mapping, pins and unsupported requests. Do not attribute the
 reference converter's adjustable hard tolerances, numerical certificates,
@@ -44,70 +64,12 @@ Native opaque storage remains independent of CAD capture/restoration support.
 
 ## Development sequence
 
-### 1. Consolidate the shared conversion route
+Only remaining work is listed below. Completed foundations stay in the baseline
+above and in their topic/release documentation rather than as planned steps.
 
-`ifccad-convert` and all six individually audited `cad-*` adapters are now
-[archived](docs/converter-parking.md), outside ordinary builds/tests and active
-dependencies. Source, owned tests/fixtures, contracts and exact checkpoint/codec/
-lock/config reproduction remain available. No adapter had another active caller;
-runtime-independent native kernels remain in the core. Do not maintain two product
-converters or require full historical parity.
+### 1. Add shared annotation contexts and bounded association updates
 
-Adopt upstream fixes through an explicit dependency update with focused
-regressions. The placement and numerical/picture corrections in
-[Document PR #5](https://github.com/HakanSeven12/opencaddocument/pull/5) and
-[PR #6](https://github.com/HakanSeven12/opencaddocument/pull/6) are merged upstream,
-and the current Explorer/Studio Document pin `e6135a7` includes them plus the
-remaining Dimension kinds and explicit line-endpoint identity fix.
-Updating upstream alone does not update a deployed Explorer or its embedded host.
-Audit intervening public-model changes and record both pins separately.
-
-Use the foundation, hatch-legend and sample_AC1032 practice cases where relevant,
-plus portable 3D/nested-placement regressions. Trace remaining Dimension-display
-differences through the actual IFCX host-open path. Correct picture counts or a
-working IFCX-to-DWG conversion do not prove correct direct IFCX display.
-
-**Exit criteria:** the active dependency guard excludes the reference route;
-retirement has reconstructible provenance; adopted dependencies pass applicable
-regressions and integration checks; known loss/display gaps are explicitly
-recorded. This does not require certifying every CAD entity or reader.
-
-### 2. Extend native Dimensions with the seven remaining kinds — completed
-
-The [Dimension model](docs/dimension.md) was extended as **one task with internal
-stages**: radius, diameter, two-line angular, three-point angular, ordinate,
-arc length and jogged radius. Native release
-2026.44.1 implements the definitions/measurement/formatting and profile 0.2.0/
-CBOR2 IO. Paired conversion uses Document `e6135a7` (merged upstream PR #7), independently
-of the native artifact. The user accepted the CAD files and sample_AC1032 in the
-matching local Explorer. A grouped all-nine catalogue with stored source roles
-is verified, and Explorer with the official upstream mapping is published.
-See the [release notes](docs/releases/2026.44.1.md) and
-[active route coverage](docs/architecture/explorer-document-route.md).
-
-Keep stored measurement definitions, optional role-specific source relations,
-presentation and optional graphics separate. Ordinary IO must not invent
-associations, refresh stale definitions or guess an arc sector. Extend only the
-bounded selectors required by this slice. General geometric queries, trans-space
-associations, shared annotation contexts and an automatic update engine are
-outside this completed slice. The editor grip/undo problems tracked in
-[Open CAD Studio #2325](https://github.com/HakanSeven12/OpenCADStudio/issues/2325)
-remain separate from type and exchange coverage.
-
-The core owns language-neutral semantics, shared validation and native encodings.
-Companion contributions to `opencaddocument` own conversion in both directions.
-Develop and test the pair against explicit revisions; the core must not depend
-on a local CAD fork. No new implementation in `ifccad-convert` is required.
-
-**Exit criteria met:** implemented kinds passed strict production JSON/CBOR
-readback, schema/conformance and inspection tests, measurement/formatting
-regressions, bounded CAD exchange tests and the integration gate. Unsupported
-source state is diagnosed. Profile 0.2.0 and CBOR mapping 2 were published under
-the release policy in native release 2026.44.1.
-
-### 3. Add shared annotation contexts and bounded association updates
-
-After the definition/selector boundary is established, design common annotation
+Build on the established definition/selector boundary to design common annotation
 scale contexts for Text/MText and Dimensions; assess Hatch participation and
 drawing scale lists explicitly. Cover mm, m and inch drawings and multiple
 viewport scales. Existing text height, Dimension factors and Paper linetype
@@ -140,7 +102,7 @@ prerequisite for all annotation storage.
 validation and qualified exchange for each selected use case; host regeneration
 and rendering claims tested independently.
 
-### 4. Expand resources and selected drawing semantics
+### 2. Expand resources and selected drawing semantics
 
 Establish font/symbol-source identity and application-owned resolution under
 [#15](https://github.com/OpenAEC-Foundation/ifccad/issues/15), with explicit missing
@@ -160,7 +122,7 @@ contract rather than an unqualified extension of layer flags.
 validation, native mappings, source-detail/loss rules and production-reader/CAD
 regressions implemented together. No universal payload framework is required.
 
-### 5. Qualify plotting and external drawing workflows
+### 3. Qualify plotting and external drawing workflows
 
 Build on resources, annotations and rendering evidence before claiming faithful
 PDF or batch publishing. Resolve native color/palette and CTB/STB authority under
@@ -194,17 +156,6 @@ input identity and reporting for this work. It is not a prerequisite framework
 for the next feature or authorization for full-corpus/benchmark runs. Numerical
 research in #11/#12/#18 remains route-specific evidence; adopting its techniques
 into the shared route requires a selected, justified scope.
-
-<a id="planned-polyline-width-follow-up"></a>
-
-## Completed polyline-width prerequisite
-
-The [three-mode width contract](docs/geometry/polyline-widths.md) is integrated,
-including widths in stored Dimension graphics. The original linked red
-sample_AC1032 Dimension/tick case has bounded reference-route acceptance evidence;
-it is not an unfinished zero-width-marker workaround or a universal display pass.
-Keep the selected input/resource closure and provenance when reusing that case
-for the shared route. Polyline extrusion thickness remains a separate future slice.
 
 ## Later physical encodings and performance
 

@@ -89,28 +89,23 @@ source retention and loss diagnostics remain unchanged. See the
 [ROADMAP.md](ROADMAP.md) is authoritative; reviewed on **29 October 2026**.
 The native alpha and shared Explorer/CLI route are published. Hatch editing,
 SOLID/TRACE, Dimension graphics and planar polyline widths are implemented native
-foundations. The development sequence and its current status are:
+foundations. Shared-route consolidation and the seven-kind Dimension expansion
+are complete: native release 2026.44.1 includes all nine kinds, and the published
+Explorer adopts the official Document PR #7 merge, including PRs #5/#6. See the
+[active coverage](docs/architecture/explorer-document-route.md) for qualified cases
+and remaining limits. Future dependency updates are maintenance, with explicit
+pins and applicable regressions. The remaining development sequence is:
 
-1. **Consolidate the shared conversion route.** Reference-converter retirement
-   is complete. Adopt merged placement/numerical fixes through explicit dependency
-   updates, and qualify the actual IFCX preview and representative CAD cases.
-   Upstream fixes are not automatically present in deployed dependency pins.
-2. **Extend native Dimensions with the seven remaining kinds — completed.** All
-   nine kinds have native definitions, validation, measurement, formatting and
-   storage in 2026.44.1. CAD and sample_AC1032 Explorer review were accepted; the
-   grouped catalogue includes all nine kinds and native source relationships.
-   Conversion in both directions uses the official upstream Document PR #7 merge,
-   adopted in the published Explorer; see the [active coverage](docs/architecture/explorer-document-route.md).
-3. **Add shared annotation contexts and bounded association updates.** Establish
+1. **Add shared annotation contexts and bounded association updates.** Establish
    scale contexts and their exchange before claiming viewport-dependent updates
    or general regeneration. IFCCAD stores and validates source relationships;
    editors or update services process changes and regenerate graphics with
    consistent undo/redo. Bounded interoperability and reusable update processing
    remain follow-ups, separate from the completed type expansion.
-4. **Expand resources and selected drawing semantics.** Define font/symbol
+2. **Expand resources and selected drawing semantics.** Define font/symbol
    resolution boundaries, then bounded attributes, multileaders and other selected
    families; native splines require their own contract.
-5. **Qualify plotting and external drawing workflows.** Build on resources,
+3. **Qualify plotting and external drawing workflows.** Build on resources,
    annotations, color/plot-style semantics and rendering before claiming faithful
    PDF output, xref workflows or dynamic-block retention.
 
