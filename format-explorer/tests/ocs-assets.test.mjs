@@ -34,7 +34,7 @@ test('pinned Open CAD Studio bundle is copied and framed on the explorer origin'
  assert.equal((html.match(/ocs-bridge\.mjs/g)||[]).length,1);
  assert.match(await readFile(path.join(dist,'ocs/app/ocs-selection.mjs'),'utf8'),/createSelectionObserver/);
  assert.equal(await readFile(path.join(dist,'ocs/app/fonts/viewer.woff2'),'utf8'),'font');
- assert.match(await readFile(path.join(dist,'ocs/app/SOURCE.json'),'utf8'),/4d1cd17dafd7d47cd76f8674835636776eb90fd6/);
+ assert.match(await readFile(path.join(dist,'ocs/app/SOURCE.json'),'utf8'),/fae5629888b0c16f820a8a176906a38508fa2a2b/);
  const service=productionServer({root:dist,publicOrigin:'https://ifccad-explorer.open-aec.com'});
  await new Promise(resolve=>service.server.listen(0,'127.0.0.1',resolve));
  const base='http://127.0.0.1:'+service.server.address().port;

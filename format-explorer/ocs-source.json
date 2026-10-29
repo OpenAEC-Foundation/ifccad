@@ -1,14 +1,14 @@
 {
   "tag": "main",
-  "commit": "4d1cd17dafd7d47cd76f8674835636776eb90fd6",
+  "commit": "fae5629888b0c16f820a8a176906a38508fa2a2b",
   "repository": "https://github.com/HakanSeven12/OpenCADStudio",
-  "documentCommit": "4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f",
-  "codecCommit": "501b694eee3433b157e56a32da4268dc8b3b5bd3",
+  "documentCommit": "e6135a72ec46046cd23a84df1b13c8b4fe9541f2",
+  "codecCommit": "75dd8f5cd3b5dd2c56d9c9d4e8c14b816d31d68d",
   "nativeCoreCommit": "bce9da06a8e1684e86e35f0302e3870141e6f9f9",
   "explorerCore": "local-workspace-2026.44.1",
-  "explorerDocumentCommit": "4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f",
-  "explorerCodecCommit": "501b694eee3433b157e56a32da4268dc8b3b5bd3",
-  "documentRepository": "https://github.com/BjornFidder/opencaddocument.git",
+  "explorerDocumentCommit": "e6135a72ec46046cd23a84df1b13c8b4fe9541f2",
+  "explorerCodecCommit": "75dd8f5cd3b5dd2c56d9c9d4e8c14b816d31d68d",
+  "documentRepository": "https://github.com/HakanSeven12/opencaddocument.git",
   "profile": "0.2.0",
   "cborRevision": 2
 }

@@ -8,7 +8,7 @@ use std::{collections::BTreeMap, path::Path};
 const LIMITATIONS: &str = "Shared Studio mapping: numerical error bounds and rendered appearance are unassessed. Partial recovery, spline preservation and Reject policy are unavailable. Reported losses are not an exhaustive preservation audit.";
 
 pub fn document_capabilities() -> Value {
-    json!({"ifccad":{"backend":"opencaddocument","revision":"4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f","partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
+    json!({"ifccad":{"backend":"opencaddocument","revision":"e6135a72ec46046cd23a84df1b13c8b4fe9541f2","partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
 }
 
 fn parse_options(
@@ -39,6 +39,78 @@ fn diagnostics(losses: &[Loss]) -> Vec<Value> {
     ];
     rows.extend(losses.iter().map(|loss| json!({"code":"DOCUMENT_CONVERSION_LOSS","message":loss.message,"handle":loss.handle.map(|h|format!("{:X}",h.value())),"action":"loss"})));
     rows
+}
+
+// These header values were newly exposed by codec 75dd8f5. The shared IFCX
+// mapping does not carry them as drawing defaults; preserve that boundary in
+// both input conversion and physical CAD readback diagnostics.
+fn unmapped_header_losses(document: &Document, losses: &mut Vec<Loss>) {
+    let header = &document.header;
+    let default = &Document::new().header;
+    let fields = [
+        (
+            "$DIMTXTDIRECTION",
+            header.dim_text_direction != default.dim_text_direction,
+        ),
+        ("$DIMALTMZF", header.dim_alt_mzf != default.dim_alt_mzf),
+        ("$DIMALTMZS", header.dim_alt_mzs != default.dim_alt_mzs),
+        ("$DIMMZF", header.dim_mzf != default.dim_mzf),
+        ("$DIMMZS", header.dim_mzs != default.dim_mzs),
+        ("$CSHADOW", header.cast_shadow != default.cast_shadow),
+        (
+            "orthographic UCS origins (Model)",
+            header.ucs_ortho_origins != default.ucs_ortho_origins,
+        ),
+        (
+            "orthographic UCS origins (Paper)",
+            header.paper_ucs_ortho_origins != default.paper_ucs_ortho_origins,
+        ),
+        ("$DIMFIT", header.dim_fit_r13 != default.dim_fit_r13),
+        ("$DIMUNIT", header.dim_unit != default.dim_unit),
+        ("$UNITMODE", header.unit_mode != default.unit_mode),
+        (
+            "$PUCSBASE",
+            !header
+                .paper_ucs_base
+                .eq_ignore_ascii_case(&default.paper_ucs_base),
+        ),
+        (
+            "$DIMTXSTY",
+            !header
+                .dim_text_style_name
+                .eq_ignore_ascii_case(&default.dim_text_style_name),
+        ),
+        (
+            "$DIMLTYPE",
+            !header
+                .dim_linetype_name
+                .eq_ignore_ascii_case(&default.dim_linetype_name),
+        ),
+        (
+            "$DIMLTEX1",
+            !header
+                .dim_linetype1_name
+                .eq_ignore_ascii_case(&default.dim_linetype1_name),
+        ),
+        (
+            "$DIMLTEX2",
+            !header
+                .dim_linetype2_name
+                .eq_ignore_ascii_case(&default.dim_linetype2_name),
+        ),
+    ]
+    .into_iter()
+    .filter_map(|(name, changed)| changed.then_some(name))
+    .collect::<Vec<_>>();
+    if !fields.is_empty() {
+        losses.push(Loss {
+            handle: None,
+            message: format!(
+                "CAD header settings not represented as IFCCAD drawing defaults: {}",
+                fields.join(", ")
+            ),
+        });
+    }
 }
 
 fn unperformed_options(name: &str, format: &str, code: &str, message: impl ToString) -> Value {
@@ -116,6 +188,7 @@ pub fn document_cad_to_ifccad(
                 return output;
             }
         };
+    unmapped_header_losses(&document, &mut losses);
     let converted = (|| -> Result<(), String> {
         output["reader"]["version"] = json!(document
             .dwg_source_version
@@ -216,6 +289,7 @@ pub fn document_export_ifccad(
         crate::progress("readback");
         let (readback, mut read_losses) = codec.read(&written).map_err(|e| e.to_string())?;
         losses.append(&mut read_losses);
+        unmapped_header_losses(&readback, &mut losses);
         if readback.version != target {
             return Err("Written CAD version does not match requested version".into());
         }

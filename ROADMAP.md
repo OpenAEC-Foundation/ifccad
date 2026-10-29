@@ -23,7 +23,7 @@ IFCCAD development now has two cooperating implementation boundaries:
 | Drawing foundations | Primitive/path geometry, shared/nested blocks, Model/Paper layouts, presentation, Text/MText, line patterns, workspace and viewport data | Native storage does not establish complete CAD mapping or rendering |
 | Hatch | Solid, line-pattern and gradient fills; source/association state; classic editing and boundary-construction records | Fill evaluation, automatic updates and shared-route coverage remain separate |
 | SOLID/TRACE | Native kinds, planar corner state and extrusion thickness | Surface and display evidence remain distinct from stored coordinates |
-| Dimensions | All nine native definitions, measurement, formatting and storage in `2026.44.1`; paired Document conversion on an explicit development revision | CAD and local Explorer review accepted; grouped catalogue verified; shared annotation contexts and automatic updates remain later work |
+| Dimensions | All nine native definitions, measurement, formatting and storage in `2026.44.1`; paired conversion on official Document PR #7 merge `e6135a7` | CAD and local Explorer review accepted; grouped catalogue verified; shared annotation contexts and automatic updates remain later work |
 | Planar polyline widths | Constant, PerVertex and classic Defaulted modes; ordinary entities and Dimension graphics | Extrusion thickness for polylines and complete joins/display qualification remain later work |
 | Explorer/CLI migration | Integrated and published; active conversion no longer depends on `ifccad-convert` | Shared-route losses, numerical fidelity, physical CAD readback and host display have their own evidence limits |
 | Reference-converter retirement | Archived outside ordinary workspace builds/tests, with source/test/fixture hashes and complete-checkpoint reproduction | Historical contracts remain reference evidence; no second product route |
@@ -57,7 +57,7 @@ Adopt upstream fixes through an explicit dependency update with focused
 regressions. The placement and numerical/picture corrections in
 [Document PR #5](https://github.com/HakanSeven12/opencaddocument/pull/5) and
 [PR #6](https://github.com/HakanSeven12/opencaddocument/pull/6) are merged upstream,
-and the current Explorer/Studio Document pin `4723b0e` includes them plus the
+and the current Explorer/Studio Document pin `e6135a7` includes them plus the
 remaining Dimension kinds and explicit line-endpoint identity fix.
 Updating upstream alone does not update a deployed Explorer or its embedded host.
 Audit intervening public-model changes and record both pins separately.
@@ -78,7 +78,7 @@ Extend the [current Dimension model](docs/dimension.md)
 as **one task with internal stages**: radius, diameter, two-line angular,
 three-point angular, ordinate, arc length and jogged radius. Native release
 2026.44.1 implements the definitions/measurement/formatting and profile 0.2.0/
-CBOR2 IO. Paired conversion uses Document `4723b0e` (upstream PR #7), independently
+CBOR2 IO. Paired conversion uses Document `e6135a7` (merged upstream PR #7), independently
 of the native artifact. The user accepted the CAD files and sample_AC1032 in the
 matching local Explorer. A grouped all-nine catalogue with stored source roles
 is verified. See the [release notes](docs/releases/2026.44.1.md) and

@@ -70,7 +70,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           repository: HakanSeven12/OpenCADStudio
-          ref: 4d1cd17dafd7d47cd76f8674835636776eb90fd6
+          ref: fae5629888b0c16f820a8a176906a38508fa2a2b
           path: ocs-upstream
       - name: Apply pinned host dependencies and lockfile
         run: python3 scripts/prepare_explorer_ocs.py ocs-upstream
@@ -78,7 +78,7 @@ jobs:
         id: web-cache
         with:
           path: ocs-upstream/dist/app
-          key: ocs-web-main-4d1cd17d-linux-trunk-${{ hashFiles('format-explorer/ocs-source.json', 'format-explorer/ocs-inputs/**', 'scripts/prepare_explorer_ocs.py', 'rust-toolchain.toml', '.github/workflows/format-explorer.yml') }}
+          key: ocs-web-main-fae56298-linux-trunk-${{ hashFiles('format-explorer/ocs-source.json', 'format-explorer/ocs-inputs/**', 'scripts/prepare_explorer_ocs.py', 'rust-toolchain.toml', '.github/workflows/format-explorer.yml') }}
       - uses: dtolnay/rust-toolchain@stable
         if: steps.web-cache.outputs.cache-hit != 'true'
         with:
@@ -123,7 +123,7 @@ jobs:
           python3 scripts/prepare_explorer_ocs.py ocs-upstream --verify-build
       - uses: actions/upload-artifact@v4
         with:
-          name: ocs-web-main-4d1cd17d
+          name: ocs-web-main-fae56298
           path: ocs-upstream/dist/app/
           retention-days: 7
 
@@ -178,7 +178,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
         with:
-          name: ocs-web-main-4d1cd17d
+          name: ocs-web-main-fae56298
           path: format-explorer/ocs-build
       - uses: actions/download-artifact@v4
         with:

@@ -101,7 +101,7 @@ foundations. The next steps are:
    `opencaddocument` in both directions. The native expansion is included in 2026.44.1;
    the user accepted CAD and sample_AC1032 Explorer review. The grouped entity
    catalogue includes all nine kinds and native source relationships. Paired Document
-   conversion uses an explicit development revision; see the [active coverage](docs/architecture/explorer-document-route.md).
+   conversion uses the official upstream PR #7 merge; see the [active coverage](docs/architecture/explorer-document-route.md).
 3. **Add shared annotation contexts and bounded association updates.** Establish
    scale contexts and their exchange before claiming viewport-dependent updates
    or general regeneration.

@@ -54,25 +54,49 @@ tabs survive replacement. The host receives real `.ifcx` bytes and imports them
 internally into Document. Native validity, conversion losses, numerical proof,
 physical CAD readback and host rendering remain distinct claims.
 
-Dependencies are recorded in `format-explorer/ocs-source.json`. The development
-candidate adopts [Document PR #7](https://github.com/HakanSeven12/opencaddocument/pull/7),
-`4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f`, including upstream PRs #4/#5/#6.
+Dependencies are recorded in `format-explorer/ocs-source.json`. Explorer adopts
+the official [Document PR #7 merge](https://github.com/HakanSeven12/opencaddocument/pull/7),
+`e6135a72ec46046cd23a84df1b13c8b4fe9541f2`, including upstream PRs #4/#5/#6.
 It adds the seven remaining ordinary Dimension kinds. Its
-[coverage contract](https://github.com/BjornFidder/opencaddocument/blob/4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f/docs/ifcx-dimension-kinds.md)
+[coverage contract](https://github.com/HakanSeven12/opencaddocument/blob/e6135a72ec46046cd23a84df1b13c8b4fe9541f2/docs/ifcx-dimension-kinds.md)
 records qualified cases and explicit losses. CAD review of sample_AC1032 and a
 nine-kind gallery was accepted by the user; that does not certify all host rendering.
-The candidate includes PR #7's line endpoint-identity correction: both roles
+This revision includes PR #7's line endpoint-identity correction: both roles
 on the same source line retain distinct endpoints during Studio refresh.
-Studio's direct-grip undo loss of stored picture blocks remains a separate
-[known editing defect](../dimension/editing-investigation-2026-10-29.md).
+Studio's grip/undo picture history remains a separate
+[editing investigation](../dimension/editing-investigation-2026-10-29.md).
 
-Studio base `4d1cd17dafd7d47cd76f8674835636776eb90fd6` is built with explicit
+Studio base `fae5629888b0c16f820a8a176906a38508fa2a2b` is built with explicit
 Document overrides in its main, save, worker and plugin API manifests. Both host
-and Explorer select codec `501b694eee3433b157e56a32da4268dc8b3b5bd3`; the host
+and Explorer select codec `75dd8f5cd3b5dd2c56d9c9d4e8c14b816d31d68d`; the host
 selects native core `bce9da06a8e1684e86e35f0302e3870141e6f9f9`. Explorer's
-workspace-root patch unifies the typed core with this checkout. The development
-reader requires profile 0.2.0/CBOR2; the fixed published alpha reader is separate.
-No live deployment is implied by these candidate pins.
+workspace-root patch unifies the typed core with this checkout. Studio selects
+matching kernel `faf2ee7ef3000ed65692cf8a65c134461ca06288` and graph
+`5e4dc20c50d1280bed312598fb757ecf71513b54` through its frozen lockfile.
+The reader requires profile 0.2.0/CBOR2. The host's development core pin has
+identical model/IO, schema and conformance sources to native release 2026.44.1;
+its earlier package version does not make it the published 2026.44.0 reader.
+The native release tag and artifacts remain unchanged by this application update.
+
+The Document merge changes only dependency manifests/lock relative to the
+reviewed PR revision `4723b0e`. The codec update also exposes additional header
+settings. Explorer supplements upstream losses for nondefault values of
+dimension text direction, alternate factors/suffixes, shadow mode, orthographic
+UCS origins, legacy dimension fitting/units, UNITMODE, Paper UCS base and the
+current dimension text/line-style names, which the mapping does not carry as
+drawing defaults. Both input and physical readback use the same diagnostic.
+Codec maintenance/context framing flags are transport state; parsed MText end
+properties are derived from existing content consumed by the shared formatting
+parser. New Arch classes and unsupported spline/context families remain outside
+the native conversion profile; adopting a codec does not add native semantics.
+
+`crates/viewer/tests/document_examples.rs` checks strict physical DWG/DXF
+roundtrips of the entity catalogue and house: all nine catalogue kinds,
+measurement values, owner names, units and presence of saved pictures. Its
+explicit external-practice check exercises sample_AC1032's eleven dimensions;
+set `IFCCAD_REVIEW_SAMPLE_DWG` and run that ignored test deliberately. These
+fixture budgets and saved-picture presence are not visual equivalence or a
+general numerical accuracy certificate.
 
 `scripts/prepare_explorer_ocs.py` applies the overrides and frozen host lockfile.
 The host cache identity includes those inputs, workflow/build configuration and
@@ -86,8 +110,9 @@ The [retired viewer route](retired-viewer-converter.md) records removed APIs,
 helpers and route-specific tests, retained native core coverage, and recovery
 of the former reference implementation from Git history.
 
-The candidate advances the active logical profile to 0.2.0 and CBOR mapping to 2;
-Zstd framing stays at 1 with the new inner mapping. This is not a software release.
+Native release 2026.44.1 uses logical profile 0.2.0 and CBOR mapping 2;
+Zstd framing stays at 1 with inner mapping 2. This dependency adoption does not
+advance the native format or create another native release.
 Open issues #4 (splines), #12/#18 (accuracy), #20
 (evaluation API) and #6 (encoding research) overlap in evidence boundaries and
 remain separate work. No automatic size/exchange measurement is authorized.

@@ -69,15 +69,20 @@ Native core validation, composed source inspection and binary codecs remain acti
 
 ## Development and verification
 
-The development candidate pins Document
-`4723b0e6b4b38354853eb5ce1d0f9af23a8bbb2f` ([PR #7](https://github.com/HakanSeven12/opencaddocument/pull/7),
+Explorer pins official upstream Document
+`e6135a72ec46046cd23a84df1b13c8b4fe9541f2` ([merged PR #7](https://github.com/HakanSeven12/opencaddocument/pull/7),
 including typed API PR #4 and placement/numerical PRs #5/#6). Studio uses the same Document and codec pins.
 The workspace-root Cargo patch selects this checkout's core for the shared Rust
 model identity.
-No local Document source patch is needed. The candidate reader uses profile
-0.2.0/CBOR2; the published alpha reader remains separate.
+No local Document source patch is needed. Studio `fae56298` selects codec
+`75dd8f5` and its matching kernel `faf2ee7`. Both readers use profile
+0.2.0/CBOR2, as published by native alpha 2026.44.1.
+The host's IFCCAD development pin `bce9da0` has identical core model/IO,
+schema and conformance sources to that release; it is not the release tag.
 This pin includes the line endpoint-identity fix for associative dimensions.
-The separate Studio grip-undo picture loss remains unresolved.
+Studio grip/undo picture behavior is tracked separately in OCS #2325.
+Newly decoded header settings outside the shared mapping are explicitly
+reported as conversion losses when they differ from defaults.
 
 Prepare the Studio checkout at the commit in `ocs-source.json` with
 `python scripts/prepare_explorer_ocs.py <studio-checkout>` before building it.

@@ -195,3 +195,23 @@ fn malformed_options_are_rejected_before_any_read() {
         assert!(output["export"]["download"].is_null());
     }
 }
+
+#[test]
+fn newly_decoded_unmapped_header_state_is_reported_as_loss() {
+    let mut source = Document::new();
+    source.header.unit_mode = 1;
+    source
+        .add_entity(EntityType::Line(Line::from_points(
+            Vector3::ZERO,
+            Vector3::UNIT_X,
+        )))
+        .unwrap();
+    let bytes = Dxf.write(&source).unwrap().0;
+    let (decoded, _) = Dxf.read(&bytes).unwrap();
+    assert_eq!(decoded.header.unit_mode, 1);
+    let output =
+        viewer::document_cad_to_ifccad("header.dxf", "dxf", &bytes, "2026-10-29T14:00:00Z", "{}");
+    assert!(output["failure"].is_null(), "{output}");
+    let diagnostics = output["conversion"]["diagnostics"].to_string();
+    assert!(diagnostics.contains("$UNITMODE"), "{diagnostics}");
+}
