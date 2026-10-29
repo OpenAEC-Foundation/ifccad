@@ -100,6 +100,11 @@ names are semantic API names; coincident entity field names are intentional.
 Only eligible source/selector pairs in the same owner are accepted. Each role
 may be associated once. Forward references are valid after final binding.
 
+The native Dimension model needs no separate association-enabled flag: its
+optional role-specific relations identify the associated points. Application update
+policy is separate. A portable policy for retaining links while disabling their
+updates would require an explicit future contract decision.
+
 Loading, saving, formatting and conversion never update the definition from the
 source. A stored dimension can therefore measure 4000 while its linked source
 now measures 4500. An editor or a separate associative-update engine decides when
@@ -107,6 +112,12 @@ and how to refresh definition points. Detaching an unsupported CAD relation
 retains the stored definition and produces an explicit diagnostic. The native
 registry uses kind-specific center, curve, diameter, line-endpoint, angular-leg,
 origin/feature and arc-endpoint roles; display/jog/leader points are not sources.
+
+An editor or update service handles change propagation and keeps source edits,
+dependent definition changes and regenerated graphics/bounds consistent through
+undo/redo. The core supplies shared validation, measurement and formatting;
+`opencaddocument` maps supported stored associations to and from CAD. Neither
+ordinary native IO nor CAD conversion supplies an interactive update loop.
 
 ## Bounds, inspection and CAD exchange
 

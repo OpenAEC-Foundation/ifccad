@@ -23,7 +23,7 @@ IFCCAD development now has two cooperating implementation boundaries:
 | Drawing foundations | Primitive/path geometry, shared/nested blocks, Model/Paper layouts, presentation, Text/MText, line patterns, workspace and viewport data | Native storage does not establish complete CAD mapping or rendering |
 | Hatch | Solid, line-pattern and gradient fills; source/association state; classic editing and boundary-construction records | Fill evaluation, automatic updates and shared-route coverage remain separate |
 | SOLID/TRACE | Native kinds, planar corner state and extrusion thickness | Surface and display evidence remain distinct from stored coordinates |
-| Dimensions | All nine native definitions, measurement, formatting and storage in `2026.44.1`; paired conversion on official Document PR #7 merge `e6135a7` | CAD and local Explorer review accepted; grouped catalogue verified; shared annotation contexts and automatic updates remain later work |
+| Dimensions | Type expansion completed: all nine native definitions, measurement, formatting and storage in `2026.44.1`; paired conversion on official Document PR #7 merge `e6135a7`, adopted in the published Explorer | CAD and local Explorer review accepted; grouped catalogue verified; shared annotation contexts and bounded update interoperability remain follow-ups; editor regeneration/undo is a separate responsibility |
 | Planar polyline widths | Constant, PerVertex and classic Defaulted modes; ordinary entities and Dimension graphics | Extrusion thickness for polylines and complete joins/display qualification remain later work |
 | Explorer/CLI migration | Integrated and published; active conversion no longer depends on `ifccad-convert` | Shared-route losses, numerical fidelity, physical CAD readback and host display have their own evidence limits |
 | Reference-converter retirement | Archived outside ordinary workspace builds/tests, with source/test/fixture hashes and complete-checkpoint reproduction | Historical contracts remain reference evidence; no second product route |
@@ -72,33 +72,38 @@ retirement has reconstructible provenance; adopted dependencies pass applicable
 regressions and integration checks; known loss/display gaps are explicitly
 recorded. This does not require certifying every CAD entity or reader.
 
-### 2. Extend native Dimensions with the seven remaining kinds
+### 2. Extend native Dimensions with the seven remaining kinds — completed
 
-Extend the [current Dimension model](docs/dimension.md)
-as **one task with internal stages**: radius, diameter, two-line angular,
-three-point angular, ordinate, arc length and jogged radius. Native release
+The [Dimension model](docs/dimension.md) was extended as **one task with internal
+stages**: radius, diameter, two-line angular, three-point angular, ordinate,
+arc length and jogged radius. Native release
 2026.44.1 implements the definitions/measurement/formatting and profile 0.2.0/
 CBOR2 IO. Paired conversion uses Document `e6135a7` (merged upstream PR #7), independently
 of the native artifact. The user accepted the CAD files and sample_AC1032 in the
 matching local Explorer. A grouped all-nine catalogue with stored source roles
-is verified. See the [release notes](docs/releases/2026.44.1.md) and
+is verified, and Explorer with the official upstream mapping is published.
+See the [release notes](docs/releases/2026.44.1.md) and
 [active route coverage](docs/architecture/explorer-document-route.md).
 
 Keep stored measurement definitions, optional role-specific source relations,
 presentation and optional graphics separate. Ordinary IO must not invent
 associations, refresh stale definitions or guess an arc sector. Extend only the
-bounded selectors required by this slice; general geometric queries, trans-space
-associations and an automatic update engine are later work.
+bounded selectors required by this slice. General geometric queries, trans-space
+associations, shared annotation contexts and an automatic update engine are
+outside this completed slice. The editor grip/undo problems tracked in
+[Open CAD Studio #2325](https://github.com/HakanSeven12/OpenCADStudio/issues/2325)
+remain separate from type and exchange coverage.
 
 The core owns language-neutral semantics, shared validation and native encodings.
 Companion contributions to `opencaddocument` own conversion in both directions.
 Develop and test the pair against explicit revisions; the core must not depend
 on a local CAD fork. No new implementation in `ifccad-convert` is required.
 
-**Exit criteria:** implemented kinds pass strict production JSON/CBOR readback,
-schema/conformance and inspection tests, measurement/formatting regressions and
-bounded CAD exchange tests. Unsupported source state is diagnosed. Advance
-published contract identifiers as required by the release policy.
+**Exit criteria met:** implemented kinds passed strict production JSON/CBOR
+readback, schema/conformance and inspection tests, measurement/formatting
+regressions, bounded CAD exchange tests and the integration gate. Unsupported
+source state is diagnosed. Profile 0.2.0 and CBOR mapping 2 were published under
+the release policy in native release 2026.44.1.
 
 ### 3. Add shared annotation contexts and bounded association updates
 
@@ -108,11 +113,28 @@ drawing scale lists explicitly. Cover mm, m and inch drawings and multiple
 viewport scales. Existing text height, Dimension factors and Paper linetype
 scaling do not already provide this feature.
 
-Stored source relations and automatic updates are distinct. Treat viewport/
-trans-space selection, stable generated-geometry identity and refresh behavior as
-explicitly bounded follow-ups under
-[#13](https://github.com/OpenAEC-Foundation/ifccad/issues/13). Do not make a general
-dependency engine a prerequisite for all annotation storage.
+Stored source relations and automatic updates are distinct. IFCCAD owns the
+stored definitions, role-specific source references/selectors and their shared
+validation. Dimensions retain optional associations without adding a separate
+enabled/disabled flag; the role-specific links already identify the associated
+points. Ordinary IO does not refresh definitions or graphics.
+
+An editor such as Open CAD Studio, or a separate headless update service, owns
+reaction to source edits: resolving affected relations, refreshing linked
+definition points, recomputing measurements and graphics/bounds, and recording
+the dependent changes in the same undo/redo operation. Core measurement and
+formatting helpers are reusable; a running dependency engine is not required in
+the format reader/writer. `opencaddocument` translates supported stored relations
+in both directions rather than supplying the editor's change-processing loop.
+
+Treat viewport/trans-space selection, stable generated-geometry identity and
+explicit refresh behavior as bounded follow-ups under
+[#13](https://github.com/OpenAEC-Foundation/ifccad/issues/13), including reusable
+processing for BIM/headless applications. Agree the application/core boundary
+before selecting an update engine. If retaining links while disabling their
+updates needs portable file semantics, specify that policy separately; no such
+Dimension flag is currently defined. Do not make a general dependency engine a
+prerequisite for all annotation storage.
 
 **Exit criteria:** a bounded context/identity contract, native readback, shared
 validation and qualified exchange for each selected use case; host regeneration

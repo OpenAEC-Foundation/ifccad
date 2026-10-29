@@ -89,22 +89,24 @@ source retention and loss diagnostics remain unchanged. See the
 [ROADMAP.md](ROADMAP.md) is authoritative; reviewed on **29 October 2026**.
 The native alpha and shared Explorer/CLI route are published. Hatch editing,
 SOLID/TRACE, Dimension graphics and planar polyline widths are implemented native
-foundations. The next steps are:
+foundations. The development sequence and its current status are:
 
 1. **Consolidate the shared conversion route.** Reference-converter retirement
    is complete. Adopt merged placement/numerical fixes through explicit dependency
    updates, and qualify the actual IFCX preview and representative CAD cases.
    Upstream fixes are not automatically present in deployed dependency pins.
-2. **Extend native Dimensions with the seven remaining kinds.** Extend the
-   [current Dimension model](docs/dimension.md) as one task with
-   internal stages, with native readback and conversion contributions to
-   `opencaddocument` in both directions. The native expansion is included in 2026.44.1;
-   the user accepted CAD and sample_AC1032 Explorer review. The grouped entity
-   catalogue includes all nine kinds and native source relationships. Paired Document
-   conversion uses the official upstream PR #7 merge; see the [active coverage](docs/architecture/explorer-document-route.md).
+2. **Extend native Dimensions with the seven remaining kinds — completed.** All
+   nine kinds have native definitions, validation, measurement, formatting and
+   storage in 2026.44.1. CAD and sample_AC1032 Explorer review were accepted; the
+   grouped catalogue includes all nine kinds and native source relationships.
+   Conversion in both directions uses the official upstream Document PR #7 merge,
+   adopted in the published Explorer; see the [active coverage](docs/architecture/explorer-document-route.md).
 3. **Add shared annotation contexts and bounded association updates.** Establish
    scale contexts and their exchange before claiming viewport-dependent updates
-   or general regeneration.
+   or general regeneration. IFCCAD stores and validates source relationships;
+   editors or update services process changes and regenerate graphics with
+   consistent undo/redo. Bounded interoperability and reusable update processing
+   remain follow-ups, separate from the completed type expansion.
 4. **Expand resources and selected drawing semantics.** Define font/symbol
    resolution boundaries, then bounded attributes, multileaders and other selected
    families; native splines require their own contract.
