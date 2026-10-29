@@ -29,6 +29,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         if: steps.browser-cache.outputs.cache-hit != 'true'
         with:
+          toolchain: 1.98.0
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
         if: steps.browser-cache.outputs.cache-hit != 'true'
@@ -81,6 +82,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         if: steps.web-cache.outputs.cache-hit != 'true'
         with:
+          toolchain: 1.98.0
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
         if: steps.web-cache.outputs.cache-hit != 'true'
