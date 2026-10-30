@@ -215,6 +215,65 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
   being resolved. Do not turn implementation into open-ended qualification
   research or repeatedly promise completion while adding new scope.
 
+## Staged delivery of native and CAD exchange extensions
+
+- Default to one bounded contribution with internal stages: implement the native
+  IFCCAD contract and paired `opencaddocument` mapping first, deliver review files,
+  connect the local Explorer, then prepare upstream integration and release.
+  Adapt the stages to the actual change; native-only work does not require an
+  Explorer rebuild or CAD conversion contribution.
+- Agree the kinds/fields, loss rules, acceptance cases and affected profile/CBOR
+  identifiers before coding. Pin exact native, Document and codec revisions and
+  explicit patches. Prepare a matching test reader when the file contract changes;
+  keep the core independent of CAD runtimes and application builds.
+- Develop native validation, measurement/formatting and storage together with
+  conversion in both directions. Use focused semantic tests and strict production
+  readback, including physical DWG/DXF where exchange is claimed. Do not wait for
+  an upstream merge to test an explicitly pinned development pair locally.
+- Keep additional roundtrip coverage small and tied to the changed semantics.
+  Prefer compact regression fixtures; for manual review, default to one grouped
+  gallery and at most one relevant practice drawing. Add another large drawing
+  only for a distinct uncovered acceptance case, a demonstrated failure or an
+  explicit user request, stating what it adds. Do not sweep the practice corpus
+  or multiply large-file runs across CAD versions/settings without a concrete
+  coverage need. Reuse applicable evidence and rerun large-file checks only when
+  changed inputs or a failure justify it. This bounds additional qualification;
+  it does not skip required regression tests, strict readback or the full gate.
+- Deliver the agreed practice-file roundtrip and a compact gallery of the new
+  variants before expensive full Explorer integration. Record input identity,
+  conversion direction, dependency revisions, expected results and known losses.
+  Distinguish files ready for review from a fully verified release candidate;
+  user visual acceptance does not replace automated semantic checks.
+- When the change affects source associations, saved graphics or editing, bring
+  forward one bounded local host smoke test against the pinned pair. Exercise a
+  representative source edit, relevant grip operation and undo/redo before final
+  qualification, checking dependent graphics as well as values. Readback and
+  picture presence alone do not qualify editing. Reuse the host build until its
+  inputs change; do not rebuild it for every variant. Reproduce failures with
+  native IFCX and a CAD input where useful to identify the owning component.
+- Once the pair is ready for integration, connect local Explorer and its embedded
+  host to compatible explicit revisions, update the grouped public example and
+  check the actual IFCX-open path, diagnostics and export. Keep native/conversion
+  defects and editor history/rendering issues separate. Fix demonstrated in-scope
+  defects; document independent host issues and limit claims rather than expanding
+  the task into general editor repair.
+- Review and freeze each repository's final candidate before its required full
+  gate. Reuse equivalent evidence under the verification rules below; the stages
+  do not require a full workspace gate after every variant or review file.
+  Keep native release readiness distinct from Explorer deployment readiness.
+- With explicit authorization, submit/update the Document PR and publish the
+  verified native release and Explorer update in their agreed order. A PR may be
+  prepared earlier to obtain upstream feedback; upstream merge is not mandatory
+  for local testing. Prefer the official merged revision for deployment, auditing
+  any intervening changes. A development pin must remain explicit and qualified;
+  a similar version number alone does not prove compatibility. Refresh the
+  roadmap and coverage, then retire completed worktrees under the cleanup rules.
+- Continue authorized internal stages without asking for confirmation after each
+  one. Request user review where agreed acceptance needs it, and obtain separate
+  authorization for repository/publication actions under Repository authority.
+  Preserve measurement baselines and coordinate expensive builds with active
+  measurements; this workflow does not authorize benchmark reruns.
+
 ## Verification
 
 Use focused tests while developing. A worktree may be ready for integration
