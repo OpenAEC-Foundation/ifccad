@@ -20,7 +20,7 @@ fn base() -> Value {
     let mut value = json!({
         "header": {"id":"demo", "ifcxVersion":"ifcx_alpha", "dataVersion":"0.1", "author":"test", "timestamp":"2026-09-29T00:00:00Z"},
         "imports": [], "schemas": {}, "data": [
-            {"path":"/cad/d1","children":{"model":"/cad/d1/layout/1","layer0":"/cad/d1/layer/0"},"attributes":{"ifccad::drawing":{"profileVersion":"0.2.0","lengthUnit":"mm"}}},
+            {"path":"/cad/d1","children":{"model":"/cad/d1/layout/1","layer0":"/cad/d1/layer/0"},"attributes":{"ifccad::drawing":{"profileVersion":"0.3.0","lengthUnit":"mm"}}},
             {"path":"/cad/d1/layout/1","children":{"0":"/cad/d1/e2","1":"/cad/d1/e1"},"attributes":{"ifccad::layout":{"kind":"Model","tabIndex":0}}},
             {"path":"/cad/d1/layer/0","attributes":{"ifccad::layer":{"name":"0","appearance":{"color":{"rgb": [255, 255, 255]},"opacity":1.0,"linePattern":"/cad/d1/linePattern/0","lineWeight":0.25}}}},
             {"path":"/cad/d1/e1","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/0","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::circle":{"radius":2.0},"ifccad::geom::placement":{"origin":[0,0,0],"xAxis":[1,0,0],"yAxis":[0,1,0]}}},
@@ -40,7 +40,7 @@ fn base() -> Value {
     value["data"][0]["children"]["linePattern0"] = json!("/cad/d1/linePattern/0");
     value["data"].as_array_mut().unwrap().push(json!({"path":"/cad/d1/linePattern/0","attributes":{"ifccad::linePattern":{"name":"Continuous","pattern":[]}}}));
     let module: Value =
-        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.2.0.ifcx")).unwrap();
+        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.3.0.ifcx")).unwrap();
     value["schemas"] = module["schemas"].clone();
     value
 }
@@ -336,6 +336,8 @@ fn fixture_document() -> IfccadDocument {
                     kind: IfccadEntityKind::LineSegment {
                         start: [0.0, 0.0, 0.0],
                         end: [50.0, 0.0, 0.0],
+                        thickness: 0.,
+                        extrusion_direction: [0., 0., 1.],
                     },
                 }),
                 IfccadEntity::Native(IfccadNativeEntity {
@@ -353,6 +355,7 @@ fn fixture_document() -> IfccadDocument {
                             vertices,
                             closed: false,
                             placement: placement.clone(),
+                            thickness: 0.,
                         }
                     },
                 }),
@@ -366,6 +369,7 @@ fn fixture_document() -> IfccadDocument {
                     kind: IfccadEntityKind::Circle {
                         radius: 3.0,
                         placement: placement.clone(),
+                        thickness: 0.,
                     },
                 }),
                 instance(91, 40.0, IfccadColor::rgb(255, 255, 0)),
@@ -394,6 +398,8 @@ fn fixture_document() -> IfccadDocument {
                 kind: IfccadEntityKind::LineSegment {
                     start: [2.0, 0.0, 0.0],
                     end: [4.0, 0.0, 0.0],
+                    thickness: 0.,
+                    extrusion_direction: [0., 0., 1.],
                 },
             })],
         }],
@@ -455,6 +461,8 @@ fn nested_document() -> IfccadDocument {
                 kind: IfccadEntityKind::LineSegment {
                     start: [0.0, 0.0, 0.0],
                     end: [0.0, 1.0, 0.0],
+                    thickness: 0.,
+                    extrusion_direction: [0., 0., 1.],
                 },
             }),
         ],
@@ -778,7 +786,7 @@ fn roundtrip_complete_example_and_determinism() {
     assert_paths_first(bytes.bytes());
     let file: Value = serde_json::from_slice(bytes.bytes()).unwrap();
     assert!(file["schemas"].as_object().unwrap().is_empty());
-    assert_eq!(file["imports"][0]["uri"], "urn:example:ifccad:0.2.0");
+    assert_eq!(file["imports"][0]["uri"], "urn:example:ifccad:0.3.0");
     assert_eq!(
         load_ifccad_bytes(bytes.bytes(), Default::default())
             .unwrap()
@@ -937,7 +945,7 @@ fn fixture_is_a_complete_strictly_readable_ifcx_file() {
     let loaded = load_ifccad_bytes(bytes, Default::default()).unwrap();
     assert_eq!(loaded.document(), &example_document(&fixture_document()));
     let schema_module: Value =
-        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.2.0.ifcx")).unwrap();
+        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.3.0.ifcx")).unwrap();
     let schemas = schema_module["schemas"].as_object().unwrap();
     assert_eq!(
         loaded.graph().composed_ifcx()["imports"][0]["uri"],
@@ -956,7 +964,7 @@ fn fixture_is_a_complete_strictly_readable_ifcx_file() {
 fn profile_imported_schema_resolves_offline_and_missing_import_fails() {
     let mut value = base();
     value["schemas"] = json!({});
-    value["imports"] = json!([{"uri":"urn:example:ifccad:0.2.0"}]);
+    value["imports"] = json!([{"uri":"urn:example:ifccad:0.3.0"}]);
     assert_eq!(read(&value).unwrap().document().model.entities.len(), 2);
     value["imports"] = json!([]);
     assert!(read(&value)
@@ -987,6 +995,8 @@ fn exploratory_line_count_probe() {
                 kind: IfccadEntityKind::LineSegment {
                     start: [id as f64, 0.0, 0.0],
                     end: [id as f64, 10.0, 0.0],
+                    thickness: 0.,
+                    extrusion_direction: [0., 0., 1.],
                 },
             })
         })

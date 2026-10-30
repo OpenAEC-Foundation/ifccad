@@ -1,6 +1,6 @@
 # Candidate IFCCAD CBOR conformance
 
-This candidate exercises standalone IFCCAD CBOR mapping revision 2.
+This candidate exercises standalone IFCCAD CBOR mapping revision 3.
 `cases.json` lists valid and invalid binary files, expected error classes and
 readable diagnostic sidecars. The test uses the production byte reader and
 strict encoder readback. These fixtures were authored independently of the
@@ -13,7 +13,7 @@ version mismatch, forbidden tokens, truncation and excessive length claims.
 Broader typed content is also exercised by encoding all positive current IFCX
 candidate cases and by rich-content/preservation/conversion tests.
 
-See [the physical contract](../../../schemas/ifccad/cbor-mapping-2.md).
+See [the physical contract](../../../schemas/ifccad/cbor-mapping-3.md).
 
 `../dimension-kinds.py` independently authors literal code/body maps for all
 seven added definitions, including spatial references, signed ordinate and an

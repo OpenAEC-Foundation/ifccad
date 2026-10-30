@@ -31,52 +31,87 @@ impl CborValue for IfccadEntityKind {
     }
     fn decode(r: &mut CborReader<'_>) -> Result<Self, IfccadCborReadError> {
         let mut f = RecordFields::new(r, &[(0, "kind"), (1, "body")])?;
-        let code: u64 = f.take(0, None)?;
+        let code = f.take(0, None)?;
         let mut body = f.span(1)?;
         f.finish()?;
         Self::decode_body(code, &mut body)
     }
     fn exact(&self, o: &Self) -> bool {
         match (self, o) {
-            (Self::Solid(a), Self::Solid(b)) | (Self::Trace(a), Self::Trace(b)) => a.exact(b),
             (
-                Self::LineSegment { start, end },
+                Self::LineSegment {
+                    start,
+                    end,
+                    thickness,
+                    extrusion_direction,
+                    ..
+                },
                 Self::LineSegment {
                     start: start_other,
                     end: end_other,
+                    thickness: thickness_other,
+                    extrusion_direction: extrusion_direction_other,
+                    ..
                 },
-            ) => start.exact(start_other) && end.exact(end_other),
+            ) => {
+                start.exact(start_other)
+                    && end.exact(end_other)
+                    && thickness.exact(thickness_other)
+                    && extrusion_direction.exact(extrusion_direction_other)
+            }
             (
-                Self::Point { placement },
+                Self::Point {
+                    placement,
+                    thickness,
+                    ..
+                },
                 Self::Point {
                     placement: placement_other,
+                    thickness: thickness_other,
+                    ..
                 },
-            ) => placement.exact(placement_other),
+            ) => placement.exact(placement_other) && thickness.exact(thickness_other),
             (
-                Self::Circle { placement, radius },
+                Self::Circle {
+                    placement,
+                    radius,
+                    thickness,
+                    ..
+                },
                 Self::Circle {
                     placement: placement_other,
                     radius: radius_other,
+                    thickness: thickness_other,
+                    ..
                 },
-            ) => placement.exact(placement_other) && radius.exact(radius_other),
+            ) => {
+                placement.exact(placement_other)
+                    && radius.exact(radius_other)
+                    && thickness.exact(thickness_other)
+            }
             (
                 Self::Arc {
                     placement,
                     radius,
                     start_parameter,
                     sweep_parameter,
+                    thickness,
+                    ..
                 },
                 Self::Arc {
                     placement: placement_other,
                     radius: radius_other,
                     start_parameter: start_parameter_other,
                     sweep_parameter: sweep_parameter_other,
+                    thickness: thickness_other,
+                    ..
                 },
             ) => {
                 placement.exact(placement_other)
                     && radius.exact(radius_other)
                     && start_parameter.exact(start_parameter_other)
                     && sweep_parameter.exact(sweep_parameter_other)
+                    && thickness.exact(thickness_other)
             }
             (
                 Self::Ellipse {
@@ -118,28 +153,33 @@ impl CborValue for IfccadEntityKind {
             }
             (
                 Self::PlanarPolyline {
-                    widths,
                     placement,
                     vertices,
                     bulges,
                     closed,
                     line_pattern_generation,
+                    widths,
+                    thickness,
+                    ..
                 },
                 Self::PlanarPolyline {
-                    widths: widths_other,
                     placement: placement_other,
                     vertices: vertices_other,
                     bulges: bulges_other,
                     closed: closed_other,
                     line_pattern_generation: line_pattern_generation_other,
+                    widths: widths_other,
+                    thickness: thickness_other,
+                    ..
                 },
             ) => {
-                widths.exact(widths_other)
-                    && placement.exact(placement_other)
+                placement.exact(placement_other)
                     && vertices.exact(vertices_other)
                     && bulges.exact(bulges_other)
                     && closed.exact(closed_other)
                     && line_pattern_generation.exact(line_pattern_generation_other)
+                    && widths.exact(widths_other)
+                    && thickness.exact(thickness_other)
             }
             (
                 Self::SpatialPolyline {
@@ -176,6 +216,8 @@ impl CborValue for IfccadEntityKind {
             (Self::Dimension(value_0), Self::Dimension(value_0_other)) => {
                 value_0.exact(value_0_other)
             }
+            (Self::Solid(value_0), Self::Solid(value_0_other)) => value_0.exact(value_0_other),
+            (Self::Trace(value_0), Self::Trace(value_0_other)) => value_0.exact(value_0_other),
             _ => false,
         }
     }
@@ -203,98 +245,71 @@ impl IfccadEntityKind {
     }
     pub(super) fn encode_body(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
         match self {
-            Self::Solid(v) | Self::Trace(v) => {
-                w.map(1)?;
-                w.u64(0)?;
-                v.encode(w)
-            }
-            Self::LineSegment { start, end } => {
-                let mut __cbor_fields = 0_u64;
-                if start.present()
-                    && (None as Option<[f64; 3]>)
-                        .as_ref()
-                        .is_none_or(|d| !start.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if end.present()
-                    && (None as Option<[f64; 3]>)
-                        .as_ref()
-                        .is_none_or(|d| !end.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if start.present()
-                    && (None as Option<[f64; 3]>)
-                        .as_ref()
-                        .is_none_or(|d| !start.exact(d))
-                {
+            Self::LineSegment {
+                start,
+                end,
+                thickness,
+                extrusion_direction,
+                ..
+            } => {
+                w.map(
+                    u64::from(true)
+                        + u64::from(true)
+                        + u64::from(!thickness.exact(&(0.0)))
+                        + u64::from(!extrusion_direction.exact(&([0., 0., 1.]))),
+                )?;
+                if true {
                     w.u64(0)?;
                     encode_line_point(start, w)?;
                 }
-                if end.present()
-                    && (None as Option<[f64; 3]>)
-                        .as_ref()
-                        .is_none_or(|d| !end.exact(d))
-                {
+                if true {
                     w.u64(1)?;
                     encode_line_point(end, w)?;
                 }
-                Ok(())
-            }
-            Self::Point { placement } => {
-                let mut __cbor_fields = 0_u64;
-                if placement.present()
-                    && (None as Option<IfccadPlacement>)
-                        .as_ref()
-                        .is_none_or(|d| !placement.exact(d))
-                {
-                    __cbor_fields += 1;
+                if !thickness.exact(&(0.0)) {
+                    w.u64(2)?;
+                    thickness.encode(w)?;
                 }
-                w.map(__cbor_fields)?;
-                if placement.present()
-                    && (None as Option<IfccadPlacement>)
-                        .as_ref()
-                        .is_none_or(|d| !placement.exact(d))
-                {
-                    w.u64(0)?;
-                    placement.encode(w)?;
+                if !extrusion_direction.exact(&([0., 0., 1.])) {
+                    w.u64(3)?;
+                    extrusion_direction.encode(w)?;
                 }
                 Ok(())
             }
-            Self::Circle { placement, radius } => {
-                let mut __cbor_fields = 0_u64;
-                if placement.present()
-                    && (None as Option<IfccadPlacement>)
-                        .as_ref()
-                        .is_none_or(|d| !placement.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if radius.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !radius.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if placement.present()
-                    && (None as Option<IfccadPlacement>)
-                        .as_ref()
-                        .is_none_or(|d| !placement.exact(d))
-                {
+            Self::Point {
+                placement,
+                thickness,
+                ..
+            } => {
+                w.map(u64::from(true) + u64::from(!thickness.exact(&(0.0))))?;
+                if true {
                     w.u64(0)?;
                     placement.encode(w)?;
                 }
-                if radius.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !radius.exact(d))
-                {
+                if !thickness.exact(&(0.0)) {
+                    w.u64(1)?;
+                    thickness.encode(w)?;
+                }
+                Ok(())
+            }
+            Self::Circle {
+                placement,
+                radius,
+                thickness,
+                ..
+            } => {
+                w.map(u64::from(true) + u64::from(true) + u64::from(!thickness.exact(&(0.0))))?;
+                if true {
+                    w.u64(0)?;
+                    placement.encode(w)?;
+                }
+                if true {
                     w.u64(1)?;
                     radius.encode(w)?;
+                }
+                if !thickness.exact(&(0.0)) {
+                    w.u64(2)?;
+                    thickness.encode(w)?;
                 }
                 Ok(())
             }
@@ -303,68 +318,35 @@ impl IfccadEntityKind {
                 radius,
                 start_parameter,
                 sweep_parameter,
+                thickness,
+                ..
             } => {
-                let mut __cbor_fields = 0_u64;
-                if placement.present()
-                    && (None as Option<IfccadPlacement>)
-                        .as_ref()
-                        .is_none_or(|d| !placement.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if radius.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !radius.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if start_parameter.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !start_parameter.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if sweep_parameter.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !sweep_parameter.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if placement.present()
-                    && (None as Option<IfccadPlacement>)
-                        .as_ref()
-                        .is_none_or(|d| !placement.exact(d))
-                {
+                w.map(
+                    u64::from(true)
+                        + u64::from(true)
+                        + u64::from(true)
+                        + u64::from(true)
+                        + u64::from(!thickness.exact(&(0.0))),
+                )?;
+                if true {
                     w.u64(0)?;
                     placement.encode(w)?;
                 }
-                if radius.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !radius.exact(d))
-                {
+                if true {
                     w.u64(1)?;
                     radius.encode(w)?;
                 }
-                if start_parameter.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !start_parameter.exact(d))
-                {
+                if true {
                     w.u64(2)?;
                     start_parameter.encode(w)?;
                 }
-                if sweep_parameter.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !sweep_parameter.exact(d))
-                {
+                if true {
                     w.u64(3)?;
                     sweep_parameter.encode(w)?;
+                }
+                if !thickness.exact(&(0.0)) {
+                    w.u64(4)?;
+                    thickness.encode(w)?;
                 }
                 Ok(())
             }
@@ -373,50 +355,16 @@ impl IfccadEntityKind {
                 semi_major_radius,
                 semi_minor_radius,
             } => {
-                let mut __cbor_fields = 0_u64;
-                if placement.present()
-                    && (None as Option<IfccadPlacement>)
-                        .as_ref()
-                        .is_none_or(|d| !placement.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if semi_major_radius.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !semi_major_radius.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if semi_minor_radius.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !semi_minor_radius.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if placement.present()
-                    && (None as Option<IfccadPlacement>)
-                        .as_ref()
-                        .is_none_or(|d| !placement.exact(d))
-                {
+                w.map(u64::from(true) + u64::from(true) + u64::from(true))?;
+                if true {
                     w.u64(0)?;
                     placement.encode(w)?;
                 }
-                if semi_major_radius.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !semi_major_radius.exact(d))
-                {
+                if true {
                     w.u64(1)?;
                     semi_major_radius.encode(w)?;
                 }
-                if semi_minor_radius.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !semi_minor_radius.exact(d))
-                {
+                if true {
                     w.u64(2)?;
                     semi_minor_radius.encode(w)?;
                 }
@@ -429,175 +377,84 @@ impl IfccadEntityKind {
                 start_parameter,
                 sweep_parameter,
             } => {
-                let mut __cbor_fields = 0_u64;
-                if placement.present()
-                    && (None as Option<IfccadPlacement>)
-                        .as_ref()
-                        .is_none_or(|d| !placement.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if semi_major_radius.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !semi_major_radius.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if semi_minor_radius.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !semi_minor_radius.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if start_parameter.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !start_parameter.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if sweep_parameter.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !sweep_parameter.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if placement.present()
-                    && (None as Option<IfccadPlacement>)
-                        .as_ref()
-                        .is_none_or(|d| !placement.exact(d))
-                {
+                w.map(
+                    u64::from(true)
+                        + u64::from(true)
+                        + u64::from(true)
+                        + u64::from(true)
+                        + u64::from(true),
+                )?;
+                if true {
                     w.u64(0)?;
                     placement.encode(w)?;
                 }
-                if semi_major_radius.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !semi_major_radius.exact(d))
-                {
+                if true {
                     w.u64(1)?;
                     semi_major_radius.encode(w)?;
                 }
-                if semi_minor_radius.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !semi_minor_radius.exact(d))
-                {
+                if true {
                     w.u64(2)?;
                     semi_minor_radius.encode(w)?;
                 }
-                if start_parameter.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !start_parameter.exact(d))
-                {
+                if true {
                     w.u64(3)?;
                     start_parameter.encode(w)?;
                 }
-                if sweep_parameter.present()
-                    && (None as Option<f64>)
-                        .as_ref()
-                        .is_none_or(|d| !sweep_parameter.exact(d))
-                {
+                if true {
                     w.u64(4)?;
                     sweep_parameter.encode(w)?;
                 }
                 Ok(())
             }
             Self::PlanarPolyline {
-                widths,
                 placement,
                 vertices,
                 bulges,
                 closed,
                 line_pattern_generation,
+                widths,
+                thickness,
+                ..
             } => {
-                let mut __cbor_fields = 0_u64;
-                if placement.present()
-                    && (None as Option<IfccadPlacement>)
-                        .as_ref()
-                        .is_none_or(|d| !placement.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if vertices.present()
-                    && (None as Option<Vec<[f64; 2]>>)
-                        .as_ref()
-                        .is_none_or(|d| !vertices.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if bulges.present()
-                    && (None as Option<Vec<f64>>)
-                        .as_ref()
-                        .is_none_or(|d| !bulges.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if closed.present()
-                    && (Some(false) as Option<bool>)
-                        .as_ref()
-                        .is_none_or(|d| !closed.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if line_pattern_generation.present()
-                    && (Some(IfccadLinePatternGeneration::PerSegment)
-                        as Option<IfccadLinePatternGeneration>)
-                        .as_ref()
-                        .is_none_or(|d| !line_pattern_generation.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields + u64::from(!widths.is_intrinsic_default()))?;
-                if placement.present()
-                    && (None as Option<IfccadPlacement>)
-                        .as_ref()
-                        .is_none_or(|d| !placement.exact(d))
-                {
+                w.map(
+                    u64::from(true)
+                        + u64::from(true)
+                        + u64::from(true)
+                        + u64::from(!closed.exact(&(false)))
+                        + u64::from(
+                            !line_pattern_generation
+                                .exact(&(IfccadLinePatternGeneration::PerSegment)),
+                        )
+                        + u64::from(!widths.exact(&(Default::default())))
+                        + u64::from(!thickness.exact(&(0.0))),
+                )?;
+                if true {
                     w.u64(0)?;
                     placement.encode(w)?;
                 }
-                if vertices.present()
-                    && (None as Option<Vec<[f64; 2]>>)
-                        .as_ref()
-                        .is_none_or(|d| !vertices.exact(d))
-                {
+                if true {
                     w.u64(1)?;
                     vertices.encode(w)?;
                 }
-                if bulges.present()
-                    && (None as Option<Vec<f64>>)
-                        .as_ref()
-                        .is_none_or(|d| !bulges.exact(d))
-                {
+                if true {
                     w.u64(2)?;
                     bulges.encode(w)?;
                 }
-                if closed.present()
-                    && (Some(false) as Option<bool>)
-                        .as_ref()
-                        .is_none_or(|d| !closed.exact(d))
-                {
+                if !closed.exact(&(false)) {
                     w.u64(3)?;
                     closed.encode(w)?;
                 }
-                if line_pattern_generation.present()
-                    && (Some(IfccadLinePatternGeneration::PerSegment)
-                        as Option<IfccadLinePatternGeneration>)
-                        .as_ref()
-                        .is_none_or(|d| !line_pattern_generation.exact(d))
-                {
+                if !line_pattern_generation.exact(&(IfccadLinePatternGeneration::PerSegment)) {
                     w.u64(4)?;
                     line_pattern_generation.encode(w)?;
                 }
-                if !widths.is_intrinsic_default() {
+                if !widths.exact(&(Default::default())) {
                     w.u64(5)?;
                     widths.encode(w)?;
+                }
+                if !thickness.exact(&(0.0)) {
+                    w.u64(6)?;
+                    thickness.encode(w)?;
                 }
                 Ok(())
             }
@@ -606,52 +463,23 @@ impl IfccadEntityKind {
                 closed,
                 line_pattern_generation,
             } => {
-                let mut __cbor_fields = 0_u64;
-                if vertices.present()
-                    && (None as Option<Vec<[f64; 3]>>)
-                        .as_ref()
-                        .is_none_or(|d| !vertices.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if closed.present()
-                    && (Some(false) as Option<bool>)
-                        .as_ref()
-                        .is_none_or(|d| !closed.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if line_pattern_generation.present()
-                    && (Some(IfccadLinePatternGeneration::PerSegment)
-                        as Option<IfccadLinePatternGeneration>)
-                        .as_ref()
-                        .is_none_or(|d| !line_pattern_generation.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if vertices.present()
-                    && (None as Option<Vec<[f64; 3]>>)
-                        .as_ref()
-                        .is_none_or(|d| !vertices.exact(d))
-                {
+                w.map(
+                    u64::from(true)
+                        + u64::from(!closed.exact(&(false)))
+                        + u64::from(
+                            !line_pattern_generation
+                                .exact(&(IfccadLinePatternGeneration::PerSegment)),
+                        ),
+                )?;
+                if true {
                     w.u64(0)?;
                     vertices.encode(w)?;
                 }
-                if closed.present()
-                    && (Some(false) as Option<bool>)
-                        .as_ref()
-                        .is_none_or(|d| !closed.exact(d))
-                {
+                if !closed.exact(&(false)) {
                     w.u64(1)?;
                     closed.encode(w)?;
                 }
-                if line_pattern_generation.present()
-                    && (Some(IfccadLinePatternGeneration::PerSegment)
-                        as Option<IfccadLinePatternGeneration>)
-                        .as_ref()
-                        .is_none_or(|d| !line_pattern_generation.exact(d))
-                {
+                if !line_pattern_generation.exact(&(IfccadLinePatternGeneration::PerSegment)) {
                     w.u64(2)?;
                     line_pattern_generation.encode(w)?;
                 }
@@ -661,135 +489,68 @@ impl IfccadEntityKind {
                 definition_id,
                 transform,
             } => {
-                let mut __cbor_fields = 0_u64;
-                if definition_id.present()
-                    && (None as Option<u64>)
-                        .as_ref()
-                        .is_none_or(|d| !definition_id.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                if transform.present()
-                    && (None as Option<IfccadBlockTransform>)
-                        .as_ref()
-                        .is_none_or(|d| !transform.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if definition_id.present()
-                    && (None as Option<u64>)
-                        .as_ref()
-                        .is_none_or(|d| !definition_id.exact(d))
-                {
+                w.map(u64::from(true) + u64::from(true))?;
+                if true {
                     w.u64(0)?;
                     definition_id.encode(w)?;
                 }
-                if transform.present()
-                    && (None as Option<IfccadBlockTransform>)
-                        .as_ref()
-                        .is_none_or(|d| !transform.exact(d))
-                {
+                if true {
                     w.u64(1)?;
                     transform.encode(w)?;
                 }
                 Ok(())
             }
             Self::Viewport(value_0) => {
-                let mut __cbor_fields = 0_u64;
-                if value_0.present()
-                    && (None as Option<IfccadViewport>)
-                        .as_ref()
-                        .is_none_or(|d| !value_0.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if value_0.present()
-                    && (None as Option<IfccadViewport>)
-                        .as_ref()
-                        .is_none_or(|d| !value_0.exact(d))
-                {
+                w.map(u64::from(true))?;
+                if true {
                     w.u64(0)?;
                     value_0.encode(w)?;
                 }
                 Ok(())
             }
             Self::Text(value_0) => {
-                let mut __cbor_fields = 0_u64;
-                if value_0.present()
-                    && (None as Option<IfccadText>)
-                        .as_ref()
-                        .is_none_or(|d| !value_0.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if value_0.present()
-                    && (None as Option<IfccadText>)
-                        .as_ref()
-                        .is_none_or(|d| !value_0.exact(d))
-                {
+                w.map(u64::from(true))?;
+                if true {
                     w.u64(0)?;
                     value_0.encode(w)?;
                 }
                 Ok(())
             }
             Self::MText(value_0) => {
-                let mut __cbor_fields = 0_u64;
-                if value_0.present()
-                    && (None as Option<Box<IfccadMText>>)
-                        .as_ref()
-                        .is_none_or(|d| !value_0.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if value_0.present()
-                    && (None as Option<Box<IfccadMText>>)
-                        .as_ref()
-                        .is_none_or(|d| !value_0.exact(d))
-                {
+                w.map(u64::from(true))?;
+                if true {
                     w.u64(0)?;
                     value_0.encode(w)?;
                 }
                 Ok(())
             }
             Self::Hatch(value_0) => {
-                let mut __cbor_fields = 0_u64;
-                if value_0.present()
-                    && (None as Option<IfccadHatch>)
-                        .as_ref()
-                        .is_none_or(|d| !value_0.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if value_0.present()
-                    && (None as Option<IfccadHatch>)
-                        .as_ref()
-                        .is_none_or(|d| !value_0.exact(d))
-                {
+                w.map(u64::from(true))?;
+                if true {
                     w.u64(0)?;
                     value_0.encode(w)?;
                 }
                 Ok(())
             }
             Self::Dimension(value_0) => {
-                let mut __cbor_fields = 0_u64;
-                if value_0.present()
-                    && (None as Option<Box<IfccadDimension>>)
-                        .as_ref()
-                        .is_none_or(|d| !value_0.exact(d))
-                {
-                    __cbor_fields += 1;
+                w.map(u64::from(true))?;
+                if true {
+                    w.u64(0)?;
+                    value_0.encode(w)?;
                 }
-                w.map(__cbor_fields)?;
-                if value_0.present()
-                    && (None as Option<Box<IfccadDimension>>)
-                        .as_ref()
-                        .is_none_or(|d| !value_0.exact(d))
-                {
+                Ok(())
+            }
+            Self::Solid(value_0) => {
+                w.map(u64::from(true))?;
+                if true {
+                    w.u64(0)?;
+                    value_0.encode(w)?;
+                }
+                Ok(())
+            }
+            Self::Trace(value_0) => {
+                w.map(u64::from(true))?;
+                if true {
                     w.u64(0)?;
                     value_0.encode(w)?;
                 }
@@ -803,24 +564,49 @@ impl IfccadEntityKind {
     ) -> Result<Self, IfccadCborReadError> {
         match code {
             0 => {
-                let mut b = RecordFields::new(r, &[(0, "start"), (1, "end")])?;
+                let mut b = RecordFields::new(
+                    r,
+                    &[
+                        (0, "start"),
+                        (1, "end"),
+                        (2, "thickness"),
+                        (3, "extrusion_direction"),
+                    ],
+                )?;
                 let start: [f64; 3] = decode_line_point(&mut b.span(0)?)?;
                 let end: [f64; 3] = decode_line_point(&mut b.span(1)?)?;
+                let thickness: f64 = b.take(2, Some(0.0))?;
+                let extrusion_direction: [f64; 3] = b.take(3, Some([0., 0., 1.]))?;
                 b.finish()?;
-                Ok(Self::LineSegment { start, end })
+                Ok(Self::LineSegment {
+                    start,
+                    end,
+                    thickness,
+                    extrusion_direction,
+                })
             }
             1 => {
-                let mut b = RecordFields::new(r, &[(0, "placement")])?;
+                let mut b = RecordFields::new(r, &[(0, "placement"), (1, "thickness")])?;
                 let placement: IfccadPlacement = b.take(0, None)?;
+                let thickness: f64 = b.take(1, Some(0.0))?;
                 b.finish()?;
-                Ok(Self::Point { placement })
+                Ok(Self::Point {
+                    placement,
+                    thickness,
+                })
             }
             2 => {
-                let mut b = RecordFields::new(r, &[(0, "placement"), (1, "radius")])?;
+                let mut b =
+                    RecordFields::new(r, &[(0, "placement"), (1, "radius"), (2, "thickness")])?;
                 let placement: IfccadPlacement = b.take(0, None)?;
                 let radius: f64 = b.take(1, None)?;
+                let thickness: f64 = b.take(2, Some(0.0))?;
                 b.finish()?;
-                Ok(Self::Circle { placement, radius })
+                Ok(Self::Circle {
+                    placement,
+                    radius,
+                    thickness,
+                })
             }
             3 => {
                 let mut b = RecordFields::new(
@@ -830,18 +616,21 @@ impl IfccadEntityKind {
                         (1, "radius"),
                         (2, "start_parameter"),
                         (3, "sweep_parameter"),
+                        (4, "thickness"),
                     ],
                 )?;
                 let placement: IfccadPlacement = b.take(0, None)?;
                 let radius: f64 = b.take(1, None)?;
                 let start_parameter: f64 = b.take(2, None)?;
                 let sweep_parameter: f64 = b.take(3, None)?;
+                let thickness: f64 = b.take(4, Some(0.0))?;
                 b.finish()?;
                 Ok(Self::Arc {
                     placement,
                     radius,
                     start_parameter,
                     sweep_parameter,
+                    thickness,
                 })
             }
             4 => {
@@ -898,6 +687,7 @@ impl IfccadEntityKind {
                         (3, "closed"),
                         (4, "line_pattern_generation"),
                         (5, "widths"),
+                        (6, "thickness"),
                     ],
                 )?;
                 let placement: IfccadPlacement = b.take(0, None)?;
@@ -907,14 +697,16 @@ impl IfccadEntityKind {
                 let line_pattern_generation: IfccadLinePatternGeneration =
                     b.take(4, Some(IfccadLinePatternGeneration::PerSegment))?;
                 let widths: IfccadPlanarPolylineWidths = b.take(5, Some(Default::default()))?;
+                let thickness: f64 = b.take(6, Some(0.0))?;
                 b.finish()?;
                 Ok(Self::PlanarPolyline {
-                    widths,
                     placement,
                     vertices,
                     bulges,
                     closed,
                     line_pattern_generation,
+                    widths,
+                    thickness,
                 })
             }
             7 => {
@@ -977,17 +769,19 @@ impl IfccadEntityKind {
                 b.finish()?;
                 Ok(Self::Dimension(value_0))
             }
-            14 | 15 => {
+            14 => {
                 let mut b = RecordFields::new(r, &[(0, "value_0")])?;
-                let v = b.take(0, None)?;
+                let value_0: IfccadFilledQuadrilateral = b.take(0, None)?;
                 b.finish()?;
-                Ok(if code == 14 {
-                    Self::Solid(v)
-                } else {
-                    Self::Trace(v)
-                })
+                Ok(Self::Solid(value_0))
             }
-            _ => Err(r.error("unknown native kind")),
+            15 => {
+                let mut b = RecordFields::new(r, &[(0, "value_0")])?;
+                let value_0: IfccadFilledQuadrilateral = b.take(0, None)?;
+                b.finish()?;
+                Ok(Self::Trace(value_0))
+            }
+            _ => Err(r.error("unknown entity kind")),
         }
     }
 }

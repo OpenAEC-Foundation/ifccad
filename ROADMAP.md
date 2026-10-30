@@ -54,13 +54,21 @@ The original linked red sample_AC1032 Dimension/tick case has bounded
 reference-route acceptance evidence; it is not an unfinished zero-width-marker
 workaround or a universal display pass. Retain its selected input/resource
 closure and provenance when reusing that case for the shared route. Polyline
-extrusion thickness remains a separate future slice.
+extrusion thickness is covered by the isolated contribution described below.
 
 The [active exchange coverage](docs/architecture/explorer-document-route.md)
 records the current mapping, pins and unsupported requests. Do not attribute the
 reference converter's adjustable hard tolerances, numerical certificates,
 Allow/Reject policies, partial opening or spline restoration to the shared route.
 Native opaque storage remains independent of CAD capture/restoration support.
+
+The selected geometry contribution before annotation work adds primitive extrusion
+thickness and classic 2D POLYLINE mapping. Its isolated development pair uses
+profile 0.3.0/CBOR3. Native/CAD control files and local Explorer integration have
+been verified and visually accepted; the catalogue samples use 15 mm thickness
+with base Z=0. This is not included in the published 2026.44.1 release or public
+Explorer. Fixed dependency revisions, the Document PR and publication remain
+pending. See [extrusion scope and review boundary](docs/geometry/extrusion-thickness.md).
 
 ## Development sequence
 

@@ -21,6 +21,8 @@ fn forward_source_edit_does_not_recompute_stored_definition() {
     source.kind = IfccadEntityKind::LineSegment {
         start: [0.0, 0.0, 0.0],
         end: [4500.0, 0.0, 0.0],
+        thickness: 0.,
+        extrusion_direction: [0., 0., 1.],
     };
     if let IfccadEntityKind::Dimension(v) = &mut d.model.entities[0].as_native_mut().unwrap().kind {
         v.associations = vec![IfccadDimensionAssociation {

@@ -36,6 +36,8 @@ fn bounds_use_stored_parts_in_parent_frame_and_ignore_reference_helpers() {
     let mut hidden = support::part(IfccadDimensionGraphicsKind::LineSegment {
         start: [-5., -7., 0.],
         end: [25., 4., 0.],
+        thickness: 0.,
+        extrusion_direction: [0., 0., 1.],
     });
     hidden.visible = false;
     g.parts.push(hidden);
@@ -45,6 +47,7 @@ fn bounds_use_stored_parts_in_parent_frame_and_ignore_reference_helpers() {
             x_axis: [1., 0., 0.],
             y_axis: [0., 1., 0.],
         },
+        thickness: 0.,
     });
     helper.purpose = IfccadDimensionGraphicsPurpose::ReferencePoint;
     g.parts.push(helper);
@@ -77,6 +80,7 @@ fn absent_empty_and_helper_only_pictures_have_distinct_completeness() {
                         x_axis: [1., 0., 0.],
                         y_axis: [0., 1., 0.],
                     },
+                    thickness: 0.,
                 });
                 helper.purpose = IfccadDimensionGraphicsPurpose::ReferencePoint;
                 Some(IfccadDimensionGraphics {

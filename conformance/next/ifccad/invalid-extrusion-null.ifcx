@@ -1,0 +1,243 @@
+{
+  "header": {
+    "id": "ifccad-experimental-hello",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "0.1.0",
+    "author": "OpenAEC",
+    "timestamp": "2026-09-29T00:00:00Z"
+  },
+  "imports": [
+    {
+      "uri": "urn:example:ifccad:0.3.0"
+    }
+  ],
+  "schemas": {},
+  "data": [
+    {
+      "path": "/cad/d1",
+      "children": {
+        "model": "/cad/d1/layout/1",
+        "layer0": "/cad/d1/layer/0",
+        "pattern0": "/cad/d1/linePattern/0"
+      },
+      "attributes": {
+        "ifccad::drawing": {
+          "lengthUnit": "cm",
+          "nextBlockId": 1,
+          "nextEntityId": 6,
+          "nextLayerId": 1,
+          "nextLayoutId": 2,
+          "nextLinePatternId": 1,
+          "nextSymbolSourceId": 1,
+          "profileVersion": "0.3.0",
+          "nextUcsId": 1,
+          "nextModelWindowId": 1
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/0",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "Continuous",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/1",
+      "children": {
+        "0": "/cad/d1/e1",
+        "1": "/cad/d1/e2",
+        "2": "/cad/d1/e3",
+        "3": "/cad/d1/e4",
+        "4": "/cad/d1/e5"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Model",
+          "tabIndex": 0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/0",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "kind": "Foreground"
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.1,
+            "opacity": 1.0
+          },
+          "name": "0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::point": {
+          "thickness": 2
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            2
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e2",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::circle": {
+          "radius": 2,
+          "thickness": -2
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            2
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e3",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::arc": {
+          "radius": 2,
+          "startParameter": 0,
+          "sweepParameter": 1,
+          "thickness": 2
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            2
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e4",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::planarPolyline": {
+          "vertices": [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              0
+            ]
+          ],
+          "thickness": -2,
+          "widths": {
+            "kind": "defaulted",
+            "defaultStartWidth": 0.25,
+            "defaultEndWidth": 0.5,
+            "overrides": [
+              {},
+              {
+                "start": 0
+              }
+            ]
+          }
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0,
+            0,
+            2
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e5",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::lineSegment": {
+          "start": [
+            0,
+            0,
+            0
+          ],
+          "end": [
+            1,
+            2,
+            3
+          ],
+          "thickness": null,
+          "extrusionDirection": [
+            0,
+            1,
+            0
+          ]
+        }
+      }
+    }
+  ]
+}

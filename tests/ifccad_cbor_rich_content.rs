@@ -116,6 +116,8 @@ fn signed_zero_subnormals_and_high_watermarks_remain_exact() {
             kind: IfccadEntityKind::LineSegment {
                 start: [-0.0, f64::from_bits(1), 0.0],
                 end: [1.0, 2.0, -0.0],
+                thickness: 0.,
+                extrusion_direction: [0., 0., 1.],
             },
         }));
     d.id_counters.next_entity_id = u64::MAX;
@@ -126,7 +128,7 @@ fn signed_zero_subnormals_and_high_watermarks_remain_exact() {
         .unwrap()
         .into_document();
     assert_eq!(loaded, d);
-    let IfccadEntityKind::LineSegment { start, end } = &loaded
+    let IfccadEntityKind::LineSegment { start, end, .. } = &loaded
         .model
         .entities
         .last()

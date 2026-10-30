@@ -25,10 +25,18 @@ struct FilledValue {
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct PointValue {}
+struct PointValue {
+    #[serde(default)]
+    thickness: f64,
+}
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
+#[serde(rename_all = "camelCase")]
 struct LineValue {
+    #[serde(default = "default_extrusion_direction")]
+    extrusion_direction: [f64; 3],
+    #[serde(default)]
+    thickness: f64,
     start: LinePointValue,
     end: LinePointValue,
 }
@@ -49,11 +57,15 @@ impl LinePointValue {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct CircleValue {
+    #[serde(default)]
+    thickness: f64,
     radius: f64,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct ArcValue {
+    #[serde(default)]
+    thickness: f64,
     radius: f64,
     start_parameter: f64,
     sweep_parameter: f64,
@@ -76,6 +88,8 @@ struct EllipseArcValue {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct PlanarValue {
     #[serde(default)]
+    thickness: f64,
+    #[serde(default)]
     widths: IfccadPlanarPolylineWidths,
     vertices: Vec<[f64; 2]>,
     #[serde(default)]
@@ -86,6 +100,8 @@ struct PlanarValue {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct PlanarWithBulges {
+    #[serde(default)]
+    thickness: f64,
     #[serde(default)]
     widths: IfccadPlanarPolylineWidths,
     vertices: Vec<[f64; 2]>,
@@ -161,9 +177,10 @@ pub(super) fn decode_kind(
             }
         }
         "ifccad::geom::point" => {
-            let _: PointValue = decode(v, path)?;
+            let p: PointValue = decode(v, path)?;
             IfccadEntityKind::Point {
                 placement: frame()?,
+                thickness: p.thickness,
             }
         }
         "ifccad::geom::lineSegment" => {
@@ -171,6 +188,8 @@ pub(super) fn decode_kind(
             IfccadEntityKind::LineSegment {
                 start: p.start.xyz(),
                 end: p.end.xyz(),
+                thickness: p.thickness,
+                extrusion_direction: p.extrusion_direction,
             }
         }
         "ifccad::geom::circle" => {
@@ -178,6 +197,7 @@ pub(super) fn decode_kind(
             IfccadEntityKind::Circle {
                 radius: p.radius,
                 placement: frame()?,
+                thickness: p.thickness,
             }
         }
         "ifccad::geom::arc" => {
@@ -187,6 +207,7 @@ pub(super) fn decode_kind(
                 start_parameter: p.start_parameter,
                 sweep_parameter: p.sweep_parameter,
                 placement: frame()?,
+                thickness: p.thickness,
             }
         }
         "ifccad::geom::ellipse" => {
@@ -208,7 +229,7 @@ pub(super) fn decode_kind(
             }
         }
         "ifccad::geom::planarPolyline" => {
-            let (vertices, bulges, closed, line_pattern_generation, widths) =
+            let (vertices, bulges, closed, line_pattern_generation, widths, thickness) =
                 if v.get("bulges").is_some() {
                     let p: PlanarWithBulges = decode(v, path)?;
                     (
@@ -217,11 +238,19 @@ pub(super) fn decode_kind(
                         p.closed,
                         p.line_pattern_generation,
                         p.widths,
+                        p.thickness,
                     )
                 } else {
                     let p: PlanarValue = decode(v, path)?;
                     let b = vec![0.; p.vertices.len()];
-                    (p.vertices, b, p.closed, p.line_pattern_generation, p.widths)
+                    (
+                        p.vertices,
+                        b,
+                        p.closed,
+                        p.line_pattern_generation,
+                        p.widths,
+                        p.thickness,
+                    )
                 };
             IfccadEntityKind::PlanarPolyline {
                 widths,
@@ -230,6 +259,7 @@ pub(super) fn decode_kind(
                 closed,
                 placement: frame()?,
                 line_pattern_generation,
+                thickness,
             }
         }
         "ifccad::geom::spatialPolyline" => {
@@ -266,15 +296,17 @@ pub(super) fn encode_kind(kind: &IfccadEntityKind, attrs: &mut Map<String, Value
                 Some(&v.placement),
             )
         }
-        IfccadEntityKind::Point { placement } => {
+        IfccadEntityKind::Point { placement, .. } => {
             ("ifccad::geom::point", json!({}), Some(placement))
         }
-        IfccadEntityKind::LineSegment { start, end } => (
+        IfccadEntityKind::LineSegment { start, end, .. } => (
             "ifccad::geom::lineSegment",
             json!({"start":encode_line_point(start),"end":encode_line_point(end)}),
             None,
         ),
-        IfccadEntityKind::Circle { radius, placement } => (
+        IfccadEntityKind::Circle {
+            radius, placement, ..
+        } => (
             "ifccad::geom::circle",
             json!({"radius":radius}),
             Some(placement),
@@ -284,6 +316,7 @@ pub(super) fn encode_kind(kind: &IfccadEntityKind, attrs: &mut Map<String, Value
             start_parameter,
             sweep_parameter,
             placement,
+            ..
         } => (
             "ifccad::geom::arc",
             json!({"radius":radius,"startParameter":start_parameter,"sweepParameter":sweep_parameter}),
@@ -316,6 +349,7 @@ pub(super) fn encode_kind(kind: &IfccadEntityKind, attrs: &mut Map<String, Value
             closed,
             placement,
             line_pattern_generation,
+            ..
         } => {
             let mut value = json!({"vertices":vertices,"closed":closed,"linePatternGeneration":line_pattern_generation});
             if !widths.is_intrinsic_default() {
@@ -338,6 +372,28 @@ pub(super) fn encode_kind(kind: &IfccadEntityKind, attrs: &mut Map<String, Value
         _ => return false,
     };
     let mut payload = payload;
+    match kind {
+        IfccadEntityKind::Point { thickness, .. }
+        | IfccadEntityKind::Circle { thickness, .. }
+        | IfccadEntityKind::Arc { thickness, .. }
+        | IfccadEntityKind::PlanarPolyline { thickness, .. }
+        | IfccadEntityKind::LineSegment { thickness, .. }
+            if thickness.to_bits() != 0 =>
+        {
+            payload["thickness"] = json!(thickness);
+        }
+        _ => {}
+    }
+    if let IfccadEntityKind::LineSegment {
+        extrusion_direction,
+        ..
+    } = kind
+    {
+        if extrusion_direction.map(f64::to_bits) != [0., 0., 1.].map(f64::to_bits) {
+            payload["extrusionDirection"] = json!(extrusion_direction);
+        }
+    }
+
     if matches!(
         kind,
         IfccadEntityKind::PlanarPolyline { .. } | IfccadEntityKind::SpatialPolyline { .. }
@@ -362,4 +418,8 @@ fn encode_line_point(point: &[f64; 3]) -> Value {
     } else {
         json!(point)
     }
+}
+
+fn default_extrusion_direction() -> [f64; 3] {
+    [0., 0., 1.]
 }

@@ -8,6 +8,46 @@ mod drawing;
 mod house;
 
 #[test]
+fn catalogue_primitive_samples_keep_their_base_at_zero_with_visible_thickness() {
+    for (title, kind, count) in [
+        ("Point", "point", 1),
+        ("Line segment", "lineSegment", 1),
+        ("Circle", "circle", 1),
+        ("Arc", "arc", 2),
+        ("Planar polyline", "planarPolyline", 2),
+    ] {
+        let mut d = drawing::Drawing::new("thick-catalogue-sample");
+        let sample = catalogue::SAMPLES
+            .iter()
+            .find(|s| s.title == title)
+            .unwrap();
+        (sample.draw)(&mut d, 0., 0.);
+        let key = format!("ifccad::geom::{kind}");
+        let nodes: Vec<_> = d
+            .nodes
+            .iter()
+            .filter(|n| n["attributes"].get(&key).is_some())
+            .collect();
+        assert_eq!(nodes.len(), count, "{title}");
+        for node in nodes {
+            let body = &node["attributes"][&key];
+            assert_eq!(body["thickness"].as_f64().unwrap_or(0.), 15., "{title}");
+            if kind == "lineSegment" {
+                assert_eq!(body["start"][2], 0.);
+                assert_eq!(body["end"][2], 0.);
+            } else {
+                assert_eq!(
+                    node["attributes"]["ifccad::geom::placement"]["origin"][2]
+                        .as_f64()
+                        .unwrap_or(0.),
+                    0.
+                );
+            }
+        }
+    }
+}
+
+#[test]
 fn curated_files_match_their_strictly_read_back_recipes() {
     for (name, bytes) in [
         ("entities", catalogue::build().unwrap()),

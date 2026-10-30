@@ -103,9 +103,9 @@ pub(crate) fn enclosed_by_frame(frame: PaperFrame, geometry: GeometryRef<'_>) ->
         return false;
     };
     match geometry {
-        GeometryRef::Circle { placement, radius } if radius.is_finite() && radius > 0. => {
-            full_curve(placement, radius, radius, bounds)
-        }
+        GeometryRef::Circle {
+            placement, radius, ..
+        } if radius.is_finite() && radius > 0. => full_curve(placement, radius, radius, bounds),
         GeometryRef::Ellipse {
             placement,
             major,

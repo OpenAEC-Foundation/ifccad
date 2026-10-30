@@ -40,8 +40,8 @@ unused styles. A text payload contains a complete same-drawing `style` path,
 alongside the existing entity appearance and separate geometry placement.
 `ifccad::text`, `ifccad::mText` and `ifccad::textStyle` replace whole attribute
 values on LaterWins composition. No run/paragraph graph nodes are introduced.
-The [IFCCAD contract](../schemas/ifccad/experimental-contract-0.2.0.md#text-and-mtext)
-and [local-value supplement](../schemas/ifccad/supplemental-values-0.2.0.schema.json)
+The [IFCCAD contract](../schemas/ifccad/experimental-contract-0.3.0.md#text-and-mtext)
+and [local-value supplement](../schemas/ifccad/supplemental-values-0.3.0.schema.json)
 define its independent provisional mapping.
 
 `assess_ifccad_document_bounds` returns derived enclosing/estimated/partial

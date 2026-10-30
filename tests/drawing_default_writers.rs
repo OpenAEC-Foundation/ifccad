@@ -67,7 +67,13 @@ fn ifccad_writer_retains_nondefaults_and_signed_zero() {
     e.visible = false;
     e.appearance.opacity = ifc::IfccadMode::ByBlock;
     e.line_pattern_scale = 2.;
-    let ifc::IfccadEntityKind::LineSegment { start, end } = &mut e.kind else {
+    let ifc::IfccadEntityKind::LineSegment {
+        start,
+        end,
+        thickness: 0.,
+        extrusion_direction: [0., 0., 1.],
+    } = &mut e.kind
+    else {
         panic!()
     };
     start[2] = -0.;
@@ -84,7 +90,12 @@ fn ifccad_writer_retains_nondefaults_and_signed_zero() {
         json!(0.)
     );
     let loaded = ifc::load_ifccad_bytes(encoded.bytes(), Default::default()).unwrap();
-    let ifc::IfccadEntityKind::LineSegment { start, end } = &loaded.document().model.entities[0]
+    let ifc::IfccadEntityKind::LineSegment {
+        start,
+        end,
+        thickness: 0.,
+        extrusion_direction: [0., 0., 1.],
+    } = &loaded.document().model.entities[0]
         .as_native()
         .unwrap()
         .kind

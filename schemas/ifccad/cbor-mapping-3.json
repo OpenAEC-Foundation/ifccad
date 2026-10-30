@@ -1,6 +1,6 @@
 {
   "format": "IFCCAD-CBOR",
-  "mappingRevision": 2,
+  "mappingRevision": 3,
   "rootType": "IfccadDocument",
   "types": {
     "IfccadDocument": {
@@ -3170,6 +3170,26 @@
               "name": "end",
               "type": "LinePoint",
               "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "thickness",
+              "type": "f64",
+              "presence": "default",
+              "default": 0.0,
+              "omit": "exact"
+            },
+            {
+              "code": 3,
+              "name": "extrusion_direction",
+              "type": "[f64;3]",
+              "presence": "default",
+              "default": [
+                0.0,
+                0.0,
+                1.0
+              ],
+              "omit": "exact"
             }
           ]
         },
@@ -3183,6 +3203,14 @@
               "name": "placement",
               "type": "IfccadPlacement",
               "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "thickness",
+              "type": "f64",
+              "presence": "default",
+              "default": 0.0,
+              "omit": "exact"
             }
           ]
         },
@@ -3202,6 +3230,14 @@
               "name": "radius",
               "type": "f64",
               "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "thickness",
+              "type": "f64",
+              "presence": "default",
+              "default": 0.0,
+              "omit": "exact"
             }
           ]
         },
@@ -3233,6 +3269,14 @@
               "name": "sweep_parameter",
               "type": "f64",
               "presence": "required"
+            },
+            {
+              "code": 4,
+              "name": "thickness",
+              "type": "f64",
+              "presence": "default",
+              "default": 0.0,
+              "omit": "exact"
             }
           ]
         },
@@ -3349,6 +3393,14 @@
                   "width": 0.0
                 }
               },
+              "omit": "exact"
+            },
+            {
+              "code": 6,
+              "name": "thickness",
+              "type": "f64",
+              "presence": "default",
+              "default": 0.0,
               "omit": "exact"
             }
           ]
@@ -10188,6 +10240,26 @@
               "name": "end",
               "type": "LinePoint",
               "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "thickness",
+              "type": "f64",
+              "presence": "default",
+              "default": 0.0,
+              "omit": "exact"
+            },
+            {
+              "code": 3,
+              "name": "extrusion_direction",
+              "type": "[f64;3]",
+              "presence": "default",
+              "default": [
+                0.0,
+                0.0,
+                1.0
+              ],
+              "omit": "exact"
             }
           ]
         },
@@ -10201,6 +10273,14 @@
               "name": "placement",
               "type": "IfccadPlacement",
               "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "thickness",
+              "type": "f64",
+              "presence": "default",
+              "default": 0.0,
+              "omit": "exact"
             }
           ]
         },
@@ -10220,6 +10300,14 @@
               "name": "radius",
               "type": "f64",
               "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "thickness",
+              "type": "f64",
+              "presence": "default",
+              "default": 0.0,
+              "omit": "exact"
             }
           ]
         },
@@ -10251,6 +10339,14 @@
               "name": "sweep_parameter",
               "type": "f64",
               "presence": "required"
+            },
+            {
+              "code": 4,
+              "name": "thickness",
+              "type": "f64",
+              "presence": "default",
+              "default": 0.0,
+              "omit": "exact"
             }
           ]
         },
@@ -10367,6 +10463,14 @@
                   "width": 0.0
                 }
               },
+              "omit": "exact"
+            },
+            {
+              "code": 6,
+              "name": "thickness",
+              "type": "f64",
+              "presence": "default",
+              "default": 0.0,
               "omit": "exact"
             }
           ]

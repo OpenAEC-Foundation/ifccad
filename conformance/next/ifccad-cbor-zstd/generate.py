@@ -44,6 +44,6 @@ emit("trailing", data + b"\x00", error="Malformed")
 emit("future-revision", frame("../ifccad-cbor/invalid/future-revision.ifccad.cbor"),
      error="Cbor.UnsupportedRevision")
 (ROOT / "cases.json").write_text(json.dumps({
-    "transport": "IFCCAD CBOR Zstd experimental 1", "mappingRevision": 2,
+    "transport": "IFCCAD CBOR Zstd experimental 1", "mappingRevision": 3,
     "generator": "Python 3.14 compression.zstd; libzstd 1.5.7", "cases": cases,
 }, indent=2) + "\n", encoding="utf-8")

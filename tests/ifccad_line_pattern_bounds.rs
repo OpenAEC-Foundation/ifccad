@@ -56,6 +56,8 @@ fn drawing(text: bool) -> IfccadDocument {
         kind: IfccadEntityKind::LineSegment {
             start: [0.; 3],
             end: [10., 0., 0.],
+            thickness: 0.,
+            extrusion_direction: [0., 0., 1.],
         },
     })];
     doc.layers[0].appearance.line_pattern = IfccadLinePatternId(1);

@@ -34,6 +34,7 @@ fn new_clip_families_accept_tangency_and_reject_interior_escape() {
         closed: true,
         placement: placement(),
         line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+        thickness: 0.,
     };
     assert!(validate_ifccad_viewport_boundary(&frame, &poly(vec![1., 1.])).is_ok());
     assert!(validate_ifccad_viewport_boundary(&frame, &poly(vec![-1., -1.])).is_ok());

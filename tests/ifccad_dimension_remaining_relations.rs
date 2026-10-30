@@ -28,6 +28,7 @@ fn circle_relation(selector: serde_json::Value) -> IfccadDocument {
             x_axis: [1., 0., 0.],
             y_axis: [0., 1., 0.],
         },
+        thickness: 0.,
     };
     d.model.entities.push(IfccadEntity::Native(source));
     d.id_counters.next_entity_id += 1;
@@ -66,6 +67,7 @@ fn parameter_selectors_retain_explicit_wire_codes_and_strict_logical_readback() 
             IfccadEntityKind::Circle {
                 placement: plane.clone(),
                 radius: 20.,
+                thickness: 0.,
             },
             vec![0xa2, 0, 5, 1, 0xa1, 0, 0xfb, 0x3f, 0xd0, 0, 0, 0, 0, 0, 0],
         ),
@@ -76,6 +78,7 @@ fn parameter_selectors_retain_explicit_wire_codes_and_strict_logical_readback() 
                 radius: 20.,
                 start_parameter: 0.,
                 sweep_parameter: std::f64::consts::FRAC_PI_2,
+                thickness: 0.,
             },
             vec![0xa2, 0, 6, 1, 0xa1, 0, 0xfb, 0x3f, 0xe0, 0, 0, 0, 0, 0, 0],
         ),
@@ -88,6 +91,7 @@ fn parameter_selectors_retain_explicit_wire_codes_and_strict_logical_readback() 
                 bulges: vec![1., 0., 1.],
                 closed: false,
                 line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+                thickness: 0.,
             },
             vec![
                 0xa2, 0, 7, 1, 0xa2, 0, 0, 1, 0xfb, 0x3f, 0xe0, 0, 0, 0, 0, 0, 0,
@@ -143,6 +147,7 @@ fn closed_segment_is_eligible_but_open_dormant_segment_and_invalid_fractions_fai
         bulges: vec![0., 0., 1.],
         closed: false,
         line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+        thickness: 0.,
     };
     assert!(validate_ifccad_document(&drawing).is_err());
     let IfccadEntityKind::PlanarPolyline { closed, .. } =

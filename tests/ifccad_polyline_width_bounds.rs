@@ -18,6 +18,7 @@ fn wide_single_segment_encloses_all_four_corners() {
         vertices: PlanarVertices::Packed(&vertices),
         widths: &widths,
         closed: false,
+        thickness: 0.,
     })
     .unwrap();
     let b = b.bounds.unwrap();
@@ -33,6 +34,7 @@ fn arc_width_bound_encloses_full_band() {
         vertices: PlanarVertices::Packed(&vertices),
         widths: &widths,
         closed: false,
+        thickness: 0.,
     })
     .unwrap()
     .bounds
@@ -49,6 +51,7 @@ fn general_join_is_partial_not_centerline_enclosing() {
         vertices: PlanarVertices::Packed(&vertices),
         widths: &widths,
         closed: false,
+        thickness: 0.,
     })
     .unwrap();
     assert!(b.bounds.is_none());
@@ -66,6 +69,7 @@ fn wide_clip_uses_centerline_contour() {
         vertices: PlanarVertices::Packed(&vertices),
         widths: &widths,
         closed: true,
+        thickness: 0.,
     };
     let b = geometry_centerline_bounds(g).unwrap();
     assert_eq!(b.min().components(), [1., 1., 0.]);
@@ -111,6 +115,7 @@ fn default_edit_recomputes_only_explicitly() {
             default_end_width: 2.,
             overrides: vec![Default::default(); 2],
         },
+        thickness: 0.,
     };
     d.model.entities = vec![IfccadEntity::Native(e)];
     d.blocks.clear();
@@ -152,6 +157,7 @@ fn coincident_wide_segment_is_partial_and_continuous_circle_is_enclosing() {
             vertices: PlanarVertices::Packed(&vertices),
             widths: &widths,
             closed,
+            thickness: 0.,
         })
         .unwrap();
         assert_eq!(b.bounds.is_some(), complete);
@@ -199,6 +205,7 @@ fn hatch_source_keeps_centerline_identity_and_loop_records() {
         placement,
         line_pattern_generation: Default::default(),
         widths: IfccadPlanarPolylineWidths::Constant { width: 4. },
+        thickness: 0.,
     };
     validate_ifccad_document(&d).unwrap();
     let bytes = encode_ifccad_document(&d).unwrap();

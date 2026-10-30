@@ -1,8 +1,8 @@
 {
   "header": {
-    "id": "urn:example:ifccad:0.2.0",
+    "id": "urn:example:ifccad:0.3.0",
     "ifcxVersion": "ifcx_alpha",
-    "dataVersion": "0.2.0",
+    "dataVersion": "0.3.0",
     "author": "OpenAEC",
     "timestamp": "2026-09-29T00:00:00Z"
   },
@@ -1131,6 +1131,21 @@
                   "dataType": "Real"
                 }
               }
+            },
+            "thickness": {
+              "dataType": "Real",
+              "optional": true
+            },
+            "extrusionDirection": {
+              "dataType": "Array",
+              "optional": true,
+              "arrayRestrictions": {
+                "min": 3,
+                "max": 3,
+                "value": {
+                  "dataType": "Real"
+                }
+              }
             }
           }
         }
@@ -1247,6 +1262,10 @@
                   }
                 }
               }
+            },
+            "thickness": {
+              "dataType": "Real",
+              "optional": true
             }
           }
         }
@@ -1259,6 +1278,10 @@
           "values": {
             "radius": {
               "dataType": "Real"
+            },
+            "thickness": {
+              "dataType": "Real",
+              "optional": true
             }
           }
         }
@@ -1363,7 +1386,12 @@
       "value": {
         "dataType": "Object",
         "objectRestrictions": {
-          "values": {}
+          "values": {
+            "thickness": {
+              "dataType": "Real",
+              "optional": true
+            }
+          }
         }
       }
     },
@@ -1380,6 +1408,10 @@
             },
             "sweepParameter": {
               "dataType": "Real"
+            },
+            "thickness": {
+              "dataType": "Real",
+              "optional": true
             }
           }
         }

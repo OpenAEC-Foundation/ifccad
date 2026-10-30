@@ -54,6 +54,7 @@ fn graphics_ifcx_roundtrip_roles_and_order() {
         vec![],
         vec![support::part(IfccadDimensionGraphicsKind::Point {
             placement: support::dimension(&mut d).placement.clone(),
+            thickness: 0.,
         })],
     ] {
         support::dimension(&mut d).graphics.as_mut().unwrap().parts = parts;

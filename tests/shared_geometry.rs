@@ -14,6 +14,7 @@ fn packed_and_separate_bulges_have_identical_geometry() {
         placement: CoordinateFrame3::default(),
         vertices,
         closed: true,
+        thickness: 0.,
     };
     let frame = PaperFrame {
         center: [0., 0.],
@@ -68,6 +69,7 @@ fn dormant_final_bulge_does_not_enlarge_an_open_path() {
             bulges: &bulges,
         },
         closed: false,
+        thickness: 0.,
     };
     let bounds = geometry_bounds(path).unwrap();
     assert_eq!(bounds.min().components(), [0., 0., 0.]);
@@ -80,6 +82,7 @@ fn invalid_parameters_fail_before_exact_arithmetic() {
         assert!(validate_geometry(GeometryRef::Circle {
             placement: CoordinateFrame3::default(),
             radius,
+            thickness: 0.,
         })
         .is_err());
     }
@@ -89,6 +92,7 @@ fn invalid_parameters_fail_before_exact_arithmetic() {
             radius: 1.,
             start: 0.,
             sweep,
+            thickness: 0.,
         })
         .is_err());
     }
@@ -97,6 +101,7 @@ fn invalid_parameters_fail_before_exact_arithmetic() {
         radius: 1.,
         start: 0.,
         sweep: std::f64::consts::TAU.next_down(),
+        thickness: 0.,
     })
     .is_ok());
     let xy = [[0., 0.], [0., 0.]];
@@ -108,6 +113,7 @@ fn invalid_parameters_fail_before_exact_arithmetic() {
             bulges: &[f64::NAN, 0.]
         },
         closed: false,
+        thickness: 0.,
     })
     .is_err());
 }
@@ -138,6 +144,7 @@ fn the_native_model_exposes_a_borrowed_geometry_view() {
             y_axis: [0., 1., 0.],
         },
         radius: 2.,
+        thickness: 0.,
     };
     assert!(geometry_bounds(circle.as_shared_geometry().unwrap().unwrap()).is_ok());
 }

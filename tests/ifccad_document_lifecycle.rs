@@ -179,12 +179,15 @@ fn invalid_typed_documents_fail_without_encoding() {
         d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::LineSegment {
             start: [f64::NAN, 0., 0.],
             end: [1., 0., 0.],
+            thickness: 0.,
+            extrusion_direction: [0., 0., 1.],
         }
     });
     add("circle radius", |d| {
         d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::Circle {
             radius: 0.,
             placement: placement(),
+            thickness: 0.,
         }
     });
     add("polyline vertices", |d| {
@@ -197,6 +200,7 @@ fn invalid_typed_documents_fail_without_encoding() {
                 closed: false,
                 placement: placement(),
                 line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+                thickness: 0.,
             }
         }
     });
@@ -206,6 +210,7 @@ fn invalid_typed_documents_fail_without_encoding() {
         d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::Circle {
             radius: 2.,
             placement: p,
+            thickness: 0.,
         };
     });
     add("block scale", |d| {

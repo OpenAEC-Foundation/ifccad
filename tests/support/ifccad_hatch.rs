@@ -30,6 +30,7 @@ pub fn drawing() -> IfccadDocument {
     template.kind = IfccadEntityKind::Circle {
         radius: 1.0,
         placement: plane(),
+        thickness: 0.,
     };
     let source = template.clone();
     template.id = HATCH;

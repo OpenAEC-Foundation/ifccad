@@ -26,6 +26,8 @@ fn line() -> IfccadDimensionGraphicsPart {
     part(IfccadDimensionGraphicsKind::LineSegment {
         start: [-0.0, 7.0, 0.0],
         end: [13.0, 7.0, 0.0],
+        thickness: 0.,
+        extrusion_direction: [0., 0., 1.],
     })
 }
 #[test]
@@ -87,6 +89,7 @@ fn reference_point_requires_point() {
             x_axis: [1., 0., 0.],
             y_axis: [0., 1., 0.],
         },
+        thickness: 0.,
     };
     validate_ifccad_document(&d).unwrap();
     let p = &mut dimension(&mut d).graphics.as_mut().unwrap().parts[0];
@@ -101,6 +104,7 @@ fn graphics_validate_all_parts_and_marker_closures() {
     let mut p = part(IfccadDimensionGraphicsKind::Circle {
         placement: base.clone(),
         radius: -1.,
+        thickness: 0.,
     });
     p.visible = false;
     dimension(&mut d).graphics = Some(IfccadDimensionGraphics {

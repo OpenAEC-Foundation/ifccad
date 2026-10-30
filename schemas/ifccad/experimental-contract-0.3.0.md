@@ -1,4 +1,4 @@
-# Experimental IFCCAD profile 0.2.0
+# Experimental IFCCAD profile 0.3.0
 
 IFCCAD is an opt-in, standalone IFCX alpha experiment, independent of the OCDraw drawing contract. Generic IFCX content may coexist with these CAD nodes. A reader claiming this CAD profile must enforce the rules below after composing fragments for equal paths. Project-owned API and schema file names use IFCCAD. The underlying IFCX syntax, `.ifcx` serialization, `ifccad::` schema namespace and profile URI retain their meaning. Released historical conformance collections remain unchanged.
 
@@ -14,9 +14,9 @@ spatial-vertex requirements are unchanged. Existing fully expanded input remains
 valid; older experimental readers can reject new compact output.
 
 The ordinary IFCX module describes the available field shapes. The normative
-[profile rules](profile-rules-0.2.0.md) identify additional local-value, graph and
+[profile rules](profile-rules-0.3.0.md) identify additional local-value, graph and
 domain obligations for all current attribute families. The bundled offline reader
-uses [JSON Schema supplements](supplemental-values-0.2.0.schema.json) at consumed
+uses [JSON Schema supplements](supplemental-values-0.3.0.schema.json) at consumed
 CAD attribute boundaries together with typed projection and shared domain validation.
 No extra drawing import is required. Ordinary IFCX checks alone do not establish
 full IFCCAD validity. Native record closure and absence/null rules are enforced consistently across
@@ -25,13 +25,13 @@ Generated validation diagnostics identify a rule and source/component location.
 
 ## File and identity
 
-Profile 0.2.0 is the unpublished development successor to the fixed profile
+Profile 0.3.0 is the unpublished development successor to the fixed profile
 0.1.0 published in native source alpha 2026.44.0. It adds the seven remaining
 Dimension definitions and bounded source selectors. The
 [release policy](../../docs/releases.md) requires separate identifiers for
 normative changes, without promising historical readers or migrations.
 
-The file has IFCX `header`, `imports`, `schemas`, and `data`. `header.ifcxVersion` is `ifcx_alpha`. `header.dataVersion` belongs to the dataset. The drawing value's `profileVersion` is `0.2.0` and identifies this provisional CAD proof. This candidate uses a new identifier for its normative changes; alpha releases have no general compatibility guarantee. The recommended drawing imports `urn:example:ifccad:0.2.0`, whose schema-only IFCX document is `ifccad-profile-0.2.0.ifcx`, and leaves drawing-local `schemas` empty. The `example` URN namespace is registered for documentation and experimentation; this identifier is intentionally temporary and must be replaced by an organization-controlled published URI before production exchange. The 2026.44.0 tag fixes profile 0.1.0 under its own URI; this candidate URI identifies the development successor. The strict reader resolves this one experimental URI from its bundled profile, without network access. Alternatively, a drawing may inline exactly matching definitions from that module's `schemas`; a missing import and missing local definitions fail. This is a bounded offline resolver, not general IFCX import resolution. Conditional requirements and cross-node constraints in this document exceed IFCX's per-attribute descriptions.
+The file has IFCX `header`, `imports`, `schemas`, and `data`. `header.ifcxVersion` is `ifcx_alpha`. `header.dataVersion` belongs to the dataset. The drawing value's `profileVersion` is `0.3.0` and identifies this provisional CAD proof. This candidate uses a new identifier for its normative changes; alpha releases have no general compatibility guarantee. The recommended drawing imports `urn:example:ifccad:0.3.0`, whose schema-only IFCX document is `ifccad-profile-0.3.0.ifcx`, and leaves drawing-local `schemas` empty. The `example` URN namespace is registered for documentation and experimentation; this identifier is intentionally temporary and must be replaced by an organization-controlled published URI before production exchange. The 2026.44.0 tag fixes profile 0.1.0 under its own URI; this candidate URI identifies the development successor. The strict reader resolves this one experimental URI from its bundled profile, without network access. Alternatively, a drawing may inline exactly matching definitions from that module's `schemas`; a missing import and missing local definitions fail. This is a bounded offline resolver, not general IFCX import resolution. Conditional requirements and cross-node constraints in this document exceed IFCX's per-attribute descriptions.
 
 The complete path is a node identity. The profile uses `/cad/dN` for one drawing, `/cad/dN/layout/N` for Model and Paper layouts, `/cad/dN/layer/N` for layers, `/cad/dN/block/N` for block definitions, `/cad/dN/linePattern/N` for named pattern definitions, and `/cad/dN/eN` for drawable entities. Model and Paper layouts share one layout-ID domain. `N` is a canonical base-10 `uint64` with no sign or leading zero; entity IDs are unique within the drawing and are not repeated as attributes. USD-style angle brackets are not part of these paths. Path spelling is an experimental CAD convention, not a claim that IFCX requires UUIDs or these paths. References use the same complete path strings.
 
@@ -67,7 +67,7 @@ never lowered. Maintaining that history is an editor responsibility.
 Missing counters fail the current strict experimental reader; they are not
 inferred on load. Initializing an older file from current maxima cannot recover
 deleted-ID history and needs an explicit allocation baseline. The experimental
-URI/version 0.2.0 includes this state in its first published snapshot; earlier
+URI/version 0.3.0 includes this state in its first published snapshot; earlier
 unpublished allocation drafts have no compatibility promise.
 DWG/DXF import initializes fresh allocation state and retains source associations
 only through conversion mappings, without promising persistent native identity
@@ -362,7 +362,7 @@ for known contributions remain hard with absent bounds and unavailable neighbour
 ## Text and MText
 
 The independent closed nested mapping is
-[`supplemental-values-0.2.0.schema.json`](supplemental-values-0.2.0.schema.json). Its required
+[`supplemental-values-0.3.0.schema.json`](supplemental-values-0.3.0.schema.json). Its required
 fields, enums, variant exclusivity, primitive types and unknown/null rejection
 supplement the bundled IFCX module and semantic constraints described in
 [`docs/text.md`](../../docs/text.md). No CAD formatting codes are interpreted by
@@ -638,7 +638,7 @@ text/symbol markers. All current drawing payloads now require
 `nextSymbolSourceId`, even without sources. Plain numeric elements keep their
 wire spelling; the Rust pattern vector now contains typed elements. Use
 `LinePatternElement::simple(length)` for plain entries. URI/digest/embedding remain deferred. Upright rotation is now a native exclusive
-mode with the same finite-angle validation as relative/absolute rotation. See profile-rules-0.2.0.md for the closed
+mode with the same finite-angle validation as relative/absolute rotation. See profile-rules-0.3.0.md for the closed
 physical alternatives and drawing-local reference contract.
 
 ## Hatch gradient settings
@@ -690,13 +690,13 @@ requires its ordinary hard position evidence independently of optional simple
 surface correspondence; absent surface evidence does not invalidate, omit or
 lose a finite descriptor. Viewer rendering remains unassessed.
 
-Dimension owns optional independent graphics, projected as canonical child groups/parts in IFCX. No identity allocation or freshness evaluation is introduced; see [profile rules](profile-rules-0.2.0.md#owned-dimension-graphics).
+Dimension owns optional independent graphics, projected as canonical child groups/parts in IFCX. No identity allocation or freshness evaluation is introduced; see [profile rules](profile-rules-0.3.0.md#owned-dimension-graphics).
 
 ## Independent Hatch editing state
 
 `ifccad::hatch.classicSettings` and `.boundaryConstruction` are optional closed
 non-null records with the defaults, authored presence and intrinsic validation
-in [IFCCAD-HATCH-006](profile-rules-0.2.0.md#hatch-editing-state). They do not
+in [IFCCAD-HATCH-006](profile-rules-0.3.0.md#hatch-editing-state). They do not
 alter active fill, stored contours, source references, placement or allocation.
 No automatic recipe synchronization, gap policy, source regeneration or precise
 selector is introduced. The active CBOR mapping stores the same logical contract.
@@ -711,3 +711,19 @@ rotation with a finite stored radian angle. Upright follows the tangent while
 allowing a half-turn for readability. IFCX uses `rotation.mode: "upright"`;
 CBOR mapping revision 1 uses LinePatternRotation variant 2. This is stored
 marker semantics, with the existing unassessed external glyph/display boundary.
+
+## Primitive extrusion extension
+
+Point, LineSegment, Circle, Arc and PlanarPolyline MUST accept optional finite
+signed `thickness` with intrinsic +0 default, ordinary and saved graphics alike.
+Writers MUST omit only exact +0, retain -0, and reject null/unknown members.
+Placed primitives use the exact stored-axis cross product as sweep direction.
+LineSegment MUST additionally accept `extrusionDirection` with default [0,0,1],
+finite components and exact squared-length error at most the binary64 nearest
+1e-12; native IO MUST NOT normalize it, even for zero thickness. Endpoints remain
+scope-space XYZ. Width and lineweight semantics are independent. Paper clip and
+source selectors retain base-contour meaning. Display bounds MUST include the
+sweep without upgrading existing Partial quality. See
+[extrusion thickness](../../docs/geometry/extrusion-thickness.md) for the shared
+bounds and active development-conversion boundaries. Normative cases live in
+conformance/next, including valid-extrusion and invalid direction/null records.

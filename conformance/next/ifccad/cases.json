@@ -562,5 +562,17 @@
   {
     "file": "valid/dimension-jogged-radius.ifcx",
     "valid": true
+  },
+  {
+    "file": "valid-extrusion.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid-extrusion-direction.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid-extrusion-null.ifcx",
+    "valid": false
   }
 ]

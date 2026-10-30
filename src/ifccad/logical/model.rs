@@ -224,12 +224,14 @@ pub enum IfccadEntityKind {
     Viewport(IfccadViewport),
     Point {
         placement: IfccadPlacement,
+        thickness: f64,
     },
     Arc {
         radius: f64,
         start_parameter: f64,
         sweep_parameter: f64,
         placement: IfccadPlacement,
+        thickness: f64,
     },
     Ellipse {
         semi_major_radius: f64,
@@ -246,6 +248,8 @@ pub enum IfccadEntityKind {
     LineSegment {
         start: [f64; 3],
         end: [f64; 3],
+        thickness: f64,
+        extrusion_direction: [f64; 3],
     },
     PlanarPolyline {
         widths: IfccadPlanarPolylineWidths,
@@ -254,6 +258,7 @@ pub enum IfccadEntityKind {
         closed: bool,
         placement: IfccadPlacement,
         line_pattern_generation: IfccadLinePatternGeneration,
+        thickness: f64,
     },
     SpatialPolyline {
         vertices: Vec<[f64; 3]>,
@@ -263,6 +268,7 @@ pub enum IfccadEntityKind {
     Circle {
         radius: f64,
         placement: IfccadPlacement,
+        thickness: f64,
     },
     BlockInstance {
         definition_id: u64,

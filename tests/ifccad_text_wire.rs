@@ -15,7 +15,7 @@ fn bundled_profile_uses_ifcx_array_item_description_syntax() {
                     "/schemas/ifccad::linePattern/value/objectRestrictions/values/pattern"
                 );
                 let supplemental: Value = serde_json::from_str(include_str!(
-                    "../schemas/ifccad/supplemental-values-0.2.0.schema.json"
+                    "../schemas/ifccad/supplemental-values-0.3.0.schema.json"
                 ))
                 .unwrap();
                 let choices = supplemental["$defs"]["linePatternElement"]["oneOf"]
@@ -52,7 +52,7 @@ fn bundled_profile_uses_ifcx_array_item_description_syntax() {
         }
     }
     let profile: Value =
-        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.2.0.ifcx")).unwrap();
+        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.3.0.ifcx")).unwrap();
     check(&profile["schemas"], "/schemas");
 }
 

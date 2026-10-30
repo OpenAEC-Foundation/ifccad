@@ -140,6 +140,8 @@ mod tests {
             IfccadDimensionGraphicsKind::LineSegment {
                 start: [-0., 2., 0.],
                 end: [4., 5., 0.],
+                thickness: 0.,
+                extrusion_direction: [0., 0., 1.],
             },
             IfccadDimensionGraphicsKind::Trace(IfccadFilledQuadrilateral {
                 placement: IfccadPlacement {

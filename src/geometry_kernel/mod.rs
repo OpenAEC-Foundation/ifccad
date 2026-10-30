@@ -4,6 +4,7 @@
 #[allow(dead_code)] // Preserve the existing internal block component construction helpers.
 mod block;
 mod bounds;
+mod extrusion;
 mod filled;
 pub use filled::{filled_quadrilateral_surface_cover, FilledQuadrilateralSurfaceCover};
 mod bulge;

@@ -95,7 +95,7 @@ cad/export-cad. Native opening and IFCCAD conversion do not require this option.
 This is the active route. The earlier OCDraw pilot above records historical
 architecture and qualification; it does not establish current IFCCAD coverage.
 The authoritative serialized contract is the
-[IFCCAD profile](../schemas/ifccad/experimental-contract-0.2.0.md), with current
+[IFCCAD profile](../schemas/ifccad/experimental-contract-0.3.0.md), with current
 conversion limits in the converter's
 [FROM-CAD](../legacy/ifccad-convert/reference/crates/ifccad-convert/docs/FROM-CAD-COVERAGE.md) and
 [TO-CAD](../legacy/ifccad-convert/reference/crates/ifccad-convert/docs/TO-CAD-COVERAGE.md) inventories.

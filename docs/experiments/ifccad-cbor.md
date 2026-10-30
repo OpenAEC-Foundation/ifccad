@@ -5,23 +5,23 @@ the existing IFCX JSON CAD profile and this standalone CBOR candidate. The
 binary file is not a general IFCX serialization and is not automatically
 readable by IFCX JSON applications. OCDraw is parked as a frozen reference outside the active workspace.
 
-The [development revision-2 contract](../../schemas/ifccad/cbor-mapping-2.md) and
-[complete field register](../../schemas/ifccad/cbor-mapping-2.json) define the
+The [development revision-3 contract](../../schemas/ifccad/cbor-mapping-3.md) and
+[complete field register](../../schemas/ifccad/cbor-mapping-3.json) define the
 language-neutral physical mapping. Conformance is in
 `conformance/next/ifccad-cbor`; published alpha 2026.44.0 fixes the previous
-revision-1 snapshot. The active revision-2 candidate adds the remaining Dimension
-kinds and bounded selectors, alongside profile 0.2.0.
+revision-1 snapshot; 2026.44.1 fixes revision 2 and profile 0.2.0. The active
+revision-3 candidate adds primitive extrusion thickness alongside profile 0.3.0.
 This remains experimental, with no stable-format or compatibility promise.
 
 ## Structure and evolution
 
 The complete file is one definite-length CBOR map:
-`{0: "IFCCAD-CBOR", 1: 2, 2: Document}`. File names conventionally use
+`{0: "IFCCAD-CBOR", 1: 3, 2: Document}`. File names conventionally use
 `.ifccad.cbor`. Each record has its own small unsigned field codes; entity
 kind codes and document identities have separate meanings. Source order in
 Rust does not assign codes. The registry explicitly fixes every field/variant.
 
-The candidate reader accepts only mapping revision 2. Unknown fields, variants or
+The candidate reader accepts only mapping revision 3. Unknown fields, variants or
 revisions are errors; there is no compatibility migration or silent skipping.
 Revision 1 is published with native source alpha 2026.44.0. Later normative
 changes advance the single active mapping and fixtures under the
@@ -31,8 +31,8 @@ routes. Dimension references are required XYZ; the dimension-line point is XY in
 
 All supported logical content survives: IDs/counters, ownership/draw order,
 definition vector order, native geometry, Paper/Model state, text, patterns,
-Hatch, Linear/Aligned Dimensions and typed opaque preservation. Other
-DimensionKind values remain valid style selections, not new entity definitions.
+Hatch, all nine supported Dimension kinds with bounded selectors and saved
+graphics, and typed opaque preservation.
 Binary readback does not reorder otherwise unordered definition collections.
 
 Defaults are registered explicitly. Every stored float is binary64, including

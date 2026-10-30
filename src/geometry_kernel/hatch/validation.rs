@@ -67,6 +67,7 @@ pub(super) fn parameters(boundary: &HatchBoundary2, index: usize) -> Result<(), 
                 primitive(GeometryRef::Circle {
                     placement,
                     radius: *radius,
+                    thickness: 0.,
                 })
             })
         }
@@ -95,6 +96,7 @@ pub(super) fn parameters(boundary: &HatchBoundary2, index: usize) -> Result<(), 
                         bulges,
                     },
                     closed: true,
+                    thickness: 0.,
                 })
                 .and_then(|()| {
                     let bits = |x: f64| if x == 0.0 { 0 } else { x.to_bits() };
@@ -128,6 +130,8 @@ pub(super) fn parameters(boundary: &HatchBoundary2, index: usize) -> Result<(), 
                         HatchEdge2::Line { start, end } => primitive(GeometryRef::Line {
                             start: [start[0], start[1], 0.0],
                             end: [end[0], end[1], 0.0],
+                            thickness: 0.,
+                            extrusion_direction: [0., 0., 1.],
                         }),
                         _ => {
                             let c = edge.curve().expect("arc variant");

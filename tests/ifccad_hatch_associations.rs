@@ -25,6 +25,8 @@ fn ordered_disabled_sources_survive_strict_readback_and_source_edits() {
     d.model.entities[1].as_native_mut().unwrap().kind = IfccadEntityKind::LineSegment {
         start: [0., 0., 2.],
         end: [3., 0., 2.],
+        thickness: 0.,
+        extrusion_direction: [0., 0., 1.],
     };
     let out = encode_ifccad_document(&d).unwrap();
     let read = load_ifccad_bytes(out.bytes(), Default::default())

@@ -116,3 +116,18 @@ advance the native format or create another native release.
 Open issues #4 (splines), #12/#18 (accuracy), #20
 (evaluation API) and #6 (encoding research) overlap in evidence boundaries and
 remain separate work. No automatic size/exchange measurement is authorized.
+
+## Isolated extrusion development (not deployed)
+
+The five primitive thickness additions and ordinary classic POLYLINE mapping use
+an explicit local Document patch based on e6135a72 with unchanged codec 75dd8f5.
+They require development profile 0.3.0/CBOR3. See the
+[contract and coverage](../geometry/extrusion-thickness.md). The published pins
+above and user investigation viewer remain unchanged. Review-file correctness
+and local Explorer/reader integration have separate verification evidence.
+
+### Accepted local extrusion pair — 30 October 2026
+
+The user accepted the synthetic native/DWG/DXF review files, including the explicit classic POLYLINE effective-width/default-presence losses. Local Explorer integration now selects native base 2e8bd5f plus its extrusion patch and Document base e6135a7 plus its paired patch, with unchanged codec75dd8f5. Host base fae56298 remains separate from the investigation viewer. `ocs-source.json` explicitly marks local development; preparation requires both local paths and build records include their content identities. Profile0.3.0/CBOR3 is required throughout the browser, host and parser worker; this does not update published releases.
+
+Inspection presents signed thickness, owning-scope direction and units for all five ordinary/saved-graphics kinds. Width modes stay exact natively; CAD materialization is diagnosed. The accepted gallery remains a local review artifact. The existing catalogue primitive examples have thickness 15 with base Z=0, without an added block or sample section. Visual absence of circle/arc extrusion is a confirmed OCS2026.43 issue under [#2361](https://github.com/HakanSeven12/OpenCADStudio/issues/2361), outside this mapping slice. No claim is made for automatic graphics regeneration, grip/undo repair or general rendering fidelity.

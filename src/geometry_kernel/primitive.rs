@@ -56,19 +56,24 @@ pub enum GeometryRef<'a> {
     Line {
         start: [f64; 3],
         end: [f64; 3],
+        thickness: f64,
+        extrusion_direction: [f64; 3],
     },
     Point {
         placement: CoordinateFrame3,
+        thickness: f64,
     },
     Circle {
         placement: CoordinateFrame3,
         radius: f64,
+        thickness: f64,
     },
     Arc {
         placement: CoordinateFrame3,
         radius: f64,
         start: f64,
         sweep: f64,
+        thickness: f64,
     },
     Ellipse {
         placement: CoordinateFrame3,
@@ -81,6 +86,7 @@ pub enum GeometryRef<'a> {
         placement: CoordinateFrame3,
         vertices: PlanarVertices<'a>,
         closed: bool,
+        thickness: f64,
     },
     SpatialPolyline {
         vertices: &'a [[f64; 3]],
@@ -99,19 +105,24 @@ pub enum OwnedGeometry {
     Line {
         start: [f64; 3],
         end: [f64; 3],
+        thickness: f64,
+        extrusion_direction: [f64; 3],
     },
     Point {
         placement: CoordinateFrame3,
+        thickness: f64,
     },
     Circle {
         placement: CoordinateFrame3,
         radius: f64,
+        thickness: f64,
     },
     Arc {
         placement: CoordinateFrame3,
         radius: f64,
         start: f64,
         sweep: f64,
+        thickness: f64,
     },
     Ellipse {
         placement: CoordinateFrame3,
@@ -124,6 +135,7 @@ pub enum OwnedGeometry {
         placement: CoordinateFrame3,
         vertices: Vec<[f64; 3]>,
         closed: bool,
+        thickness: f64,
     },
     SpatialPolyline {
         vertices: Vec<[f64; 3]>,
@@ -142,27 +154,49 @@ impl OwnedGeometry {
                 corners,
                 thickness: *thickness,
             },
-            Self::Line { start, end } => GeometryRef::Line {
+            Self::Line {
+                start,
+                end,
+                thickness,
+                extrusion_direction,
+                ..
+            } => GeometryRef::Line {
                 start: *start,
                 end: *end,
+                thickness: *thickness,
+                extrusion_direction: *extrusion_direction,
             },
-            Self::Point { placement } => GeometryRef::Point {
+            Self::Point {
+                placement,
+                thickness,
+                ..
+            } => GeometryRef::Point {
                 placement: *placement,
+                thickness: *thickness,
             },
-            Self::Circle { placement, radius } => GeometryRef::Circle {
+            Self::Circle {
+                placement,
+                radius,
+                thickness,
+                ..
+            } => GeometryRef::Circle {
                 placement: *placement,
                 radius: *radius,
+                thickness: *thickness,
             },
             Self::Arc {
                 placement,
                 radius,
                 start,
                 sweep,
+                thickness,
+                ..
             } => GeometryRef::Arc {
                 placement: *placement,
                 radius: *radius,
                 start: *start,
                 sweep: *sweep,
+                thickness: *thickness,
             },
             Self::Ellipse {
                 placement,
@@ -180,11 +214,14 @@ impl OwnedGeometry {
                 placement,
                 vertices,
                 closed,
+                thickness,
+                ..
             } => GeometryRef::PlanarPolyline {
                 widths,
                 placement: *placement,
                 vertices: PlanarVertices::Packed(vertices),
                 closed: *closed,
+                thickness: *thickness,
             },
             Self::SpatialPolyline { vertices, closed } => GeometryRef::SpatialPolyline {
                 vertices,

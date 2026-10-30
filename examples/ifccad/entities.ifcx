@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.2.0"
+      "uri": "urn:example:ifccad:0.3.0"
     }
   ],
   "schemas": {},
@@ -47,7 +47,7 @@
           "nextSymbolSourceId": 1,
           "nextTextStyleId": 1,
           "nextUcsId": 1,
-          "profileVersion": "0.2.0"
+          "profileVersion": "0.3.0"
         },
         "ifccad::drawingWorkspace": {
           "activeLayout": "/cad/d1/layout/1",
@@ -930,7 +930,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Position + reference cross",
+              "text": "Z=0 / thickness 15 + reference cross",
               "underline": false
             }
           ],
@@ -968,7 +968,9 @@
             0.0
           ]
         },
-        "ifccad::geom::point": {}
+        "ifccad::geom::point": {
+          "thickness": 15.0
+        }
       }
     },
     {
@@ -1124,7 +1126,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Start and end points",
+              "text": "Z=0 / thickness 15",
               "underline": false
             }
           ],
@@ -1153,7 +1155,8 @@
           "start": [
             113.0,
             621.0
-          ]
+          ],
+          "thickness": 15.0
         }
       }
     },
@@ -1274,7 +1277,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Centre and radius",
+              "text": "Z=0 / thickness 15",
               "underline": false
             }
           ],
@@ -1296,7 +1299,8 @@
           "layer": "/cad/d1/layer/1"
         },
         "ifccad::geom::circle": {
-          "radius": 17.0
+          "radius": 17.0,
+          "thickness": 15.0
         },
         "ifccad::geom::placement": {
           "origin": [
@@ -1434,7 +1438,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Positive and negative sweep",
+              "text": "Signed sweep / Z=0 / thickness 15",
               "underline": false
             }
           ],
@@ -1458,7 +1462,8 @@
         "ifccad::geom::arc": {
           "radius": 17.0,
           "startParameter": 0.0,
-          "sweepParameter": 4.39822971502571
+          "sweepParameter": 4.39822971502571,
+          "thickness": 15.0
         },
         "ifccad::geom::placement": {
           "origin": [
@@ -1488,7 +1493,8 @@
         "ifccad::geom::arc": {
           "radius": 17.0,
           "startParameter": 0.0,
-          "sweepParameter": -4.39822971502571
+          "sweepParameter": -4.39822971502571,
+          "thickness": 15.0
         },
         "ifccad::geom::placement": {
           "origin": [
@@ -1950,7 +1956,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Open, closed and bulged",
+              "text": "Open, closed, bulged / Z=0 / thickness 15",
               "underline": false
             }
           ],
@@ -1989,6 +1995,7 @@
           ]
         },
         "ifccad::geom::planarPolyline": {
+          "thickness": 15.0,
           "vertices": [
             [
               205.0,
@@ -2037,6 +2044,7 @@
             0.0
           ],
           "closed": true,
+          "thickness": 15.0,
           "vertices": [
             [
               0.0,

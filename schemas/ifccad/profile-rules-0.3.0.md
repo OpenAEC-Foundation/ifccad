@@ -1,10 +1,10 @@
-# IFCCAD supplemental profile rules 0.2.0
+# IFCCAD supplemental profile rules 0.3.0
 
-This is a normative companion to the [experimental contract](experimental-contract-0.2.0.md),
-the ordinary [IFCX declarations](ifccad-profile-0.2.0.ifcx), and the
-[local-value supplement](supplemental-values-0.2.0.schema.json). All apply after
+This is a normative companion to the [experimental contract](experimental-contract-0.3.0.md),
+the ordinary [IFCX declarations](ifccad-profile-0.3.0.ifcx), and the
+[local-value supplement](supplemental-values-0.3.0.schema.json). All apply after
 fragment composition. It is not an IFCX schema extension or an independent drawing format.
-The existing `urn:example:ifccad:0.2.0` import remains the only drawing import needed
+The existing `urn:example:ifccad:0.3.0` import remains the only drawing import needed
 by the bundled offline reader. Full IFCCAD validation includes local values,
 graph relationships and domain algorithms, not just ordinary IFCX attribute shapes.
 
@@ -99,7 +99,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 
 | ID | Requirement and algorithm | Phase / gap | Positive and negative evidence |
 |---|---|---|---|
-| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.2.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
+| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.3.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
 | IFCCAD-WIRE-002 | Duplicate keys within one JSON object MUST fail. Same-path fragments merge children/inherits/attributes by key in file order; repeated values replace whole values, not nested arrays/overrides. Null inheritance removes its key; child/attribute null remains a marker. RejectConflicts MUST reject differing repeated values, including foreign nodes. | C; G3 | [composer](../../src/ifccad/source/composition.rs), [text wire](../../tests/ifccad_text_wire.rs) |
 | IFCCAD-WIRE-003 | CAD validation MUST run on the composed graph, retaining exact immutable original bytes and foreign context. Foreign children confer no CAD ownership. No supplement may validate all foreign objects or interpret provider bytes as CAD fields. | C/V/G; G3/G8 | [profile rules tests](../../tests/ifccad_profile_rules.rs), [native](../../tests/ifccad_native.rs) |
 | IFCCAD-WIRE-004 | Closed native value objects MUST reject unknown members and forbidden nulls as specified in the contract and local variant definitions. Unsupported CAD namespaces/payloads MUST fail at their existing role boundaries. No legacy unknown-field or null acceptance exception is provided. | V/G; G7 | [geometry](../../tests/ifccad_geometry.rs), [text codec](../../tests/ifccad_text_codec.rs), [workspace](../../tests/ifccad_workspace_state.rs) |
@@ -402,3 +402,19 @@ Constant exact positive zero may be omitted; no equality/zero normalization of
 PerVertex or Defaulted is allowed. Widths do not alter Hatch/viewport centerline
 contours or add extrusion-thickness semantics. Whole attribute replacement
 applies; override arrays are never merged by index.
+
+## Primitive extrusion extension
+
+Point, LineSegment, Circle, Arc and PlanarPolyline MUST accept optional finite
+signed `thickness` with intrinsic +0 default, ordinary and saved graphics alike.
+Writers MUST omit only exact +0, retain -0, and reject null/unknown members.
+Placed primitives use the exact stored-axis cross product as sweep direction.
+LineSegment MUST additionally accept `extrusionDirection` with default [0,0,1],
+finite components and exact squared-length error at most the binary64 nearest
+1e-12; native IO MUST NOT normalize it, even for zero thickness. Endpoints remain
+scope-space XYZ. Width and lineweight semantics are independent. Paper clip and
+source selectors retain base-contour meaning. Display bounds MUST include the
+sweep without upgrading existing Partial quality. See
+[extrusion thickness](../../docs/geometry/extrusion-thickness.md) for the shared
+bounds and active development-conversion boundaries. Normative cases live in
+conformance/next, including valid-extrusion and invalid direction/null records.

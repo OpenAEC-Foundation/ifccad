@@ -20,7 +20,7 @@ fn new_profile_writer_uses_candidate_identifiers_and_strict_readback() {
         .as_array()
         .unwrap()
         .iter()
-        .any(|x| x["uri"] == "urn:example:ifccad:0.2.0"));
+        .any(|x| x["uri"] == "urn:example:ifccad:0.3.0"));
     let loaded = load_ifccad_bytes(encoded.bytes(), Default::default()).unwrap();
     validate_ifccad_document(loaded.document()).unwrap();
     let IfccadEntityKind::Dimension(returned) = &loaded.document().model.entities[0]
@@ -62,7 +62,7 @@ fn every_new_kind_survives_json_and_cbor_with_independent_reference_heights() {
         assert_eq!(envelope.u64().unwrap(), 0);
         assert_eq!(envelope.str().unwrap(), "IFCCAD-CBOR");
         assert_eq!(envelope.u64().unwrap(), 1);
-        assert_eq!(envelope.u64().unwrap(), 2);
+        assert_eq!(envelope.u64().unwrap(), 3);
         for returned in [
             load_ifccad_bytes(json.bytes(), Default::default())
                 .unwrap()

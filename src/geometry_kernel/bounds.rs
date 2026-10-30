@@ -1,8 +1,8 @@
 use super::{Bounds3d, GeometryRef, GeometryValidationError as Error, PaperFrame, Point2, Point3};
 
-/// Centerline/primitive enclosure. Use width-aware display bounds for scope display queries.
+/// Primitive enclosure including supported extrusion. Use width-aware display bounds for scope display queries.
 pub fn geometry_bounds(g: GeometryRef<'_>) -> Result<Bounds3d, Error> {
-    geometry_centerline_bounds(g)
+    super::extrusion::extrude_bounds(geometry_centerline_bounds(g)?, g)
 }
 /// Explicit centerline access for contour validity, selectors and Hatch/viewport boundaries.
 pub fn geometry_centerline_bounds(g: GeometryRef<'_>) -> Result<Bounds3d, Error> {
@@ -21,15 +21,17 @@ pub fn geometry_centerline_bounds(g: GeometryRef<'_>) -> Result<Bounds3d, Error>
             corners,
             thickness,
         } => return super::filled::bounds(placement, corners, thickness),
-        GeometryRef::Line { start, end } => {
+        GeometryRef::Line { start, end, .. } => {
             union(start, start);
             union(end, end);
         }
-        GeometryRef::Point { placement } => union(
+        GeometryRef::Point { placement, .. } => union(
             placement.origin().components(),
             placement.origin().components(),
         ),
-        GeometryRef::Circle { placement, radius } => {
+        GeometryRef::Circle {
+            placement, radius, ..
+        } => {
             let b = super::circular_bounds(placement.components(), radius, None)
                 .ok_or(Error::EnclosureOutOfRange)?;
             union(b.min().components(), b.max().components());
@@ -39,6 +41,7 @@ pub fn geometry_centerline_bounds(g: GeometryRef<'_>) -> Result<Bounds3d, Error>
             radius,
             start,
             sweep,
+            ..
         } => {
             let b = super::circular_bounds(placement.components(), radius, Some((start, sweep)))
                 .ok_or(Error::EnclosureOutOfRange)?;

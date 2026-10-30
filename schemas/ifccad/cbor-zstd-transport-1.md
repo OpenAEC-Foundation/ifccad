@@ -1,6 +1,6 @@
 # Experimental IFCCAD CBOR Zstd transport
 
-This optional transport wraps the [active CBOR mapping](cbor-mapping-2.md)
+This optional transport wraps the [active CBOR mapping](cbor-mapping-3.md)
 without changing its logical model, field codes or payload bytes. Uncompressed
 CBOR remains the default. This is an independent IFCCAD experiment, not a general
 IFCX compression contract or a promise about future IFCX encodings.

@@ -137,6 +137,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             kind: IfccadEntityKind::LineSegment {
                 start: [0., y, 0.],
                 end: [60., y, 0.],
+                thickness: 0.,
+                extrusion_direction: [0., 0., 1.],
             },
         })
     };

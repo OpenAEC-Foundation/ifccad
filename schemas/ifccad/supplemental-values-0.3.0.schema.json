@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:example:ifccad:supplemental-values:0.2.0",
+  "$id": "urn:example:ifccad:supplemental-values:0.3.0",
   "title": "IFCCAD supplemental local value constraints",
   "$defs": {
     "mTextBackground": {
@@ -1500,7 +1500,12 @@
     },
     "geometryPointExtras": {
       "type": "object",
-      "properties": {},
+      "properties": {
+        "thickness": {
+          "type": "number",
+          "default": 0
+        }
+      },
       "additionalProperties": false,
       "allOf": [
         {
@@ -1526,6 +1531,23 @@
           "items": {
             "type": "number"
           }
+        },
+        "thickness": {
+          "type": "number",
+          "default": 0
+        },
+        "extrusionDirection": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3,
+          "default": [
+            0,
+            0,
+            1
+          ]
         }
       },
       "additionalProperties": false,
@@ -1545,6 +1567,10 @@
         "radius": {
           "type": "number",
           "exclusiveMinimum": 0
+        },
+        "thickness": {
+          "type": "number",
+          "default": 0
         }
       },
       "additionalProperties": false,
@@ -1562,7 +1588,11 @@
           "exclusiveMinimum": 0
         },
         "startParameter": {},
-        "sweepParameter": {}
+        "sweepParameter": {},
+        "thickness": {
+          "type": "number",
+          "default": 0
+        }
       },
       "additionalProperties": false,
       "allOf": [
@@ -1623,6 +1653,10 @@
         "bulges": {},
         "widths": {
           "$ref": "#/$defs/planarPolylineWidths"
+        },
+        "thickness": {
+          "type": "number",
+          "default": 0
         }
       },
       "additionalProperties": false,

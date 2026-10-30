@@ -214,7 +214,7 @@ fn old_incomplete_inline_profile_is_rejected_and_deleted_records_keep_counter() 
     let b = encode_ifccad_document(&d).unwrap();
     let mut v: serde_json::Value = serde_json::from_slice(b.bytes()).unwrap();
     let module: serde_json::Value =
-        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.2.0.ifcx")).unwrap();
+        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.3.0.ifcx")).unwrap();
     v["schemas"] = module["schemas"].clone();
     v["schemas"]["ifccad::drawing"]["value"]["objectRestrictions"]["values"]
         .as_object_mut()

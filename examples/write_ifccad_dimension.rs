@@ -57,6 +57,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     entity.kind = IfccadEntityKind::LineSegment {
         start: [0.0; 3],
         end: [4000.0, 0.0, 0.0],
+        thickness: 0.,
+        extrusion_direction: [0., 0., 1.],
     };
     let line = entity.clone();
     let relations = vec![

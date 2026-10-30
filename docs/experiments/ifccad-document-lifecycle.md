@@ -258,7 +258,7 @@ boundary, an independently identified boundary: sharing one boundary between
 viewports is invalid. Editors must update those references before validation.
 The JSON encoding canonicalizes frozen-layer sets by numeric ID while preserving
 all other viewport payload semantics and strict whole-attribute composition.
-The [viewport contract](../../schemas/ifccad/experimental-contract-0.2.0.md#paper-viewports)
+The [viewport contract](../../schemas/ifccad/experimental-contract-0.3.0.md#paper-viewports)
 and candidate conformance fixtures define the current independent profile.
 
 ## Typed failures

@@ -181,6 +181,7 @@ fn missing_bounds_cannot_hide_numeric_extent_overflow() {
             x_axis: [1., 0., 0.],
             y_axis: [0., 1., 0.],
         },
+        thickness: 0.,
     };
     d.model.entities.push(IfccadEntity::Native(e));
     d.model.bounds = None;

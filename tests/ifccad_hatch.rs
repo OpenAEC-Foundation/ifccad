@@ -28,6 +28,7 @@ fn missing_source_fails_and_source_edit_does_not_update_stored_contour() {
     d.model.entities[1].as_native_mut().unwrap().kind = IfccadEntityKind::Circle {
         radius: 2.0,
         placement: plane(),
+        thickness: 0.,
     };
     let expected = d.model.entities[0].clone();
     let out = encode_ifccad_document(&d).unwrap();

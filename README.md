@@ -84,6 +84,14 @@ Editing CAD within a broader IFCX graph waits for a concrete application; existi
 source retention and loss diagnostics remain unchanged. See the
 [scope decision](docs/experiments/ifccad-document-lifecycle.md#provisional-standalone-cad-scope--2026-10-21).
 
+The selected geometry contribution before annotation work adds primitive extrusion
+thickness and classic 2D POLYLINE mapping. Its isolated development pair uses
+profile 0.3.0/CBOR3. Native/CAD control files and local Explorer integration have
+been verified and visually accepted; the catalogue samples use 15 mm thickness
+with base Z=0. This is not included in the published 2026.44.1 release or public
+Explorer. Fixed dependency revisions, the Document PR and publication remain
+pending. See [extrusion scope and review boundary](docs/geometry/extrusion-thickness.md).
+
 ## Development sequence
 
 [ROADMAP.md](ROADMAP.md) is authoritative; reviewed on **29 October 2026**.
@@ -142,7 +150,7 @@ cargo run -p viewer -- export-ifccad examples/ifccad/house.ifcx dxf
 CAD input defaults to IFCCAD. `--drawing-format ifccad` remains accepted;
 `--drawing-format ocdraw` reports `OCDRAW_PARKED` before reading the input.
 See the [IFCCAD lifecycle and API conventions](docs/experiments/ifccad-document-lifecycle.md),
-[experimental contract](schemas/ifccad/experimental-contract-0.2.0.md) and
+[experimental contract](schemas/ifccad/experimental-contract-0.3.0.md) and
 [CBOR experiment](docs/experiments/ifccad-cbor.md).
 
 ## Verification

@@ -30,6 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     template.kind = IfccadEntityKind::Circle {
         radius: 1.0,
         placement: plane.clone(),
+        thickness: 0.,
     };
     let source_entity = template.clone();
     let hatch = 1;

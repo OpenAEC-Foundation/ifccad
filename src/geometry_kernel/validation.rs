@@ -16,11 +16,12 @@ pub enum GeometryValidationError {
 }
 
 pub(crate) fn validate_parameters(g: GeometryRef<'_>) -> Result<(), GeometryValidationError> {
+    super::extrusion::validate(g)?;
     let good = match g {
         GeometryRef::FilledQuadrilateral {
             corners, thickness, ..
         } => return super::filled::validate(corners, thickness),
-        GeometryRef::Line { start, end } => start.into_iter().chain(end).all(f64::is_finite),
+        GeometryRef::Line { start, end, .. } => start.into_iter().chain(end).all(f64::is_finite),
         GeometryRef::Point { .. } => true,
         GeometryRef::Circle { radius, .. } => radius.is_finite() && radius > 0.,
         GeometryRef::Arc {

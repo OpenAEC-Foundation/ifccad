@@ -32,6 +32,8 @@ pub fn drawing() -> IfccadDocument {
                 part(IfccadDimensionGraphicsKind::LineSegment {
                     start: [i as f64, -0., 0.],
                     end: [i as f64, 3., 0.],
+                    thickness: 0.,
+                    extrusion_direction: [0., 0., 1.],
                 })
             })
             .collect(),

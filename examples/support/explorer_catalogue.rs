@@ -14,12 +14,12 @@ pub struct Sample {
 pub const SAMPLES: &[Sample] = &[
     Sample {
         title: "Point",
-        note: "Position + reference cross",
+        note: "Z=0 / thickness 15 + reference cross",
         draw: |d, x, y| {
             d.entity(
                 MODEL,
                 1,
-                json!({"ifccad::geom::placement":plane(x+40.,y+20.),"ifccad::geom::point":{}}),
+                json!({"ifccad::geom::placement":plane(x+40.,y+20.),"ifccad::geom::point":{"thickness":15.}}),
             );
             d.line(MODEL, 1, [x + 35., y + 20.], [x + 45., y + 20.]);
             d.line(MODEL, 1, [x + 40., y + 15.], [x + 40., y + 25.]);
@@ -27,22 +27,31 @@ pub const SAMPLES: &[Sample] = &[
     },
     Sample {
         title: "Line segment",
-        note: "Start and end points",
+        note: "Z=0 / thickness 15",
         draw: |d, x, y| {
             d.line(MODEL, 1, [x + 10., y + 8.], [x + 72., y + 32.]);
+            d.nodes.last_mut().unwrap()["attributes"]["ifccad::geom::lineSegment"]["thickness"] =
+                json!(15.);
         },
     },
     Sample {
         title: "Circle",
-        note: "Centre and radius",
-        draw: |d, x, y| d.circle(MODEL, 1, x + 41., y + 21., 17.),
+        note: "Z=0 / thickness 15",
+        draw: |d, x, y| {
+            d.circle(MODEL, 1, x + 41., y + 21., 17.);
+            d.nodes.last_mut().unwrap()["attributes"]["ifccad::geom::circle"]["thickness"] =
+                json!(15.);
+        },
     },
     Sample {
         title: "Arc",
-        note: "Positive and negative sweep",
+        note: "Signed sweep / Z=0 / thickness 15",
         draw: |d, x, y| {
             d.arc(MODEL, 1, x + 22., y + 20., 17., 0., PI * 1.4);
             d.arc(MODEL, 1, x + 62., y + 20., 17., 0., -PI * 1.4);
+            for node in d.nodes.iter_mut().rev().take(2) {
+                node["attributes"]["ifccad::geom::arc"]["thickness"] = json!(15.);
+            }
         },
     },
     Sample {
@@ -61,7 +70,7 @@ pub const SAMPLES: &[Sample] = &[
     },
     Sample {
         title: "Planar polyline",
-        note: "Open, closed and bulged",
+        note: "Open, closed, bulged / Z=0 / thickness 15",
         draw: |d, x, y| {
             d.poly(
                 MODEL,
@@ -69,7 +78,9 @@ pub const SAMPLES: &[Sample] = &[
                 vec![[x + 4., y + 5.], [x + 18., y + 34.], [x + 30., y + 8.]],
                 false,
             );
-            d.entity(MODEL,1,json!({"ifccad::geom::placement":plane(x+47.,y+7.),"ifccad::geom::planarPolyline":{"vertices":[[0.,0.],[26.,0.],[26.,24.],[0.,24.]],"bulges":[0.7,0.,0.,0.],"closed":true}}));
+            d.nodes.last_mut().unwrap()["attributes"]["ifccad::geom::planarPolyline"]
+                ["thickness"] = json!(15.);
+            d.entity(MODEL,1,json!({"ifccad::geom::placement":plane(x+47.,y+7.),"ifccad::geom::planarPolyline":{"vertices":[[0.,0.],[26.,0.],[26.,24.],[0.,24.]],"bulges":[0.7,0.,0.,0.],"closed":true,"thickness":15.}}));
         },
     },
     Sample {

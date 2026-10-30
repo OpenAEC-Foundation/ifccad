@@ -100,15 +100,14 @@ fn tangent(a: [f64; 3], b: [f64; 3], at_end: bool) -> [Q; 2] {
 fn continuous(a: [Q; 2], b: [Q; 2]) -> bool {
     &a[0] * &b[1] - &a[1] * &b[0] == Q::zero() && &a[0] * &b[0] + &a[1] * &b[1] > Q::zero()
 }
-pub fn polyline_width_display_bounds(
-    g: GeometryRef<'_>,
-) -> Result<PolylineWidthDisplayBounds, Error> {
+fn base_display_bounds(g: GeometryRef<'_>) -> Result<PolylineWidthDisplayBounds, Error> {
     let centerline = super::geometry_centerline_bounds(g)?;
     let GeometryRef::PlanarPolyline {
         placement,
         vertices,
         widths,
         closed,
+        ..
     } = g
     else {
         return Ok(PolylineWidthDisplayBounds {
@@ -218,4 +217,21 @@ pub fn polyline_width_display_bounds(
         proven_segment_bounds: proven,
         reasons,
     })
+}
+
+/// Display enclosures include signed extrusion while retaining incomplete join evidence.
+pub fn polyline_width_display_bounds(
+    g: GeometryRef<'_>,
+) -> Result<PolylineWidthDisplayBounds, Error> {
+    let mut b = base_display_bounds(g)?;
+    b.bounds = b
+        .bounds
+        .map(|v| super::extrusion::extrude_bounds(v, g))
+        .transpose()?;
+    b.proven_segment_bounds = b
+        .proven_segment_bounds
+        .into_iter()
+        .map(|v| super::extrusion::extrude_bounds(v, g))
+        .collect::<Result<_, _>>()?;
+    Ok(b)
 }

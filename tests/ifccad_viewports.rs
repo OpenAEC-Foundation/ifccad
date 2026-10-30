@@ -95,6 +95,7 @@ fn circle_clip_checks_complete_curve_and_plane() {
     let circle = |radius, origin| IfccadEntityKind::Circle {
         radius,
         placement: placement(origin),
+        thickness: 0.,
     };
     assert!(validate_ifccad_viewport_boundary(&frame, &circle(50., [100., 75., 0.])).is_ok());
     assert!(validate_ifccad_viewport_boundary(
@@ -117,7 +118,8 @@ fn circle_clip_checks_complete_curve_and_plane() {
         &frame,
         &IfccadEntityKind::Circle {
             radius: 1.,
-            placement: tilted
+            placement: tilted,
+            thickness: 0.,
         }
     )
     .is_err());
@@ -128,7 +130,8 @@ fn circle_clip_checks_complete_curve_and_plane() {
         &frame,
         &IfccadEntityKind::Circle {
             radius: 50.,
-            placement: rotated
+            placement: rotated,
+            thickness: 0.,
         }
     )
     .is_ok());
@@ -144,6 +147,7 @@ fn active_boundary_accepts_eligible_polylines_and_circles() {
         closed,
         placement: placement([0.; 3]),
         line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+        thickness: 0.,
     };
     assert!(validate_ifccad_viewport_boundary(
         &frame,

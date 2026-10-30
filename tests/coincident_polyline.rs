@@ -13,6 +13,7 @@ fn coincident_bulges_are_points_with_exact_bounds_and_retained_native_parameters
             placement: CoordinateFrame3::default(),
             vertices: PlanarVertices::Packed(&vertices),
             closed: true,
+            thickness: 0.,
         };
         let bounds = geometry_bounds(g).unwrap();
         assert_eq!(bounds.min().components(), [x, 3., 0.]);
@@ -35,6 +36,7 @@ fn coincident_bulges_are_points_with_exact_bounds_and_retained_native_parameters
                 y_axis: [0., 1., 0.],
             },
             line_pattern_generation: IfccadLinePatternGeneration::Continuous,
+            thickness: 0.,
         };
         let json = encode_ifccad_document(&d).unwrap();
         let json = load_ifccad_bytes(json.bytes(), Default::default()).unwrap();
@@ -62,6 +64,7 @@ fn coincident_bulges_do_not_supply_curvature_for_two_point_contours() {
         placement: CoordinateFrame3::default(),
         vertices: PlanarVertices::Packed(&vertices),
         closed: true,
+        thickness: 0.,
     };
     validate_geometry(g).unwrap();
     let frame = PaperFrame {
@@ -81,6 +84,7 @@ fn coincident_bulges_do_not_supply_curvature_for_two_point_contours() {
         placement: CoordinateFrame3::default(),
         vertices: PlanarVertices::Packed(&vertices),
         closed: true,
+        thickness: 0.,
     };
     validate_paper_boundary(frame, g).unwrap();
     let boundary = HatchBoundary2::Polyline {

@@ -18,12 +18,16 @@ fn frame() -> IfccadPlacement {
 }
 fn kinds() -> Vec<IfccadEntityKind> {
     vec![
-        IfccadEntityKind::Point { placement: frame() },
+        IfccadEntityKind::Point {
+            placement: frame(),
+            thickness: 0.,
+        },
         IfccadEntityKind::Arc {
             radius: 2.,
             start_parameter: 0.25,
             sweep_parameter: -1.,
             placement: frame(),
+            thickness: 0.,
         },
         IfccadEntityKind::Ellipse {
             semi_major_radius: 3.,
@@ -44,6 +48,7 @@ fn kinds() -> Vec<IfccadEntityKind> {
             closed: false,
             placement: frame(),
             line_pattern_generation: IfccadLinePatternGeneration::Continuous,
+            thickness: 0.,
         },
         IfccadEntityKind::SpatialPolyline {
             vertices: vec![[0., 0., 0.], [1., 2., 3.], [1., 2., 3.]],
@@ -210,11 +215,14 @@ fn arc_ranges_and_unknown_core_fields_are_rejected() {
             start_parameter: 0.,
             sweep_parameter: sweep,
             placement: frame(),
+            thickness: 0.,
         };
         assert!(validate_ifccad_document(&d).is_err());
     }
-    d.model.entities[0].as_native_mut().unwrap().kind =
-        IfccadEntityKind::Point { placement: frame() };
+    d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::Point {
+        placement: frame(),
+        thickness: 0.,
+    };
     let mut raw: Value =
         serde_json::from_slice(encode_ifccad_document(&d).unwrap().bytes()).unwrap();
     let node = raw["data"]

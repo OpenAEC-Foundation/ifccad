@@ -34,12 +34,14 @@ pub enum IfccadDimensionGraphicsKind {
     MText(Box<super::IfccadMText>),
     Point {
         placement: IfccadPlacement,
+        thickness: f64,
     },
     Arc {
         radius: f64,
         start_parameter: f64,
         sweep_parameter: f64,
         placement: IfccadPlacement,
+        thickness: f64,
     },
     Ellipse {
         semi_major_radius: f64,
@@ -56,6 +58,8 @@ pub enum IfccadDimensionGraphicsKind {
     LineSegment {
         start: [f64; 3],
         end: [f64; 3],
+        thickness: f64,
+        extrusion_direction: [f64; 3],
     },
     PlanarPolyline {
         widths: IfccadPlanarPolylineWidths,
@@ -64,6 +68,7 @@ pub enum IfccadDimensionGraphicsKind {
         closed: bool,
         placement: IfccadPlacement,
         line_pattern_generation: IfccadLinePatternGeneration,
+        thickness: f64,
     },
     SpatialPolyline {
         vertices: Vec<[f64; 3]>,
@@ -73,6 +78,7 @@ pub enum IfccadDimensionGraphicsKind {
     Circle {
         radius: f64,
         placement: IfccadPlacement,
+        thickness: f64,
     },
     BlockInstance {
         definition_id: u64,
@@ -88,17 +94,27 @@ impl From<IfccadDimensionGraphicsKind> for IfccadEntityKind {
             IfccadDimensionGraphicsKind::Hatch(v) => Self::Hatch(*v),
             IfccadDimensionGraphicsKind::Text(v) => Self::Text(v),
             IfccadDimensionGraphicsKind::MText(v) => Self::MText(v),
-            IfccadDimensionGraphicsKind::Point { placement } => Self::Point { placement },
+            IfccadDimensionGraphicsKind::Point {
+                placement,
+                thickness,
+                ..
+            } => Self::Point {
+                placement,
+                thickness,
+            },
             IfccadDimensionGraphicsKind::Arc {
                 radius,
                 start_parameter,
                 sweep_parameter,
                 placement,
+                thickness,
+                ..
             } => Self::Arc {
                 radius,
                 start_parameter,
                 sweep_parameter,
                 placement,
+                thickness,
             },
             IfccadDimensionGraphicsKind::Ellipse {
                 semi_major_radius,
@@ -122,9 +138,18 @@ impl From<IfccadDimensionGraphicsKind> for IfccadEntityKind {
                 sweep_parameter,
                 placement,
             },
-            IfccadDimensionGraphicsKind::LineSegment { start, end } => {
-                Self::LineSegment { start, end }
-            }
+            IfccadDimensionGraphicsKind::LineSegment {
+                start,
+                end,
+                thickness,
+                extrusion_direction,
+                ..
+            } => Self::LineSegment {
+                start,
+                end,
+                thickness,
+                extrusion_direction,
+            },
             IfccadDimensionGraphicsKind::PlanarPolyline {
                 widths,
                 vertices,
@@ -132,6 +157,8 @@ impl From<IfccadDimensionGraphicsKind> for IfccadEntityKind {
                 closed,
                 placement,
                 line_pattern_generation,
+                thickness,
+                ..
             } => Self::PlanarPolyline {
                 widths,
                 vertices,
@@ -139,6 +166,7 @@ impl From<IfccadDimensionGraphicsKind> for IfccadEntityKind {
                 closed,
                 placement,
                 line_pattern_generation,
+                thickness,
             },
             IfccadDimensionGraphicsKind::SpatialPolyline {
                 vertices,
@@ -149,9 +177,16 @@ impl From<IfccadDimensionGraphicsKind> for IfccadEntityKind {
                 closed,
                 line_pattern_generation,
             },
-            IfccadDimensionGraphicsKind::Circle { radius, placement } => {
-                Self::Circle { radius, placement }
-            }
+            IfccadDimensionGraphicsKind::Circle {
+                radius,
+                placement,
+                thickness,
+                ..
+            } => Self::Circle {
+                radius,
+                placement,
+                thickness,
+            },
             IfccadDimensionGraphicsKind::BlockInstance {
                 definition_id,
                 transform,
@@ -172,17 +207,27 @@ impl TryFrom<IfccadEntityKind> for IfccadDimensionGraphicsKind {
             IfccadEntityKind::Hatch(v) => Self::Hatch(Box::new(v)),
             IfccadEntityKind::Text(v) => Self::Text(v),
             IfccadEntityKind::MText(v) => Self::MText(v),
-            IfccadEntityKind::Point { placement } => Self::Point { placement },
+            IfccadEntityKind::Point {
+                placement,
+                thickness,
+                ..
+            } => Self::Point {
+                placement,
+                thickness,
+            },
             IfccadEntityKind::Arc {
                 radius,
                 start_parameter,
                 sweep_parameter,
                 placement,
+                thickness,
+                ..
             } => Self::Arc {
                 radius,
                 start_parameter,
                 sweep_parameter,
                 placement,
+                thickness,
             },
             IfccadEntityKind::Ellipse {
                 semi_major_radius,
@@ -206,7 +251,18 @@ impl TryFrom<IfccadEntityKind> for IfccadDimensionGraphicsKind {
                 sweep_parameter,
                 placement,
             },
-            IfccadEntityKind::LineSegment { start, end } => Self::LineSegment { start, end },
+            IfccadEntityKind::LineSegment {
+                start,
+                end,
+                thickness,
+                extrusion_direction,
+                ..
+            } => Self::LineSegment {
+                start,
+                end,
+                thickness,
+                extrusion_direction,
+            },
             IfccadEntityKind::PlanarPolyline {
                 widths,
                 vertices,
@@ -214,6 +270,8 @@ impl TryFrom<IfccadEntityKind> for IfccadDimensionGraphicsKind {
                 closed,
                 placement,
                 line_pattern_generation,
+                thickness,
+                ..
             } => Self::PlanarPolyline {
                 widths,
                 vertices,
@@ -221,6 +279,7 @@ impl TryFrom<IfccadEntityKind> for IfccadDimensionGraphicsKind {
                 closed,
                 placement,
                 line_pattern_generation,
+                thickness,
             },
             IfccadEntityKind::SpatialPolyline {
                 vertices,
@@ -231,7 +290,16 @@ impl TryFrom<IfccadEntityKind> for IfccadDimensionGraphicsKind {
                 closed,
                 line_pattern_generation,
             },
-            IfccadEntityKind::Circle { radius, placement } => Self::Circle { radius, placement },
+            IfccadEntityKind::Circle {
+                radius,
+                placement,
+                thickness,
+                ..
+            } => Self::Circle {
+                radius,
+                placement,
+                thickness,
+            },
             IfccadEntityKind::BlockInstance {
                 definition_id,
                 transform,

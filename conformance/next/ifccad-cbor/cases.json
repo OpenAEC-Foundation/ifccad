@@ -1,5 +1,5 @@
 {
-  "mappingRevision": 2,
+  "mappingRevision": 3,
   "cases": [
     {
       "file": "valid/empty.ifccad.cbor",

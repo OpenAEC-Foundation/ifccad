@@ -369,7 +369,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .and_then(Value::as_object)
         .ok_or_else(|| problem("IFCX schemas must be an object"))?;
     let profile_module: Value = serde_json::from_str(include_str!(
-        "../../../../schemas/ifccad/ifccad-profile-0.2.0.ifcx"
+        "../../../../schemas/ifccad/ifccad-profile-0.3.0.ifcx"
     ))
     .map_err(|e| problem(format!("invalid built-in CAD schema module: {e}")))?;
     let known = profile_module["schemas"]
@@ -426,7 +426,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let drawing_id = numbered(drawing_path, "/cad/d")?;
     let prefix = drawing_prefix(drawing_id);
     let drawing: DrawingValue = required(drawing_node, "ifccad::drawing")?;
-    if drawing.profile_version != "0.2.0" {
+    if drawing.profile_version != "0.3.0" {
         return Err(crate::ifccad::diagnostics::failure(
             "IFCCAD-WIRE-001",
             &format!("{drawing_path}/ifccad::drawing/profileVersion"),

@@ -38,6 +38,7 @@ fn recomputation_is_atomic_and_keeps_identity() {
             x_axis: [1., 0., 0.],
             y_axis: [0., 1., 0.],
         },
+        thickness: 0.,
     };
     let before = d.clone();
     assert!(recompute_ifccad_document_bounds(&mut d).is_err());
@@ -54,6 +55,8 @@ fn separate_layout_and_block_ids_do_not_alias_during_preparation() {
     leaf.as_native_mut().unwrap().kind = IfccadEntityKind::LineSegment {
         start: [4., 0., 0.],
         end: [6., 0., 0.],
+        thickness: 0.,
+        extrusion_direction: [0., 0., 1.],
     };
     let block_id = d.model.id;
     d.id_counters.next_block_id = d.id_counters.next_block_id.max(block_id + 1);
@@ -109,6 +112,7 @@ fn bounds_cover_curve_interiors_and_exclude_dormant_bulges() {
             x_axis: [1., 0., 0.],
             y_axis: [0., 1., 0.],
         },
+        thickness: 0.,
     };
     d.model.entities.push(e.clone());
     recompute_ifccad_document_bounds(&mut d).unwrap();
@@ -126,6 +130,7 @@ fn bounds_cover_curve_interiors_and_exclude_dormant_bulges() {
             y_axis: [0., 1., 0.],
         },
         line_pattern_generation: IfccadLinePatternGeneration::PerSegment,
+        thickness: 0.,
     };
     recompute_ifccad_document_bounds(&mut d).unwrap();
     let bounds = d.model.bounds.unwrap();

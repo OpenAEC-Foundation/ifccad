@@ -36,27 +36,49 @@ impl IfccadEntityKind {
                 corners: &v.corners,
                 thickness: v.thickness,
             },
-            Self::LineSegment { start, end } => G::Line {
+            Self::LineSegment {
+                start,
+                end,
+                thickness,
+                extrusion_direction,
+                ..
+            } => G::Line {
                 start: *start,
                 end: *end,
+                thickness: *thickness,
+                extrusion_direction: *extrusion_direction,
             },
-            Self::Point { placement } => G::Point {
+            Self::Point {
+                placement,
+                thickness,
+                ..
+            } => G::Point {
                 placement: placement.coordinate_frame()?,
+                thickness: *thickness,
             },
-            Self::Circle { placement, radius } => G::Circle {
+            Self::Circle {
+                placement,
+                radius,
+                thickness,
+                ..
+            } => G::Circle {
                 placement: placement.coordinate_frame()?,
                 radius: *radius,
+                thickness: *thickness,
             },
             Self::Arc {
                 placement,
                 radius,
                 start_parameter,
                 sweep_parameter,
+                thickness,
+                ..
             } => G::Arc {
                 placement: placement.coordinate_frame()?,
                 radius: *radius,
                 start: *start_parameter,
                 sweep: *sweep_parameter,
+                thickness: *thickness,
             },
             Self::Ellipse {
                 placement,
@@ -86,6 +108,7 @@ impl IfccadEntityKind {
                 vertices,
                 bulges,
                 closed,
+                thickness,
                 ..
             } => G::PlanarPolyline {
                 widths,
@@ -95,6 +118,7 @@ impl IfccadEntityKind {
                     bulges,
                 },
                 closed: *closed,
+                thickness: *thickness,
             },
             Self::SpatialPolyline {
                 vertices, closed, ..
@@ -127,27 +151,49 @@ impl IfccadDimensionGraphicsKind {
                 corners: &v.corners,
                 thickness: v.thickness,
             },
-            Self::LineSegment { start, end } => G::Line {
+            Self::LineSegment {
+                start,
+                end,
+                thickness,
+                extrusion_direction,
+                ..
+            } => G::Line {
                 start: *start,
                 end: *end,
+                thickness: *thickness,
+                extrusion_direction: *extrusion_direction,
             },
-            Self::Point { placement } => G::Point {
+            Self::Point {
+                placement,
+                thickness,
+                ..
+            } => G::Point {
                 placement: placement.coordinate_frame()?,
+                thickness: *thickness,
             },
-            Self::Circle { placement, radius } => G::Circle {
+            Self::Circle {
+                placement,
+                radius,
+                thickness,
+                ..
+            } => G::Circle {
                 placement: placement.coordinate_frame()?,
                 radius: *radius,
+                thickness: *thickness,
             },
             Self::Arc {
                 placement,
                 radius,
                 start_parameter,
                 sweep_parameter,
+                thickness,
+                ..
             } => G::Arc {
                 placement: placement.coordinate_frame()?,
                 radius: *radius,
                 start: *start_parameter,
                 sweep: *sweep_parameter,
+                thickness: *thickness,
             },
             Self::Ellipse {
                 placement,
@@ -177,6 +223,7 @@ impl IfccadDimensionGraphicsKind {
                 vertices,
                 bulges,
                 closed,
+                thickness,
                 ..
             } => G::PlanarPolyline {
                 widths,
@@ -186,6 +233,7 @@ impl IfccadDimensionGraphicsKind {
                     bulges,
                 },
                 closed: *closed,
+                thickness: *thickness,
             },
             Self::SpatialPolyline {
                 vertices, closed, ..

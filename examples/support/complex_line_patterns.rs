@@ -124,8 +124,7 @@ pub fn ifccad(mut d: IfccadDocument) -> Result<IfccadDocument> {
                 line_pattern_scale: 1.,
                 kind: IfccadEntityKind::LineSegment {
                     start: [10., 70. + i as f64 * 10., 0.],
-                    end: [70., 70. + i as f64 * 10., 0.],
-                },
+                    end: [70., 70. + i as f64 * 10., 0.], thickness: 0., extrusion_direction: [0.,0.,1.],},
             }));
     }
     if let Some(paper) = d.paper_layouts.first_mut() {
@@ -140,8 +139,7 @@ pub fn ifccad(mut d: IfccadDocument) -> Result<IfccadDocument> {
                 line_pattern_scale: 1.,
                 kind: IfccadEntityKind::LineSegment {
                     start: [20., 20., 0.],
-                    end: [80., 20., 0.],
-                },
+                    end: [80., 20., 0.], thickness: 0., extrusion_direction: [0.,0.,1.],},
             }));
     }
     if let Some(block) = d.blocks.first_mut() {
