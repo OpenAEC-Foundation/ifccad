@@ -70,11 +70,11 @@ Native core validation, composed source inspection and binary codecs remain acti
 ## Development and verification
 
 Explorer pins official upstream Document
-`28f1ad1214816e6b5c21162b732df0604bdf38bd` ([merged PR #8](https://github.com/HakanSeven12/opencaddocument/pull/8)),
-with codec `0a5542baa6052a2b07fc700b7ba041549650a997`. Studio uses the same
+`3a3676b12e824292bcf46b29f4eaf02d9264c3a4` (including merged PR #8),
+with codec `ef27529c868a81bac0872e9260f597a2c6f85665`. Studio uses the same
 Document and codec pins with compatible native core `07e1ef1c4e975afcab0a07012bed8a82a56202cb`.
 The workspace root shares its current core for Rust model identity. No local
-Document patch is needed. Host source `fae56298` uses kernel `3a77b22` (matching codec 0a5542b).
+Document patch is needed. Host source `3d2c1bf4` (OCS 2026.44) uses kernel `b2656bd` (matching codec ef27529c).
 Both readers use profile 0.3.0 / CBOR3. Software release and file identifiers are
 independent: the host core pin is a compatible source commit, not the release tag.
 Studio grip/undo picture behavior is tracked separately in OCS #2325.
@@ -123,15 +123,24 @@ are never attached automatically. Successful responses show the returned issue
 link; failures retain the draft. Deploy the corresponding service mapping and
 spam protection before any separately authorized production publication.
 
-## Extrusion release integration
+## Initial extrusion release integration
 
 Profile 0.3.0 / CBOR 3 uses official Document merge 28f1ad1, codec 0a5542b and
 compatible host core 07e1ef1. The pins require no local source patch. Inspection
 shows signed thickness and owning-scope direction separately from widths and
 lineweight. Paper uses its separate numeric domain. The seven existing catalogue
 objects have thickness 15 mm and base Z=0. The separate gallery is not shipped.
-Circle/Arc display remains tracked in OCS #2361.
+That initial host lacked the Circle/Arc display fix from OCS #2361; the current
+upstream set below supersedes its application pins.
 
 The host kernel pin 3a77b22 aligns its codec with Document. Compared with
 faf2ee7, it also includes the upstream periodic-rim seam fix in B-rep meshing;
 this dependency adoption does not claim additional native CAD coverage.
+
+## Current upstream rendering fix
+
+OCS source 3d2c1bf4 contains 4a637fdbe, the fix for circle/arc thickness
+wires staying on the regular wire path instead of the base-only analytical GPU
+path (OCS #2361). Document 3a3676b, codec ef27529c and kernel b2656bd are pinned
+together; the native 2026.45.0 release remains unchanged. The kernel also adds
+a bounded finest meshing retry and centerline selection/span corrections.

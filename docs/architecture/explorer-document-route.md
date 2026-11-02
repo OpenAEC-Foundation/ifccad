@@ -120,7 +120,7 @@ remain separate work. No automatic size/exchange measurement is authorized.
 ## Extrusion source pins and native-only release — 2 November 2026
 
 Native source alpha 2026.45.0 publishes profile 0.3.0 / CBOR mapping 3, optional
-Zstd transport 1. The repository selects official Document PR #8 merge
+Zstd transport 1. Its initial Explorer integration selected official Document PR #8 merge
 `28f1ad1214816e6b5c21162b732df0604bdf38bd`, codec
 `0a5542baa6052a2b07fc700b7ba041549650a997`, and compatible host core
 `07e1ef1c4e975afcab0a07012bed8a82a56202cb`. These exact source pins replace the
@@ -135,7 +135,9 @@ local Explorer preview, including explicit classic POLYLINE width-dependency
 losses. Native Defaulted widths remain exact in native storage; CAD output
 materialization is diagnosed. The catalogue primitives have thickness 15 mm and
 base Z=0. The separate gallery remains local review material, not a shipped
-example. Circle/Arc display remains tracked in [OCS #2361](https://github.com/HakanSeven12/OpenCADStudio/issues/2361).
+example. The initial host lacked the Circle/Arc display fix from
+[OCS #2361](https://github.com/HakanSeven12/OpenCADStudio/issues/2361); the current
+upstream set below supersedes these application pins.
 
 The native attached artifacts exclude applications. The separately authorized
 Explorer update includes signed-thickness inspection and is built and deployed
@@ -145,3 +147,28 @@ fidelity remain unassessed beyond the recorded bounded local smoke.
 The host kernel pin 3a77b22 aligns its codec with Document. Compared with
 faf2ee7, it also includes the upstream periodic-rim seam fix in B-rep meshing;
 this dependency adoption does not claim additional native CAD coverage.
+
+## Current upstream Explorer set — 2 November 2026
+
+The separate Explorer follow-up selects OCS 2026.44 source
+`3d2c1bf45a836959865e0a9ec18bbec606d29a11`, Document
+`3a3676b12e824292bcf46b29f4eaf02d9264c3a4`, codec
+`ef27529c868a81bac0872e9260f597a2c6f85665` and kernel
+`b2656bdbd4ac4c2c66043d52ad91e9e5f23106d2`. Host native core remains compatible
+07e1ef1. These are the current main revisions inspected for this update, frozen
+rather than followed automatically. Native release/tag/assets 2026.45.0 are not
+replaced or republished by this application update.
+
+OCS includes circle/arc extrusion wire fix 4a637fdbe for closed issue #2361. The
+previous fae56298 host lacked it. Qualification must exercise the actual new
+host preview, not infer a rendering pass from the Document thickness values.
+
+Compared with the PR #8 merge, Document only advances its codec pin. The codec retains
+primitive/width model fields and fixes serialized CAD groups, including existing
+Dimension flip flags (already mapped both ways) and MText column transport for
+older DWG through existing column semantics. TABLE override helpers do not add
+native TABLE coverage. ProxyObject.dxf_data is outside the active opaque capture/
+restoration coverage; preservation remains unavailable. The kernel bounds the
+finest B-rep mesh retry and adjusts centerline selection/span behavior. These do
+not introduce native annotation contexts, new file semantics or general editing
+fidelity. Existing conversion losses/assessment limits remain applicable.
