@@ -98,7 +98,7 @@ checksum = "366ffbaa4442f4684d91e2cd7c5ea7c4ed8add41959a31447066e279e432b618"
 [[package]]
 name = "acadrust"
 version = "0.6.8"
-source = "git+https://github.com/HakanSeven12/acadrust.git?rev=75dd8f5#75dd8f5cd3b5dd2c56d9c9d4e8c14b816d31d68d"
+source = "git+https://github.com/HakanSeven12/acadrust.git?rev=0a5542b#0a5542baa6052a2b07fc700b7ba041549650a997"
 dependencies = [
  "anyhow",
  "bitflags 2.13.1",
@@ -116,6 +116,30 @@ dependencies = [
  "rayon",
  "ryu",
  "serde",
+ "thiserror 2.0.18",
+ "web-time",
+]
+
+[[package]]
+name = "acadrust"
+version = "0.6.8"
+source = "git+https://github.com/HakanSeven12/acadrust.git?rev=75dd8f5#75dd8f5cd3b5dd2c56d9c9d4e8c14b816d31d68d"
+dependencies = [
+ "anyhow",
+ "bitflags 2.13.1",
+ "byteorder",
+ "encoding_rs",
+ "flate2",
+ "foldhash 0.2.0",
+ "indexmap",
+ "itoa",
+ "memchr",
+ "memmap2",
+ "nom 7.1.3",
+ "oem_cp",
+ "once_cell",
+ "rayon",
+ "ryu",
  "thiserror 2.0.18",
  "web-time",
 ]
@@ -2939,8 +2963,8 @@ dependencies = [
 
 [[package]]
 name = "ifccad"
-version = "2026.44.0"
-source = "git+https://github.com/OpenAEC-Foundation/ifccad.git?rev=bce9da06a8e1684e86e35f0302e3870141e6f9f9#bce9da06a8e1684e86e35f0302e3870141e6f9f9"
+version = "2026.44.1"
+source = "git+https://github.com/OpenAEC-Foundation/ifccad.git?rev=07e1ef1c4e975afcab0a07012bed8a82a56202cb#07e1ef1c4e975afcab0a07012bed8a82a56202cb"
 dependencies = [
  "base64",
  "fpmath",
@@ -4438,9 +4462,9 @@ dependencies = [
 [[package]]
 name = "opencaddocument"
 version = "0.1.0"
-source = "git+https://github.com/HakanSeven12/opencaddocument.git?rev=e6135a72ec46046cd23a84df1b13c8b4fe9541f2#e6135a72ec46046cd23a84df1b13c8b4fe9541f2"
+source = "git+https://github.com/HakanSeven12/opencaddocument.git?rev=28f1ad1214816e6b5c21162b732df0604bdf38bd#28f1ad1214816e6b5c21162b732df0604bdf38bd"
 dependencies = [
- "acadrust",
+ "acadrust 0.6.8 (git+https://github.com/HakanSeven12/acadrust.git?rev=0a5542b)",
  "ifccad",
  "serde",
  "web-time",
@@ -4459,7 +4483,7 @@ name = "opencadkernel"
 version = "0.1.0"
 source = "git+https://github.com/HakanSeven12/opencadkernel.git?rev=faf2ee7#faf2ee7ef3000ed65692cf8a65c134461ca06288"
 dependencies = [
- "acadrust",
+ "acadrust 0.6.8 (git+https://github.com/HakanSeven12/acadrust.git?rev=75dd8f5)",
  "cavalier_contours",
  "rustc-hash 2.1.3",
  "spade",

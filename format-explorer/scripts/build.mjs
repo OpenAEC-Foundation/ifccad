@@ -56,7 +56,7 @@ export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',i
  if(!target.startsWith(path.resolve(destination)+path.sep))throw Error('Viewer output escapes build directory');
  if(await access(path.join(source,'index.html')).then(()=>true,()=>false)){
   const pins=JSON.parse(await readFile(new URL('../ocs-source.json',import.meta.url),'utf8'));
-  if(pins.profile==='0.2.0'){
+  {
    const provenance=JSON.parse(await readFile(path.join(source,'IFCCAD-BUILD.json'),'utf8'));
    if(JSON.stringify(provenance.pins)!==JSON.stringify(pins))throw Error('Studio bundle uses different pinned dependencies');
    for(const [name,expected]of Object.entries(provenance.files)){

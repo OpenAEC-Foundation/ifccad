@@ -13,7 +13,7 @@ During alpha, later releases may be unable to open earlier IFCCAD files;
 backward compatibility and migration are not guaranteed. See the
 [alpha compatibility policy](docs/alpha-compatibility.md) and
 [release/version policy](docs/releases.md). The current native source alpha is
-[2026.44.1](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.44.1).
+[2026.45.0](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.45.0).
 Its attached artifacts contain only the native core. Explorer and CAD conversion
 are outside that release.
 See the [vision](docs/vision.md) for the long-term direction and the
@@ -85,12 +85,12 @@ source retention and loss diagnostics remain unchanged. See the
 [scope decision](docs/experiments/ifccad-document-lifecycle.md#provisional-standalone-cad-scope--2026-10-21).
 
 The selected geometry contribution before annotation work adds primitive extrusion
-thickness and classic 2D POLYLINE mapping. Its isolated development pair uses
+thickness and classic 2D POLYLINE mapping. The native release uses
 profile 0.3.0/CBOR3. Native/CAD control files and local Explorer integration have
 been verified and visually accepted; the catalogue samples use 15 mm thickness
-with base Z=0. This is not included in the published 2026.44.1 release or public
-Explorer. Fixed dependency revisions, the Document PR and publication remain
-pending. See [extrusion scope and review boundary](docs/geometry/extrusion-thickness.md).
+with base Z=0. Native release 2026.45.0 includes this contract. Document PR #8 is merged
+and the source pins its official revision 28f1ad1. The Explorer update uses the same profile through a separately checked
+browser/host build and deployment. See [extrusion scope and review boundary](docs/geometry/extrusion-thickness.md).
 
 ## Development sequence
 

@@ -91,6 +91,7 @@ export function createInspection(result,sourceText=''){
   if(n.derived?.effectiveSettings)dimensionRefs(n.key,n.derived.effectiveSettings,'derived.effectiveSettings',format==='ifccad');
  }
  for(const row of p.polylineWidths||[]){const n=nodes.get(row.path);if(n)n.polylineWidths=row.widths;}
+ for(const row of p.extrusions||[]){const n=nodes.get(row.path);if(n)n.extrusion=row;}
  const widthNode=source=>{if(source?.kind==='NativeEntity')return nodes.get(drawingPrefix+'/e'+source.entityId);if(source?.kind==='DimensionGraphicsPart'&&source.dimension?.kind==='NativeEntity')return nodes.get(drawingPrefix+'/e'+source.dimension.entityId+'/graphics/p'+source.partIndex);};
  for(const row of (result.conversion?.geometryAssessment||result.export?.geometryAssessment)?.polylineWidths||[]){const n=widthNode(row.source);if(n)n.widthEvidence=row;}
  for(const n of nodes.values())n.incoming=[];

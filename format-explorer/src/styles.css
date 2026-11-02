@@ -165,6 +165,7 @@
 /* Adaptive contents: independent structure, collection and inspector viewports. */
 #contents-panel{container-type:inline-size}
 #drawing.inspection-layout{position:relative;grid-template-columns:minmax(0,1fr) 6px minmax(0,var(--inspector-width,1fr));overflow:hidden}
+#drawing .information-resize{display:block}
 #drawing[data-collection=open]{grid-template-columns:minmax(0,var(--tree-width,1fr)) 6px minmax(0,1fr) 6px minmax(0,var(--inspector-width,1fr))}
 #drawing[data-info=hidden]{grid-template-columns:minmax(0,1fr)}
 #drawing[data-collection=open][data-info=hidden]{grid-template-columns:minmax(0,var(--tree-width,1fr)) 6px minmax(0,1fr)}

@@ -1,4 +1,4 @@
-# Primitive extrusion thickness (development profile 0.3.0)
+# Primitive extrusion thickness (profile 0.3.0)
 
 Point, LineSegment, Circle, Arc and PlanarPolyline store finite signed `thickness`
 in coordinate units, in both ordinary entities and saved Dimension graphics.
@@ -29,17 +29,18 @@ Bounds recomputation remains explicit and atomic, including overflow failure.
 
 The format transition is profile 0.2.0 -> 0.3.0 and CBOR mapping 2 -> 3. Zstd
 transport remains 1 with inner mapping 3. Published release 2026.44.1 and its
-profile 0.2.0/CBOR2 artifacts are unchanged. This development source is not a new
-published release; no compatibility reader or migration is promised.
+profile 0.2.0/CBOR2 artifacts are unchanged. Native source alpha 2026.45.0 publishes this contract; no compatibility
+reader or migration is promised.
 
 ## Active conversion development pair
 
-The isolated Document changes are based on
-`e6135a72ec46046cd23a84df1b13c8b4fe9541f2`, with codec
-`75dd8f5cd3b5dd2c56d9c9d4e8c14b816d31d68d` unchanged. The local patch and dependency
-selection must be recorded with review results; do not describe it as unmodified
-upstream. The core has no CAD runtime dependency. The published Explorer still
-uses its recorded profile 0.2.0 reader until separately authorized integration.
+The source selects official merged Document PR #8 at
+`28f1ad1214816e6b5c21162b732df0604bdf38bd`, with codec
+`0a5542baa6052a2b07fc700b7ba041549650a997`. Document pins the compatible native
+core revision `07e1ef1c4e975afcab0a07012bed8a82a56202cb`; the workspace shares
+its current core through the explicit root patch. No sibling dependency patch is
+required. The native core has no CAD runtime dependency. These source pins do not
+deploy the public Explorer or qualify a new host build.
 
 POINT locations and LINE endpoints remain owning-scope/WCS coordinates. POINT's
 frame carries its normal and marker angle; its origin is not transformed as OCS.
@@ -83,4 +84,5 @@ separate gallery remains local review material. A bounded LINE endpoint/grip and
 undo/redo smoke checked dependent extrusion graphics, without claiming general
 host rendering or editing fidelity. Circle/Arc display remains tracked in
 [OCS #2361](https://github.com/HakanSeven12/OpenCADStudio/issues/2361).
-Fixed dependency revisions, the Document PR and publication remain pending.
+Document PR #8 is merged. Native alpha 2026.45.0 publishes the core only;
+Explorer deployment remains a separate stage.

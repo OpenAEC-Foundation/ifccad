@@ -1,5 +1,5 @@
 {
-  "softwareVersion": "2026.44.1",
+  "softwareVersion": "2026.45.0",
   "channel": "alpha",
   "profileVersion": "0.3.0",
   "profileImport": "urn:example:ifccad:0.3.0",
@@ -14,7 +14,8 @@
     "release/manifest.json",
     "rust-toolchain.toml",
     "scripts/prepare_release.py",
-    "scripts/tests/test_prepare_release.py"
+    "scripts/tests/test_prepare_release.py",
+    "docs/releases/2026.45.0.md"
   ],
   "scope": "native ifccad core only"
 }

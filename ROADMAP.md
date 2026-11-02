@@ -63,12 +63,12 @@ Allow/Reject policies, partial opening or spline restoration to the shared route
 Native opaque storage remains independent of CAD capture/restoration support.
 
 The selected geometry contribution before annotation work adds primitive extrusion
-thickness and classic 2D POLYLINE mapping. Its isolated development pair uses
+thickness and classic 2D POLYLINE mapping. The native release uses
 profile 0.3.0/CBOR3. Native/CAD control files and local Explorer integration have
 been verified and visually accepted; the catalogue samples use 15 mm thickness
-with base Z=0. This is not included in the published 2026.44.1 release or public
-Explorer. Fixed dependency revisions, the Document PR and publication remain
-pending. See [extrusion scope and review boundary](docs/geometry/extrusion-thickness.md).
+with base Z=0. Native release 2026.45.0 includes this contract. Document PR #8 is merged
+and the source pins its official revision 28f1ad1. The Explorer update uses the same profile through a separately checked
+browser/host build and deployment. See [extrusion scope and review boundary](docs/geometry/extrusion-thickness.md).
 
 ## Development sequence
 

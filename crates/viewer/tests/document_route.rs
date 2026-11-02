@@ -39,7 +39,10 @@ fn cad_placement_keeps_sub_snap_coordinates_through_strict_native_readback() {
         .unwrap();
     let native = ifccad::load_ifccad_bytes(&bytes, Default::default()).unwrap();
     let entity = native.document().model.entities[0].as_native().unwrap();
-    let ifccad::IfccadEntityKind::Circle { radius, placement } = &entity.kind else {
+    let ifccad::IfccadEntityKind::Circle {
+        radius, placement, ..
+    } = &entity.kind
+    else {
         panic!("native circle missing")
     };
     assert_eq!(*radius, 3.0);

@@ -17,7 +17,7 @@ values and never inferred from field codes, vector indices or content.
 Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 3, 2: Document}`.
 All three fields are required. Other revisions are rejected; no migration,
 forward-compatible skipping, feature negotiation or historical decoder is
-provided. Revision 3 is the unpublished development mapping for profile 0.3.0.
+provided. Revision 3 and profile 0.3.0 are published in native source alpha 2026.45.0.
 Revision 1 and profile 0.1.0 were published in native source alpha 2026.44.0;
 that tagged contract is fixed. Subsequent normative
 changes to language, semantics, codes, defaults or normalization advance the

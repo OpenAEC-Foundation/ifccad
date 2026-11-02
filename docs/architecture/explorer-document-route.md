@@ -117,17 +117,27 @@ Open issues #4 (splines), #12/#18 (accuracy), #20
 (evaluation API) and #6 (encoding research) overlap in evidence boundaries and
 remain separate work. No automatic size/exchange measurement is authorized.
 
-## Isolated extrusion development (not deployed)
+## Extrusion source pins and native-only release — 2 November 2026
 
-The five primitive thickness additions and ordinary classic POLYLINE mapping use
-an explicit local Document patch based on e6135a72 with unchanged codec 75dd8f5.
-They require development profile 0.3.0/CBOR3. See the
-[contract and coverage](../geometry/extrusion-thickness.md). The published pins
-above and user investigation viewer remain unchanged. Review-file correctness
-and local Explorer/reader integration have separate verification evidence.
+Native source alpha 2026.45.0 publishes profile 0.3.0 / CBOR mapping 3, optional
+Zstd transport 1. The repository selects official Document PR #8 merge
+`28f1ad1214816e6b5c21162b732df0604bdf38bd`, codec
+`0a5542baa6052a2b07fc700b7ba041549650a997`, and compatible host core
+`07e1ef1c4e975afcab0a07012bed8a82a56202cb`. These exact source pins replace the
+sibling development patch. The codec adoption was audited against 75dd8f5;
+primitive/width fields are unchanged. New dictionaries/group helpers, ACIS
+explode/surface fixes, DWG sharding/size fixes, named plot-style handles, MText
+attachment precedence and malformed Hatch handling do not expand claimed
+conversion coverage. See the [extrusion contract](../geometry/extrusion-thickness.md).
 
-### Accepted local extrusion pair — 30 October 2026
+The user accepted the synthetic native/DWG/DXF control files and the separate
+local Explorer preview, including explicit classic POLYLINE width-dependency
+losses. Native Defaulted widths remain exact in native storage; CAD output
+materialization is diagnosed. The catalogue primitives have thickness 15 mm and
+base Z=0. The separate gallery remains local review material, not a shipped
+example. Circle/Arc display remains tracked in [OCS #2361](https://github.com/HakanSeven12/OpenCADStudio/issues/2361).
 
-The user accepted the synthetic native/DWG/DXF review files, including the explicit classic POLYLINE effective-width/default-presence losses. Local Explorer integration now selects native base 2e8bd5f plus its extrusion patch and Document base e6135a7 plus its paired patch, with unchanged codec75dd8f5. Host base fae56298 remains separate from the investigation viewer. `ocs-source.json` explicitly marks local development; preparation requires both local paths and build records include their content identities. Profile0.3.0/CBOR3 is required throughout the browser, host and parser worker; this does not update published releases.
-
-Inspection presents signed thickness, owning-scope direction and units for all five ordinary/saved-graphics kinds. Width modes stay exact natively; CAD materialization is diagnosed. The accepted gallery remains a local review artifact. The existing catalogue primitive examples have thickness 15 with base Z=0, without an added block or sample section. Visual absence of circle/arc extrusion is a confirmed OCS2026.43 issue under [#2361](https://github.com/HakanSeven12/OpenCADStudio/issues/2361), outside this mapping slice. No claim is made for automatic graphics regeneration, grip/undo repair or general rendering fidelity.
+The native attached artifacts exclude applications. The separately authorized
+Explorer update includes signed-thickness inspection and is built and deployed
+through its own checked browser/host pipeline. General rendering and editing-history
+fidelity remain unassessed beyond the recorded bounded local smoke.

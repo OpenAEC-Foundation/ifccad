@@ -14,6 +14,9 @@ const pins=JSON.parse(await readFile(new URL('../ocs-source.json',import.meta.ur
 assert.equal(capabilities.revision,pins.explorerDocumentCommit,'built processor matches recorded Document revision');
 assert.equal(pins.documentCommit,pins.explorerDocumentCommit,'Studio and Explorer use the same IFCX mapping');
 assert.equal(pins.codecCommit,pins.explorerCodecCommit,'Studio and Explorer use the same CAD model');
+assert.equal(capabilities.profileVersion,pins.profile);
+assert.equal(capabilities.cborMappingRevision,pins.cborRevision);
+assert.equal(capabilities.developmentPatch,pins.localDevelopment);
 for(const key of ['partialOpening','splinePreservation','adjustableTolerance','coordinateToleranceDefault','coordinateToleranceFallback'])assert.equal(capabilities[key],false,key);
 assert.equal(capabilities.numericalAssessment,'unassessed');
 const bytesOf=file=>Uint8Array.from(Buffer.from(file.base64,'base64'));
@@ -39,6 +42,7 @@ for(const example of examples){
   assert.equal(decoded.source.representation,'decoded');assert.equal(decoded.nativeFile.representation,'decoded');
   assert.equal(decoded.presentation.entities.length,opened.presentation.entities.length);
   assert.deepEqual(decoded.presentation.polylineWidths,opened.presentation.polylineWidths);
+  assert.deepEqual(decoded.presentation.extrusions,opened.presentation.extrusions);
   assert.deepEqual(decoded.presentation.dimensions,opened.presentation.dimensions);
   const same=checked(nativeExportRequest(binary,decoded,{format:'ifccad',encoding})).export.download;
   assert.deepEqual(bytesOf(same),bytesOf(saved),'same binary encoding retains validated source bytes');
@@ -52,6 +56,17 @@ for(const example of examples){
   assert.equal(exported.export.fileCheck.completeSemanticFidelity,'unassessed');
   assert.equal(exported.conversion.geometryAssessment.status,'unassessed');
   const file=exported.export.download,returned=checked(request('returned.'+format,bytesOf(file),'cad'));
+  if(example.name==='Entity catalogue'){
+   const expected=opened.presentation.extrusions.filter(row=>row.thickness===15);
+   const returnedModel=createInspection(returned),remaining=returned.presentation.extrusions.filter(row=>row.thickness!==0);
+   assert.equal(expected.length,7,'the five existing primitive samples include both arcs and both planar polylines');
+   assert.equal(remaining.length,expected.length,'all catalogue samples retain thickness 15 after physical CAD readback');
+   for(const sweep of expected){
+    const type=model.nodes.get(sweep.path).type;
+    const index=remaining.findIndex(row=>returnedModel.nodes.get(row.path).type===type&&row.thickness===sweep.thickness&&row.direction.every((v,i)=>Math.abs(v-sweep.direction[i])<1e-9));
+    assert.notEqual(index,-1,'missing signed sweep '+type+' '+sweep.thickness);remaining.splice(index,1);
+   }
+  }
   assert.equal(returned.conversion.backend,'opencaddocument');
   assert.ok(returned.conversion.diagnostics.some(row=>row.code==='DOCUMENT_MIGRATION_LIMITS'));
   assert.ok(returned.nativeFile.fileName.endsWith('.ifcx'));
@@ -87,7 +102,7 @@ for(const fixture of ['hello-cad.ifcx','hello-geometry.ifcx','hello-hatch-solid.
   assert.equal(returned.presentation.dimensions.length,9);
   assert.equal(new Set(returned.presentation.dimensions.map(d=>d.geometry.definition.kind)).size,9);
  }
- const old=new TextDecoder().decode(bytes).replaceAll('0.2.0','0.1.0');
+ const old=new TextDecoder().decode(bytes).replaceAll('0.3.0','0.2.0');
  assert.ok(processBrowserRequest(request('old-profile.ifcx',new TextEncoder().encode(old)),wasm).failure,'old alpha profile must not silently use the new reader');
  console.log('All nine Dimension kinds: actual native preview snapshot, owner bindings, stored graphics, CBOR/Zstd and physical CAD downloads.');
 }

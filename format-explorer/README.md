@@ -70,16 +70,13 @@ Native core validation, composed source inspection and binary codecs remain acti
 ## Development and verification
 
 Explorer pins official upstream Document
-`e6135a72ec46046cd23a84df1b13c8b4fe9541f2` ([merged PR #7](https://github.com/HakanSeven12/opencaddocument/pull/7),
-including typed API PR #4 and placement/numerical PRs #5/#6). Studio uses the same Document and codec pins.
-The workspace-root Cargo patch selects this checkout's core for the shared Rust
-model identity.
-No local Document source patch is needed. Studio `fae56298` selects codec
-`75dd8f5` and its matching kernel `faf2ee7`. Both readers use profile
-0.2.0/CBOR2, as published by native alpha 2026.44.1.
-The host's IFCCAD development pin `bce9da0` has identical core model/IO,
-schema and conformance sources to that release; it is not the release tag.
-This pin includes the line endpoint-identity fix for associative dimensions.
+`28f1ad1214816e6b5c21162b732df0604bdf38bd` ([merged PR #8](https://github.com/HakanSeven12/opencaddocument/pull/8)),
+with codec `0a5542baa6052a2b07fc700b7ba041549650a997`. Studio uses the same
+Document and codec pins with compatible native core `07e1ef1c4e975afcab0a07012bed8a82a56202cb`.
+The workspace root shares its current core for Rust model identity. No local
+Document patch is needed. Host source `fae56298` retains kernel `faf2ee7`.
+Both readers use profile 0.3.0 / CBOR3. Software release and file identifiers are
+independent: the host core pin is a compatible source commit, not the release tag.
 Studio grip/undo picture behavior is tracked separately in OCS #2325.
 Newly decoded header settings outside the shared mapping are explicitly
 reported as conversion losses when they differ from defaults.
@@ -125,3 +122,12 @@ public GitHub issues in OpenAEC-Foundation/ifccad. Drawings, names and screensho
 are never attached automatically. Successful responses show the returned issue
 link; failures retain the draft. Deploy the corresponding service mapping and
 spam protection before any separately authorized production publication.
+
+## Extrusion release integration
+
+Profile 0.3.0 / CBOR 3 uses official Document merge 28f1ad1, codec 0a5542b and
+compatible host core 07e1ef1. The pins require no local source patch. Inspection
+shows signed thickness and owning-scope direction separately from widths and
+lineweight. Paper uses its separate numeric domain. The seven existing catalogue
+objects have thickness 15 mm and base Z=0. The separate gallery is not shipped.
+Circle/Arc display remains tracked in OCS #2361.

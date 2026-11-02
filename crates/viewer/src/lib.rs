@@ -4,6 +4,7 @@ mod document_route;
 mod download;
 mod ifccad_input;
 mod inspection_dimension_label;
+mod inspection_extrusion;
 mod inspection_ifccad_dimension;
 mod inspection_polyline_widths;
 mod native_inspection;
