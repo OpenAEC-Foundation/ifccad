@@ -141,3 +141,7 @@ The native attached artifacts exclude applications. The separately authorized
 Explorer update includes signed-thickness inspection and is built and deployed
 through its own checked browser/host pipeline. General rendering and editing-history
 fidelity remain unassessed beyond the recorded bounded local smoke.
+
+The host kernel pin 3a77b22 aligns its codec with Document. Compared with
+faf2ee7, it also includes the upstream periodic-rim seam fix in B-rep meshing;
+this dependency adoption does not claim additional native CAD coverage.

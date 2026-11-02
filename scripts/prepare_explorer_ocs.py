@@ -19,12 +19,26 @@ def identity():
     return digest.hexdigest()
 
 
+def validate_packages(packages, pins):
+    expected = [("opencaddocument", pins["documentCommit"]),
+                ("ifccad", pins["nativeCoreCommit"]),
+                ("acadrust", pins["codecCommit"])]
+    if "kernelCommit" in pins:
+        expected += [("opencadkernel", pins["kernelCommit"]),
+                     ("opencadkernel-constraints", pins["kernelCommit"])]
+    for name, revision in expected:
+        matches = [p for p in packages if p["name"] == name]
+        if len(matches) != 1 or not (matches[0]["source"] or "").endswith("#" + revision):
+            raise SystemExit(f"Unexpected resolved {name} dependency")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("checkout", type=Path)
     parser.add_argument("--record-lock", action="store_true")
     parser.add_argument("--record-build", action="store_true")
     parser.add_argument("--verify-build", action="store_true")
+    parser.add_argument("--verify-dependencies", action="store_true")
     args = parser.parse_args()
     pins = json.loads((ROOT / "format-explorer/ocs-source.json").read_text())
     checkout = args.checkout.resolve()
@@ -41,12 +55,23 @@ def main():
         if count != expected:
             raise SystemExit(f"Expected {expected} Document dependencies in {name}")
         path.write_text(text)
+    if "kernelCommit" in pins:
+        path = checkout / "Cargo.toml"
+        text, count = re.subn(
+            r'(kernel(?:-constraints)?\s*=\s*\{[^\n]*rev\s*=\s*")[^"]+("[^\n]*\})',
+            lambda m: m[1] + pins["kernelCommit"] + m[2], path.read_text())
+        if count != 2:
+            raise SystemExit("Expected both kernel dependencies in Studio root")
+        path.write_text(text)
     lock = INPUTS / "Cargo.lock"
     if args.record_lock:
         INPUTS.mkdir(exist_ok=True)
         lock.write_bytes((checkout / "Cargo.lock").read_bytes())
     else:
         (checkout / "Cargo.lock").write_bytes(lock.read_bytes())
+    if args.record_build or args.verify_dependencies:
+        metadata = json.loads(subprocess.check_output(["cargo", "metadata", "--locked", "--offline", "--format-version", "1", "--filter-platform", "wasm32-unknown-unknown"], cwd=checkout, text=True, encoding="utf-8"))
+        validate_packages(metadata["packages"], pins)
     if args.record_build or args.verify_build:
         bundle = checkout / "dist/app"
         record_path = bundle / "IFCCAD-BUILD.json"
@@ -57,11 +82,6 @@ def main():
             raise SystemExit("Missing main WASM")
         record = {"inputIdentity": identity(), "pins": pins, "files": {p.relative_to(bundle).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
         if args.record_build:
-            metadata = json.loads(subprocess.check_output(["cargo", "metadata", "--locked", "--offline", "--format-version", "1", "--filter-platform", "wasm32-unknown-unknown"], cwd=checkout, text=True, encoding="utf-8"))
-            for name, revision in [("opencaddocument", pins["documentCommit"]), ("ifccad", pins["nativeCoreCommit"]), ("acadrust", pins["codecCommit"])]:
-                matches = [p for p in metadata["packages"] if p["name"] == name]
-                if len(matches) != 1 or not matches[0]["source"].endswith("#" + revision):
-                    raise SystemExit(f"Unexpected resolved {name} dependency")
             record["toolchain"] = subprocess.check_output(["rustc", "-Vv"], text=True).strip()
             record_path.write_text(json.dumps(record, indent=2) + "\n")
         else:

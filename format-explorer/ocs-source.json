@@ -10,5 +10,6 @@
   "explorerCodecCommit": "0a5542baa6052a2b07fc700b7ba041549650a997",
   "documentRepository": "https://github.com/HakanSeven12/opencaddocument.git",
   "profile": "0.3.0",
-  "cborRevision": 3
+  "cborRevision": 3,
+  "kernelCommit": "3a77b22d1aa740d2b48fdf993704c3097e053d02"
 }

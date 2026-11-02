@@ -6,6 +6,17 @@ use opencaddocument::{
 };
 use serde_json::Value;
 
+#[test]
+fn capabilities_identify_the_selected_native_contract() {
+    let caps = viewer::document_capabilities();
+    assert_eq!(caps["ifccad"]["profileVersion"], "0.3.0");
+    assert_eq!(caps["ifccad"]["cborMappingRevision"], 3);
+    assert_eq!(
+        caps["ifccad"]["revision"],
+        "28f1ad1214816e6b5c21162b732df0604bdf38bd"
+    );
+}
+
 fn line() -> Vec<u8> {
     let mut drawing = Document::new();
     drawing

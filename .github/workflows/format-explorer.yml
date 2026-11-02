@@ -107,7 +107,10 @@ jobs:
       - name: Build pinned web viewer
         if: steps.web-cache.outputs.cache-hit != 'true'
         working-directory: ocs-upstream
-        run: trunk build --locked --release --public-url /ocs/app/ --dist dist/app --html-output index.html web-app.html
+        run: |
+          cargo fetch --locked
+          python3 ../scripts/prepare_explorer_ocs.py . --verify-dependencies
+          trunk build --locked --release --public-url /ocs/app/ --dist dist/app --html-output index.html web-app.html
       - name: Complete the self-hosted viewer bundle
         if: steps.web-cache.outputs.cache-hit != 'true'
         run: |

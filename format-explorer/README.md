@@ -74,7 +74,7 @@ Explorer pins official upstream Document
 with codec `0a5542baa6052a2b07fc700b7ba041549650a997`. Studio uses the same
 Document and codec pins with compatible native core `07e1ef1c4e975afcab0a07012bed8a82a56202cb`.
 The workspace root shares its current core for Rust model identity. No local
-Document patch is needed. Host source `fae56298` retains kernel `faf2ee7`.
+Document patch is needed. Host source `fae56298` uses kernel `3a77b22` (matching codec 0a5542b).
 Both readers use profile 0.3.0 / CBOR3. Software release and file identifiers are
 independent: the host core pin is a compatible source commit, not the release tag.
 Studio grip/undo picture behavior is tracked separately in OCS #2325.
@@ -131,3 +131,7 @@ shows signed thickness and owning-scope direction separately from widths and
 lineweight. Paper uses its separate numeric domain. The seven existing catalogue
 objects have thickness 15 mm and base Z=0. The separate gallery is not shipped.
 Circle/Arc display remains tracked in OCS #2361.
+
+The host kernel pin 3a77b22 aligns its codec with Document. Compared with
+faf2ee7, it also includes the upstream periodic-rim seam fix in B-rep meshing;
+this dependency adoption does not claim additional native CAD coverage.
