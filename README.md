@@ -94,7 +94,7 @@ browser/host build and deployment. See [extrusion scope and review boundary](doc
 
 ## Development sequence
 
-[ROADMAP.md](ROADMAP.md) is authoritative; reviewed on **29 October 2026**.
+[ROADMAP.md](ROADMAP.md) is authoritative; sequence reviewed on **3 November 2026**.
 The native alpha and shared Explorer/CLI route are published. Hatch editing,
 SOLID/TRACE, Dimension graphics and planar polyline widths are implemented native
 foundations. Shared-route consolidation and the seven-kind Dimension expansion
@@ -109,13 +109,29 @@ pins and applicable regressions. The remaining development sequence is:
    or general regeneration. IFCCAD stores and validates source relationships;
    editors or update services process changes and regenerate graphics with
    consistent undo/redo. Bounded interoperability and reusable update processing
-   remain follow-ups, separate from the completed type expansion.
-2. **Expand resources and selected drawing semantics.** Define font/symbol
-   resolution boundaries, then bounded attributes, multileaders and other selected
-   families; native splines require their own contract.
+   remain follow-ups, separate from the completed type expansion; a general update
+   engine is not a prerequisite for the next resource contribution.
+2. **Expand resources and selected drawing semantics.** After the annotation-context
+   slice, add a bounded font/symbol-source foundation with application-owned
+   resolution and explicit missing/substitute status. Then select bounded block
+   attributes and multileaders before tables or dynamic-block authoring; their
+   relative order remains to be agreed. Native splines require their own contract
+   and are not selected ahead of resources without a concrete use case.
 3. **Qualify plotting and external drawing workflows.** Build on resources,
    annotations, color/plot-style semantics and rendering before claiming faithful
    PDF output, xref workflows or dynamic-block retention.
+
+Native contributions integrate and release sequentially against the preceding
+verified baseline. In parallel, develop selective preservation in `opencaddocument`
+through bounded typed capture/dependency storage and safe reconstruction. Once a
+tested capture, save, reopen and reconstruction chain is usable, insert a separate
+IFCCAD preservation slice between native extensions, without waiting for the full
+resource/entity sequence. Native edits remain authoritative; deleted entities
+must stay deleted and content must not be exported twice. The core remains
+independent of CAD runtimes. Raw/private source storage remains separate, and
+current shared-route preservation is still unavailable. See the
+[parallel preservation track](ROADMAP.md#parallel-preservation-track) for ownership,
+qualification and integration boundaries.
 
 Feature/version/reader evidence and understandable loss reports accompany this
 sequence. The [October requirements review](docs/user-research-2026-10-review.md)

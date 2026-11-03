@@ -1,7 +1,7 @@
 # IFCCAD development roadmap
 
-Status reviewed on **29 October 2026**. This document owns development order,
-dependencies and completion criteria. Schemas/conformance define the format;
+Development sequence reviewed on **3 November 2026**. This document owns
+development order, dependencies and completion criteria. Schemas/conformance define the format;
 current code and tests define implementation support. Dated designs, issue
 checklists and historical conversion reports do not override those sources.
 
@@ -75,6 +75,13 @@ browser/host build and deployment. See [extrusion scope and review boundary](doc
 Only remaining work is listed below. Completed foundations stay in the baseline
 above and in their topic/release documentation rather than as planned steps.
 
+Keep native IFCCAD contributions sequential: complete the annotation-context slice,
+then add the bounded font/symbol-source foundation, followed by selected drawing
+semantics. Integrate and release each substantial contribution against the preceding
+verified baseline. The independent Document preservation work described below can
+proceed in parallel; its later IFCCAD integration becomes a separate contribution
+between native extensions when the required Document support is ready.
+
 ### 1. Add shared annotation contexts and bounded association updates
 
 Build on the established definition/selector boundary to design common annotation
@@ -82,6 +89,10 @@ scale contexts for Text/MText and Dimensions; assess Hatch participation and
 drawing scale lists explicitly. Cover mm, m and inch drawings and multiple
 viewport scales. Existing text height, Dimension factors and Paper linetype
 scaling do not already provide this feature.
+
+Complete and qualify the selected stored-context slice before integrating the
+resource contribution. General association-update processing is a separate follow-up,
+not an additional prerequisite for font/symbol-source storage.
 
 Stored source relations and automatic updates are distinct. IFCCAD owns the
 stored definitions, role-specific source references/selectors and their shared
@@ -112,17 +123,26 @@ and rendering claims tested independently.
 
 ### 2. Expand resources and selected drawing semantics
 
-Establish font/symbol-source identity and application-owned resolution under
+After the annotation-context slice, the next selected native contribution is a
+bounded font/symbol-source foundation under
 [#15](https://github.com/OpenAEC-Foundation/ifccad/issues/15), with explicit missing
-or substitute status. The core describes resources without resolving filesystem
-or network locations. A bounded PAT/NLCS importer can be a narrow independent
-contribution where existing semantics suffice.
+or substitute status owned by the resolving application. The core describes
+resources without resolving filesystem or network locations. Source identity,
+application resolution and correct glyph geometry/layout are separate capabilities;
+a complete font renderer is not a prerequisite for this first slice. Select the
+fields and loss rules from concrete Text/MText and line-pattern use cases rather
+than adopting a universal resource framework. A bounded PAT/NLCS importer can be
+a narrow independent contribution where existing semantics suffice.
 
-Select block attributes and multileaders before tables or dynamic-block authoring
-as separate use-case-backed slices under
-[#2](https://github.com/OpenAEC-Foundation/ifccad/issues/2). Native splines need
-their own profile under [#4](https://github.com/OpenAEC-Foundation/ifccad/issues/4);
-the historical opaque spline pilot is not a native evaluable spline model or a
+Then select block attributes and multileaders before tables or dynamic-block
+authoring as separate use-case-backed slices under
+[#2](https://github.com/OpenAEC-Foundation/ifccad/issues/2); their relative order
+and scope remain to be agreed. Native splines need their own profile under
+[#4](https://github.com/OpenAEC-Foundation/ifccad/issues/4). They are largely
+independent of resource resolution, but are not selected ahead of the resource
+foundation without a concrete use case justifying that priority. Neither generic
+preservation nor a complete font system is a prerequisite for native splines.
+The historical opaque spline pilot is not a native evaluable spline model or a
 general preservation protocol. Layer states/groups/filters also need a bounded
 contract rather than an unqualified extension of layer flags.
 
@@ -144,6 +164,54 @@ design and codec support. Neither follows automatically from the spline pilot.
 
 **Exit criteria:** selected workflows have explicit ownership/resource rules and
 tests in named readers/hosts, including physical output where claimed.
+
+## Parallel preservation track
+
+Develop selective preservation in `opencaddocument` alongside the sequential
+native IFCCAD contributions. The upstream
+[direction in acadrust #91](https://github.com/HakanSeven12/acadrust/issues/91#issuecomment-6400723031)
+places typed capture/selection and reconstruction on Document. Reassess the earlier
+codec storage and PR3/PR4 proposals against the current Document model before
+preparing small PR contributions; those older plans do not define an implemented
+Document API or an agreed final PR split.
+
+1. **Document capture and durable storage.** Define a bounded, versioned selection
+   of typed source content with its required dependencies, source identity and
+   explicit coverage gaps. Prove storage and reopening after discarding the live
+   source document. Successful capture alone does not establish safe reconstruction.
+2. **Document reconstruction.** Reconstruct explicitly requested selections into
+   another Document with qualified identity/reference rebinding and caller-supplied
+   bindings to existing content. Test the selected cases through physical DWG/DXF
+   write/read where exchange is claimed. Reconstruction and physical writeback
+   fidelity remain separate claims.
+3. **A separate IFCCAD integration slice when ready.** Once a bounded capture,
+   durable storage, reopen and reconstruction chain is usable, insert an IFCCAD
+   contribution between the other native extensions. It need not wait for all
+   resource/entity work or a universal preservation facility. Implement and verify
+   selected native preservation storage and the paired Document mapping together,
+   then qualify the applicable Explorer integration and release stages separately.
+
+Document owns the reusable capture/dependency/reconstruction mechanisms. IFCCAD
+owns native coverage, preservation policy, storage validation and the rules for
+combining restored content with current native values, ownership and draw order.
+Keep the core independent of Document and CAD runtimes. The integration must prove
+that native edits remain authoritative, deleted entities are not restored and
+content is not emitted twice when represented natively. Test durable save/reopen
+and subsequent native edits before claiming the selected end-to-end workflow.
+
+Start with a few concrete cases. Raw DWG/DXF records, private replay baselines and
+shared AcDs storage remain separate work; do not restore the archived converter
+or make broad opaque relocation or full-document restore implicit requirements.
+The active route currently has no preservation capture/restoration guarantee;
+the [coverage contract](docs/architecture/explorer-document-route.md) changes only
+with qualified implementation evidence. Historical native storage and spline-pilot
+evidence do not establish Document-route support.
+
+Keep implementation worktrees and dependency pins separate, coordinate changes
+to shared Document interfaces, and schedule expensive verification and IFCCAD
+integration sequentially. Local testing may use an explicit pinned development
+pair before upstream merge. Prefer audited official merged revisions for deployment;
+PR submission, integration and publication retain their explicit-authorization rules.
 
 ## Construction-workflow priorities from the October 2026 review
 
@@ -204,8 +272,11 @@ Run the [verification gate](AGENTS.md#verification) on the final integration
 candidate, including frontend/WASM checks when applicable. Prose-only updates
 need content/link checks, not a Rust rebuild.
 
-Keep one broad structural task active at a time. Narrow independent work may
-proceed with explicit dependencies and coordinated expensive verification.
+Keep one broad native IFCCAD implementation/integration task active at a time.
+The bounded Document preservation track may proceed in parallel under the
+boundaries above. Narrow independent research or review may also proceed with
+explicit dependencies and coordinated expensive verification. The later IFCCAD
+preservation slice joins the same sequential integration/release path.
 Publishing, committing or merging still requires an explicit request. Mixed-IFCX
 editing, IFC-object links, source writeback, collaboration, application command/UI
 parity and a general CAD editor are not implicit requirements of this roadmap.
