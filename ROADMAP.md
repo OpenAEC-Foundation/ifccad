@@ -19,7 +19,7 @@ IFCCAD development now has two cooperating implementation boundaries:
 
 | Area | Implemented status | Remaining boundary |
 | --- | --- | --- |
-| Native source alpha | `2026.44.1`; profile `0.2.0`, CBOR mapping `2`, Zstd transport `1` | Release contains the native core only; alpha compatibility is not guaranteed; published format versions are immutable and format changes receive new identifiers |
+| Native source alpha | `2026.45.0`; profile `0.3.0`, CBOR mapping `3`, Zstd transport `1` | Release contains the native core only; the annotation candidate is unpublished profile `0.4.0` / CBOR `4`; published contracts remain immutable |
 | Drawing foundations | Primitive/path geometry, shared/nested blocks, Model/Paper layouts, presentation, Text/MText, line patterns, workspace and viewport data | Native storage does not establish complete CAD mapping or rendering |
 | Hatch | Solid, line-pattern and gradient fills; source/association state; classic editing and boundary-construction records | Fill evaluation, automatic updates and shared-route coverage remain separate |
 | SOLID/TRACE | Native kinds, planar corner state and extrusion thickness | Surface and display evidence remain distinct from stored coordinates |
@@ -93,6 +93,17 @@ scaling do not already provide this feature.
 Complete and qualify the selected stored-context slice before integrating the
 resource contribution. General association-update processing is a separate follow-up,
 not an additional prerequisite for font/symbol-source storage.
+
+The bounded storage/exchange slice is implemented as the unpublished
+profile 0.4.0 / CBOR4 candidate: Text/MText, all nine Dimension kinds, Hatch,
+Block definitions/references, independent scale/view identities and saved
+Model/Paper policies. The user accepted the compact physical roundtrips and
+the local catalogue, including corrected automatic Dimension text placement.
+The final native gate passes on the pinned development pair. The portable
+dependency update and upstream review in
+[Document PR #10](https://github.com/HakanSeven12/opencaddocument/pull/10)
+remain separate integration steps. This does not complete association updates or qualify host
+regeneration, grips, undo/redo or production Explorer deployment.
 
 Stored source relations and automatic updates are distinct. IFCCAD owns the
 stored definitions, role-specific source references/selectors and their shared

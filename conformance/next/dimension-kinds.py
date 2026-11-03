@@ -99,7 +99,7 @@ CASES = [
 
 binary_root = ROOT/'ifccad-cbor'
 base = decode((binary_root/'valid/graphics-empty.ifccad.cbor').read_bytes())
-assert base[1] == 2
+assert base[1] == 4
 manifest = json.loads((binary_root/'cases.json').read_text())
 json_root = ROOT/'ifccad'
 json_base = json.loads((json_root/'valid/dimension-linear-aligned.ifcx').read_text())
@@ -115,7 +115,7 @@ def emit(name, definition, valid=True, error=None):
     (binary_root/file).write_bytes(encode(document))
     (binary_root/(file+'.diag')).write_text(
         'Independent literal Dimension definition: '+repr(definition)+'\n'
-        'Envelope: existing graphics-empty fixture; mapping 2. Definitions above are independently authored.\n',
+        'Envelope: existing graphics-empty fixture; mapping 4. Definitions above are independently authored.\n',
         encoding='utf-8', newline='\n')
     case = dict(file=file, diagnostic=file+'.diag', valid=valid)
     if error:

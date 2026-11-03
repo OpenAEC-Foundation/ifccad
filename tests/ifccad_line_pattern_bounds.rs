@@ -10,6 +10,7 @@ fn drawing(text: bool) -> IfccadDocument {
     doc.paper_layouts.clear();
     let marker = if text {
         doc.text_styles.push(IfccadTextStyle {
+            annotation: Default::default(),
             id: IfccadTextStyleId(0),
             name: "Text".into(),
             properties: TextStyleProperties::new(FontRequest::family("Unknown")),
@@ -141,6 +142,7 @@ fn occurrences(byblock: bool) -> IfccadDocument {
         .line_pattern = IfccadLinePatternId(0);
     let block = doc.id_counters.allocate_block_id().unwrap();
     doc.blocks.push(IfccadBlockDefinition {
+        annotation: Default::default(),
         id: block,
         name: "Leaf".into(),
         description: String::new(),
@@ -172,6 +174,7 @@ fn occurrences(byblock: bool) -> IfccadDocument {
             line_weight: IfccadMode::ByLayer,
         },
         kind: IfccadEntityKind::BlockInstance {
+            annotation: None,
             definition_id: block,
             transform: IfccadBlockTransform {
                 placement: IfccadPlacement {

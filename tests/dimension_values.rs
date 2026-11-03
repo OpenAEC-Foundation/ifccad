@@ -139,7 +139,9 @@ fn nonfinite_input_and_unrepresentable_measurement_are_errors() {
     base.text.height = 0.0;
     assert!(validate_dimension_settings(&base).is_err());
     base.text.height = 2.5;
-    base.presentation_scale = f64::INFINITY;
+    base.presentation_scale = DimensionPresentationScale::Fixed {
+        factor: f64::INFINITY,
+    };
     assert!(validate_dimension_settings(&base).is_err());
 }
 
@@ -147,7 +149,10 @@ fn nonfinite_input_and_unrepresentable_measurement_are_errors() {
 fn stored_defaults_are_coordinate_values_and_have_no_font_lookup() {
     let base: DimensionStyleSettings<u32, u32, [u8; 3], u32> = DimensionStyleSettings::new(7);
     assert_eq!(base.text.style, 7);
-    assert_eq!(base.presentation_scale, 1.0);
+    assert_eq!(
+        base.presentation_scale,
+        DimensionPresentationScale::Fixed { factor: 1.0 }
+    );
     assert_eq!(base.text.gap, 0.625);
     assert_eq!(base.extension_lines.first.offset, 0.625);
     assert_eq!(base.extension_lines.first.extension, 1.25);

@@ -6,13 +6,19 @@ use std::collections::BTreeMap;
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct StyleValue {
+    #[serde(default)]
+    annotative: bool,
     name: String,
     settings: WireSettings,
     #[serde(default)]
     type_overrides: BTreeMap<DimensionKind, WireOverrides>,
 }
 pub(super) fn encode_style(s: &IfccadDimensionStyle, prefix: &str) -> Value {
-    json!({"name":s.name,"settings":encode_settings(&s.settings,prefix),"typeOverrides":s.type_overrides.iter().map(|(k,v)|(*k,encode_overrides(v,prefix))).collect::<BTreeMap<_,_>>()})
+    let mut value = json!({"name":s.name,"settings":encode_settings(&s.settings,prefix),"typeOverrides":s.type_overrides.iter().map(|(k,v)|(*k,encode_overrides(v,prefix))).collect::<BTreeMap<_,_>>()});
+    if s.annotative {
+        value["annotative"] = json!(true);
+    }
+    value
 }
 pub(super) fn decode_style(
     v: &Value,
@@ -29,6 +35,7 @@ pub(super) fn decode_style(
         types.insert(k, decode_overrides(&over, prefix, path)?);
     }
     Ok(IfccadDimensionStyle {
+        annotative: v.annotative,
         id,
         name: v.name,
         settings: decode_settings(&v.settings, prefix, path)?,

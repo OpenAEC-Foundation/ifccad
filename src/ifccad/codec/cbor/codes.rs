@@ -1,6 +1,6 @@
 //! Contract checks for explicit revision-1 mapping declarations.
 #[cfg(test)]
-pub(super) const MAPPING: &str = include_str!("../../../../schemas/ifccad/cbor-mapping-3.json");
+pub(super) const MAPPING: &str = include_str!("../../../../schemas/ifccad/cbor-mapping-4.json");
 #[cfg(test)]
 mod tests {
     use super::super::*;
@@ -44,7 +44,78 @@ mod tests {
         check::<IfccadSymbolSource>(&r, "IfccadSymbolSource");
         check::<IfccadTextStyle>(&r, "IfccadTextStyle");
         check::<IfccadDimensionStyle>(&r, "IfccadDimensionStyle");
+        check::<DimensionPresentationScale>(&r, "DimensionPresentationScale");
         check::<IfccadUcsDefinition>(&r, "IfccadUcsDefinition");
+        check::<IfccadAnnotationScale>(&r, "IfccadAnnotationScale");
+        check::<IfccadHatchContextPattern>(&r, "IfccadHatchContextPattern");
+        check::<IfccadHatchLoopClassification>(&r, "IfccadHatchLoopClassification");
+        check::<IfccadHatchContextBoundary>(&r, "IfccadHatchContextBoundary");
+        check::<IfccadHatchContextLoop>(&r, "IfccadHatchContextLoop");
+        check::<IfccadHatchAnnotationContext>(&r, "IfccadHatchAnnotationContext");
+        check::<IfccadHatchContextViewState>(&r, "IfccadHatchContextViewState");
+        check::<IfccadHatchAnnotationViewContext>(&r, "IfccadHatchAnnotationViewContext");
+        check::<IfccadHatchAnnotationViewContexts>(&r, "IfccadHatchAnnotationViewContexts");
+        check::<IfccadAnnotationViewTarget>(&r, "IfccadAnnotationViewTarget");
+        check::<IfccadAnnotation<IfccadHatchAnnotationContext>>(
+            &r,
+            "IfccadAnnotation<IfccadHatchAnnotationContext>",
+        );
+        check::<IfccadAnnotationContext<IfccadHatchAnnotationContext>>(
+            &r,
+            "IfccadAnnotationContext<IfccadHatchAnnotationContext>",
+        );
+        check::<IfccadAnnotationStoredView>(&r, "IfccadAnnotationStoredView");
+        check::<IfccadAnnotationViewSpace>(&r, "IfccadAnnotationViewSpace");
+        check::<IfccadAnnotationDefinition>(&r, "IfccadAnnotationDefinition");
+        check::<IfccadAnnotationOrientation>(&r, "IfccadAnnotationOrientation");
+        check::<IfccadAnnotationMode>(&r, "IfccadAnnotationMode");
+        check::<IfccadAnnotationContextKey>(&r, "IfccadAnnotationContextKey");
+        check::<IfccadTextAnnotationHorizontal>(&r, "IfccadTextAnnotationHorizontal");
+        check::<IfccadAnnotationColumnKind>(&r, "IfccadAnnotationColumnKind");
+        check::<IfccadDrawingAnnotationSettings>(&r, "IfccadDrawingAnnotationSettings");
+        check::<IfccadLayoutAnnotationState>(&r, "IfccadLayoutAnnotationState");
+        check::<IfccadAnnotationVisibility>(&r, "IfccadAnnotationVisibility");
+        check::<IfccadModelLinetypeAnnotationMode>(&r, "IfccadModelLinetypeAnnotationMode");
+        check::<IfccadStoredBoolOverride>(&r, "IfccadStoredBoolOverride");
+        check::<IfccadDimensionContextLayout>(&r, "IfccadDimensionContextLayout");
+        check::<IfccadDimensionContextGeometry>(&r, "IfccadDimensionContextGeometry");
+        check::<IfccadDimensionAnnotationContext>(&r, "IfccadDimensionAnnotationContext");
+        check::<IfccadAnnotation<IfccadDimensionAnnotationContext>>(
+            &r,
+            "IfccadAnnotation<IfccadDimensionAnnotationContext>",
+        );
+        check::<IfccadAnnotationContext<IfccadDimensionAnnotationContext>>(
+            &r,
+            "IfccadAnnotationContext<IfccadDimensionAnnotationContext>",
+        );
+        check::<IfccadBlockAnnotationContext>(&r, "IfccadBlockAnnotationContext");
+        check::<IfccadAnnotation<IfccadBlockAnnotationContext>>(
+            &r,
+            "IfccadAnnotation<IfccadBlockAnnotationContext>",
+        );
+        check::<IfccadAnnotationContext<IfccadBlockAnnotationContext>>(
+            &r,
+            "IfccadAnnotationContext<IfccadBlockAnnotationContext>",
+        );
+        check::<IfccadTextAnnotationContext>(&r, "IfccadTextAnnotationContext");
+        check::<IfccadMTextAnnotationContext>(&r, "IfccadMTextAnnotationContext");
+        check::<IfccadMTextAnnotationColumns>(&r, "IfccadMTextAnnotationColumns");
+        check::<IfccadAnnotation<IfccadTextAnnotationContext>>(
+            &r,
+            "IfccadAnnotation<IfccadTextAnnotationContext>",
+        );
+        check::<IfccadAnnotationContext<IfccadTextAnnotationContext>>(
+            &r,
+            "IfccadAnnotationContext<IfccadTextAnnotationContext>",
+        );
+        check::<IfccadAnnotation<IfccadMTextAnnotationContext>>(
+            &r,
+            "IfccadAnnotation<IfccadMTextAnnotationContext>",
+        );
+        check::<IfccadAnnotationContext<IfccadMTextAnnotationContext>>(
+            &r,
+            "IfccadAnnotationContext<IfccadMTextAnnotationContext>",
+        );
         check::<IfccadModelWindow>(&r, "IfccadModelWindow");
         check::<IfccadPointDisplay>(&r, "IfccadPointDisplay");
         check::<IfccadDrawingWorkspaceState>(&r, "IfccadDrawingWorkspaceState");

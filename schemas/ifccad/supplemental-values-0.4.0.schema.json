@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:example:ifccad:supplemental-values:0.3.0",
+  "$id": "urn:example:ifccad:supplemental-values:0.4.0",
   "title": "IFCCAD supplemental local value constraints",
   "$defs": {
     "mTextBackground": {
@@ -921,6 +921,9 @@
         },
         "creationUpsideDown": {
           "type": "boolean"
+        },
+        "annotation": {
+          "$ref": "#/$defs/annotationDefinition"
         }
       },
       "required": [
@@ -1102,6 +1105,19 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 18446744073709551615
+        },
+        "nextAnnotationScaleId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "nextAnnotationViewId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "annotationSettings": {
+          "$ref": "#/$defs/annotationSettings"
         }
       },
       "additionalProperties": false,
@@ -1109,6 +1125,9 @@
         {
           "$ref": "#/$defs/nonNullValue"
         }
+      ],
+      "required": [
+        "nextAnnotationScaleId"
       ]
     },
     "layerExtras": {
@@ -1430,6 +1449,9 @@
         },
         "uniformScaling": {
           "type": "boolean"
+        },
+        "annotation": {
+          "$ref": "#/$defs/annotationDefinition"
         }
       },
       "dependentRequired": {
@@ -2009,6 +2031,9 @@
             "enclosing",
             "estimated"
           ]
+        },
+        "annotationState": {
+          "$ref": "#/$defs/annotationState"
         }
       },
       "additionalProperties": false,
@@ -2224,6 +2249,10 @@
             "Hidden",
             "Rendered"
           ]
+        },
+        "annotationScale": {
+          "type": "string",
+          "pattern": "^/cad/d[0-9]+/annotationScale/[0-9]+$"
         }
       },
       "additionalProperties": false,
@@ -5283,8 +5312,7 @@
           ]
         },
         "presentationScale": {
-          "type": "number",
-          "exclusiveMinimum": 0
+          "$ref": "#/$defs/dimensionPresentationScale"
         }
       },
       "required": [
@@ -5954,8 +5982,7 @@
           "required": []
         },
         "presentationScale": {
-          "type": "number",
-          "exclusiveMinimum": 0
+          "$ref": "#/$defs/dimensionPresentationScale"
         }
       },
       "required": []
@@ -6558,6 +6585,9 @@
         },
         "typeOverrides": {
           "$ref": "#/$defs/dimensionTypeOverrides"
+        },
+        "annotative": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -6930,6 +6960,1027 @@
           "additionalProperties": false
         }
       ]
+    },
+    "annotationScale": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "paperUnits",
+        "drawingUnits"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "paperUnits": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "drawingUnits": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unitScale": {
+          "type": "boolean"
+        }
+      }
+    },
+    "annotationKey": {
+      "type": "object",
+      "properties": {
+        "scaleId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "scaleId"
+      ],
+      "additionalProperties": false
+    },
+    "annotationText": {
+      "type": "object",
+      "properties": {
+        "insertion": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "alignment": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "rotation": {
+          "type": "number"
+        },
+        "horizontal": {
+          "enum": [
+            "left",
+            "center",
+            "right",
+            "aligned",
+            "middle",
+            "fit"
+          ]
+        }
+      },
+      "required": [
+        "insertion",
+        "alignment",
+        "rotation",
+        "horizontal"
+      ],
+      "additionalProperties": false
+    },
+    "annotationColumns": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "static",
+            "dynamic"
+          ]
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "gutter": {
+          "type": "number",
+          "minimum": 0
+        },
+        "autoHeight": {
+          "type": "boolean"
+        },
+        "flowReversed": {
+          "type": "boolean"
+        },
+        "heights": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "count",
+        "width",
+        "gutter",
+        "autoHeight",
+        "flowReversed",
+        "heights"
+      ],
+      "additionalProperties": false
+    },
+    "annotationMText": {
+      "type": "object",
+      "properties": {
+        "insertion": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "xDirection": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "attachment": {
+          "enum": [
+            "topLeft",
+            "topCenter",
+            "topRight",
+            "middleLeft",
+            "middleCenter",
+            "middleRight",
+            "bottomLeft",
+            "bottomCenter",
+            "bottomRight"
+          ]
+        },
+        "rectangleWidth": {
+          "type": "number",
+          "minimum": 0
+        },
+        "rectangleHeight": {
+          "type": "number",
+          "minimum": 0
+        },
+        "columns": {
+          "$ref": "#/$defs/annotationColumns"
+        }
+      },
+      "required": [
+        "insertion",
+        "xDirection",
+        "attachment",
+        "rectangleWidth",
+        "rectangleHeight"
+      ],
+      "additionalProperties": false
+    },
+    "annotation": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": [
+            "disabled",
+            "enabled",
+            "byDefinition"
+          ]
+        },
+        "reference": {
+          "$ref": "#/$defs/annotationKey"
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/annotationKey"
+              },
+              "presentation": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/annotationText"
+                  },
+                  {
+                    "$ref": "#/$defs/annotationMText"
+                  },
+                  {
+                    "$ref": "#/$defs/annotationHatchPresentation"
+                  },
+                  {
+                    "$ref": "#/$defs/annotationBlock"
+                  },
+                  {
+                    "$ref": "#/$defs/annotationDimension"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "key"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "orientation": {
+          "enum": [
+            "fixed",
+            "matchLayout"
+          ]
+        }
+      },
+      "required": [
+        "mode",
+        "contexts"
+      ],
+      "additionalProperties": false
+    },
+    "dimensionPresentationScale": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "fixed"
+            },
+            "factor": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "factor"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "byViewport"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "byAnnotationScale"
+            },
+            "dormantFactor": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "annotationDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "orientation": {
+          "enum": [
+            "fixed",
+            "matchLayout"
+          ]
+        }
+      },
+      "required": []
+    },
+    "annotationView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "space",
+        "width",
+        "view"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "space": {
+          "enum": [
+            "model",
+            "paper"
+          ]
+        },
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "view": {
+          "$ref": "#/$defs/viewportExtras/properties/view"
+        },
+        "annotationScale": {
+          "type": "string",
+          "pattern": "^/cad/d[0-9]+/annotationScale/[0-9]+$"
+        }
+      }
+    },
+    "annotationHatchClassification": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "external": {
+          "type": "boolean"
+        },
+        "polyline": {
+          "type": "boolean"
+        },
+        "derived": {
+          "type": "boolean"
+        },
+        "textBox": {
+          "type": "boolean"
+        },
+        "outermost": {
+          "type": "boolean"
+        },
+        "notClosed": {
+          "type": "boolean"
+        },
+        "selfIntersecting": {
+          "type": "boolean"
+        },
+        "textIsland": {
+          "type": "boolean"
+        },
+        "duplicate": {
+          "type": "boolean"
+        },
+        "isAnnotative": {
+          "type": "boolean"
+        },
+        "doesNotSupportScale": {
+          "type": "boolean"
+        },
+        "forceAnnotationVisible": {
+          "type": "boolean"
+        },
+        "orientToPaper": {
+          "type": "boolean"
+        },
+        "isAnnotativeBlock": {
+          "type": "boolean"
+        }
+      },
+      "required": []
+    },
+    "annotationHatchBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "geometry": {
+          "$ref": "#/$defs/hatchBoundary"
+        },
+        "sourceEntityIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "geometry"
+      ]
+    },
+    "annotationHatchPresentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pattern": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "families": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/hatchFamily"
+              }
+            },
+            "scale": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "orientationReference": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "families",
+            "scale",
+            "orientationReference"
+          ]
+        },
+        "loops": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "shared"
+                  },
+                  "baseLoopIndex": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  "classification": {
+                    "$ref": "#/$defs/annotationHatchClassification"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "baseLoopIndex",
+                  "classification"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "local"
+                  },
+                  "classification": {
+                    "$ref": "#/$defs/annotationHatchClassification"
+                  },
+                  "boundary": {
+                    "$ref": "#/$defs/annotationHatchBoundary"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "classification",
+                  "boundary"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "pattern",
+        "loops"
+      ]
+    },
+    "annotationHatchTarget": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "paperViewport"
+            },
+            "entityId": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "entityId"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "modelWindow"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "storedView"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ]
+        }
+      ]
+    },
+    "hatchAnnotationViews": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nextContextId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "reference": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 18446744073709551615
+              },
+              "scaleId": {
+                "type": "string"
+              },
+              "target": {
+                "$ref": "#/$defs/annotationHatchTarget"
+              },
+              "presentation": {
+                "$ref": "#/$defs/annotationHatchPresentation"
+              },
+              "viewState": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "normal": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "rotation": {
+                    "type": "number"
+                  },
+                  "evaluate": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "normal",
+                  "rotation",
+                  "evaluate"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "scaleId",
+              "presentation",
+              "viewState"
+            ]
+          }
+        }
+      },
+      "required": [
+        "nextContextId",
+        "contexts"
+      ]
+    },
+    "annotationBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transform"
+      ],
+      "properties": {
+        "transform": {
+          "type": "object",
+          "properties": {
+            "placement": {
+              "$ref": "#/$defs/placementExtras"
+            },
+            "scale": {
+              "items": {
+                "not": {
+                  "const": 0
+                }
+              },
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "default": [
+                1,
+                1,
+                1
+              ]
+            },
+            "rotation": {
+              "type": "number",
+              "default": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "annotationStoredBool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "active",
+        "value"
+      ],
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "boolean"
+        }
+      }
+    },
+    "annotationDimensionLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lineOutside",
+        "suppressArrowsOutside",
+        "fitSwitch",
+        "forceTextInside",
+        "textMovementSwitch",
+        "secondArrowPresent",
+        "flipFirst",
+        "flipSecond"
+      ],
+      "properties": {
+        "lineOutside": {
+          "$ref": "#/$defs/annotationStoredBool"
+        },
+        "suppressArrowsOutside": {
+          "$ref": "#/$defs/annotationStoredBool"
+        },
+        "fitSwitch": {
+          "$ref": "#/$defs/annotationStoredBool"
+        },
+        "forceTextInside": {
+          "$ref": "#/$defs/annotationStoredBool"
+        },
+        "textMovementSwitch": {
+          "$ref": "#/$defs/annotationStoredBool"
+        },
+        "secondArrowPresent": {
+          "type": "boolean"
+        },
+        "flipFirst": {
+          "type": "boolean"
+        },
+        "flipSecond": {
+          "type": "boolean"
+        }
+      }
+    },
+    "annotationDimensionGeometry": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "dimensionLinePoint"
+          ],
+          "properties": {
+            "kind": {
+              "const": "linear"
+            },
+            "dimensionLinePoint": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "dimensionLinePoint"
+          ],
+          "properties": {
+            "kind": {
+              "const": "aligned"
+            },
+            "dimensionLinePoint": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "dimensionArcPoint"
+          ],
+          "properties": {
+            "kind": {
+              "const": "angularTwoLines"
+            },
+            "dimensionArcPoint": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "dimensionArcPoint"
+          ],
+          "properties": {
+            "kind": {
+              "const": "angularThreePoints"
+            },
+            "dimensionArcPoint": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "curvePoint"
+          ],
+          "properties": {
+            "kind": {
+              "const": "radius"
+            },
+            "curvePoint": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "firstDiameterPoint",
+            "secondDiameterPoint"
+          ],
+          "properties": {
+            "kind": {
+              "const": "diameter"
+            },
+            "firstDiameterPoint": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            },
+            "secondDiameterPoint": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "featurePoint",
+            "leaderEnd"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ordinate"
+            },
+            "featurePoint": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            },
+            "leaderEnd": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "dimensionArcPoint"
+          ],
+          "properties": {
+            "kind": {
+              "const": "arcLength"
+            },
+            "dimensionArcPoint": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "displayCenter",
+            "jogPoint"
+          ],
+          "properties": {
+            "kind": {
+              "const": "joggedRadius"
+            },
+            "displayCenter": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            },
+            "jogPoint": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "annotationDimensionGraphics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "parts"
+      ],
+      "properties": {
+        "origin": {
+          "enum": [
+            "sourceSnapshot",
+            "generated"
+          ]
+        },
+        "parts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "annotationDimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "textLocation",
+        "userTextLocation",
+        "textRotation",
+        "layout",
+        "geometry"
+      ],
+      "properties": {
+        "textLocation": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        "userTextLocation": {
+          "type": "boolean"
+        },
+        "textRotation": {
+          "type": "number"
+        },
+        "layout": {
+          "$ref": "#/$defs/annotationDimensionLayout"
+        },
+        "geometry": {
+          "$ref": "#/$defs/annotationDimensionGeometry"
+        },
+        "graphics": {
+          "$ref": "#/$defs/annotationDimensionGraphics"
+        }
+      }
+    },
+    "annotationSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "insertAsAnnotative": {
+          "type": "boolean"
+        },
+        "modelLinetypeScaling": {
+          "enum": [
+            "unscaled",
+            "byAnnotationScale"
+          ]
+        }
+      }
+    },
+    "annotationState": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "currentScale": {
+          "type": "string",
+          "pattern": "^/cad/d[0-9]+/annotationScale/[0-9]+$"
+        },
+        "visibility": {
+          "enum": [
+            "currentScaleOnly",
+            "all"
+          ]
+        }
+      }
     }
   },
   "$comment": "Mandatory IFCCAD local supplements. Ordinary IFCX shapes, typed decoding and profile-rules graph/domain algorithms also apply. This is not a whole drawing schema or IFCX core syntax."

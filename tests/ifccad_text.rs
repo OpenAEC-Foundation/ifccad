@@ -43,11 +43,13 @@ fn text_styles_keep_independent_large_ids_and_allocation_history() {
     let id = d.id_counters.allocate_text_style_id().unwrap();
     assert_eq!(id, IfccadTextStyleId(9007199254740993));
     d.text_styles.push(IfccadTextStyle {
+        annotation: Default::default(),
         id,
         name: "Unused".into(),
         properties: TextStyleProperties::new(FontRequest::family("Requested")),
     });
     d.text_styles.push(IfccadTextStyle {
+        annotation: Default::default(),
         id: IfccadTextStyleId(0),
         name: "Zero".into(),
         properties: TextStyleProperties::new(FontRequest::family("Other")),
@@ -88,11 +90,13 @@ fn text_style_exhaustion_is_atomic_and_native_lookup_does_not_trim() {
     let mut d = drawing();
     d.text_styles = vec![
         IfccadTextStyle {
+            annotation: Default::default(),
             id: IfccadTextStyleId(0),
             name: "Straße".into(),
             properties: TextStyleProperties::new(FontRequest::family("Requested")),
         },
         IfccadTextStyle {
+            annotation: Default::default(),
             id: IfccadTextStyleId(1),
             name: "STRASSE".into(),
             properties: TextStyleProperties::new(FontRequest::family("Requested")),
@@ -111,6 +115,7 @@ fn text_and_mtext_keep_authored_content_and_share_only_pure_values() {
     let mut d = drawing();
     let style_id = IfccadTextStyleId(0);
     d.text_styles.push(IfccadTextStyle {
+        annotation: Default::default(),
         id: style_id,
         name: "Labels".into(),
         properties: TextStyleProperties::new(FontRequest::family("Requested")),
@@ -122,6 +127,7 @@ fn text_and_mtext_keep_authored_content_and_share_only_pure_values() {
         y_axis: [0., 1., 0.],
     };
     entity.kind = IfccadEntityKind::Text(IfccadText {
+        annotation: None,
         style_id,
         placement: placement.clone(),
         rotation: 0.25,
@@ -142,6 +148,7 @@ fn text_and_mtext_keep_authored_content_and_share_only_pure_values() {
     d.model.entities = vec![IfccadEntity::Native(entity.clone())];
     entity.id = d.id_counters.allocate_entity_id().unwrap();
     entity.kind = IfccadEntityKind::MText(Box::new(IfccadMText {
+        annotation: None,
         style_id,
         placement,
         rotation: -0.5,

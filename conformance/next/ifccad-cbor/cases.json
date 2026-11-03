@@ -1,5 +1,5 @@
 {
-  "mappingRevision": 3,
+  "mappingRevision": 4,
   "cases": [
     {
       "file": "valid/empty.ifccad.cbor",
@@ -526,6 +526,156 @@
       "diagnostic": "invalid/dimension-null-display-center.ifccad.cbor.diag",
       "valid": false,
       "errorClass": "Malformed"
+    },
+    {
+      "file": "valid/dimension-sizing.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/dimension-sizing.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/dimension-sizing-zero-dormant.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/dimension-sizing-zero-dormant.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/dimension-sizing-null-dormant.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/dimension-sizing-null-dormant.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/dimension-sizing-viewport-body.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/dimension-sizing-viewport-body.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "valid/annotation-text.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/annotation-text.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/annotation-stale-watermark.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/annotation-stale-watermark.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/annotation-unresolved-scale.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/annotation-unresolved-scale.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/annotation-text-inheritance.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/annotation-text-inheritance.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/annotation-null-presentation.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/annotation-null-presentation.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "valid/annotation-hatch.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/annotation-hatch.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/annotation-hatch-duplicate-view.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/annotation-hatch-duplicate-view.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/annotation-hatch-null-target.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/annotation-hatch-null-target.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/annotation-hatch-shared-index.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/annotation-hatch-shared-index.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/annotation-hatch-local-polyline-flag.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/annotation-hatch-local-polyline-flag.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "valid/annotation-blocks.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/annotation-blocks.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/annotation-block-zero-scale.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/annotation-block-zero-scale.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/annotation-block-uniform.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/annotation-block-uniform.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "valid/annotation-dimension-linear-aligned.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/annotation-dimension-linear-aligned.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/annotation-dimension-kind-mismatch.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/annotation-dimension-kind-mismatch.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/annotation-dimension-missing-dormant-value.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/annotation-dimension-missing-dormant-value.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "valid/annotation-dimension-angular-two-lines.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/annotation-dimension-angular-two-lines.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/annotation-dimension-angular-three-points.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/annotation-dimension-angular-three-points.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/annotation-dimension-radius.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/annotation-dimension-radius.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/annotation-dimension-diameter.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/annotation-dimension-diameter.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/annotation-dimension-ordinate-signed.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/annotation-dimension-ordinate-signed.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/annotation-dimension-arc-length-full.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/annotation-dimension-arc-length-full.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/annotation-dimension-jogged-radius.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/annotation-dimension-jogged-radius.ifccad.cbor.diag"
     }
   ]
 }

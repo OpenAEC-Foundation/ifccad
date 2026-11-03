@@ -5,6 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 /// A Model view owned by a Paper layout, using the ordinary entity identity.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadViewport {
+    pub annotation_scale_id: Option<super::IfccadAnnotationScaleId>,
     /// Kept out of line so adding saved aids does not enlarge every entity variant.
     pub workspace: Option<Box<super::IfccadViewportWorkspace>>,
     pub model_id: u64,

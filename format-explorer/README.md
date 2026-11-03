@@ -144,3 +144,22 @@ wires staying on the regular wire path instead of the base-only analytical GPU
 path (OCS #2361). Document 3a3676b, codec ef27529c and kernel b2656bd are pinned
 together; the native 2026.45.0 release remains unchanged. The kernel also adds
 a bounded finest meshing retry and centerline selection/span corrections.
+
+
+
+### Local annotation candidate
+
+The annotation development worktree uses profile0.4.0/CBOR4. Its native/browser
+candidate pins public Document and codec development revisions, with one native
+model identity supplied by the workspace. It is labelled
+`localDevelopment: annotation-contexts` in ocs-source.json and the processor's
+capabilities; the official base revision alone does not identify these sources.
+The separately accepted host's development build record includes its actual resolved local packages,
+source/config/lock digests and asset hashes. This candidate is for the agreed
+user review. That existing bundle predates the rebase to native main11390fb6;
+coordinated host metadata/lock integration and a matching build remain required
+before public deployment. Public development source pins do not qualify that build.
+Annotation scale/view resources have their own navigation groups and typed
+relations. Existing sample objects expose saved mode, default and contexts in
+NL/EN, alongside the independent base values. Host display/editing and final
+workspace gates remain separately qualified.

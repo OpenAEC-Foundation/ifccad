@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.3.0"
+      "uri": "urn:example:ifccad:0.4.0"
     }
   ],
   "schemas": {},
@@ -43,6 +43,7 @@
           "modelWindows": [
             "/cad/d1/modelWindow/1"
           ],
+          "nextAnnotationScaleId": 1,
           "nextBlockId": 7,
           "nextDimensionStyleId": 1,
           "nextEntityId": 146,
@@ -53,7 +54,7 @@
           "nextSymbolSourceId": 1,
           "nextTextStyleId": 1,
           "nextUcsId": 1,
-          "profileVersion": "0.3.0"
+          "profileVersion": "0.4.0"
         },
         "ifccad::drawingWorkspace": {
           "activeLayout": "/cad/d1/layout/1",
@@ -191,7 +192,10 @@
                 "kind": "none"
               }
             },
-            "presentationScale": 1.0,
+            "presentationScale": {
+              "factor": 1.0,
+              "kind": "fixed"
+            },
             "text": {
               "appearance": {
                 "color": {

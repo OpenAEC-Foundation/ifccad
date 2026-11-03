@@ -18,6 +18,8 @@ record!(IfccadHatch;
 6 => association_enabled: bool = Some(false),
 7 => classic_settings: Option<HatchClassicSettings> = Some(None),
 8 => boundary_construction: Option<HatchBoundaryConstruction> = Some(None),
+9 => annotation:Option<Box<IfccadAnnotation<IfccadHatchAnnotationContext>>>=Some(None),
+10 => annotation_view_contexts:Option<Box<IfccadHatchAnnotationViewContexts>>=Some(None),
 );
 record!(HatchClassicSettings;
 0 => preferred_fill: Option<HatchClassicFill> = Some(None),

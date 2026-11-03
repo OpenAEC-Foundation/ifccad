@@ -52,6 +52,7 @@ fn ifccad_inspection_exposes_native_presentation_and_point_display() {
     }];
     let id = d.id_counters.allocate_block_id().unwrap();
     d.blocks.push(IfccadBlockDefinition {
+        annotation: Default::default(),
         id,
         base_point: [0.; 3],
         insertion_unit: "mm".into(),

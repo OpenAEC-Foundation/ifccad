@@ -1,4 +1,9 @@
 const copy={
+ annotationScales:['Annotation scales','Annotatieschalen'],annotationViews:['Saved annotation views','Opgeslagen annotatieviews'],
+ 'annotation.title':['Annotation contexts','Annotatieve contexten'],'annotation.mode':['Mode','Modus'],
+ 'annotation.contextCount':['Saved scale contexts','Opgeslagen schaalcontexten'],'annotation.reference':['Default context','Standaardcontext'],
+ 'annotation.enabled':['Enabled','Ingeschakeld'],'annotation.disabled':['Disabled','Uitgeschakeld'],'annotation.byDefinition':['By definition','Volgens definitie'],
+ 'annotation.savedHelp':['Saved presentations remain separate from base geometry. Their presence does not prove rendered layout or freshness.','Opgeslagen weergaven blijven gescheiden van de basisgeometrie. Hun aanwezigheid bewijst geen berekende layout of actualiteit.'],
  viewerProjection:['Studio IFCX projection','IFCX-projectie in Studio'],
  viewerProjectionUnassessed:['Mapping notices for the host projection; rendered appearance has not been assessed.','Meldingen voor de projectie in de host; de getekende weergave is niet beoordeeld.'],
  conversionInfo:['Conversion info','Conversie-info'],

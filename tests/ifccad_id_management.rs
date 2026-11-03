@@ -33,6 +33,8 @@ fn graph() -> Value {
         entity.as_native_mut().unwrap().id = id;
     }
     document.id_counters = IfccadIdCounters {
+        next_annotation_view_id: 1,
+        next_annotation_scale_id: 1,
         next_dimension_style_id: 1,
         next_symbol_source_id: 1,
         next_text_style_id: 1,
@@ -167,7 +169,7 @@ fn drawing_fragment_replacement_validates_final_counters() {
         ["nextEntityId"] = json!(203);
     assert!(read(&graph).is_err());
     graph["data"].as_array_mut().unwrap().last_mut().unwrap()["attributes"]["ifccad::drawing"] =
-        json!({"nextEntityId":2000});
+        json!({"nextAnnotationScaleId": 1, "nextEntityId":2000});
     assert!(read(&graph).is_err());
 }
 
@@ -288,6 +290,7 @@ fn deleted_definitions_do_not_reset_their_watermarks() {
     let id = block.id_counters.allocate_block_id().unwrap();
     assert_eq!(id, 100);
     block.blocks.push(IfccadBlockDefinition {
+        annotation: Default::default(),
         description: String::new(),
         anonymous: false,
         explodable: true,
@@ -371,6 +374,8 @@ fn wire_roundtrip_preserves_full_width_counters_and_rejects_maximum_ids() {
     for next in [9_007_199_254_740_993, 9_223_372_036_854_775_809, u64::MAX] {
         let mut document = read(&graph()).unwrap().document().clone();
         document.id_counters = IfccadIdCounters {
+            next_annotation_view_id: 1,
+            next_annotation_scale_id: 1,
             next_dimension_style_id: 1,
             next_symbol_source_id: 1,
             next_text_style_id: 1,

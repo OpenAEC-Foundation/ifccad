@@ -8,6 +8,67 @@ mod drawing;
 mod house;
 
 #[test]
+fn automatic_catalogue_dimensions_do_not_invent_saved_text_positions() {
+    use ifccad::*;
+    let bytes = catalogue::build().unwrap();
+    let loaded = load_ifccad_bytes(&bytes, Default::default()).unwrap();
+    let mut count = 0;
+    for entity in &loaded.document().model.entities {
+        let Some(IfccadNativeEntity {
+            kind: IfccadEntityKind::Dimension(d),
+            ..
+        }) = entity.as_native()
+        else {
+            continue;
+        };
+        assert!(matches!(
+            d.text_placement,
+            dimension::DimensionTextPlacement::StyleDriven
+        ));
+        assert!(!d.graphics.as_ref().unwrap().parts.is_empty());
+        for c in &d.annotation.as_ref().unwrap().contexts {
+            assert!(
+                c.presentation.is_none(),
+                "{:?}: automatic text has no authored presentation snapshot",
+                d.definition.kind()
+            );
+        }
+        count += 1;
+    }
+    assert_eq!(count, 9);
+}
+
+#[test]
+fn catalogue_existing_samples_have_two_saved_annotation_contexts() {
+    use ifccad::*;
+    let bytes = catalogue::build().unwrap();
+    let d = load_ifccad_bytes(&bytes, Default::default())
+        .unwrap()
+        .into_document();
+    assert_eq!(d.annotation_scales.len(), 2);
+    let mut counts = [0; 5];
+    for e in &d.model.entities {
+        let Some(e) = e.as_native() else { continue };
+        let (slot, count) = match &e.kind {
+            IfccadEntityKind::Text(t) if t.annotation.is_some() => {
+                (0, t.annotation.as_ref().unwrap().contexts.len())
+            }
+            IfccadEntityKind::MText(t) => (1, t.annotation.as_ref().unwrap().contexts.len()),
+            IfccadEntityKind::Hatch(t) => (2, t.annotation.as_ref().unwrap().contexts.len()),
+            IfccadEntityKind::BlockInstance {
+                annotation: Some(a),
+                ..
+            } => (3, a.contexts.len()),
+            IfccadEntityKind::Dimension(t) => (4, t.annotation.as_ref().unwrap().contexts.len()),
+            _ => continue,
+        };
+        assert_eq!(count, 2);
+        counts[slot] += 1;
+    }
+    assert_eq!(counts, [2, 1, 3, 3, 9]);
+}
+
+#[test]
 fn catalogue_primitive_samples_keep_their_base_at_zero_with_visible_thickness() {
     for (title, kind, count) in [
         ("Point", "point", 1),

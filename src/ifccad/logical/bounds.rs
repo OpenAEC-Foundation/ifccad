@@ -32,6 +32,18 @@ pub struct IfccadPolylineWidthBoundsIssue {
     pub occurrence_path: Vec<u64>,
     pub reason: crate::geometry_kernel::PolylineWidthBoundsReason,
 }
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct IfccadAnnotationBoundsIssue {
+    pub source_path: String,
+    pub occurrence_path: Vec<u64>,
+    pub reason: IfccadAnnotationBoundsReason,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum IfccadAnnotationBoundsReason {
+    PresentationUnassessed,
+    DefinitionSizingUnassessed,
+    ViewProjectionUnassessed,
+}
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadScopeBoundsAssessment {
     pub scope_id: IfccadScopeId,
@@ -39,6 +51,7 @@ pub struct IfccadScopeBoundsAssessment {
     pub quality: Option<IfccadBoundsQuality>,
     pub enclosure_verified: bool,
     pub text_reasons: Vec<TextExtentReason>,
+    pub annotation_reasons: Vec<IfccadAnnotationBoundsIssue>,
     pub line_pattern_reasons: Vec<crate::line_pattern::LinePatternBoundsReason>,
     pub polyline_width_reasons: Vec<IfccadPolylineWidthBoundsIssue>,
 }
@@ -53,6 +66,7 @@ struct Extents {
     unavailable: bool,
     estimated: bool,
     reasons: Vec<TextExtentReason>,
+    annotation_reasons: Vec<IfccadAnnotationBoundsIssue>,
     marker_unavailable: bool,
     width_unavailable: bool,
     polyline_width_reasons: Vec<IfccadPolylineWidthBoundsIssue>,
@@ -103,6 +117,7 @@ impl Extents {
                 self.line_pattern_reasons.push(r);
             }
         }
+        self.annotation_reasons.extend(other.annotation_reasons);
         self.estimated |= other.estimated;
         for r in other.reasons {
             if !self.reasons.contains(&r) {
@@ -128,6 +143,59 @@ fn union(target: &mut Option<IfccadBounds3d>, value: IfccadBounds3d) {
         }
         None => *target = Some(value),
     }
+}
+fn annotation_positions<P>(
+    extents: &mut Extents,
+    annotation: Option<&IfccadAnnotation<P>>,
+    placement: &IfccadPlacement,
+    points: impl Fn(&P) -> Vec<[f64; 3]>,
+    source_path: &str,
+    owner: Owner,
+) -> Result<(), IfccadReport> {
+    let Some(a) = annotation else { return Ok(()) };
+    if a.mode == IfccadAnnotationMode::Disabled && a.contexts.is_empty() {
+        return Ok(());
+    }
+    let transform =
+        BlockTransform::try_new(placement.coordinate_frame()?, 0., Scale3::new(1., 1., 1.))
+            .map_err(|e| error(owner, &e.to_string()))?;
+    let prepared = PreparedBlockTransform::new(transform, Point3::new(0., 0., 0.))
+        .ok_or_else(|| error(owner, "cannot evaluate annotation placement"))?;
+    let mut reason = |path: String| {
+        extents
+            .annotation_reasons
+            .push(IfccadAnnotationBoundsIssue {
+                source_path: path,
+                occurrence_path: vec![],
+                reason: IfccadAnnotationBoundsReason::PresentationUnassessed,
+            });
+    };
+    if a.contexts.is_empty() {
+        reason(format!("{source_path}/ifccad::annotation"));
+    }
+    for c in &a.contexts {
+        reason(format!(
+            "{source_path}/ifccad::annotation/contexts/scale{}",
+            c.key.scale_id.0
+        ));
+    }
+    for c in &a.contexts {
+        if let Some(p) = &c.presentation {
+            for point in points(p) {
+                let b = prepared
+                    .apply_intervals(point.map(Interval::point))
+                    .ok_or_else(|| error(owner, "annotation position exceeds finite range"))?;
+                let b = IfccadBounds3d {
+                    min: b.map(|v| v.lower),
+                    max: b.map(|v| v.upper),
+                };
+                union(&mut extents.all, b);
+                union(&mut extents.proven, b);
+            }
+        }
+    }
+    extents.unavailable = true;
+    Ok(())
 }
 fn native(b: crate::geometry_kernel::Bounds3d) -> IfccadBounds3d {
     IfccadBounds3d {
@@ -269,6 +337,25 @@ impl<'a> Evaluation<'a> {
             )?;
             combined.merge(value);
         }
+        if owner == Owner::Layout(self.drawing.model.id)
+            && combined.all.is_some()
+            && self.drawing.annotation_settings.is_some_and(|s| {
+                s.model_linetype_scaling
+                    == Some(IfccadModelLinetypeAnnotationMode::ByAnnotationScale)
+            })
+        {
+            combined.unavailable = true;
+            combined
+                .annotation_reasons
+                .push(IfccadAnnotationBoundsIssue {
+                    source_path: format!(
+                        "/cad/d{}/ifccad::drawing/annotationSettings/modelLinetypeScaling",
+                        self.drawing.drawing_id
+                    ),
+                    occurrence_path: vec![],
+                    reason: IfccadAnnotationBoundsReason::DefinitionSizingUnassessed,
+                });
+        }
         self.completed.insert(key, combined.clone());
         Ok(combined)
     }
@@ -290,47 +377,89 @@ impl<'a> Evaluation<'a> {
             IfccadEntityKind::BlockInstance {
                 definition_id,
                 transform,
+                annotation,
             } => {
                 let block = self.blocks[definition_id];
                 let mut local =
                     self.scope(Owner::BlockDefinition(*definition_id), Some(context))?;
+                for issue in &mut local.annotation_reasons {
+                    issue.occurrence_path.insert(0, entity_id);
+                }
                 for issue in &mut local.polyline_width_reasons {
                     issue.occurrence_path.insert(0, entity_id);
                 }
-                let t = BlockTransform::try_new(
-                    transform.placement.coordinate_frame()?,
-                    transform.rotation,
-                    Scale3::new(transform.scale[0], transform.scale[1], transform.scale[2]),
-                )
-                .map_err(|e| error(owner, &e.to_string()))?;
-                let base = block.base_point;
-                let prepared =
-                    PreparedBlockTransform::new(t, Point3::new(base[0], base[1], base[2]))
-                        .ok_or_else(|| error(owner, "cannot evaluate block transform"))?;
-                let apply = |b: IfccadBounds3d| -> Result<IfccadBounds3d, IfccadReport> {
-                    let result = prepared
-                        .apply_intervals(std::array::from_fn(|i| Interval {
-                            lower: b.min[i],
-                            upper: b.max[i],
-                        }))
-                        .ok_or_else(|| {
-                            error(owner, "transformed block enclosure exceeds finite range")
-                        })?;
-                    Ok(IfccadBounds3d {
-                        min: result.map(|v| v.lower),
-                        max: result.map(|v| v.upper),
-                    })
-                };
-                if block.entities.is_empty() && local.all.is_none() && !local.unavailable {
-                    let b = IfccadBounds3d {
-                        min: transform.placement.origin,
-                        max: transform.placement.origin,
+                let source = local;
+                let apply_transform =
+                    |transform: &IfccadBlockTransform| -> Result<Extents, IfccadReport> {
+                        let mut local = source.clone();
+                        let t = BlockTransform::try_new(
+                            transform.placement.coordinate_frame()?,
+                            transform.rotation,
+                            Scale3::new(transform.scale[0], transform.scale[1], transform.scale[2]),
+                        )
+                        .map_err(|e| error(owner, &e.to_string()))?;
+                        let base = block.base_point;
+                        let prepared =
+                            PreparedBlockTransform::new(t, Point3::new(base[0], base[1], base[2]))
+                                .ok_or_else(|| error(owner, "cannot evaluate block transform"))?;
+                        let apply = |b: IfccadBounds3d| -> Result<IfccadBounds3d, IfccadReport> {
+                            let result = prepared
+                                .apply_intervals(std::array::from_fn(|i| Interval {
+                                    lower: b.min[i],
+                                    upper: b.max[i],
+                                }))
+                                .ok_or_else(|| {
+                                    error(owner, "transformed block enclosure exceeds finite range")
+                                })?;
+                            Ok(IfccadBounds3d {
+                                min: result.map(|v| v.lower),
+                                max: result.map(|v| v.upper),
+                            })
+                        };
+                        if block.entities.is_empty() && local.all.is_none() && !local.unavailable {
+                            let b = IfccadBounds3d {
+                                min: transform.placement.origin,
+                                max: transform.placement.origin,
+                            };
+                            local.all = Some(b);
+                            local.proven = Some(b);
+                        } else {
+                            local.all = local.all.map(apply).transpose()?;
+                            local.proven = local.proven.map(apply).transpose()?;
+                        }
+                        Ok(local)
                     };
-                    local.all = Some(b);
-                    local.proven = Some(b);
-                } else {
-                    local.all = local.all.map(apply).transpose()?;
-                    local.proven = local.proven.map(apply).transpose()?;
+                let mut local = apply_transform(transform)?;
+                if let Some(a) = annotation {
+                    for p in a.contexts.iter().filter_map(|c| c.presentation.as_ref()) {
+                        local.merge(apply_transform(&p.transform)?);
+                    }
+                }
+                let enabled =
+                    annotation
+                        .as_ref()
+                        .map_or(block.annotation.enabled, |a| match a.mode {
+                            IfccadAnnotationMode::Enabled => true,
+                            IfccadAnnotationMode::Disabled => false,
+                            IfccadAnnotationMode::ByDefinition => block.annotation.enabled,
+                        });
+                if enabled || annotation.as_ref().is_some_and(|a| !a.contexts.is_empty()) {
+                    local.unavailable = true;
+                    local.annotation_reasons.push(IfccadAnnotationBoundsIssue {
+                        source_path: if annotation.as_ref().is_some_and(|a| {
+                            a.mode != IfccadAnnotationMode::ByDefinition || !a.contexts.is_empty()
+                        }) {
+                            format!("{source_path}/ifccad::annotation")
+                        } else {
+                            format!("{source_path}/definition/annotation")
+                        },
+                        occurrence_path: vec![entity_id],
+                        reason: if annotation.as_ref().is_some_and(|a| !a.contexts.is_empty()) {
+                            IfccadAnnotationBoundsReason::PresentationUnassessed
+                        } else {
+                            IfccadAnnotationBoundsReason::DefinitionSizingUnassessed
+                        },
+                    });
                 }
                 local
             }
@@ -353,7 +482,21 @@ impl<'a> Evaluation<'a> {
                     vertical: style.properties.vertical,
                 })
                 .map_err(|e| error(owner, &e.to_string()))?;
-                Self::estimate(estimate)
+                let mut result = Self::estimate(estimate);
+                annotation_positions(
+                    &mut result,
+                    t.annotation.as_deref(),
+                    &t.placement,
+                    |p| {
+                        vec![
+                            [p.insertion[0], p.insertion[1], 0.],
+                            [p.alignment[0], p.alignment[1], 0.],
+                        ]
+                    },
+                    source_path,
+                    owner,
+                )?;
+                result
             }
             IfccadEntityKind::MText(t) => {
                 let style = self
@@ -391,64 +534,171 @@ impl<'a> Evaluation<'a> {
                     upside_down: t.upside_down,
                 })
                 .map_err(|e| error(owner, &e.to_string()))?;
-                Self::estimate(estimate)
+                let mut result = Self::estimate(estimate);
+                annotation_positions(
+                    &mut result,
+                    t.annotation.as_deref(),
+                    &t.placement,
+                    |p| vec![p.insertion],
+                    source_path,
+                    owner,
+                )?;
+                result
             }
             IfccadEntityKind::Hatch(h) => {
+                let frame = h.placement.coordinate_frame()?;
                 let b = native(
                     crate::geometry_kernel::hatch::hatch_bounds(
-                        h.placement.coordinate_frame()?,
+                        frame,
                         h.loops.iter().map(|l| &l.boundary),
                     )
                     .map_err(|e| error(owner, &e.to_string()))?,
                 );
-                Extents {
+                let mut result = Extents {
                     all: Some(b),
                     proven: Some(b),
                     ..Default::default()
-                }
-            }
-            IfccadEntityKind::Dimension(dimension) => {
-                let Some(graphics) = &dimension.graphics else {
-                    return Ok(Extents {
-                        unavailable: true,
-                        ..Default::default()
-                    });
                 };
-                let mut local = Extents::default();
-                for (part_index, part) in graphics.parts.iter().enumerate() {
-                    if part.purpose == IfccadDimensionGraphicsPurpose::ReferencePoint {
-                        continue;
+                let mut presentations = Vec::new();
+                if let Some(a) = &h.annotation {
+                    if a.contexts.is_empty() && a.mode != IfccadAnnotationMode::Disabled {
+                        result.unavailable = true;
+                        result.annotation_reasons.push(IfccadAnnotationBoundsIssue {
+                            source_path: format!("{source_path}/ifccad::annotation"),
+                            occurrence_path: vec![],
+                            reason: IfccadAnnotationBoundsReason::PresentationUnassessed,
+                        });
                     }
-                    let context =
-                        super::line_pattern_bounds::graphics_context(part, context, self.drawing);
-                    let scale = Interval::point(line_pattern_scale)
-                        .mul(Interval::point(part.line_pattern_scale))
-                        .ok_or_else(|| {
-                            error(owner, "dimension part pattern scale exceeds finite range")
-                        })?
-                        .upper;
-                    let kind = IfccadEntityKind::from(part.kind.clone());
-                    let part_path = format!("{source_path}/graphics/p{part_index}");
-                    let mut contribution = self.kind_extents(
-                        owner,
-                        &kind,
-                        ExtentContext {
-                            entity_id,
-                            source_path: &part_path,
-                            appearance: &part.appearance,
-                            layer_id: context.layer_id,
-                            occurrence: context,
-                            line_pattern_scale: scale,
-                        },
-                    )?;
-                    if matches!(part.kind, IfccadDimensionGraphicsKind::BlockInstance { .. }) {
-                        // Bounds responsibility is the dependent picture part; leaf/handle
-                        // identities remain in the separate numerical geometry assessment.
-                        for issue in &mut contribution.polyline_width_reasons {
-                            issue.source_path = part_path.clone();
+                    for c in &a.contexts {
+                        let path = format!(
+                            "{source_path}/ifccad::annotation/contexts/scale{}",
+                            c.key.scale_id.0
+                        );
+                        if let Some(p) = &c.presentation {
+                            presentations.push((path, p));
+                        } else {
+                            result.unavailable = true;
+                            result.annotation_reasons.push(IfccadAnnotationBoundsIssue {
+                                source_path: path,
+                                occurrence_path: vec![],
+                                reason: IfccadAnnotationBoundsReason::PresentationUnassessed,
+                            });
                         }
                     }
-                    local.merge(contribution);
+                    if a.mode != IfccadAnnotationMode::Disabled
+                        && a.orientation == Some(IfccadAnnotationOrientation::MatchLayout)
+                    {
+                        result.unavailable = true;
+                        result.annotation_reasons.push(IfccadAnnotationBoundsIssue {
+                            source_path: format!("{source_path}/ifccad::annotation/orientation"),
+                            occurrence_path: vec![],
+                            reason: IfccadAnnotationBoundsReason::ViewProjectionUnassessed,
+                        });
+                    }
+                }
+                if let Some(a) = &h.annotation_view_contexts {
+                    for c in &a.contexts {
+                        let path = format!(
+                            "{source_path}/ifccad::hatchAnnotationViews/contexts/{}",
+                            c.id.0
+                        );
+                        presentations.push((path.clone(), &c.presentation));
+                        result.unavailable = true;
+                        result.annotation_reasons.push(IfccadAnnotationBoundsIssue {
+                            source_path: path,
+                            occurrence_path: vec![],
+                            reason: IfccadAnnotationBoundsReason::ViewProjectionUnassessed,
+                        });
+                    }
+                }
+                for (path, p) in presentations {
+                    if p.loops.is_empty() {
+                        result.unavailable = true;
+                        result.annotation_reasons.push(IfccadAnnotationBoundsIssue {
+                            source_path: path,
+                            occurrence_path: vec![],
+                            reason: IfccadAnnotationBoundsReason::PresentationUnassessed,
+                        });
+                        continue;
+                    }
+                    let b = native(
+                        crate::geometry_kernel::hatch::hatch_bounds(
+                            h.placement.coordinate_frame()?,
+                            super::annotation_hatch::boundaries(h, p),
+                        )
+                        .map_err(|e| error(owner, &e.to_string()))?,
+                    );
+                    union(&mut result.all, b);
+                    union(&mut result.proven, b);
+                }
+                result
+            }
+            IfccadEntityKind::Dimension(dimension) => {
+                let mut local = Extents {
+                    unavailable: dimension.graphics.is_none(),
+                    ..Default::default()
+                };
+                let base = dimension
+                    .graphics
+                    .as_ref()
+                    .map(|g| ("graphics".to_string(), g));
+                let contexts = dimension
+                    .annotation
+                    .iter()
+                    .flat_map(|a| &a.contexts)
+                    .filter_map(|c| {
+                        c.presentation
+                            .as_ref()
+                            .and_then(|p| p.graphics.as_ref())
+                            .map(|g| {
+                                (
+                                    format!(
+                                        "ifccad::annotation/contexts/scale{}/presentation/graphics",
+                                        c.key.scale_id.0
+                                    ),
+                                    g,
+                                )
+                            })
+                    });
+                for (picture_path, graphics) in base.into_iter().chain(contexts) {
+                    for (part_index, part) in graphics.parts.iter().enumerate() {
+                        if part.purpose == IfccadDimensionGraphicsPurpose::ReferencePoint {
+                            continue;
+                        }
+                        let context = super::line_pattern_bounds::graphics_context(
+                            part,
+                            context,
+                            self.drawing,
+                        );
+                        let scale = Interval::point(line_pattern_scale)
+                            .mul(Interval::point(part.line_pattern_scale))
+                            .ok_or_else(|| {
+                                error(owner, "dimension part pattern scale exceeds finite range")
+                            })?
+                            .upper;
+                        let kind = IfccadEntityKind::from(part.kind.clone());
+                        let part_path = format!("{source_path}/{picture_path}/p{part_index}");
+                        let mut contribution = self.kind_extents(
+                            owner,
+                            &kind,
+                            ExtentContext {
+                                entity_id,
+                                source_path: &part_path,
+                                appearance: &part.appearance,
+                                layer_id: context.layer_id,
+                                occurrence: context,
+                                line_pattern_scale: scale,
+                            },
+                        )?;
+                        if matches!(part.kind, IfccadDimensionGraphicsKind::BlockInstance { .. }) {
+                            // Bounds responsibility is the dependent picture part; leaf/handle
+                            // identities remain in the separate numerical geometry assessment.
+                            for issue in &mut contribution.polyline_width_reasons {
+                                issue.source_path = part_path.clone();
+                            }
+                        }
+                        local.merge(contribution);
+                    }
                 }
                 let transform = BlockTransform::try_new(
                     dimension.placement.coordinate_frame()?,
@@ -474,6 +724,36 @@ impl<'a> Evaluation<'a> {
                 };
                 local.all = local.all.map(apply).transpose()?;
                 local.proven = local.proven.map(apply).transpose()?;
+                let inherited = self
+                    .drawing
+                    .dimension_styles
+                    .iter()
+                    .find(|s| s.id == dimension.style_id)
+                    .is_some_and(|s| s.annotative);
+                annotation_positions(
+                    &mut local,
+                    dimension.annotation.as_deref().filter(|a| {
+                        a.mode != IfccadAnnotationMode::ByDefinition
+                            || inherited
+                            || !a.contexts.is_empty()
+                    }),
+                    &dimension.placement,
+                    |p| {
+                        std::iter::once([p.text_location[0], p.text_location[1], 0.])
+                            .chain(p.geometry.points())
+                            .collect()
+                    },
+                    source_path,
+                    owner,
+                )?;
+                if dimension.annotation.is_none() && inherited {
+                    local.unavailable = true;
+                    local.annotation_reasons.push(IfccadAnnotationBoundsIssue {
+                        source_path: format!("{source_path}/definition/annotation"),
+                        occurrence_path: vec![entity_id],
+                        reason: IfccadAnnotationBoundsReason::DefinitionSizingUnassessed,
+                    });
+                }
                 local
             }
             IfccadEntityKind::Viewport(v) => {
@@ -685,6 +965,7 @@ pub fn assess_ifccad_document_bounds(
                         && !e.width_unavailable
                         && !e.estimated,
                     text_reasons: e.reasons,
+                    annotation_reasons: e.annotation_reasons,
                     line_pattern_reasons: e.line_pattern_reasons,
                     polyline_width_reasons: e.polyline_width_reasons,
                 },

@@ -165,12 +165,14 @@ fn invalid_typed_documents_fail_without_encoding() {
     });
     add("missing block", |d| {
         d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
+            annotation: None,
             definition_id: 900,
             transform: transform(),
         }
     });
     add("block cycle", |d| {
         d.blocks[0].entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
+            annotation: None,
             definition_id: d.blocks[0].id,
             transform: transform(),
         }
@@ -217,6 +219,7 @@ fn invalid_typed_documents_fail_without_encoding() {
         let mut t = transform();
         t.scale[0] = 0.;
         d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
+            annotation: None,
             definition_id: d.blocks[0].id,
             transform: t,
         };
@@ -225,6 +228,7 @@ fn invalid_typed_documents_fail_without_encoding() {
         let mut t = transform();
         t.rotation = f64::INFINITY;
         d.model.entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
+            annotation: None,
             definition_id: d.blocks[0].id,
             transform: t,
         };

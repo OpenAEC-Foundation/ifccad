@@ -1,4 +1,8 @@
 use crate::ifccad::*;
+mod annotation;
+mod annotation_dimension;
+mod annotation_hatch;
+mod annotation_policy;
 mod defaults;
 mod dimension;
 mod dimension_graphics;

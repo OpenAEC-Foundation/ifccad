@@ -22,10 +22,21 @@ assert.equal(capabilities.numericalAssessment,'unassessed');
 const bytesOf=file=>Uint8Array.from(Buffer.from(file.base64,'base64'));
 const request=(name,bytes,kind='ifccad')=>({kind,name,files:[{path:name,bytes:Uint8Array.from(bytes).buffer}]});
 function checked(source){const value=processBrowserRequest(source,wasm);assert.equal(value.failure,null,JSON.stringify(value.failure));assert.equal(value.validation.strictAvailable,true);return value;}
+function catalogueAutomaticText(result){
+ const dimensions=result.presentation.graph.data.filter(n=>n.attributes?.['ifccad::dimension']);
+ assert.equal(dimensions.length,9);
+ for(const node of dimensions){
+  const a=node.attributes;
+  assert.equal(a['ifccad::dimension'].textPlacement?.kind??'styleDriven','styleDriven');
+  assert.equal(a['ifccad::annotation'].contexts.length,2);
+  assert.ok(a['ifccad::annotation'].contexts.every(c=>c.presentation==null),'membership-only contexts must not acquire artificial text positions');
+ }
+}
 
 for(const example of examples){
  const name=example.path.split('/').at(-1),bytes=await readFile(new URL('../../'+example.path,import.meta.url)),source=request(name,bytes);
  const opened=checked(source);
+ if(example.name==='Entity catalogue')catalogueAutomaticText(opened);
  assert.deepEqual(Buffer.from(opened.nativeFile.base64,'base64'),bytes,'preview retains actual source bytes');
  assert.ok(opened.nativeFile.fileName.endsWith('.ifcx'));
  assert.equal(opened.preview.rendering,'unassessed');
@@ -39,6 +50,7 @@ for(const example of examples){
  for(const encoding of ['cbor','cbor-zstd']){
   const saved=checked(nativeExportRequest(source,opened,{format:'ifccad',encoding})).export.download;
   const binary=request(saved.fileName,bytesOf(saved)),decoded=checked(binary);
+  if(example.name==='Entity catalogue')catalogueAutomaticText(decoded);
   assert.equal(decoded.source.representation,'decoded');assert.equal(decoded.nativeFile.representation,'decoded');
   assert.equal(decoded.presentation.entities.length,opened.presentation.entities.length);
   assert.deepEqual(decoded.presentation.polylineWidths,opened.presentation.polylineWidths);
@@ -57,6 +69,7 @@ for(const example of examples){
   assert.equal(exported.conversion.geometryAssessment.status,'unassessed');
   const file=exported.export.download,returned=checked(request('returned.'+format,bytesOf(file),'cad'));
   if(example.name==='Entity catalogue'){
+   catalogueAutomaticText(returned);
    const expected=opened.presentation.extrusions.filter(row=>row.thickness===15);
    const returnedModel=createInspection(returned),remaining=returned.presentation.extrusions.filter(row=>row.thickness!==0);
    assert.equal(expected.length,7,'the five existing primitive samples include both arcs and both planar polylines');
@@ -102,7 +115,7 @@ for(const fixture of ['hello-cad.ifcx','hello-geometry.ifcx','hello-hatch-solid.
   assert.equal(returned.presentation.dimensions.length,9);
   assert.equal(new Set(returned.presentation.dimensions.map(d=>d.geometry.definition.kind)).size,9);
  }
- const old=new TextDecoder().decode(bytes).replaceAll('0.3.0','0.2.0');
+ const old=new TextDecoder().decode(bytes).replaceAll('0.4.0','0.3.0');
  assert.ok(processBrowserRequest(request('old-profile.ifcx',new TextEncoder().encode(old)),wasm).failure,'old alpha profile must not silently use the new reader');
  console.log('All nine Dimension kinds: actual native preview snapshot, owner bindings, stored graphics, CBOR/Zstd and physical CAD downloads.');
 }

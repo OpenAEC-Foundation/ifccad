@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.3.0"
+      "uri": "urn:example:ifccad:0.4.0"
     }
   ],
   "schemas": {},
@@ -35,8 +35,9 @@
           "nextModelWindowId": 1,
           "nextTextStyleId": 2,
           "nextUcsId": 1,
-          "profileVersion": "0.3.0",
-          "nextSymbolSourceId": 1
+          "profileVersion": "0.4.0",
+          "nextSymbolSourceId": 1,
+          "nextAnnotationScaleId": 1
         }
       }
     },

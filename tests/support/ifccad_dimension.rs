@@ -20,12 +20,14 @@ pub fn drawing() -> IfccadDocument {
     d.model.bounds = None;
     d.model.bounds_quality = None;
     d.text_styles = vec![IfccadTextStyle {
+        annotation: Default::default(),
         id: IfccadTextStyleId(0),
         name: "Text".into(),
         properties: TextStyleProperties::new(FontRequest::family("Requested face")),
     }];
     d.id_counters.next_text_style_id = 1;
     d.dimension_styles = vec![IfccadDimensionStyle {
+        annotative: false,
         id: IfccadDimensionStyleId(0),
         name: "Building".into(),
         settings: DimensionStyleSettings::new(IfccadTextStyleId(0)),
@@ -34,6 +36,7 @@ pub fn drawing() -> IfccadDocument {
     d.id_counters.next_dimension_style_id = 1;
     e.id = DIMENSION;
     e.kind = IfccadEntityKind::Dimension(Box::new(IfccadDimension {
+        annotation: None,
         graphics: None,
         placement: IfccadPlacement {
             origin: [0.0; 3],

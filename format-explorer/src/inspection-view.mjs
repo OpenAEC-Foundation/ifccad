@@ -55,6 +55,8 @@ export function renderInspection(model,state){
   const sweep=node.extrusion,num=v=>Object.is(v,-0)?'-0':String(v);
   details+='<dl class="properties-list"><div><dt>'+e(t('extrusion.title'))+'</dt><dd>'+e(num(sweep.thickness)+' '+(sweep.unit??t('extrusion.paperUnits')))+'</dd></div><div><dt>'+e(t('extrusion.direction'))+'</dt><dd>'+e('['+sweep.direction.map(num).join(', ')+']')+'</dd></div></dl><p class="secondary">'+e(t('extrusion.help'))+'</p>';
  }
+  const annotation=node.values['ifccad::annotation'];
+  if(annotation){const scale=model.nodes.get(annotation.reference?.scaleId)?.title??t('unspecified');details+='<h3>'+e(t('annotation.title'))+'</h3><dl class="properties-list"><div><dt>'+e(t('annotation.mode'))+'</dt><dd>'+e(t('annotation.'+annotation.mode))+'</dd></div><div><dt>'+e(t('annotation.contextCount'))+'</dt><dd>'+e(annotation.contexts?.length??0)+'</dd></div><div><dt>'+e(t('annotation.reference'))+'</dt><dd>'+e(scale)+'</dd></div></dl><p class="secondary">'+e(t('annotation.savedHelp'))+'</p>';}
   const assessment=node.values.boundsAssessment;if(assessment)details+='<p class="secondary">'+e(t('boundsSummary',{quality:t(assessment.quality||'empty'),proof:t(assessment.enclosureVerified?'enclosureChecked':'enclosureNotChecked')}))+'</p>';
   if(assessment?.polylineWidthReasons?.length)details+='<p class="secondary">'+e(t('width.partial'))+'</p>';
   for(const reason of new Set(assessment?.linePatternReasons||[]))details+='<p class="secondary">'+e(t('linePatternReason.'+reason))+'</p>';

@@ -168,6 +168,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let block = d.id_counters.allocate_block_id()?;
     let child = line(d.id_counters.allocate_entity_id()?, IfccadMode::ByBlock, 0.);
     d.blocks.push(IfccadBlockDefinition {
+        annotation: Default::default(),
         id: block,
         name: "Inherited pattern".into(),
         base_point: [0.; 3],
@@ -189,6 +190,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             appearance: appearance(IfccadMode::Explicit(mixed)),
             line_pattern_scale: 1.,
             kind: IfccadEntityKind::BlockInstance {
+                annotation: None,
                 definition_id: block,
                 transform: IfccadBlockTransform {
                     placement: IfccadPlacement {

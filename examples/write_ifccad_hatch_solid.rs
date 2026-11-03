@@ -36,6 +36,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let hatch = 1;
     template.id = hatch;
     template.kind = IfccadEntityKind::Hatch(IfccadHatch {
+        annotation: None,
+        annotation_view_contexts: None,
         classic_settings: None,
         boundary_construction: None,
         association_enabled: true,

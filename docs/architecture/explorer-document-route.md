@@ -172,3 +172,67 @@ restoration coverage; preservation remains unavailable. The kernel bounds the
 finest B-rep mesh retry and adjusts centerline selection/span behavior. These do
 not introduce native annotation contexts, new file semantics or general editing
 fidelity. Existing conversion losses/assessment limits remain applicable.
+
+## Annotation development candidate
+
+The native/browser candidate is based on native main `908aed6b` and selects
+Document development commit `6fcede024604a91a8490bafaf7e2b99467eca7aa`
+from `BjornFidder/opencaddocument`. An explicit root Cargo patch selects
+`BjornFidder/opencadcodec` commit `4018037daf8fd3e40aa1aa6455b80232849a2756`,
+based on upstream `7e7940f6fb17419629958ceeb79dfbd2d954dabb` with the HatchView
+soft-pointer correction. These are public development revisions, not releases.
+The workspace substitutes its native core for Document's native dependency,
+maintaining one model identity without local source-path patches.
+
+The codec advancement adds TABLE/Field roundtrip support and fixes R12 deleted
+entries and DIMASSOC intersection serialization. It does not change the selected
+annotation fields; new TableTemplate/field semantics remain outside native
+conversion coverage. No additional entity families are claimed.
+
+The accepted local embedded-host bundle predates this rebase and retains its own
+recorded source/configuration and asset hashes. The current host metadata and
+frozen lock still require coordinated integration before production deployment;
+the native gate does not qualify that separate host build.
+
+The local annotation contribution targets unpublished profile 0.4.0 and CBOR
+mapping 4; it has not advanced Explorer's deployed dependencies. The paired
+shared Document/codec development route currently verifies unused named scales,
+Text/MText saved contexts and Dimension sizing intent through strict native
+readback and physical DWG/ASCII DXF/binary DXF. Equal numeric scale ratios retain
+separate identities; explicit disabled object markers retain saved contexts;
+nonempty memberships imply enabled only when an object marker is absent.
+Text coordinates are converted through the entity frame, including oblique
+placements. MText context direction magnitude and XYZ values are retained.
+Derived context text extents are not a complete rendered enclosure. Object and definition paper-orientation markers are retained independently,
+including disabled intent and explicit object Fixed. Dormant
+column heights without a CAD file field and incompatible style flag/sizing
+combinations produce explicit diagnostics. The user accepted grouped review files and the local catalogue. The final native
+workspace audit, fmt, Clippy and tests pass on the pinned development pair; the
+Explorer dependency guard and frontend tests also pass. This is source-candidate
+qualification, not a native release or production Explorer deployment.
+
+
+The local annotation candidate also maps Hatch scale and view collections as
+separate saved records, preserving repeated/null targets and independent defaults.
+Bounded named VIEW cameras and model-window/Paper-viewport targets retain identity.
+Block references retain context WCS positions, rotations and signed XYZ scales;
+canonical base transforms remain independent. Native inherited mode with nonempty
+memberships materializes its current effective CAD bool with an explicit loss of
+future inheritance. Independent context planes are refused. Hatch local-context
+boundary source IDs have no CAD context handle field and diagnose that loss.
+All nine Dimension kinds now retain contextual XYZ points, dormant layout hints
+and independent pictures through physical CAD and strict native readback.
+ArcLength uses the Angular context mapping under the accepted SDK-based assumption;
+an independently authored multi-scale ArcLength source remains unavailable.
+
+Saved drawing/layout policies retain explicit false and absence separately:
+ANNOTATIVEDWG and MSLTSCALE use AcDbVariableDictionary DICTIONARYVAR records;
+Model CANNOSCALE and ANNOALLVISIBLE are independent of Paper AcadAnnoAV visibility.
+Paper current scale uses the unique overall ID1 viewport, rather than LAYOUT's
+active floating viewport. Floating viewport ASDK_XREC_ANNOTATION_SCALE_INFO and
+named VIEW ADSK_XREC_VTR_ANNOSCALE_DATA retain separate scale choices. Model VPORT
+windows share Model's scale. Small independent BricsCAD source files prove both
+ANNOTATIVEDWG values; the setting is not a ModelSpace BTR annotation marker.
+Nonzero MText context layout-extents caches are omitted with an explicit diagnostic;
+saved rectangles and columns remain semantic state. The native candidate passes its full gate; official Document adoption and host
+build/deployment qualification remain subsequent integration steps.

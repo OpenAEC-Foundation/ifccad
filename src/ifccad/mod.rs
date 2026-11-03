@@ -30,6 +30,7 @@
 //! let id = document.id_counters.allocate_layout_id()?;
 //! let tab_index = u32::try_from(document.paper_layouts.len() + 1)?;
 //! document.paper_layouts.push(IfccadPaperLayout {
+//!     annotation_state: None,
 //!     canvas: None, bounds_quality: None, bounds: None,
 //!     id, name: "New sheet".into(), tab_index,
 //!     settings: Default::default(), entities: vec![],
@@ -47,7 +48,7 @@ mod logical;
 mod read;
 mod source;
 mod storage;
-pub(crate) const PROFILE_URI: &str = "urn:example:ifccad:0.3.0";
+pub(crate) const PROFILE_URI: &str = "urn:example:ifccad:0.4.0";
 pub use encode::{encode_ifccad_cbor_document, IfccadCborEncodeError};
 #[cfg(feature = "ifccad-cbor-zstd")]
 pub use encode::{

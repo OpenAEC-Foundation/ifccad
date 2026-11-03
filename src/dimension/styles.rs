@@ -205,6 +205,33 @@ pub struct DimensionNumberOverrides {
     pub tolerance: Option<DimensionToleranceSettings>,
 }
 
+/// Saved sizing intent, independent of coordinate measurement factors.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase",
+    deny_unknown_fields
+)]
+pub enum DimensionPresentationScale {
+    Fixed {
+        factor: f64,
+    },
+    ByViewport,
+    ByAnnotationScale {
+        #[serde(
+            default,
+            skip_serializing_if = "Option::is_none",
+            deserialize_with = "super::present_option"
+        )]
+        dormant_factor: Option<f64>,
+    },
+}
+impl Default for DimensionPresentationScale {
+    fn default() -> Self {
+        Self::Fixed { factor: 1. }
+    }
+}
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct DimensionStyleSettings<S, B, C, P> {
@@ -214,7 +241,7 @@ pub struct DimensionStyleSettings<S, B, C, P> {
     pub text: DimensionTextSettings<S, C, P>,
     pub fit: DimensionFitSettings,
     pub numbers: DimensionNumberSettings,
-    pub presentation_scale: f64,
+    pub presentation_scale: DimensionPresentationScale,
 }
 impl<S, B, C, P> DimensionStyleSettings<S, B, C, P> {
     pub fn new(style: S) -> Self {
@@ -263,7 +290,7 @@ impl<S, B, C, P> DimensionStyleSettings<S, B, C, P> {
                 keep_dimension_line_outside: true,
             },
             numbers: Default::default(),
-            presentation_scale: 1.0,
+            presentation_scale: DimensionPresentationScale::default(),
         }
     }
 }
@@ -294,7 +321,7 @@ pub struct DimensionStyleOverrides<S, B, C, P> {
         skip_serializing_if = "Option::is_none",
         deserialize_with = "super::present_option"
     )]
-    pub presentation_scale: Option<f64>,
+    pub presentation_scale: Option<DimensionPresentationScale>,
 }
 impl<S, B, C, P> Default for DimensionStyleOverrides<S, B, C, P> {
     fn default() -> Self {

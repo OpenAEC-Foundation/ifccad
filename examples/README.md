@@ -32,6 +32,15 @@ concave, crossing and collapsed cases stay in regression and conformance tests
 rather than the main entity catalogue. Their
 parameter and CAD-type retention does not certify host filling; Solid Hatch
 remains its own entity family.
+The existing Text, MText, three Hatch, Block reference and nine Dimension samples
+also carry saved contexts for scales 1:1 and 1:2. The default is 1:1; labels,
+reference geometry and the house remain ordinary examples. Text, MText, Hatch and Block contexts carry authored presentations. The nine
+StyleDriven Dimensions deliberately have membership-only contexts: their existing
+base graphics are preserved without fabricating saved automatic text positions.
+Complete Dimension snapshots and independent contextual pictures are covered by
+the annotation conformance fixtures and physical CAD regression gallery. Stored
+presentations remain independently inspectable from the base. No extra catalogue panel is needed.
+
 The Point sample includes a separate cross so its position stays visible.
 
 ## Reproduction

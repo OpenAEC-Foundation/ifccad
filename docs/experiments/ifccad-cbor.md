@@ -5,8 +5,8 @@ the existing IFCX JSON CAD profile and this standalone CBOR candidate. The
 binary file is not a general IFCX serialization and is not automatically
 readable by IFCX JSON applications. OCDraw is parked as a frozen reference outside the active workspace.
 
-The [development revision-3 contract](../../schemas/ifccad/cbor-mapping-3.md) and
-[complete field register](../../schemas/ifccad/cbor-mapping-3.json) define the
+The [development revision-3 contract](../../schemas/ifccad/cbor-mapping-4.md) and
+[complete field register](../../schemas/ifccad/cbor-mapping-4.json) define the
 language-neutral physical mapping. Conformance is in
 `conformance/next/ifccad-cbor`; published alpha 2026.44.0 fixes the previous
 revision-1 snapshot; 2026.44.1 fixes revision 2 and profile 0.2.0. The active

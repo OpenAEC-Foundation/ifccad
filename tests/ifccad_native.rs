@@ -20,7 +20,7 @@ fn base() -> Value {
     let mut value = json!({
         "header": {"id":"demo", "ifcxVersion":"ifcx_alpha", "dataVersion":"0.1", "author":"test", "timestamp":"2026-09-29T00:00:00Z"},
         "imports": [], "schemas": {}, "data": [
-            {"path":"/cad/d1","children":{"model":"/cad/d1/layout/1","layer0":"/cad/d1/layer/0"},"attributes":{"ifccad::drawing":{"profileVersion":"0.3.0","lengthUnit":"mm"}}},
+            {"path":"/cad/d1","children":{"model":"/cad/d1/layout/1","layer0":"/cad/d1/layer/0"},"attributes":{"ifccad::drawing":{"profileVersion":"0.4.0","lengthUnit":"mm"}}},
             {"path":"/cad/d1/layout/1","children":{"0":"/cad/d1/e2","1":"/cad/d1/e1"},"attributes":{"ifccad::layout":{"kind":"Model","tabIndex":0}}},
             {"path":"/cad/d1/layer/0","attributes":{"ifccad::layer":{"name":"0","appearance":{"color":{"rgb": [255, 255, 255]},"opacity":1.0,"linePattern":"/cad/d1/linePattern/0","lineWeight":0.25}}}},
             {"path":"/cad/d1/e1","attributes":{"ifccad::entity":{"layer":"/cad/d1/layer/0","appearance":{"color":{"mode":"ByLayer"},"opacity":{"mode":"ByLayer"},"linePattern":{"mode":"ByLayer"},"lineWeight":{"mode":"ByLayer"}}},"ifccad::geom::circle":{"radius":2.0},"ifccad::geom::placement":{"origin":[0,0,0],"xAxis":[1,0,0],"yAxis":[0,1,0]}}},
@@ -34,13 +34,14 @@ fn base() -> Value {
         ("nextBlockId", 1),
         ("nextLinePatternId", 1),
         ("nextSymbolSourceId", 1),
+        ("nextAnnotationScaleId", 1),
     ] {
         value["data"][0]["attributes"]["ifccad::drawing"][field] = json!(count);
     }
     value["data"][0]["children"]["linePattern0"] = json!("/cad/d1/linePattern/0");
     value["data"].as_array_mut().unwrap().push(json!({"path":"/cad/d1/linePattern/0","attributes":{"ifccad::linePattern":{"name":"Continuous","pattern":[]}}}));
     let module: Value =
-        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.3.0.ifcx")).unwrap();
+        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.4.0.ifcx")).unwrap();
     value["schemas"] = module["schemas"].clone();
     value
 }
@@ -213,6 +214,7 @@ fn fixture_document() -> IfccadDocument {
                 ..by_layer.clone()
             },
             kind: IfccadEntityKind::BlockInstance {
+                annotation: None,
                 definition_id: 1,
                 transform: IfccadBlockTransform {
                     placement: IfccadPlacement {
@@ -226,10 +228,13 @@ fn fixture_document() -> IfccadDocument {
         })
     };
     IfccadDocument {
+        annotation_settings: None,
         dimension_styles: Vec::new(),
         symbol_sources: vec![],
         point_display: None,
         text_styles: Vec::new(),
+        annotation_views: vec![],
+        annotation_scales: vec![],
         ucs_definitions: vec![],
         model_windows: vec![],
         workspace_state: None,
@@ -237,6 +242,8 @@ fn fixture_document() -> IfccadDocument {
         preservation: None,
         plot_style_mode: Default::default(),
         id_counters: IfccadIdCounters {
+            next_annotation_view_id: 1,
+            next_annotation_scale_id: 1,
             next_dimension_style_id: 1,
             next_symbol_source_id: 1,
             next_text_style_id: 1,
@@ -318,6 +325,7 @@ fn fixture_document() -> IfccadDocument {
             },
         ],
         model: IfccadLayout {
+            annotation_state: None,
             bounds_quality: None,
             settings: ifccad::IfccadLayoutSettings {
                 media: None,
@@ -376,6 +384,7 @@ fn fixture_document() -> IfccadDocument {
             ],
         },
         blocks: vec![IfccadBlockDefinition {
+            annotation: Default::default(),
             description: String::new(),
             anonymous: false,
             explodable: true,
@@ -416,6 +425,7 @@ fn nested_document() -> IfccadDocument {
         y_axis: [0.0, 1.0, 0.0],
     };
     document.blocks.push(IfccadBlockDefinition {
+        annotation: Default::default(),
         description: String::new(),
         anonymous: false,
         explodable: true,
@@ -439,6 +449,7 @@ fn nested_document() -> IfccadDocument {
                     line_weight: IfccadMode::ByLayer,
                 },
                 kind: IfccadEntityKind::BlockInstance {
+                    annotation: None,
                     definition_id: 1,
                     transform: IfccadBlockTransform {
                         placement,
@@ -639,6 +650,7 @@ fn paper_layouts_accept_distinct_units_and_shared_block_definitions() {
     let IfccadEntityKind::BlockInstance {
         definition_id,
         transform,
+        ..
     } = &paper[0].entities[1].as_native().unwrap().kind
     else {
         panic!("paper block instance")
@@ -786,7 +798,7 @@ fn roundtrip_complete_example_and_determinism() {
     assert_paths_first(bytes.bytes());
     let file: Value = serde_json::from_slice(bytes.bytes()).unwrap();
     assert!(file["schemas"].as_object().unwrap().is_empty());
-    assert_eq!(file["imports"][0]["uri"], "urn:example:ifccad:0.3.0");
+    assert_eq!(file["imports"][0]["uri"], "urn:example:ifccad:0.4.0");
     assert_eq!(
         load_ifccad_bytes(bytes.bytes(), Default::default())
             .unwrap()
@@ -945,7 +957,7 @@ fn fixture_is_a_complete_strictly_readable_ifcx_file() {
     let loaded = load_ifccad_bytes(bytes, Default::default()).unwrap();
     assert_eq!(loaded.document(), &example_document(&fixture_document()));
     let schema_module: Value =
-        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.3.0.ifcx")).unwrap();
+        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.4.0.ifcx")).unwrap();
     let schemas = schema_module["schemas"].as_object().unwrap();
     assert_eq!(
         loaded.graph().composed_ifcx()["imports"][0]["uri"],
@@ -964,7 +976,7 @@ fn fixture_is_a_complete_strictly_readable_ifcx_file() {
 fn profile_imported_schema_resolves_offline_and_missing_import_fails() {
     let mut value = base();
     value["schemas"] = json!({});
-    value["imports"] = json!([{"uri":"urn:example:ifccad:0.3.0"}]);
+    value["imports"] = json!([{"uri":"urn:example:ifccad:0.4.0"}]);
     assert_eq!(read(&value).unwrap().document().model.entities.len(), 2);
     value["imports"] = json!([]);
     assert!(read(&value)

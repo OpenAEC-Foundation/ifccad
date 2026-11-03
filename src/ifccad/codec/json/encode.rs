@@ -159,11 +159,23 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             json!(format!("{prefix}/modelWindow/{}", window.id.0)),
         );
     }
+    for view in &document.annotation_views {
+        drawing_children.insert(
+            format!("annotationView{}", view.id.0),
+            json!(format!("{prefix}/annotationView/{}", view.id.0)),
+        );
+    }
+    for scale in &document.annotation_scales {
+        drawing_children.insert(
+            format!("annotationScale{}", scale.id.0),
+            json!(format!("{prefix}/annotationScale/{}", scale.id.0)),
+        );
+    }
     data.push(NodeOut {
         path: prefix.clone(),
         children: Some(drawing_children),
         attributes: attrs(json!({"ifccad::drawing":{
-            "profileVersion":"0.3.0","lengthUnit":document.length_unit,
+            "profileVersion":"0.4.0","lengthUnit":document.length_unit,
             "linePatternScale":document.line_pattern_scale,
 
             "nextEntityId":document.id_counters.next_entity_id,
@@ -174,11 +186,34 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             "nextSymbolSourceId":document.id_counters.next_symbol_source_id,
             "nextUcsId":document.id_counters.next_ucs_id,
             "nextModelWindowId":document.id_counters.next_model_window_id,
+            "nextAnnotationScaleId":document.id_counters.next_annotation_scale_id,
         }})),
     });
     if document.preservation.is_some() || document.id_counters.next_preservation_record_id != 1 {
         data.last_mut().unwrap().attributes["ifccad::drawing"]["nextPreservationRecordId"] =
             json!(document.id_counters.next_preservation_record_id);
+    }
+    if document.id_counters.next_annotation_view_id != 1 {
+        data[0].attributes["ifccad::drawing"]["nextAnnotationViewId"] =
+            json!(document.id_counters.next_annotation_view_id);
+    }
+    for view in &document.annotation_views {
+        data.push(NodeOut {
+            path: format!("{prefix}/annotationView/{}", view.id.0),
+            children: None,
+            attributes: attrs(
+                json!({"ifccad::annotationView":super::annotation::view_value(view,&prefix)}),
+            ),
+        });
+    }
+    for scale in &document.annotation_scales {
+        data.push(NodeOut {
+            path: format!("{prefix}/annotationScale/{}", scale.id.0),
+            children: None,
+            attributes: attrs(
+                json!({"ifccad::annotationScale":super::annotation::scale_value(scale)}),
+            ),
+        });
     }
     if super::defaults::is_one(document.line_pattern_scale) {
         data[0].attributes["ifccad::drawing"]
@@ -187,7 +222,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             .remove("linePatternScale");
     }
     if !document.text_styles.is_empty() || document.id_counters.next_text_style_id != 1 {
-        data.last_mut().unwrap().attributes["ifccad::drawing"]["nextTextStyleId"] =
+        data[0].attributes["ifccad::drawing"]["nextTextStyleId"] =
             json!(document.id_counters.next_text_style_id);
     }
     for style in &document.text_styles {
@@ -341,6 +376,9 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         if block.uniform_scaling {
             value["uniformScaling"] = json!(true);
         }
+        if block.annotation != Default::default() {
+            value["annotation"] = json!(block.annotation);
+        }
         data.push(NodeOut {
             path: format!("{prefix}/block/{}",block.id),
             children: Some(numbered_children(&block.entities,&prefix)),
@@ -376,6 +414,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         }
         data.push(node);
     }
+    super::annotation_policy::encode_document(document, &prefix, &mut data);
     let result = FileOut {
         header: HeaderOut {
             id: &document.header.id,
@@ -398,6 +437,7 @@ pub(super) fn encode_payload(
 ) {
     match kind {
         IfccadEntityKind::Dimension(v) => {
+            super::annotation::encode_entity(kind, prefix, attrs);
             attrs.insert("ifccad::geom::placement".into(), json!(v.placement));
             attrs.insert(
                 "ifccad::dimension".into(),
@@ -410,6 +450,7 @@ pub(super) fn encode_payload(
                 "ifccad::hatch".into(),
                 super::hatch::encode_hatch(h, prefix),
             );
+            super::annotation_hatch::encode_attrs(h, prefix, attrs);
         }
         IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
             super::text::encode_entity(kind, prefix, attrs);
@@ -423,8 +464,10 @@ pub(super) fn encode_payload(
         IfccadEntityKind::BlockInstance {
             definition_id,
             transform,
+            ..
         } => {
             attrs.insert("ifccad::blockInstance".into(), json!({"definition":format!("{prefix}/block/{definition_id}"),"transform":super::wire::block_transform(transform)}));
+            super::annotation::encode_entity(kind, prefix, attrs);
         }
         kind => {
             super::geometry::encode_kind(kind, attrs);

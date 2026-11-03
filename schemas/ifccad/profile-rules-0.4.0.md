@@ -1,10 +1,10 @@
-# IFCCAD supplemental profile rules 0.3.0
+# IFCCAD supplemental profile rules 0.4.0
 
-This is a normative companion to the [experimental contract](experimental-contract-0.3.0.md),
-the ordinary [IFCX declarations](ifccad-profile-0.3.0.ifcx), and the
-[local-value supplement](supplemental-values-0.3.0.schema.json). All apply after
+This is a normative companion to the [experimental contract](experimental-contract-0.4.0.md),
+the ordinary [IFCX declarations](ifccad-profile-0.4.0.ifcx), and the
+[local-value supplement](supplemental-values-0.4.0.schema.json). All apply after
 fragment composition. It is not an IFCX schema extension or an independent drawing format.
-The existing `urn:example:ifccad:0.3.0` import remains the only drawing import needed
+The existing `urn:example:ifccad:0.4.0` import remains the only drawing import needed
 by the bundled offline reader. Full IFCCAD validation includes local values,
 graph relationships and domain algorithms, not just ordinary IFCX attribute shapes.
 
@@ -99,7 +99,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 
 | ID | Requirement and algorithm | Phase / gap | Positive and negative evidence |
 |---|---|---|---|
-| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.3.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
+| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.4.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
 | IFCCAD-WIRE-002 | Duplicate keys within one JSON object MUST fail. Same-path fragments merge children/inherits/attributes by key in file order; repeated values replace whole values, not nested arrays/overrides. Null inheritance removes its key; child/attribute null remains a marker. RejectConflicts MUST reject differing repeated values, including foreign nodes. | C; G3 | [composer](../../src/ifccad/source/composition.rs), [text wire](../../tests/ifccad_text_wire.rs) |
 | IFCCAD-WIRE-003 | CAD validation MUST run on the composed graph, retaining exact immutable original bytes and foreign context. Foreign children confer no CAD ownership. No supplement may validate all foreign objects or interpret provider bytes as CAD fields. | C/V/G; G3/G8 | [profile rules tests](../../tests/ifccad_profile_rules.rs), [native](../../tests/ifccad_native.rs) |
 | IFCCAD-WIRE-004 | Closed native value objects MUST reject unknown members and forbidden nulls as specified in the contract and local variant definitions. Unsupported CAD namespaces/payloads MUST fail at their existing role boundaries. No legacy unknown-field or null acceptance exception is provided. | V/G; G7 | [geometry](../../tests/ifccad_geometry.rs), [text codec](../../tests/ifccad_text_codec.rs), [workspace](../../tests/ifccad_workspace_state.rs) |
@@ -418,3 +418,135 @@ sweep without upgrading existing Partial quality. See
 [extrusion thickness](../../docs/geometry/extrusion-thickness.md) for the shared
 bounds and active development-conversion boundaries. Normative cases live in
 conformance/next, including valid-extrusion and invalid direction/null records.
+
+## Saved annotation scales and text contexts
+
+- `IFCCAD-ANNOTATION-001` (V/G/D): drawing-local scale nodes have canonical
+  `/cad/dD/annotationScale/K` paths and are declared among the drawing's children.
+  A scale has only `name`, `paperUnits`, `drawingUnits` and optional `unitScale`
+  (default false). Names are nonblank and unique under the drawing name key;
+  IDs are unique. Both unit components are positive finite binary64 values.
+  Equal ratios do not merge identities. Unused scales and their exact authored
+  component values remain valid even if their quotient is not representable.
+- `IFCCAD-ANNOTATION-002` (G/D): required `nextAnnotationScaleId` is positive and
+  greater than every saved scale ID. Allocation history is independent of use.
+- `IFCCAD-ANNOTATION-003` (D): requested size ratios use exact intermediate
+  arithmetic; only a nonrepresentable final result fails evaluation. Storage
+  never evaluates or normalizes an unused scale's quotient.
+- `IFCCAD-ANNOTATION-004` (V/G/D): `ifccad::annotation` is one closed, atomic
+  attribute. Its required `mode` is `disabled`, `enabled` or `byDefinition`;
+  Text and MText forbid `byDefinition`. Required `contexts` is an ordered list
+  of closed `{key, presentation?}` records. Each key is a closed
+  `{scaleId: "/cad/dD/annotationScale/K"}` drawing-local reference. Keys are
+  unique and resolve. Optional `reference` is a key occurring in that collection.
+  Absent reference, empty enabled collections, bare membership without a
+  presentation and disabled collections containing saved snapshots are valid.
+  Null is not absence. The base entity and each saved snapshot are independent.
+  Saved dimension-picture parts forbid live annotation descriptors.
+- `IFCCAD-ANNOTATION-005` (V/D): Text presentations retain local XY insertion and
+  alignment, finite rotation and the six horizontal modes left/center/right/
+  aligned/middle/fit. MText retains local XYZ insertion, finite nonzero (not
+  necessarily unit) X direction, attachment, and finite nonnegative rectangle
+  width/height. Zero is authored data. Optional MText columns retain static or
+  dynamic kind, u32 count, finite nonnegative width/gutter/heights, auto-height
+  and reversed-flow flags. Dynamic manual columns require count=heights length;
+  other modes retain dormant heights without that equality requirement.
+
+Text presentation positions are expressed in the base entity's local frame.
+Readers and writers do not normalize directions, wrap angles, rewrite signed
+zeros, select a default presentation or scale explicit coordinates/distances.
+Known positions in every saved presentation contribute to bounds evidence,
+including disabled collections. Unassessed text presentation layout produces
+Partial assessment with a source location; a complete stored box cannot certify
+that unresolved geometry. Bounds recomputation is explicit and atomic.
+
+TextStyle and BlockDefinition additionally retain an `annotation` definition
+value: `enabled` (default false) and `orientation` (`fixed`, default, or
+`matchLayout`). The whole disabled/fixed value may be omitted. Unknown members
+and explicit null are invalid. Disabled/matchLayout remains authored dormant
+intent and must not be repaired. A TextStyle policy does not retroactively change
+existing Text/MText membership. Ordinary block instances inherit definition
+annotation intent when no explicit instance descriptor replaces it; their
+unassessed sizing/orientation cannot certify a complete occurrence enclosure.
+
+An object `ifccad::annotation` may additionally contain `orientation` (`fixed` or
+`matchLayout`). Omission is unspecified; explicit null is invalid. This is the
+object's saved paper-orientation property, independent of annotation mode and
+TextStyle/BlockDefinition policy. Inactive MatchLayout is retained. No renderer
+or viewport transform is implied. An orientation marker alone is not evidence
+that the object is enabled. Block object orientation absence may use definition
+intent during explicit effective-state resolution; Text/MText never inherit a
+style's current creation policy retroactively.
+
+`IFCCAD-ANNOTATION-007`: drawing-local `ifccad::annotationView` resources have
+canonical `/cad/dD/annotationView/K` paths and declared drawing children. IDs and
+nonblank name keys are unique in this resource domain. Required `space` is model
+or paper metadata; `width` is positive finite; `view` uses the existing ordinary
+camera value and validation (not PaperCanvas constraints), with a two-dimensional
+view center. The independent
+nextAnnotationViewId watermark defaults to 1 only when omitted and must exceed
+all saved IDs. Unused cameras and allocation reservations remain storable. This
+bounded resource does not add general VIEW lighting/material/UCS semantics.
+
+
+BlockInstance may carry `ifccad::annotation` with complete contextual transforms.
+ByDefinition is permitted; each transform uses the existing signed, nonzero scale,
+placement, base-point and definition uniformScaling rules. Snapshots replace the
+base transform for that representation; IO never multiplies both or overwrites
+canonical base placement. All snapshots, including dormant ones, contribute known
+bounds; unassessed annotation intent remains explicitly Partial. An explicit
+Disabled mode overrides definition annotation. Saved graphics marker contents
+forbid live annotation descriptors. The descriptor remains independent of the
+BlockDefinition's annotation policy.
+
+
+Dimension `ifccad::annotation` presentations require `textLocation` (two finite
+numbers), `userTextLocation` (boolean), `textRotation` (finite radians), `layout`
+and `geometry`. Text values remain stored when userTextLocation is false.
+`layout` requires lineOutside, suppressArrowsOutside, fitSwitch, forceTextInside
+and textMovementSwitch, each an object requiring both `active` and `value`
+booleans; inactive values are retained. It also requires secondArrowPresent,
+flipFirst and flipSecond booleans. Fit/movement switches are single contextual
+bits, not the general style's multi-valued fitting/movement enums.
+
+The geometry's closed `kind` must match the base Dimension definition. Fields
+are XYZ arrays of three finite numbers, including nonzero Z:
+
+| kind | required fields |
+| --- | --- |
+| linear, aligned | dimensionLinePoint |
+| angularTwoLines, angularThreePoints, arcLength | dimensionArcPoint |
+| radius | curvePoint |
+| diameter | firstDiameterPoint, secondDiameterPoint |
+| ordinate | featurePoint, leaderEnd |
+| joggedRadius | displayCenter, jogPoint |
+
+Optional `graphics` is an inline owned value: required `origin` is sourceSnapshot
+or generated; required `parts` is an ordered array. Each part is the same
+attributes map used by an ordinary dimensionGraphicsPart node, including required
+`ifccad::dimensionGraphicsPart` metadata and exactly one supported geometric
+payload (plus its ordinary placement where applicable). Inline parts have no
+path, children, ordinary entity ID or allocation domain. They share all existing
+picture part, appearance, layer, marker, extrusion and closed-family validation.
+Unknown core roles and live annotation descriptors are forbidden. Typed references
+resolve against this drawing's actual resources, including unused definitions.
+Absent graphics differs from a present empty picture. A context picture does not
+replace base graphics or another context's picture.
+
+All saved contextual points and pictures contribute known enclosure information.
+Unassessed contextual layout/sizing has a located Partial reason. Default context
+selection never overwrites canonical geometry, measurement, text or associations.
+No equality/freshness constraint is imposed between base and saved snapshots.
+
+Drawing `annotationSettings` optionally stores `insertAsAnnotative` (bool) and
+`modelLinetypeScaling` (`unscaled` or `byAnnotationScale`). Each value is optional;
+an empty settings record is invalid. Absence differs from explicit false. Null is
+invalid for these fields and all optional annotation references.
+
+Model and Paper `annotationState` optionally stores `currentScale` (a declared
+annotationScale path) and `visibility` (`currentScaleOnly` or `all`). Model owns
+the selection shared by its model windows. Each Paper layout has an independent
+selection and visibility. Floating viewport `annotationScale` and saved
+annotationView `annotationScale` are independent declared scale references.
+The modelWindow record has no annotationScale field. No selection is inferred
+from camera magnification, registry order, another layout or a default ratio.

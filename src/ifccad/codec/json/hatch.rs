@@ -132,6 +132,8 @@ pub(super) fn decode_hatch(
     let placement: IfccadPlacement =
         serde_json::from_value(placement.clone()).map_err(|e| error(&e.to_string()))?;
     Ok(IfccadEntityKind::Hatch(IfccadHatch {
+        annotation: None,
+        annotation_view_contexts: None,
         classic_settings: v
             .classic_settings
             .as_ref()

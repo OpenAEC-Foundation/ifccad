@@ -5,6 +5,12 @@ use serde_json::Value;
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct ViewportWire {
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "super::presentation::present"
+    )]
+    annotation_scale: Option<String>,
     model: String,
     frame: IfccadViewportFrame,
     view: IfccadViewportView,
@@ -79,6 +85,9 @@ pub(super) fn encode_viewport(viewport: &IfccadViewport, prefix: &str) -> Value 
     let mut layers: Vec<_> = viewport.layer_overrides.iter().collect();
     layers.sort_by_key(|r| r.layer_id);
     serde_json::to_value(ViewportWire {
+        annotation_scale: viewport
+            .annotation_scale_id
+            .map(|id| super::annotation_policy::scale_path(id, prefix)),
         model: format!("{prefix}/layout/{}", viewport.model_id),
         frame: viewport.frame.clone(),
         view: viewport.view.clone(),
@@ -178,6 +187,10 @@ pub(super) fn decode_viewport(
         })
         .transpose()?;
     Ok(IfccadViewport {
+        annotation_scale_id: wire
+            .annotation_scale
+            .map(|p| super::annotation_policy::scale_id(&p, prefix))
+            .transpose()?,
         workspace: None,
 
         model_id: id(&wire.model, &format!("{prefix}/layout/"))?,

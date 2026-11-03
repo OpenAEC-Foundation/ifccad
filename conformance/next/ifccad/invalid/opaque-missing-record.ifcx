@@ -9,9 +9,11 @@
           "nextEntityId": 8,
           "nextLayerId": 3,
           "nextLayoutId": 2,
-          "nextLinePatternId": 1,"nextSymbolSourceId":1,
+          "nextLinePatternId": 1,
+          "nextSymbolSourceId": 1,
           "nextPreservationRecordId": 2,
-          "profileVersion": "0.3.0"
+          "profileVersion": "0.4.0",
+          "nextAnnotationScaleId": 1
         }
       },
       "children": {
@@ -478,7 +480,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.3.0"
+      "uri": "urn:example:ifccad:0.4.0"
     }
   ],
   "schemas": {}

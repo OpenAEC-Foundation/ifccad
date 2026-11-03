@@ -36,6 +36,12 @@ fn validate_document_inner(
     document: &IfccadDocument,
     phase: ValidationPhase,
 ) -> Result<(), IfccadReport> {
+    validate_ifccad_annotation_scale_registry(
+        &document.annotation_scales,
+        document.id_counters.next_annotation_scale_id,
+    )?;
+    super::annotation_views::validate_stored_views(document)?;
+    super::annotation_policy::validate(document)?;
     let prefix = format!("/cad/d{}", document.drawing_id);
     let header = &document.header;
     if header.id.is_empty()
@@ -215,7 +221,10 @@ fn validate_document_inner(
         }
         match &entity.kind {
             IfccadEntityKind::Dimension(_) => {}
-            IfccadEntityKind::Hatch(h) => super::hatch::validate_hatch(h, &path)?,
+            IfccadEntityKind::Hatch(h) => {
+                super::hatch::validate_hatch(h, &path)?;
+                super::annotation_hatch::validate(document, h, &path)?;
+            }
             IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
                 super::text::validate_entity(document, &entity.kind, &path)?
             }
@@ -227,8 +236,25 @@ fn validate_document_inner(
             IfccadEntityKind::BlockInstance {
                 definition_id,
                 transform,
+                annotation,
             } => {
                 validate_block_instance(document, *definition_id, transform, &path)?;
+                if let Some(a) = annotation {
+                    a.validate_memberships(&document.annotation_scales, true)?;
+                    for (index, p) in a
+                        .contexts
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(i, c)| c.presentation.as_ref().map(|p| (i, p)))
+                    {
+                        validate_block_instance(
+                            document,
+                            *definition_id,
+                            &p.transform,
+                            &format!("{path}/ifccad::annotation/contexts/{index}/presentation"),
+                        )?;
+                    }
+                }
             }
             IfccadEntityKind::Solid(v) | IfccadEntityKind::Trace(v) => {
                 use crate::geometry_kernel::{validate_geometry, GeometryRef};

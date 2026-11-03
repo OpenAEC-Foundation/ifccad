@@ -28,6 +28,7 @@ record!(IfccadDimension;
 5 => overrides: DimensionStyleOverrides<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatternId> = None,
 6 => associations: Vec<IfccadDimensionAssociation> = None,
 7 => graphics: Option<IfccadDimensionGraphics> = Some(None),
+8 => annotation:Option<Box<IfccadAnnotation<IfccadDimensionAnnotationContext>>>=Some(None),
 );
 unit_enum!(DimensionTraversal;0 => Counterclockwise,1 => Clockwise,);
 unit_enum!(DimensionRaySign;0 => Positive,1 => Negative,);

@@ -1,6 +1,6 @@
 # Candidate IFCCAD CBOR conformance
 
-This candidate exercises standalone IFCCAD CBOR mapping revision 3.
+This candidate exercises standalone IFCCAD CBOR mapping revision 4.
 `cases.json` lists valid and invalid binary files, expected error classes and
 readable diagnostic sidecars. The test uses the production byte reader and
 strict encoder readback. These fixtures were authored independently of the
@@ -13,7 +13,7 @@ version mismatch, forbidden tokens, truncation and excessive length claims.
 Broader typed content is also exercised by encoding all positive current IFCX
 candidate cases and by rich-content/preservation/conversion tests.
 
-See [the physical contract](../../../schemas/ifccad/cbor-mapping-3.md).
+See [the physical contract](../../../schemas/ifccad/cbor-mapping-4.md).
 
 `../dimension-kinds.py` independently authors literal code/body maps for all
 seven added definitions, including spatial references, signed ordinate and an
@@ -40,3 +40,8 @@ Hatch editing fixtures independently author body fields 7/8, code-zero enums,
 empty strings/families, signed-zero origin and duplicate/outside seeds. Negative
 cases cover empty records, null, unknown/duplicate fields, integer scale and
 negative pixel size. New bytes use literal maps, not the production writer.
+
+Annotation literals are authored independently by `../annotation-text.py`. They
+cover saved Text contexts and unused extreme scales, exact key/default identity,
+stale allocation watermarks, unresolved references, forbidden Text inheritance
+and malformed null presentations. No production writer authors these bytes.

@@ -46,9 +46,11 @@ load_ifccad_bytes, encode_ifccad_document, ...}`. The model stays under `src/ifc
 The core owns construction, shared validation, encoding and file IO and has no CAD
 runtime dependency. JSON/IFCX and experimental base-CBOR use the same logical
 model. The first alpha publishes profile 0.1.0, CBOR mapping revision 1 and
-optional native Zstd transport revision 1. Those tagged contracts are fixed;
-The current 2026.44.1 alpha advances to profile 0.2.0 and CBOR mapping 2,
-with Zstd transport 1 unchanged; subsequent normative changes follow the release policy.
+optional native Zstd transport revision 1. Those tagged contracts are fixed.
+The current 2026.45.0 alpha uses profile 0.3.0 and CBOR mapping 3,
+with Zstd transport 1 unchanged. The annotation candidate advances the unpublished
+draft to profile 0.4.0 / CBOR4; it is not another release. Subsequent normative
+changes follow the release policy.
 The `ifccad-cbor-zstd` core feature is optional. The browser enables it for explicit
 experimental CBOR + Zstd downloads; ordinary IFCX download remains the default choice.
 
@@ -111,6 +113,10 @@ pins and applicable regressions. The remaining development sequence is:
    consistent undo/redo. Bounded interoperability and reusable update processing
    remain follow-ups, separate from the completed type expansion; a general update
    engine is not a prerequisite for the next resource contribution.
+   The annotation storage/exchange slice is implemented as the unpublished
+   profile 0.4.0 / CBOR4 candidate, with accepted CAD roundtrips and local
+   catalogue review and a passing full native gate. Document PR #10 integration
+   and production Explorer deployment remain pending.
 2. **Expand resources and selected drawing semantics.** After the annotation-context
    slice, add a bounded font/symbol-source foundation with application-owned
    resolution and explicit missing/substitute status. Then select bounded block
@@ -166,7 +172,7 @@ cargo run -p viewer -- export-ifccad examples/ifccad/house.ifcx dxf
 CAD input defaults to IFCCAD. `--drawing-format ifccad` remains accepted;
 `--drawing-format ocdraw` reports `OCDRAW_PARKED` before reading the input.
 See the [IFCCAD lifecycle and API conventions](docs/experiments/ifccad-document-lifecycle.md),
-[experimental contract](schemas/ifccad/experimental-contract-0.3.0.md) and
+[experimental contract](schemas/ifccad/experimental-contract-0.4.0.md) and
 [CBOR experiment](docs/experiments/ifccad-cbor.md).
 
 ## Verification

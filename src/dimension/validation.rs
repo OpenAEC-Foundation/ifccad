@@ -304,7 +304,15 @@ fn appearance<C, P>(
 pub fn validate_dimension_settings<S, B, C, P>(
     v: &DimensionStyleSettings<S, B, C, P>,
 ) -> Result<(), DimensionValueError> {
-    positive("presentationScale", v.presentation_scale)?;
+    match v.presentation_scale {
+        DimensionPresentationScale::Fixed { factor } => {
+            positive("presentationScale/factor", factor)?
+        }
+        DimensionPresentationScale::ByAnnotationScale {
+            dormant_factor: Some(factor),
+        } => positive("presentationScale/dormantFactor", factor)?,
+        _ => (),
+    }
     positive("text/height", v.text.height)?;
     nonnegative("text/gap", v.text.gap)?;
     appearance("text/appearance", &v.text.appearance)?;

@@ -21,6 +21,9 @@ record!(IfccadDocument;
 17 => workspace_state: Option<IfccadDrawingWorkspaceState> = Some(None),
 18 => model_view_state: Option<IfccadModelViewState> = Some(None),
 19 => preservation: Option<IfccadPreservation> = Some(None),
+20 => annotation_scales: Vec<IfccadAnnotationScale> = Some(Vec::new()),
+21 => annotation_views:Vec<IfccadAnnotationStoredView>=Some(Vec::new()),
+22 => annotation_settings:Option<IfccadDrawingAnnotationSettings>=Some(None),
 );
 record!(IfccadLayout;
 0 => bounds_quality: Option<IfccadBoundsQuality> = Some(None),
@@ -29,6 +32,7 @@ record!(IfccadLayout;
 3 => tab_index: u32 = None,
 4 => bounds: Option<IfccadBounds3d> = Some(None),
 5 => entities: Vec<IfccadEntity> = None,
+6 => annotation_state:Option<IfccadLayoutAnnotationState>=Some(None),
 );
 record!(IfccadBlockDefinition;
 0 => description: String = None,
@@ -42,6 +46,7 @@ record!(IfccadBlockDefinition;
 8 => insertion_unit: String = None,
 9 => bounds: Option<IfccadBounds3d> = Some(None),
 10 => entities: Vec<IfccadEntity> = None,
+11 => annotation: IfccadAnnotationDefinition = Some(Default::default()),
 );
 record!(IfccadPaperLayout;
 0 => bounds_quality: Option<IfccadBoundsQuality> = Some(None),
@@ -52,4 +57,5 @@ record!(IfccadPaperLayout;
 5 => settings: LayoutOutputSettings = None,
 6 => bounds: Option<IfccadBounds3d> = Some(None),
 7 => entities: Vec<IfccadEntity> = None,
+8 => annotation_state:Option<IfccadLayoutAnnotationState>=Some(None),
 );

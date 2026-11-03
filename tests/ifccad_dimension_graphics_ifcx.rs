@@ -170,7 +170,21 @@ fn graphics_ifcx_reuses_every_allowed_payload_body() {
                 continue;
             }
         }
-        if let Ok(kind) = IfccadDimensionGraphicsKind::try_from(e.kind.clone()) {
+        // Author ordinary saved-graphics bodies from the catalogue's canonical
+        // values. Its new live annotation descriptors are deliberately separate
+        // from these snapshots and are forbidden inside graphics parts.
+        let mut body = e.kind.clone();
+        match &mut body {
+            IfccadEntityKind::Text(text) => text.annotation = None,
+            IfccadEntityKind::MText(text) => text.annotation = None,
+            IfccadEntityKind::Hatch(hatch) => {
+                hatch.annotation = None;
+                hatch.annotation_view_contexts = None;
+            }
+            IfccadEntityKind::BlockInstance { annotation, .. } => *annotation = None,
+            _ => (),
+        }
+        if let Ok(kind) = IfccadDimensionGraphicsKind::try_from(body) {
             kinds.insert(std::mem::discriminant(&kind));
             parts.push(support::part(kind));
         }
