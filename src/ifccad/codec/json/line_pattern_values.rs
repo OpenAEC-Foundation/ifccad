@@ -100,7 +100,16 @@ fn decode_element(value: &Value, prefix: &str) -> Option<IfccadLinePatternElemen
 }
 pub(crate) fn encode_source(value: &SymbolSource) -> Value {
     match value {
-        SymbolSource::Shx { file_name } => json!({"kind":"shx","fileName":file_name}),
+        SymbolSource::Shx {
+            file_name,
+            cad_file_name,
+        } => {
+            let mut value = json!({"kind":"shx","fileName":file_name});
+            if let Some(request) = cad_file_name {
+                value["cadFileName"] = json!(request);
+            }
+            value
+        }
     }
 }
 pub(crate) fn decode_source(value: &Value, location: &str) -> Result<SymbolSource, IfccadReport> {
@@ -114,5 +123,9 @@ pub(crate) fn decode_source(value: &Value, location: &str) -> Result<SymbolSourc
     };
     Ok(SymbolSource::Shx {
         file_name: file_name.into(),
+        cad_file_name: value
+            .get("cadFileName")
+            .and_then(Value::as_str)
+            .map(str::to_owned),
     })
 }

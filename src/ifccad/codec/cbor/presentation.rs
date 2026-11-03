@@ -23,32 +23,22 @@ impl CborValue for SymbolSource {
         &[(0, "Shx")]
     }
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
-        match self {
-            Self::Shx { file_name } => {
-                w.map(2)?;
-                w.u64(0)?;
-                w.u64(0)?;
-                w.u64(1)?;
-                let mut __cbor_fields = 0_u64;
-                if file_name.present()
-                    && (None as Option<String>)
-                        .as_ref()
-                        .is_none_or(|d| !file_name.exact(d))
-                {
-                    __cbor_fields += 1;
-                }
-                w.map(__cbor_fields)?;
-                if file_name.present()
-                    && (None as Option<String>)
-                        .as_ref()
-                        .is_none_or(|d| !file_name.exact(d))
-                {
-                    w.u64(0)?;
-                    file_name.encode(w)?;
-                }
-                Ok(())
-            }
+        let Self::Shx {
+            file_name,
+            cad_file_name,
+        } = self;
+        w.map(2)?;
+        w.u64(0)?;
+        w.u64(0)?;
+        w.u64(1)?;
+        w.map(1 + u64::from(cad_file_name.is_some()))?;
+        w.u64(0)?;
+        file_name.encode(w)?;
+        if let Some(request) = cad_file_name {
+            w.u64(1)?;
+            request.encode(w)?;
         }
+        Ok(())
     }
     fn decode(r: &mut CborReader<'_>) -> Result<Self, IfccadCborReadError> {
         let mut f = RecordFields::new(r, &[(0, "kind"), (1, "body")])?;
@@ -56,10 +46,14 @@ impl CborValue for SymbolSource {
         let value = match code {
             0 => {
                 let body = f.span(1)?;
-                let mut b = RecordFields::new(&body, &[(0, "file_name")])?;
+                let mut b = RecordFields::new(&body, &[(0, "file_name"), (1, "cad_file_name")])?;
                 let file_name: String = b.take(0, None)?;
+                let cad_file_name: Option<String> = b.take(1, Some(None))?;
                 b.finish()?;
-                Self::Shx { file_name }
+                Self::Shx {
+                    file_name,
+                    cad_file_name,
+                }
             }
             _ => return Err(r.error("unknown variant code")),
         };
@@ -69,11 +63,15 @@ impl CborValue for SymbolSource {
     fn exact(&self, o: &Self) -> bool {
         match (self, o) {
             (
-                Self::Shx { file_name },
                 Self::Shx {
-                    file_name: file_name_other,
+                    file_name,
+                    cad_file_name,
                 },
-            ) => file_name.exact(file_name_other),
+                Self::Shx {
+                    file_name: other_name,
+                    cad_file_name: other_request,
+                },
+            ) => file_name.exact(other_name) && cad_file_name.exact(other_request),
         }
     }
 }

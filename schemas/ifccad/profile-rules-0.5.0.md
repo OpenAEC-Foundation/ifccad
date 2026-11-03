@@ -1,10 +1,10 @@
-# IFCCAD supplemental profile rules 0.4.0
+# IFCCAD supplemental profile rules 0.5.0
 
-This is a normative companion to the [experimental contract](experimental-contract-0.4.0.md),
-the ordinary [IFCX declarations](ifccad-profile-0.4.0.ifcx), and the
-[local-value supplement](supplemental-values-0.4.0.schema.json). All apply after
+This is a normative companion to the [experimental contract](experimental-contract-0.5.0.md),
+the ordinary [IFCX declarations](ifccad-profile-0.5.0.ifcx), and the
+[local-value supplement](supplemental-values-0.5.0.schema.json). All apply after
 fragment composition. It is not an IFCX schema extension or an independent drawing format.
-The existing `urn:example:ifccad:0.4.0` import remains the only drawing import needed
+The existing `urn:example:ifccad:0.5.0` import remains the only drawing import needed
 by the bundled offline reader. Full IFCCAD validation includes local values,
 graph relationships and domain algorithms, not just ordinary IFCX attribute shapes.
 
@@ -99,7 +99,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 
 | ID | Requirement and algorithm | Phase / gap | Positive and negative evidence |
 |---|---|---|---|
-| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.4.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
+| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.5.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
 | IFCCAD-WIRE-002 | Duplicate keys within one JSON object MUST fail. Same-path fragments merge children/inherits/attributes by key in file order; repeated values replace whole values, not nested arrays/overrides. Null inheritance removes its key; child/attribute null remains a marker. RejectConflicts MUST reject differing repeated values, including foreign nodes. | C; G3 | [composer](../../src/ifccad/source/composition.rs), [text wire](../../tests/ifccad_text_wire.rs) |
 | IFCCAD-WIRE-003 | CAD validation MUST run on the composed graph, retaining exact immutable original bytes and foreign context. Foreign children confer no CAD ownership. No supplement may validate all foreign objects or interpret provider bytes as CAD fields. | C/V/G; G3/G8 | [profile rules tests](../../tests/ifccad_profile_rules.rs), [native](../../tests/ifccad_native.rs) |
 | IFCCAD-WIRE-004 | Closed native value objects MUST reject unknown members and forbidden nulls as specified in the contract and local variant definitions. Unsupported CAD namespaces/payloads MUST fail at their existing role boundaries. No legacy unknown-field or null acceptance exception is provided. | V/G; G7 | [geometry](../../tests/ifccad_geometry.rs), [text codec](../../tests/ifccad_text_codec.rs), [workspace](../../tests/ifccad_workspace_state.rs) |
@@ -299,7 +299,7 @@ canonical complete paths within the same drawing and must resolve to their
 respective roles after composition. Later fragments replace whole attribute
 values, including the array; RejectConflicts rejects conflicting fragments.
 
-`ifccad::symbolSource` is a closed `{kind:shx,fileName}` payload on
+`ifccad::symbolSource` is a closed `{kind:shx,fileName,cadFileName?}` payload on
 `/cad/dN/symbolSource/N`, referenced by its drawing children. Source IDs are
 independent exact uint64 values, including zero. Duplicate filenames retain
 separate identity. The required `nextSymbolSourceId` is positive, greater than
@@ -550,3 +550,17 @@ selection and visibility. Floating viewport `annotationScale` and saved
 annotationView `annotationScale` are independent declared scale references.
 The modelWindow record has no annotationScale field. No selection is inferred
 from camera magnification, registry order, another layout or a default ratio.
+
+## SHX CAD source requests
+
+The optional `cadFileName` MUST be a nonempty NUL-free string; null is invalid.
+It retains the authored CAD request exactly, rather than a resolved local file.
+Without it, `fileName` is the request. With it, `fileName` MUST equal its lexical
+basename exactly, including case. To obtain that basename, remove an initial
+ASCII letter followed by a colon, if present, then take the final component
+separated by slash or backslash. Empty final components and . or .. are invalid.
+No host filesystem, URL decoding, case-folding, rebasing or dot-segment resolution
+is involved. Explicit `cadFileName` equal to `fileName` remains present in native
+IO. Whole-attribute composition replaces the source without rebasing its request.
+External file absence never invalidates a drawing; local source references still
+MUST resolve to their correct drawing-local roles.

@@ -1,0 +1,969 @@
+{
+  "header": {
+    "id": "ifccad-native-text",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "0.1.0",
+    "author": "OpenAEC",
+    "timestamp": "2026-10-08T00:00:00Z"
+  },
+  "imports": [
+    {
+      "uri": "urn:example:ifccad:0.5.0"
+    }
+  ],
+  "schemas": {},
+  "data": [
+    {
+      "path": "/cad/d1",
+      "children": {
+        "block1": "/cad/d1/block/1",
+        "layer0": "/cad/d1/layer/0",
+        "linePattern0": "/cad/d1/linePattern/0",
+        "model": "/cad/d1/layout/1",
+        "paper2": "/cad/d1/layout/2",
+        "textStyle1": "/cad/d1/textStyle/1",
+        "annotationScale1": "/cad/d1/annotationScale/1",
+        "annotationScale2": "/cad/d1/annotationScale/2",
+        "source0": "/cad/d1/symbolSource/0",
+        "source9007199254740993": "/cad/d1/symbolSource/9007199254740993"
+      },
+      "attributes": {
+        "ifccad::drawing": {
+          "lengthUnit": "mm",
+          "linePatternScale": 1.0,
+          "nextBlockId": 2,
+          "nextEntityId": 8,
+          "nextLayerId": 1,
+          "nextLayoutId": 3,
+          "nextLinePatternId": 1,
+          "nextSymbolSourceId": 9007199254740994,
+          "nextModelWindowId": 1,
+          "nextTextStyleId": 2,
+          "nextUcsId": 1,
+          "profileVersion": "0.5.0",
+          "nextAnnotationScaleId": 3
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/textStyle/1",
+      "attributes": {
+        "ifccad::textStyle": {
+          "creationBackward": false,
+          "creationUpsideDown": false,
+          "font": {
+            "cadFontName": "txt"
+          },
+          "name": "Labels",
+          "obliqueAngle": 0.0,
+          "vertical": false,
+          "widthFactor": 1.0,
+          "annotation": {
+            "enabled": false,
+            "orientation": "matchLayout"
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/1",
+      "children": {
+        "0": "/cad/d1/e1",
+        "1": "/cad/d1/e2",
+        "2": "/cad/d1/e3"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Model",
+          "tabIndex": 0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/2",
+      "children": {
+        "0": "/cad/d1/e4",
+        "1": "/cad/d1/e5"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Paper",
+          "name": "Sheet",
+          "tabIndex": 1
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/0",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "Continuous",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/0",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "rgb": [
+                255,
+                255,
+                255
+              ]
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25,
+            "opacity": 1.0
+          },
+          "name": "0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/block/1",
+      "children": {
+        "0": "/cad/d1/e6",
+        "1": "/cad/d1/e7"
+      },
+      "attributes": {
+        "ifccad::blockDefinition": {
+          "basePoint": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insertionUnit": "unitless",
+          "name": "LabelsBlock",
+          "annotation": {
+            "enabled": false,
+            "orientation": "matchLayout"
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            10.0,
+            20.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "backward": false,
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "Hello IFCCAD \u00e4\u00b8\u2013\u00e7\u2022\u0152",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "obliqueAngle": 0.0,
+          "rotation": 0.2,
+          "style": "/cad/d1/textStyle/1",
+          "thickness": 0.0,
+          "upsideDown": false
+        },
+        "ifccad::annotation": {
+          "mode": "disabled",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          },
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "insertion": [
+                  101.0,
+                  -0.0
+                ],
+                "alignment": [
+                  105.0,
+                  3.0
+                ],
+                "rotation": -0.0,
+                "horizontal": "fit"
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e2",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            10.0,
+            35.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::mText": {
+          "attachment": "topLeft",
+          "backward": false,
+          "characterFormat": {
+            "underline": false,
+            "height": {
+              "kind": "relative",
+              "factor": 1.2
+            }
+          },
+          "content": [
+            {
+              "characterFormat": {
+                "color": {
+                  "color": {
+                    "rgb": [
+                      17,
+                      146,
+                      238
+                    ]
+                  },
+                  "kind": "explicit"
+                }
+              },
+              "inlines": [
+                {
+                  "characterFormat": {},
+                  "kind": "run",
+                  "text": "Literal text \\P"
+                },
+                {
+                  "kind": "tab"
+                },
+                {
+                  "kind": "stack",
+                  "stackKind": "decimalTolerance",
+                  "upper": "1,2",
+                  "lower": "3,4",
+                  "alignment": "center",
+                  "textScale": 0.7,
+                  "separator": ","
+                },
+                {
+                  "kind": "columnBreak"
+                }
+              ],
+              "paragraphFormat": {
+                "tabStops": [],
+                "spaceAfter": 0
+              }
+            },
+            {
+              "characterFormat": {},
+              "inlines": [
+                {
+                  "characterFormat": {},
+                  "kind": "run",
+                  "text": "Second paragraph"
+                }
+              ],
+              "paragraphFormat": {}
+            },
+            {
+              "characterFormat": {},
+              "inlines": [],
+              "paragraphFormat": {}
+            }
+          ],
+          "flow": "horizontal",
+          "height": 3.0,
+          "paragraphFormat": {
+            "tabStops": [
+              {
+                "positionFactor": 8,
+                "alignment": "decimal",
+                "separator": ","
+              }
+            ],
+            "lineSpacing": {
+              "kind": "multiple",
+              "factor": 1
+            }
+          },
+          "rotation": 0.0,
+          "style": "/cad/d1/textStyle/1",
+          "upsideDown": false,
+          "columns": {
+            "kind": "dynamicManualHeight",
+            "columnWidth": 40,
+            "gutter": 2,
+            "columnHeights": [
+              {
+                "kind": "fixed",
+                "distance": 50
+              },
+              {
+                "kind": "auto"
+              }
+            ],
+            "flowReversed": false
+          },
+          "background": {
+            "fill": {
+              "kind": "canvas"
+            },
+            "padding": {
+              "kind": "relative",
+              "factor": 0.5
+            },
+            "opacity": 0.5,
+            "frame": false
+          }
+        },
+        "ifccad::annotation": {
+          "mode": "enabled",
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "insertion": [
+                  2.0,
+                  3.0,
+                  19.0
+                ],
+                "xDirection": [
+                  0.0,
+                  2.0,
+                  1.0
+                ],
+                "attachment": "bottomRight",
+                "rectangleWidth": 0.0,
+                "rectangleHeight": 17.0,
+                "columns": {
+                  "kind": "static",
+                  "count": 2,
+                  "width": 0.0,
+                  "gutter": 0.0,
+                  "autoHeight": true,
+                  "flowReversed": true,
+                  "heights": [
+                    1.0,
+                    2.0,
+                    3.0
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e3",
+      "attributes": {
+        "ifccad::blockInstance": {
+          "definition": "/cad/d1/block/1",
+          "transform": {
+            "placement": {
+              "origin": [
+                100.0,
+                50.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "rotation": 0.3,
+            "scale": [
+              -1.2,
+              2.0,
+              1.0
+            ]
+          }
+        },
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e4",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            10.0,
+            20.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "backward": false,
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "Hello IFCCAD \u00e4\u00b8\u2013\u00e7\u2022\u0152",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "obliqueAngle": 0.0,
+          "rotation": 0.2,
+          "style": "/cad/d1/textStyle/1",
+          "thickness": 0.0,
+          "upsideDown": false
+        },
+        "ifccad::annotation": {
+          "mode": "disabled",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          },
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "insertion": [
+                  101.0,
+                  -0.0
+                ],
+                "alignment": [
+                  105.0,
+                  3.0
+                ],
+                "rotation": -0.0,
+                "horizontal": "fit"
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e5",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            10.0,
+            35.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::mText": {
+          "attachment": "topLeft",
+          "backward": false,
+          "characterFormat": {},
+          "content": [
+            {
+              "characterFormat": {
+                "color": {
+                  "color": {
+                    "rgb": [
+                      17,
+                      146,
+                      238
+                    ]
+                  },
+                  "kind": "explicit"
+                }
+              },
+              "inlines": [
+                {
+                  "characterFormat": {},
+                  "kind": "run",
+                  "text": "Literal text \\P"
+                }
+              ],
+              "paragraphFormat": {}
+            },
+            {
+              "characterFormat": {},
+              "inlines": [
+                {
+                  "characterFormat": {},
+                  "kind": "run",
+                  "text": "Second paragraph"
+                }
+              ],
+              "paragraphFormat": {}
+            },
+            {
+              "characterFormat": {},
+              "inlines": [],
+              "paragraphFormat": {}
+            }
+          ],
+          "flow": "horizontal",
+          "height": 3.0,
+          "paragraphFormat": {},
+          "rotation": 0.0,
+          "style": "/cad/d1/textStyle/1",
+          "upsideDown": false,
+          "wrapWidth": 40.0
+        },
+        "ifccad::annotation": {
+          "mode": "enabled",
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "insertion": [
+                  2.0,
+                  3.0,
+                  19.0
+                ],
+                "xDirection": [
+                  0.0,
+                  2.0,
+                  1.0
+                ],
+                "attachment": "bottomRight",
+                "rectangleWidth": 0.0,
+                "rectangleHeight": 17.0,
+                "columns": {
+                  "kind": "static",
+                  "count": 2,
+                  "width": 0.0,
+                  "gutter": 0.0,
+                  "autoHeight": true,
+                  "flowReversed": true,
+                  "heights": [
+                    1.0,
+                    2.0,
+                    3.0
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e6",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            10.0,
+            20.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "backward": false,
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "Hello IFCCAD \u00e4\u00b8\u2013\u00e7\u2022\u0152",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "obliqueAngle": 0.0,
+          "rotation": 0.2,
+          "style": "/cad/d1/textStyle/1",
+          "thickness": 0.0,
+          "upsideDown": false
+        },
+        "ifccad::annotation": {
+          "mode": "disabled",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          },
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "insertion": [
+                  101.0,
+                  -0.0
+                ],
+                "alignment": [
+                  105.0,
+                  3.0
+                ],
+                "rotation": -0.0,
+                "horizontal": "fit"
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e7",
+      "attributes": {
+        "ifccad::entity": {
+          "appearance": {
+            "color": {
+              "mode": "ByLayer"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "mode": "ByLayer"
+            },
+            "opacity": {
+              "mode": "ByLayer"
+            }
+          },
+          "layer": "/cad/d1/layer/0",
+          "linePatternScale": 1.0
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            10.0,
+            35.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::mText": {
+          "attachment": "topLeft",
+          "backward": false,
+          "characterFormat": {},
+          "content": [
+            {
+              "characterFormat": {
+                "color": {
+                  "color": {
+                    "rgb": [
+                      17,
+                      146,
+                      238
+                    ]
+                  },
+                  "kind": "explicit"
+                }
+              },
+              "inlines": [
+                {
+                  "characterFormat": {},
+                  "kind": "run",
+                  "text": "Literal text \\P"
+                }
+              ],
+              "paragraphFormat": {}
+            },
+            {
+              "characterFormat": {},
+              "inlines": [
+                {
+                  "characterFormat": {},
+                  "kind": "run",
+                  "text": "Second paragraph"
+                }
+              ],
+              "paragraphFormat": {}
+            },
+            {
+              "characterFormat": {},
+              "inlines": [],
+              "paragraphFormat": {}
+            }
+          ],
+          "flow": "horizontal",
+          "height": 3.0,
+          "paragraphFormat": {},
+          "rotation": 0.0,
+          "style": "/cad/d1/textStyle/1",
+          "upsideDown": false,
+          "wrapWidth": 40.0
+        },
+        "ifccad::annotation": {
+          "mode": "enabled",
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "insertion": [
+                  2.0,
+                  3.0,
+                  19.0
+                ],
+                "xDirection": [
+                  0.0,
+                  2.0,
+                  1.0
+                ],
+                "attachment": "bottomRight",
+                "rectangleWidth": 0.0,
+                "rectangleHeight": 17.0,
+                "columns": {
+                  "kind": "static",
+                  "count": 2,
+                  "width": 0.0,
+                  "gutter": 0.0,
+                  "autoHeight": true,
+                  "flowReversed": true,
+                  "heights": [
+                    1.0,
+                    2.0,
+                    3.0
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/1",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "name": "1:50",
+          "paperUnits": 1.0,
+          "drawingUnits": 50.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/2",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "name": "2:100",
+          "paperUnits": 2.0,
+          "drawingUnits": 100.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/symbolSource/0",
+      "attributes": {
+        "ifccad::symbolSource": {
+          "kind": "shx",
+          "fileName": "missing.shx",
+          "cadFileName": "other.shx"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/symbolSource/9007199254740993",
+      "attributes": {
+        "ifccad::symbolSource": {
+          "kind": "shx",
+          "fileName": "missing.shx",
+          "cadFileName": "missing.shx"
+        }
+      }
+    }
+  ]
+}

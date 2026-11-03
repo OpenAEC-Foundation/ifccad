@@ -9,11 +9,11 @@ use serde_json::Value;
 #[test]
 fn capabilities_identify_the_selected_native_contract() {
     let caps = viewer::document_capabilities();
-    assert_eq!(caps["ifccad"]["profileVersion"], "0.4.0");
-    assert_eq!(caps["ifccad"]["cborMappingRevision"], 4);
+    assert_eq!(caps["ifccad"]["profileVersion"], "0.5.0");
+    assert_eq!(caps["ifccad"]["cborMappingRevision"], 5);
     assert_eq!(
         caps["ifccad"]["revision"],
-        "6fcede024604a91a8490bafaf7e2b99467eca7aa"
+        "eded916cba88d9d9b8e6789a0ab34bba7d358671"
     );
 }
 

@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.4.0"
+      "uri": "urn:example:ifccad:0.5.0"
     }
   ],
   "schemas": {},
@@ -54,7 +54,7 @@
           "nextSymbolSourceId": 1,
           "nextTextStyleId": 1,
           "nextUcsId": 1,
-          "profileVersion": "0.4.0"
+          "profileVersion": "0.5.0"
         },
         "ifccad::drawingWorkspace": {
           "activeLayout": "/cad/d1/layout/1",

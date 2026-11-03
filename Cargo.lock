@@ -823,7 +823,6 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 [[package]]
 name = "opencaddocument"
 version = "0.1.0"
-source = "git+https://github.com/BjornFidder/opencaddocument.git?rev=6fcede024604a91a8490bafaf7e2b99467eca7aa#6fcede024604a91a8490bafaf7e2b99467eca7aa"
 dependencies = [
  "acadrust",
  "ifccad",

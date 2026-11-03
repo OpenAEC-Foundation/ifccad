@@ -236,3 +236,21 @@ ANNOTATIVEDWG values; the setting is not a ModelSpace BTR annotation marker.
 Nonzero MText context layout-extents caches are omitted with an explicit diagnostic;
 saved rectangles and columns remain semantic state. The native candidate passes its full gate; official Document adoption and host
 build/deployment qualification remain subsequent integration steps.
+
+## Resource review candidate
+
+The separate resource worktree uses native annotation basis `100deb04` plus
+local changes, Document basis `eded916c` plus local changes and unchanged codec
+`4018037d`. Exact inputs are recorded in its local verification manifest. The
+path patches are explicit; base SHAs do not identify the modified sources.
+It targets unpublished profile 0.5.0 / CBOR5 and preserves exact STYLE/SHX
+requests, qualified face flags and separate same-named source records through
+AC1032 DWG and ASCII/binary DXF production readback. Missing external resources
+remain valid; broken internal STYLE roles fail structurally. MText grammar
+limits are diagnosed or refused without changing a selected name.
+
+Review uses one compact gallery and sample_AC1032. Existing unsupported sample
+entities remain diagnosed; resource equality does not imply lossless geometry
+or rendered equivalence. Backend request inspection and the snapshot report
+adapter are tested separately. Deployed Explorer, embedded host and UI are not
+yet integrated with this candidate; user review precedes those stages.

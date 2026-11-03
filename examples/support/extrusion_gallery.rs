@@ -25,7 +25,7 @@ fn build(explorer: bool) -> IfccadDocument {
         0.,
         20.,
         3.,
-        "EXTRUSION THICKNESS / mm / profile 0.4.0",
+        "EXTRUSION THICKNESS / mm / profile 0.5.0",
     );
     for (col, (h, title)) in [(3., "+3 / +Z"), (-3., "-3 / +Z"), (3., "+3 / oblique")]
         .into_iter()

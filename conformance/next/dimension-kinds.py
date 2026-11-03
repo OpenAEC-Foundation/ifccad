@@ -99,7 +99,7 @@ CASES = [
 
 binary_root = ROOT/'ifccad-cbor'
 base = decode((binary_root/'valid/graphics-empty.ifccad.cbor').read_bytes())
-assert base[1] == 4
+assert base[1] == 5
 manifest = json.loads((binary_root/'cases.json').read_text())
 json_root = ROOT/'ifccad'
 json_base = json.loads((json_root/'valid/dimension-linear-aligned.ifcx').read_text())

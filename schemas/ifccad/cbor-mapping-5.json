@@ -1,6 +1,6 @@
 {
   "format": "IFCCAD-CBOR",
-  "mappingRevision": 4,
+  "mappingRevision": 5,
   "rootType": "IfccadDocument",
   "types": {
     "IfccadDocument": {
@@ -1405,12 +1405,21 @@
               "name": "file_name",
               "type": "String",
               "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "cad_file_name",
+              "type": "Option<String>",
+              "presence": "default",
+              "default": null,
+              "omit": "exact"
             }
           ]
         }
       ],
       "dependencies": [
-        "String"
+        "String",
+        "Option<String>"
       ]
     },
     "IfccadTextStyleId": {

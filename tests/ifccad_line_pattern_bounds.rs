@@ -24,6 +24,7 @@ fn drawing(text: bool) -> IfccadDocument {
         doc.symbol_sources.push(IfccadSymbolSource {
             id: IfccadSymbolSourceId(0),
             source: SymbolSource::Shx {
+                cad_file_name: None,
                 file_name: "missing.shx".into(),
             },
         });

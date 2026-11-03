@@ -172,7 +172,7 @@ cargo run -p viewer -- export-ifccad examples/ifccad/house.ifcx dxf
 CAD input defaults to IFCCAD. `--drawing-format ifccad` remains accepted;
 `--drawing-format ocdraw` reports `OCDRAW_PARKED` before reading the input.
 See the [IFCCAD lifecycle and API conventions](docs/experiments/ifccad-document-lifecycle.md),
-[experimental contract](schemas/ifccad/experimental-contract-0.4.0.md) and
+[experimental contract](schemas/ifccad/experimental-contract-0.5.0.md) and
 [CBOR experiment](docs/experiments/ifccad-cbor.md).
 
 ## Verification
@@ -232,3 +232,10 @@ commands and protection rules.
 The [reference diagnosis report](docs/conversion-diagnostics.md) records the old
 route's capabilities. Use the [active exchange coverage](docs/architecture/explorer-document-route.md)
 for the current Explorer/CLI boundary.
+
+The font/SHX source contribution is now a separate unpublished profile 0.5.0 /
+CBOR5 review candidate on annotation basis `100deb04`. It preserves exact source
+requests and independent SHX records, with bounded AC1032 DWG and ASCII/binary
+DXF roundtrips. The gallery and sample_AC1032 have completed user review. This does not
+complete issue 15; Explorer integration, resolution, portable locators, embedding
+and rendering remain later work. Published release identifiers above remain unchanged.

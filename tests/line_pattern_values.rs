@@ -42,11 +42,13 @@ fn transform_and_source_rules() {
     }
     for file_name in ["", ".", "..", "fonts/a.shx", "fonts\\a.shx", "a\0.shx"] {
         assert!(validate_symbol_source(&SymbolSource::Shx {
+            cad_file_name: None,
             file_name: file_name.into()
         })
         .is_err());
     }
     assert!(validate_symbol_source(&SymbolSource::Shx {
+        cad_file_name: None,
         file_name: "MySymbols.SHX".into()
     })
     .is_ok());

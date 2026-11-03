@@ -1,5 +1,5 @@
 {
-  "mappingRevision": 4,
+  "mappingRevision": 5,
   "cases": [
     {
       "file": "valid/empty.ifccad.cbor",
@@ -676,6 +676,53 @@
       "file": "valid/annotation-dimension-jogged-radius.ifccad.cbor",
       "valid": true,
       "diagnostic": "valid/annotation-dimension-jogged-radius.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/font-symbol-source-requests.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/font-symbol-source-requests.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/font-symbol-source-requests-null.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/font-symbol-source-requests-null.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/font-symbol-source-requests-wrong-type.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/font-symbol-source-requests-wrong-type.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/font-symbol-source-requests-mismatch.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/font-symbol-source-requests-mismatch.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/font-symbol-source-requests-empty.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/font-symbol-source-requests-empty.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/font-symbol-source-requests-trailing.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/font-symbol-source-requests-trailing.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/font-symbol-source-requests-unknown.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/font-symbol-source-requests-unknown.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/font-symbol-source-requests-duplicate.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/font-symbol-source-requests-duplicate.ifccad.cbor.diag",
+      "errorClass": "Malformed"
     }
   ]
 }

@@ -622,5 +622,33 @@
   {
     "file": "valid/annotation-dimension-jogged-radius.ifcx",
     "valid": true
+  },
+  {
+    "file": "valid/font-symbol-source-requests.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/font-symbol-source-requests-null.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/font-symbol-source-requests-wrong-type.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/font-symbol-source-requests-mismatch.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/font-symbol-source-requests-empty.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/font-symbol-source-requests-trailing.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/font-symbol-source-requests-unknown.ifcx",
+    "valid": false
   }
 ]

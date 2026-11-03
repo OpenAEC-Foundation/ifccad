@@ -68,7 +68,8 @@ pub fn ifccad(mut d: IfccadDocument) -> Result<IfccadDocument> {
         d.symbol_sources.push(IfccadSymbolSource {
             id,
             source: SymbolSource::Shx {
-                file_name: file_name.into(),
+                cad_file_name: None,
+            file_name: file_name.into(),
             },
         });
         sources.push(id);

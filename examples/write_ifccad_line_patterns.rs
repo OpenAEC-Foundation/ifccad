@@ -28,18 +28,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         IfccadSymbolSource {
             id: standard,
             source: SymbolSource::Shx {
+                cad_file_name: None,
                 file_name: "ltypeshp.shx".into(),
             },
         },
         IfccadSymbolSource {
             id: custom,
             source: SymbolSource::Shx {
+                cad_file_name: None,
                 file_name: "custom-missing.shx".into(),
             },
         },
         IfccadSymbolSource {
             id: duplicate,
             source: SymbolSource::Shx {
+                cad_file_name: None,
                 file_name: "custom-missing.shx".into(),
             },
         },

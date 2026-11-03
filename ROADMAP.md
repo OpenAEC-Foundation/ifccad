@@ -291,3 +291,10 @@ preservation slice joins the same sequential integration/release path.
 Publishing, committing or merging still requires an explicit request. Mixed-IFCX
 editing, IFC-object links, source writeback, collaboration, application command/UI
 parity and a general CAD editor are not implicit requirements of this roadmap.
+
+The font/SHX source contribution is now a separate unpublished profile 0.5.0 /
+CBOR5 review candidate on annotation basis `100deb04`. It preserves exact source
+requests and independent SHX records, with bounded AC1032 DWG and ASCII/binary
+DXF roundtrips. The gallery and sample_AC1032 have completed user review. This does not
+complete issue 15; Explorer integration, resolution, portable locators, embedding
+and rendering remain later work. Published release identifiers above remain unchanged.

@@ -50,6 +50,8 @@ pub(crate) fn present_document(output: &mut Value, d: &IfccadDocument, graph: &V
         "layers":role("ifccad::layer"),"layouts":role("ifccad::layout"),"blockDefinitions":role("ifccad::blockDefinition"),
         "linePatterns":role("ifccad::linePattern"),"symbolSources":role("ifccad::symbolSource"),"ucsDefinitions":role("ifccad::ucsDefinition"),"modelWindows":role("ifccad::modelWindow"),"hatchEntityCount":role("ifccad::hatch").len(),"hatches":hatches,"hatchFillEvaluation":"unassessed","textStyles":role("ifccad::textStyle"),"textEntityCount":role("ifccad::text").len(),"mTextEntityCount":role("ifccad::mText").len(),"entities":role("ifccad::entity"),"opaqueEntities":role("ifccad::opaqueEntity"),"opaqueEntityCount":role("ifccad::opaqueEntity").len(),"preservationRecords":role("ifccad::preservationRecord"),"preservationSources":d.preservation.as_ref().map(|p|&p.sources),"boundsCompleteness":completeness,"graph":graph});
     output["presentation"]["polylineWidths"] = crate::inspection_polyline_widths::authored(graph);
+    output["presentation"]["fontSymbolRequests"] =
+        json!(crate::inspection_font_symbols::authored(graph));
     output["presentation"]["extrusions"] =
         crate::inspection_extrusion::authored(graph, &json!(d.length_unit));
     output["presentation"]["dimensions"] = crate::inspection_ifccad_dimension::entities(d);

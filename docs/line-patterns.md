@@ -61,6 +61,17 @@ Availability is unknown until an editor resolves it. A missing external file
 does not invalidate the drawing; a missing local source or text-style reference
 does. An editor that attempts resolution can report a missing asset.
 
+The unpublished profile 0.5 / CBOR5 resource candidate additionally permits
+`cadFileName`, retaining the exact CAD request, for example
+`{"kind":"shx","fileName":"custom.shx","cadFileName":"../symbols/custom.shx"}`.
+The lexical final component must equal `fileName`, with case preserved. Both
+slash conventions and a leading drive prefix are recognized without filesystem
+access. Empty/NUL requests, trailing separators, `.` and `..` final components
+are invalid. Explicit optional presence survives native IO, including when the
+two names are equal. Composition replaces the entire source attribute; it does
+not rebase requests. Separate same-named source records remain independent.
+URI/hash locators, portable origins, embedding and resolution remain deferred.
+
 OCDraw stores `symbolSources` alongside the other local tables and requires
 `header.nextSymbolSourceId`, including when the table is absent or empty.
 Its source IDs use the existing `u32` table identity convention. IFCCAD stores
