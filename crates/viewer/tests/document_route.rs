@@ -13,7 +13,7 @@ fn capabilities_identify_the_selected_native_contract() {
     assert_eq!(caps["ifccad"]["cborMappingRevision"], 5);
     assert_eq!(
         caps["ifccad"]["revision"],
-        "eded916cba88d9d9b8e6789a0ab34bba7d358671"
+        "044bfcb7d096a50718cd15e9835477a23b813f1f"
     );
 }
 

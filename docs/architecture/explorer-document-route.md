@@ -239,10 +239,12 @@ build/deployment qualification remain subsequent integration steps.
 
 ## Resource review candidate
 
-The separate resource worktree uses native annotation basis `100deb04` plus
-local changes, Document basis `eded916c` plus local changes and unchanged codec
-`4018037d`. Exact inputs are recorded in its local verification manifest. The
-path patches are explicit; base SHAs do not identify the modified sources.
+The resource contribution builds on native annotation basis `100deb04`. The
+viewer pins Document resource commit
+`044bfcb7d096a50718cd15e9835477a23b813f1f`, with unchanged codec `4018037d`.
+Document pins native resource commit `0e8f5e6175c236f0bbef6466da7dd1aff5834045`;
+the workspace uses its own identical native core model. No local dependency
+path override is required. These are development Git revisions, not releases.
 It targets unpublished profile 0.5.0 / CBOR5 and preserves exact STYLE/SHX
 requests, qualified face flags and separate same-named source records through
 AC1032 DWG and ASCII/binary DXF production readback. Missing external resources
@@ -253,4 +255,5 @@ Review uses one compact gallery and sample_AC1032. Existing unsupported sample
 entities remain diagnosed; resource equality does not imply lossless geometry
 or rendered equivalence. Backend request inspection and the snapshot report
 adapter are tested separately. Deployed Explorer, embedded host and UI are not
-yet integrated with this candidate; user review precedes those stages.
+yet integrated with this candidate. Gallery and sample review is accepted;
+Explorer integration and deployment qualification remain separate stages.
