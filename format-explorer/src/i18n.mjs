@@ -853,3 +853,20 @@ Object.assign(copy, {
  'dimension.value.arcPoint':['Point on arc','Punt op boog'],
  'dimension.value.segmentPoint':['Point on segment','Punt op segment']
 });
+
+Object.assign(copy,{
+ 'fontSymbol.title':['Font and symbol requests','Font- en symboolaanvragen'],
+ 'fontSymbol.requested':['Requested name','Gevraagde naam'],
+ 'fontSymbol.used':['Used name','Gebruikte naam'],
+ 'fontSymbol.status':['Availability','Beschikbaarheid'],
+ 'fontSymbol.notChecked':['Not checked','Niet gecontroleerd'],
+ 'fontSymbol.found':['Found','Gevonden'],
+ 'fontSymbol.missing':['Missing','Ontbreekt'],
+ 'fontSymbol.unreadable':['Unreadable','Onleesbaar'],
+ 'fontSymbol.substituted':['Substituted','Vervangen'],
+ 'fontSymbol.role.family':['Font family','Fontfamilie'],
+ 'fontSymbol.role.primary':['CAD font','CAD-font'],
+ 'fontSymbol.role.bigFont':['Big Font','Big Font'],
+ 'fontSymbol.role.shx':['SHX symbol source','SHX-symboolbron'],
+ 'fontSymbol.help':['Availability is separate from the stored request and does not verify glyph rendering.','Beschikbaarheid staat los van de opgeslagen aanvraag en bewijst geen juiste weergave van letters of symbolen.']
+});

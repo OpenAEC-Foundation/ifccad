@@ -25,3 +25,18 @@ class HostDependencies(unittest.TestCase):
         self.packages[-1]['source'] = 'git+https://example.test/repo#old'
         with self.assertRaisesRegex(SystemExit, 'opencadkernel-constraints'):
             prepare.validate_packages(self.packages, self.pins)
+
+
+class ResourceCodecPatch(unittest.TestCase):
+    def test_resource_codec_patch_is_exact_and_idempotent(self):
+        pins = dict(codecRepository='https://github.com/BjornFidder/opencadcodec.git', codecCommit='4018037daf8fd3e40aa1aa6455b80232849a2756')
+        patched = prepare.prepare_codec_patch('[package]\nname="host"\n', pins)
+        self.assertIn('[patch."https://github.com/HakanSeven12/acadrust.git"]', patched)
+        self.assertIn(pins['codecCommit'], patched)
+        self.assertEqual(prepare.prepare_codec_patch(patched, pins), patched)
+
+    def test_codec_repository_is_checked_alongside_revision(self):
+        pins = dict(documentCommit='doc', nativeCoreCommit='core', codecCommit='cad', codecRepository='https://github.com/BjornFidder/opencadcodec.git')
+        packages = [dict(name=name, source='git+https://wrong.test/repo?rev='+rev+'#'+rev) for name,rev in [('opencaddocument','doc'),('ifccad','core'),('acadrust','cad')]]
+        with self.assertRaisesRegex(SystemExit, 'acadrust repository'):
+            prepare.validate_packages(packages,pins)

@@ -1,4 +1,5 @@
 import {parsePresentationJson} from './presentation-json.mjs';
+import {createFontSymbolReport} from './font-symbol-sources.mjs';
 const id=value=>String(value);
 const numeric=(a,b)=>{try{return BigInt(a)<BigInt(b)?-1:BigInt(a)>BigInt(b)?1:0;}catch{return String(a).localeCompare(String(b));}};
 export function createInspection(result,sourceText=''){
@@ -100,5 +101,6 @@ export function createInspection(result,sourceText=''){
  for(const row of (result.conversion?.geometryAssessment||result.export?.geometryAssessment)?.polylineWidths||[]){const n=widthNode(row.source);if(n)n.widthEvidence=row;}
  for(const n of nodes.values())n.incoming=[];
  for(const n of nodes.values())for(const edge of n.outgoing)nodes.get(edge.target)?.incoming.push(edge);
- return {binary:result?.source?.representation==='decoded',format,nodes,roots,nodeRoots,storageRoots,sourceText,valid:result?.validation?.strictAvailable===true};
+ const fontSymbolReport=createFontSymbolReport(p.fontSymbolRequests||[],result);
+ return {fontSymbolReport,binary:result?.source?.representation==='decoded',format,nodes,roots,nodeRoots,storageRoots,sourceText,valid:result?.validation?.strictAvailable===true};
 }

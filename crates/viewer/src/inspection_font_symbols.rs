@@ -19,6 +19,34 @@ fn font(rows: &mut Vec<Value>, value: &Value, path: &str) {
     }
 }
 
+fn mtext(rows: &mut Vec<Value>, text: &Value, base: &str) {
+    font(
+        rows,
+        &text["characterFormat"]["font"],
+        &format!("{base}/characterFormat/font"),
+    );
+    for (p, paragraph) in text["content"].as_array().into_iter().flatten().enumerate() {
+        let prefix = format!("{base}/content/{p}");
+        font(
+            rows,
+            &paragraph["characterFormat"]["font"],
+            &format!("{prefix}/characterFormat/font"),
+        );
+        for (i, inline) in paragraph["inlines"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .enumerate()
+        {
+            font(
+                rows,
+                &inline["characterFormat"]["font"],
+                &format!("{prefix}/inlines/{i}/characterFormat/font"),
+            );
+        }
+    }
+}
+
 pub(crate) fn authored(graph: &Value) -> Vec<Value> {
     let mut rows = Vec::new();
     for node in graph["data"].as_array().into_iter().flatten() {
@@ -49,30 +77,26 @@ pub(crate) fn authored(graph: &Value) -> Vec<Value> {
             }
         }
         if let Some(text) = attrs.get("ifccad::mText") {
-            let base = format!("{path}#/attributes/ifccad::mText");
-            font(
+            mtext(
                 &mut rows,
-                &text["characterFormat"]["font"],
-                &format!("{base}/characterFormat/font"),
+                text,
+                &format!("{path}#/attributes/ifccad::mText"),
             );
-            for (p, paragraph) in text["content"].as_array().into_iter().flatten().enumerate() {
-                let prefix = format!("{base}/content/{p}");
-                font(
-                    &mut rows,
-                    &paragraph["characterFormat"]["font"],
-                    &format!("{prefix}/characterFormat/font"),
-                );
-                for (i, inline) in paragraph["inlines"]
-                    .as_array()
-                    .into_iter()
-                    .flatten()
-                    .enumerate()
-                {
-                    font(
-                        &mut rows,
-                        &inline["characterFormat"]["font"],
-                        &format!("{prefix}/inlines/{i}/characterFormat/font"),
-                    );
+        }
+        for (context_index, context) in attrs["ifccad::annotation"]["contexts"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .enumerate()
+        {
+            for (part_index, part) in context["presentation"]["graphics"]["parts"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .enumerate()
+            {
+                if let Some(text) = part.get("ifccad::mText") {
+                    mtext(&mut rows, text, &format!("{path}#/attributes/ifccad::annotation/contexts/{context_index}/presentation/graphics/parts/{part_index}/ifccad::mText"));
                 }
             }
         }

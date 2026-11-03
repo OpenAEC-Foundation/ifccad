@@ -296,5 +296,8 @@ The font/SHX source contribution is now a separate unpublished profile 0.5.0 /
 CBOR5 review candidate on annotation basis `100deb04`. It preserves exact source
 requests and independent SHX records, with bounded AC1032 DWG and ASCII/binary
 DXF roundtrips. The gallery and sample_AC1032 have completed user review. This does not
-complete issue 15; Explorer integration, resolution, portable locators, embedding
-and rendering remain later work. Published release identifiers above remain unchanged.
+complete issue 15. The local Explorer and embedded host use the pinned development
+pair, with existing examples migrated and a bounded text edit/grip/undo smoke.
+Official adoption and deployment remain separate; resolution, portable locators,
+embedding and complete rendering remain later work. Published release identifiers
+above remain unchanged.

@@ -22,3 +22,21 @@ test('substitution is separate from the immutable requested source',()=>{
  assert.throws(()=>applyFontSymbolResult(report,snapshot,{requestPath:'unknown',fontRole:'shx',status:'found'}));
  assert.throws(()=>applyFontSymbolResult(report,snapshot,{requestPath:request.requestPath,fontRole:'shx',status:'notChecked',usedName:'stale.shx'}));
 });
+
+
+import {createInspection} from '../src/inspection-model.mjs';
+import {renderInspection} from '../src/inspection-view.mjs';
+test('inspector shows authored requests and unchecked status on its own snapshot',()=>{
+ const path='/cad/d1/symbolSource/9007199254740993';
+ const result={presentation:{graph:{data:[{path,attributes:{'ifccad::symbolSource':{kind:'shx',fileName:'shape.shx'}}}]},fontSymbolRequests:[{requestPath:path+'#/attributes/ifccad::symbolSource/cadFileName',fontRole:'shx',requestedName:'<source>&.shx'}]}};
+ const model=createInspection(result);
+ assert.equal(model.fontSymbolReport.snapshot,result);
+ const view=renderInspection(model,{language:'nl',view:'drawing',selection:path,expanded:new Set(),inspector:'properties'});
+ assert.match(view.details,/Niet gecontroleerd/);
+ assert.match(view.details,/&lt;source&gt;&amp;\.shx/);
+ assert.ok(!view.details.includes('<source>'));
+ const next={...result};
+ const nextModel=createInspection(next);
+ assert.notEqual(nextModel.fontSymbolReport.snapshot,model.fontSymbolReport.snapshot);
+ assert.equal(result.presentation.fontSymbolRequests[0].status,undefined);
+});

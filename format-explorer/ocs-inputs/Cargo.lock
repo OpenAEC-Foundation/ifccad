@@ -98,7 +98,7 @@ checksum = "366ffbaa4442f4684d91e2cd7c5ea7c4ed8add41959a31447066e279e432b618"
 [[package]]
 name = "acadrust"
 version = "0.6.8"
-source = "git+https://github.com/HakanSeven12/acadrust.git?rev=ef27529c#ef27529c868a81bac0872e9260f597a2c6f85665"
+source = "git+https://github.com/BjornFidder/opencadcodec.git?rev=4018037daf8fd3e40aa1aa6455b80232849a2756#4018037daf8fd3e40aa1aa6455b80232849a2756"
 dependencies = [
  "anyhow",
  "bitflags 2.13.1",
@@ -2939,8 +2939,8 @@ dependencies = [
 
 [[package]]
 name = "ifccad"
-version = "2026.44.1"
-source = "git+https://github.com/OpenAEC-Foundation/ifccad.git?rev=07e1ef1c4e975afcab0a07012bed8a82a56202cb#07e1ef1c4e975afcab0a07012bed8a82a56202cb"
+version = "2026.45.0"
+source = "git+https://github.com/OpenAEC-Foundation/ifccad.git?rev=0e8f5e6175c236f0bbef6466da7dd1aff5834045#0e8f5e6175c236f0bbef6466da7dd1aff5834045"
 dependencies = [
  "base64",
  "fpmath",
@@ -4438,7 +4438,7 @@ dependencies = [
 [[package]]
 name = "opencaddocument"
 version = "0.1.0"
-source = "git+https://github.com/HakanSeven12/opencaddocument.git?rev=3a3676b12e824292bcf46b29f4eaf02d9264c3a4#3a3676b12e824292bcf46b29f4eaf02d9264c3a4"
+source = "git+https://github.com/BjornFidder/opencaddocument.git?rev=044bfcb7d096a50718cd15e9835477a23b813f1f#044bfcb7d096a50718cd15e9835477a23b813f1f"
 dependencies = [
  "acadrust",
  "ifccad",

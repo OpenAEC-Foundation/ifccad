@@ -115,7 +115,7 @@ for(const fixture of ['hello-cad.ifcx','hello-geometry.ifcx','hello-hatch-solid.
   assert.equal(returned.presentation.dimensions.length,9);
   assert.equal(new Set(returned.presentation.dimensions.map(d=>d.geometry.definition.kind)).size,9);
  }
- const old=new TextDecoder().decode(bytes).replaceAll('0.4.0','0.3.0');
+ const old=new TextDecoder().decode(bytes).replaceAll(pins.profile,'0.3.0');
  assert.ok(processBrowserRequest(request('old-profile.ifcx',new TextEncoder().encode(old)),wasm).failure,'old alpha profile must not silently use the new reader');
  console.log('All nine Dimension kinds: actual native preview snapshot, owner bindings, stored graphics, CBOR/Zstd and physical CAD downloads.');
 }
@@ -135,3 +135,26 @@ assert.ok(splineOpened.conversion.diagnostics.some(row=>row.code==='DOCUMENT_CON
 assert.equal(splineOpened.presentation.opaqueEntityCount,0,'no opaque preservation is claimed');
 assert.throws(()=>processBrowserRequest({...request('spline.dxf',spline,'cad'),preserveSplines:true},wasm),/preservation|unavailable/i);
 console.log('Shared-route limits, exact native downloads and native inspection verified; numerical/visual fidelity remains unassessed.');
+
+const resourceBytes=await readFile(new URL('../../conformance/next/ifccad/valid/font-symbol-source-requests.ifcx',import.meta.url));
+const resources=checked(request('font-symbol-sources.ifcx',resourceBytes));
+const resourceRows=resources.presentation.fontSymbolRequests;
+assert.ok(resourceRows.some(row=>row.requestPath.startsWith('/cad/d1/symbolSource/9007199254740993#')&&row.status==='notChecked'));
+assert.ok(resourceRows.some(row=>row.requestedName==='..\\project\\missing.shx'));
+const resourceModel=createInspection(resources);
+assert.equal(resourceModel.fontSymbolReport.snapshot,resources);
+assert.equal(resourceModel.fontSymbolReport.entries.length,resourceRows.length);
+console.log('Exact source requests, unchecked application report and full-width resource paths survive the browser open route.');
+
+const contextGraph=JSON.parse(await readFile(new URL('../../conformance/next/ifccad/valid/annotation-dimension-linear-aligned.ifcx',import.meta.url),'utf8'));
+const richGraph=JSON.parse(await readFile(new URL('../../conformance/next/ifccad/valid/text-rich.ifcx',import.meta.url),'utf8'));
+const richText=richGraph.data.find(n=>n.attributes?.['ifccad::mText']).attributes;
+const inlineText=structuredClone(richText['ifccad::mText']);
+inlineText.style='/cad/d1/textStyle/0';
+inlineText.characterFormat={font:{family:'Saved context family'}};
+const contextDimension=contextGraph.data.find(n=>n.attributes?.['ifccad::annotation']);
+contextDimension.attributes['ifccad::annotation'].contexts[0].presentation.graphics.parts=[{
+ 'ifccad::dimensionGraphicsPart':{},'ifccad::mText':inlineText,'ifccad::geom::placement':richText['ifccad::geom::placement']}];
+const contextOpened=checked(request('saved-context-font.ifcx',new TextEncoder().encode(JSON.stringify(contextGraph))));
+assert.ok(contextOpened.presentation.fontSymbolRequests.some(row=>row.requestedName==='Saved context family'&&row.requestPath.includes('/presentation/graphics/parts/0/ifccad::mText/')));
+console.log('Saved Dimension context MText requests are included in browser inspection.');

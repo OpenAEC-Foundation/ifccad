@@ -253,7 +253,14 @@ limits are diagnosed or refused without changing a selected name.
 
 Review uses one compact gallery and sample_AC1032. Existing unsupported sample
 entities remain diagnosed; resource equality does not imply lossless geometry
-or rendered equivalence. Backend request inspection and the snapshot report
-adapter are tested separately. Deployed Explorer, embedded host and UI are not
-yet integrated with this candidate. Gallery and sample review is accepted;
-Explorer integration and deployment qualification remain separate stages.
+or rendered equivalence. Gallery and sample review is accepted. The local
+Explorer and embedded Studio now use the explicit development pair above with
+Studio `3d2c1bf4` and kernel `b2656bd`. The existing examples are migrated without
+expanding the catalogue. Native IFCX opening, strict validation, selected font
+request inspection and physical CAD export/readback are exercised in the local
+browser. Authored requests include inline MText in saved Dimension context
+pictures; availability remains an application report tied to the open snapshot.
+A representative catalogue text edit and anchor grip, with undo/redo, retain the
+text style and update displayed text. This bounded host smoke does not certify
+all annotation editing or glyph fidelity. Official dependency adoption, native
+release and production Explorer deployment remain separate stages.
