@@ -146,6 +146,7 @@ fn text_markers_use_independent_style_role() {
         .unwrap()
         .into_document();
     doc.text_styles.push(IfccadTextStyle {
+        annotation: Default::default(),
         id: IfccadTextStyleId(0),
         name: "Requested face".into(),
         properties: TextStyleProperties::new(FontRequest::family("Missing face")),

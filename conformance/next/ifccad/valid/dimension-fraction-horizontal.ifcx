@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.3.0"
+      "uri": "urn:example:ifccad:0.5.0"
     }
   ],
   "schemas": {},
@@ -37,8 +37,9 @@
           "nextModelWindowId": 1,
           "nextTextStyleId": 1,
           "nextUcsId": 1,
-          "profileVersion": "0.3.0",
-          "nextSymbolSourceId": 1
+          "profileVersion": "0.5.0",
+          "nextSymbolSourceId": 1,
+          "nextAnnotationScaleId": 1
         }
       }
     },
@@ -175,7 +176,10 @@
                 "kind": "none"
               }
             },
-            "presentationScale": 1.0,
+            "presentationScale": {
+              "kind": "fixed",
+              "factor": 1.0
+            },
             "text": {
               "appearance": {
                 "color": {

@@ -574,5 +574,81 @@
   {
     "file": "invalid-extrusion-null.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/dimension-sizing.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/annotation-text.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/annotation-hatch.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/annotation-blocks.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/annotation-dimension-linear-aligned.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/annotation-dimension-angular-two-lines.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/annotation-dimension-angular-three-points.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/annotation-dimension-radius.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/annotation-dimension-diameter.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/annotation-dimension-ordinate-signed.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/annotation-dimension-arc-length-full.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/annotation-dimension-jogged-radius.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/font-symbol-source-requests.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/font-symbol-source-requests-null.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/font-symbol-source-requests-wrong-type.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/font-symbol-source-requests-mismatch.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/font-symbol-source-requests-empty.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/font-symbol-source-requests-trailing.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/font-symbol-source-requests-unknown.ifcx",
+    "valid": false
   }
 ]

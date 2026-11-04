@@ -71,7 +71,40 @@ impl Default for LinePatternTransform {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum SymbolSource {
-    Shx { file_name: String },
+    Shx {
+        file_name: String,
+        cad_file_name: Option<String>,
+    },
+}
+
+impl SymbolSource {
+    /// The authored CAD request, without resolving or normalizing its location.
+    pub fn effective_cad_file_name(&self) -> &str {
+        let Self::Shx {
+            file_name,
+            cad_file_name,
+        } = self;
+        cad_file_name.as_deref().unwrap_or(file_name)
+    }
+}
+
+/// Extract the lexical SHX basename independently of the current operating system.
+/// This does not resolve paths or load the requested file.
+pub fn shx_file_name_from_cad_request(request: &str) -> Result<&str, LinePatternValueError> {
+    if request.is_empty() || request.contains('\0') {
+        return Err(LinePatternValueError::InvalidFileName);
+    }
+    let bytes = request.as_bytes();
+    let path = if bytes.len() >= 2 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':' {
+        &request[2..]
+    } else {
+        request
+    };
+    let name = path.rsplit(['/', '\\']).next().unwrap_or("");
+    if name.is_empty() || matches!(name, "." | "..") {
+        return Err(LinePatternValueError::InvalidFileName);
+    }
+    Ok(name)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
@@ -121,12 +154,20 @@ pub fn validate_line_pattern_transform(
 }
 
 pub fn validate_symbol_source(value: &SymbolSource) -> Result<(), LinePatternValueError> {
-    let SymbolSource::Shx { file_name } = value;
+    let SymbolSource::Shx {
+        file_name,
+        cad_file_name,
+    } = value;
     if file_name.is_empty()
         || matches!(file_name.as_str(), "." | "..")
         || file_name.contains(['/', '\\', '\0'])
     {
         return Err(LinePatternValueError::InvalidFileName);
+    }
+    if let Some(request) = cad_file_name {
+        if shx_file_name_from_cad_request(request)? != file_name {
+            return Err(LinePatternValueError::InvalidFileName);
+        }
     }
     Ok(())
 }

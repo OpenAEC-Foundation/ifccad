@@ -9,6 +9,8 @@ use std::collections::{BTreeMap, BTreeSet};
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DrawingValue {
+    #[serde(default, deserialize_with = "crate::dimension::present_option")]
+    annotation_settings: Option<IfccadDrawingAnnotationSettings>,
     #[serde(default, deserialize_with = "super::presentation::present")]
     point_display: Option<Value>,
     #[serde(default, rename = "modelWindows")]
@@ -29,6 +31,9 @@ struct DrawingValue {
     next_ucs_id: u64,
     #[serde(default = "initial_workspace_id")]
     next_model_window_id: u64,
+    next_annotation_scale_id: u64,
+    #[serde(default = "initial_workspace_id")]
+    next_annotation_view_id: u64,
     #[serde(default = "crate::ifccad::logical::patterns::one")]
     line_pattern_scale: f64,
     plot_style_mode: Option<String>,
@@ -36,6 +41,8 @@ struct DrawingValue {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct LayoutValue {
+    #[serde(default, deserialize_with = "crate::dimension::present_option")]
+    annotation_state: Option<super::annotation_policy::State>,
     bounds_quality: Option<IfccadBoundsQuality>,
     kind: String,
     tab_index: u32,
@@ -89,6 +96,8 @@ struct LayerValue {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DefinitionValue {
+    #[serde(default)]
+    annotation: IfccadAnnotationDefinition,
     #[serde(default)]
     description: String,
     #[serde(default)]
@@ -369,7 +378,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .and_then(Value::as_object)
         .ok_or_else(|| problem("IFCX schemas must be an object"))?;
     let profile_module: Value = serde_json::from_str(include_str!(
-        "../../../../schemas/ifccad/ifccad-profile-0.3.0.ifcx"
+        "../../../../schemas/ifccad/ifccad-profile-0.5.0.ifcx"
     ))
     .map_err(|e| problem(format!("invalid built-in CAD schema module: {e}")))?;
     let known = profile_module["schemas"]
@@ -426,7 +435,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let drawing_id = numbered(drawing_path, "/cad/d")?;
     let prefix = drawing_prefix(drawing_id);
     let drawing: DrawingValue = required(drawing_node, "ifccad::drawing")?;
-    if drawing.profile_version != "0.3.0" {
+    if drawing.profile_version != "0.5.0" {
         return Err(crate::ifccad::diagnostics::failure(
             "IFCCAD-WIRE-001",
             &format!("{drawing_path}/ifccad::drawing/profileVersion"),
@@ -470,9 +479,10 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
                 )));
             }
             let id = IfccadTextStyleId(numbered(path, &format!("{prefix}/textStyle/"))?);
-            let (name, properties) = super::text::decode_style(value, path)?;
+            let (name, properties, annotation) = super::text::decode_style(value, path)?;
             style_paths.insert(path.clone(), id);
             text_styles.push(IfccadTextStyle {
+                annotation,
                 id,
                 name,
                 properties,
@@ -675,6 +685,10 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
             .collect()
     };
     let model = IfccadLayout {
+        annotation_state: required::<LayoutValue>(nodes[&model_path], "ifccad::layout")?
+            .annotation_state
+            .map(|s| s.decode(&prefix))
+            .transpose()?,
         bounds_quality: required::<LayoutValue>(nodes[&model_path], "ifccad::layout")?
             .bounds_quality,
         settings: required::<LayoutValue>(nodes[&model_path], "ifccad::layout")?
@@ -688,6 +702,10 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let mut paper_layouts = Vec::new();
     for (id, (path, name, tab_index)) in paper_paths {
         paper_layouts.push(IfccadPaperLayout {
+            annotation_state: required::<LayoutValue>(nodes[&path], "ifccad::layout")?
+                .annotation_state
+                .map(|s| s.decode(&prefix))
+                .transpose()?,
             bounds_quality: required::<LayoutValue>(nodes[&path], "ifccad::layout")?.bounds_quality,
             canvas: None,
 
@@ -707,6 +725,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         let node = nodes[path];
         let value: DefinitionValue = required(node, "ifccad::blockDefinition")?;
         blocks.push(IfccadBlockDefinition {
+            annotation: value.annotation,
             description: value.description,
             anonymous: value.anonymous,
             explodable: value.explodable,
@@ -832,6 +851,9 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         _ => return Err(problem("preservation requires allocation watermark")),
     };
     let mut document = IfccadDocument {
+        annotation_settings: drawing.annotation_settings,
+        annotation_views: vec![],
+        annotation_scales: vec![],
         dimension_styles,
         symbol_sources,
         point_display: drawing
@@ -848,6 +870,8 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         header,
         drawing_id,
         id_counters: IfccadIdCounters {
+            next_annotation_view_id: drawing.next_annotation_view_id,
+            next_annotation_scale_id: drawing.next_annotation_scale_id,
             next_dimension_style_id,
             next_symbol_source_id: drawing.next_symbol_source_id,
             next_text_style_id,
@@ -876,6 +900,8 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         blocks,
     };
     super::workspace::decode_document(raw, &mut document)?;
+    super::annotation::decode_scales(raw, &mut document)?;
+    super::annotation::decode_views(raw, &mut document)?;
     validate_ifccad_document(&document)?;
     Ok(document)
 }
@@ -912,7 +938,7 @@ pub(super) fn decode_payload(
     }) {
         return Err(problem(format!("{path} unsupported CAD geometry")));
     }
-    Ok(match *present[0] {
+    let mut kind = match *present[0] {
         "ifccad::dimension" => super::dimension::decode(
             &attrs["ifccad::dimension"],
             attrs
@@ -967,10 +993,18 @@ pub(super) fn decode_payload(
                 ))
             })?;
             IfccadEntityKind::BlockInstance {
+                annotation: None,
                 definition_id,
                 transform: instance.transform.into_typed(),
             }
         }
         key => super::geometry::decode_kind(attrs, key, path)?,
-    })
+    };
+    if let Some(a) = attrs.get("ifccad::annotation") {
+        super::annotation::attach(&mut kind, a, prefix, path)?;
+    }
+    if let Some(a) = attrs.get("ifccad::hatchAnnotationViews") {
+        super::annotation_hatch::attach_views(&mut kind, a, prefix, path)?;
+    }
+    Ok(kind)
 }

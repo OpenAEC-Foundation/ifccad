@@ -5,6 +5,7 @@ use crate::text::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadText {
+    pub annotation: Option<Box<super::IfccadAnnotation<super::IfccadTextAnnotationContext>>>,
     pub style_id: IfccadTextStyleId,
     pub placement: super::IfccadPlacement,
     pub rotation: f64,
@@ -18,6 +19,7 @@ pub struct IfccadText {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadMText {
+    pub annotation: Option<Box<super::IfccadAnnotation<super::IfccadMTextAnnotationContext>>>,
     pub style_id: IfccadTextStyleId,
     pub placement: super::IfccadPlacement,
     pub rotation: f64,
@@ -88,6 +90,14 @@ pub(super) fn validate_value(
     };
     match kind {
         TextValue::Text(t) => {
+            if let Some(a) = &t.annotation {
+                a.validate_memberships(&document.annotation_scales, false)?;
+                for c in &a.contexts {
+                    if let Some(p) = &c.presentation {
+                        p.validate()?;
+                    }
+                }
+            }
             validate_text_layout(&t.layout).map_err(error)?;
             validate_text_runs(&t.content).map_err(error)?;
             if !t.oblique_angle.is_finite()
@@ -102,6 +112,14 @@ pub(super) fn validate_value(
             }
         }
         TextValue::MText(t) => {
+            if let Some(a) = &t.annotation {
+                a.validate_memberships(&document.annotation_scales, false)?;
+                for c in &a.contexts {
+                    if let Some(p) = &c.presentation {
+                        p.validate()?;
+                    }
+                }
+            }
             let color = |c: &IfccadColor| super::document_validation::color(c);
             let context = MTextValueContext {
                 nominal_height: t.height,
@@ -139,6 +157,7 @@ pub struct IfccadTextStyleId(pub u64);
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadTextStyle {
+    pub annotation: super::IfccadAnnotationDefinition,
     pub id: IfccadTextStyleId,
     pub name: String,
     pub properties: TextStyleProperties,

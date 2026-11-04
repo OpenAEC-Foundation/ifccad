@@ -72,6 +72,7 @@ fn new_families_preserve_parameters_in_every_owner() {
     d.model.entities.extend(entities);
     let layout_id = d.id_counters.allocate_layout_id().unwrap();
     let mut paper = IfccadPaperLayout {
+        annotation_state: None,
         bounds_quality: None,
         canvas: None,
 
@@ -94,6 +95,7 @@ fn new_families_preserve_parameters_in_every_owner() {
     d.paper_layouts.push(paper);
     let id = d.id_counters.allocate_block_id().unwrap();
     let mut block = IfccadBlockDefinition {
+        annotation: Default::default(),
         description: String::new(),
         anonymous: false,
         explodable: true,

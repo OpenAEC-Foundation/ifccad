@@ -61,6 +61,7 @@ fn separate_layout_and_block_ids_do_not_alias_during_preparation() {
     let block_id = d.model.id;
     d.id_counters.next_block_id = d.id_counters.next_block_id.max(block_id + 1);
     d.blocks.push(IfccadBlockDefinition {
+        annotation: Default::default(),
         description: String::new(),
         anonymous: false,
         explodable: true,
@@ -76,6 +77,7 @@ fn separate_layout_and_block_ids_do_not_alias_during_preparation() {
     let mut instance = template;
     instance.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
     instance.as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
+        annotation: None,
         definition_id: block_id,
         transform: IfccadBlockTransform {
             placement: IfccadPlacement {

@@ -17,6 +17,9 @@ pub struct IfccadHeader {
 /// This document does not contain foreign nodes or original IFCX fragments.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDocument {
+    pub annotation_settings: Option<super::IfccadDrawingAnnotationSettings>,
+    pub annotation_views: Vec<super::IfccadAnnotationStoredView>,
+    pub annotation_scales: Vec<super::IfccadAnnotationScale>,
     pub dimension_styles: Vec<super::IfccadDimensionStyle>,
     pub symbol_sources: Vec<super::IfccadSymbolSource>,
     pub point_display: Option<super::IfccadPointDisplay>,
@@ -66,6 +69,7 @@ pub struct IfccadLayerAppearance {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadLayout {
+    pub annotation_state: Option<super::IfccadLayoutAnnotationState>,
     pub bounds_quality: Option<super::IfccadBoundsQuality>,
     pub settings: super::IfccadLayoutSettings,
     pub id: u64,
@@ -77,6 +81,7 @@ pub struct IfccadLayout {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadPaperLayout {
+    pub annotation_state: Option<super::IfccadLayoutAnnotationState>,
     pub bounds_quality: Option<super::IfccadBoundsQuality>,
     pub canvas: Option<super::IfccadPaperCanvas>,
     pub id: u64,
@@ -90,6 +95,7 @@ pub struct IfccadPaperLayout {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadBlockDefinition {
+    pub annotation: super::IfccadAnnotationDefinition,
     pub description: String,
     pub anonymous: bool,
     pub explodable: bool,
@@ -205,8 +211,13 @@ pub struct IfccadPlacement {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct IfccadBlockTransform {
     pub placement: IfccadPlacement,
+    #[serde(default)]
     pub rotation: f64,
+    #[serde(default = "unit_block_scale")]
     pub scale: [f64; 3],
+}
+fn unit_block_scale() -> [f64; 3] {
+    [1.; 3]
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -271,6 +282,7 @@ pub enum IfccadEntityKind {
         thickness: f64,
     },
     BlockInstance {
+        annotation: Option<Box<super::IfccadAnnotation<super::IfccadBlockAnnotationContext>>>,
         definition_id: u64,
         transform: IfccadBlockTransform,
     },

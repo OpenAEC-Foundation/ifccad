@@ -51,10 +51,18 @@ export function renderInspection(model,state){
   details+='<p class="secondary">'+e(t('filled.displayUnassessed'))+'</p>';
  }
  const help=t('help.'+node.type);if(!help.startsWith('help.'))details+='<p class="secondary">'+e(help)+'</p>';
+ const fontRequests=model.fontSymbolReport?.entries.filter(request=>request.requestPath.startsWith(node.key+'#'))||[];
+ if(fontRequests.length){
+  details+='<h3>'+e(t('fontSymbol.title'))+'</h3>';
+  for(const request of fontRequests)details+='<section class="font-symbol-request"><h4>'+e(t('fontSymbol.role.'+request.fontRole))+'</h4><dl class="properties-list"><div><dt>'+e(t('fontSymbol.requested'))+'</dt><dd>'+e(request.requestedName)+'</dd></div><div><dt>'+e(t('fontSymbol.status'))+'</dt><dd>'+e(t('fontSymbol.'+request.status))+'</dd></div>'+(request.usedName?'<div><dt>'+e(t('fontSymbol.used'))+'</dt><dd>'+e(request.usedName)+'</dd></div>':'')+'</dl>'+(request.reason?'<p class="secondary">'+e(request.reason)+'</p>':'')+'</section>';
+  details+='<p class="secondary">'+e(t('fontSymbol.help'))+'</p>';
+ }
  if(node.extrusion){
   const sweep=node.extrusion,num=v=>Object.is(v,-0)?'-0':String(v);
   details+='<dl class="properties-list"><div><dt>'+e(t('extrusion.title'))+'</dt><dd>'+e(num(sweep.thickness)+' '+(sweep.unit??t('extrusion.paperUnits')))+'</dd></div><div><dt>'+e(t('extrusion.direction'))+'</dt><dd>'+e('['+sweep.direction.map(num).join(', ')+']')+'</dd></div></dl><p class="secondary">'+e(t('extrusion.help'))+'</p>';
  }
+  const annotation=node.values['ifccad::annotation'];
+  if(annotation){const scale=model.nodes.get(annotation.reference?.scaleId)?.title??t('unspecified');details+='<h3>'+e(t('annotation.title'))+'</h3><dl class="properties-list"><div><dt>'+e(t('annotation.mode'))+'</dt><dd>'+e(t('annotation.'+annotation.mode))+'</dd></div><div><dt>'+e(t('annotation.contextCount'))+'</dt><dd>'+e(annotation.contexts?.length??0)+'</dd></div><div><dt>'+e(t('annotation.reference'))+'</dt><dd>'+e(scale)+'</dd></div></dl><p class="secondary">'+e(t('annotation.savedHelp'))+'</p>';}
   const assessment=node.values.boundsAssessment;if(assessment)details+='<p class="secondary">'+e(t('boundsSummary',{quality:t(assessment.quality||'empty'),proof:t(assessment.enclosureVerified?'enclosureChecked':'enclosureNotChecked')}))+'</p>';
   if(assessment?.polylineWidthReasons?.length)details+='<p class="secondary">'+e(t('width.partial'))+'</p>';
   for(const reason of new Set(assessment?.linePatternReasons||[]))details+='<p class="secondary">'+e(t('linePatternReason.'+reason))+'</p>';

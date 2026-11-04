@@ -67,6 +67,7 @@ pub(super) fn decode_entity(
             .collect::<Option<Vec<_>>>()
             .ok_or_else(failure)?;
         Ok(IfccadEntityKind::Text(IfccadText {
+            annotation: None,
             style_id,
             placement,
             rotation,
@@ -79,6 +80,7 @@ pub(super) fn decode_entity(
         }))
     } else {
         Ok(IfccadEntityKind::MText(Box::new(IfccadMText {
+            annotation: None,
             style_id,
             placement,
             rotation,
@@ -155,6 +157,7 @@ pub(super) fn encode_entity(
     for field in ["backward", "upsideDown"] {
         super::defaults::omit_bool(&mut v, field, false);
     }
+    super::annotation::encode_entity(kind, prefix, attrs);
     attrs.insert(key.into(), v);
     attrs.insert("ifccad::geom::placement".into(), json!(placement));
 }
@@ -173,6 +176,8 @@ struct FontValue {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct StyleValue {
+    #[serde(default)]
+    annotation: crate::IfccadAnnotationDefinition,
     name: String,
     font: FontValue,
     #[serde(default = "crate::ifccad::logical::patterns::one")]
@@ -201,7 +206,14 @@ fn reject_nulls(v: &Value) -> bool {
 pub(super) fn decode_style(
     value: &Value,
     path: &str,
-) -> Result<(String, TextStyleProperties), IfccadReport> {
+) -> Result<
+    (
+        String,
+        TextStyleProperties,
+        crate::IfccadAnnotationDefinition,
+    ),
+    IfccadReport,
+> {
     super::supplemental::validate_value("ifccad::textStyle", value, path)?;
     if !reject_nulls(value) {
         return Err(crate::ifccad::diagnostics::failure(
@@ -237,6 +249,7 @@ pub(super) fn decode_style(
             creation_backward: s.creation_backward,
             creation_upside_down: s.creation_upside_down,
         },
+        s.annotation,
     ))
 }
 
@@ -251,6 +264,9 @@ pub(super) fn encode_style(style: &IfccadTextStyle) -> Value {
     }
     if let Some(v) = p.last_used_height {
         value["lastUsedHeight"] = json!(v);
+    }
+    if style.annotation != Default::default() {
+        value["annotation"] = json!(style.annotation);
     }
     super::defaults::omit_number(&mut value, "widthFactor", 1.);
     super::defaults::omit_number(&mut value, "obliqueAngle", 0.);

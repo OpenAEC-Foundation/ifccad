@@ -9,6 +9,7 @@ pub type IfccadDimensionOverrides =
     DimensionStyleOverrides<IfccadTextStyleId, u64, IfccadColor, IfccadLinePatternId>;
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDimensionStyle {
+    pub annotative: bool,
     pub id: IfccadDimensionStyleId,
     pub name: String,
     pub settings: IfccadDimensionSettings,
@@ -22,6 +23,7 @@ pub struct IfccadDimensionAssociation {
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDimension {
+    pub annotation: Option<Box<IfccadAnnotation<IfccadDimensionAnnotationContext>>>,
     pub placement: IfccadPlacement,
     pub style_id: IfccadDimensionStyleId,
     pub definition: DimensionDefinition,

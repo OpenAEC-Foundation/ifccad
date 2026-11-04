@@ -276,6 +276,7 @@ fn filled_native_roundtrip_keeps_kind_and_slots_in_all_owners() {
     }
     let id = d.id_counters.allocate_layout_id().unwrap();
     d.paper_layouts.push(IfccadPaperLayout {
+        annotation_state: None,
         bounds_quality: None,
         canvas: None,
         id,

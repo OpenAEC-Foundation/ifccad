@@ -14,6 +14,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let block_id = ids.allocate_block_id()?;
     let style_id = ids.allocate_text_style_id()?;
     let text = IfccadEntityKind::Text(IfccadText {
+        annotation: None,
         style_id,
         placement: placement([10., 20., 0.]),
         rotation: 0.2,
@@ -33,6 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }],
     });
     let mtext = IfccadEntityKind::MText(Box::new(IfccadMText {
+        annotation: None,
         style_id,
         placement: placement([10., 35., 0.]),
         rotation: 0.,
@@ -86,6 +88,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let mut model_entities = vec![entity(text.clone())?, entity(mtext.clone())?];
     model_entities.push(entity(IfccadEntityKind::BlockInstance {
+        annotation: None,
         definition_id: block_id,
         transform: IfccadBlockTransform {
             placement: placement([100., 50., 0.]),
@@ -96,9 +99,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let paper_entities = vec![entity(text.clone())?, entity(mtext.clone())?];
     let block_entities = vec![entity(text)?, entity(mtext)?];
     let mut d = IfccadDocument {
+        annotation_settings: None,
         dimension_styles: Vec::new(),
         symbol_sources: vec![],
         point_display: None,
+        annotation_views: vec![],
+        annotation_scales: vec![],
         ucs_definitions: vec![],
         model_windows: vec![],
         workspace_state: None,
@@ -116,6 +122,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         plot_style_mode: Default::default(),
         line_pattern_scale: 1.,
         text_styles: vec![IfccadTextStyle {
+            annotation: Default::default(),
             id: style_id,
             name: "Labels".into(),
             properties: TextStyleProperties::new(FontRequest {
@@ -146,6 +153,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
         }],
         model: IfccadLayout {
+            annotation_state: None,
             id: model_id,
             tab_index: 0,
             settings: Default::default(),
@@ -154,6 +162,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             entities: model_entities,
         },
         paper_layouts: vec![IfccadPaperLayout {
+            annotation_state: None,
             canvas: None,
             id: paper_id,
             name: "Sheet".into(),
@@ -164,6 +173,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             entities: paper_entities,
         }],
         blocks: vec![IfccadBlockDefinition {
+            annotation: Default::default(),
             description: String::new(),
             anonymous: false,
             explodable: true,

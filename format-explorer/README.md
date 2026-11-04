@@ -69,14 +69,24 @@ Native core validation, composed source inspection and binary codecs remain acti
 
 ## Development and verification
 
-Explorer pins official upstream Document
-`3a3676b12e824292bcf46b29f4eaf02d9264c3a4` (including merged PR #8),
-with codec `ef27529c868a81bac0872e9260f597a2c6f85665`. Studio uses the same
-Document and codec pins with compatible native core `07e1ef1c4e975afcab0a07012bed8a82a56202cb`.
-The workspace root shares its current core for Rust model identity. No local
-Document patch is needed. Host source `3d2c1bf4` (OCS 2026.44) uses kernel `b2656bd` (matching codec ef27529c).
-Both readers use profile 0.3.0 / CBOR3. Software release and file identifiers are
-independent: the host core pin is a compatible source commit, not the release tag.
+Explorer and its embedded Studio host pin the resource contribution in
+Document `47031369d9d2bf8b192c508e31e772b41bb2b990` and codec
+`4018037daf8fd3e40aa1aa6455b80232849a2756`. Studio uses native resource core
+`0e8f5e6175c236f0bbef6466da7dd1aff5834045`; the browser uses the identical
+workspace core model. Document PRs #10/#11 are merged; the selected official PR#11 merge has the same
+source tree as the accepted resource head. Codec4018037d remains explicitly
+qualified through its existing fork URL for one kernel/Document model. No local source
+overrides are required. Host source `3d2c1bf4` uses kernel `b2656bd` and the
+explicit codec patch recorded in `ocs-source.json` and the frozen lockfile.
+Both native-open routes use profile 0.5.0 / CBOR5. Software release and file
+identifiers remain independent.
+
+The inspector lists authored family/CAD/Big Font/SHX names separately from
+application availability. Without a supplied outcome it shows Not checked; no
+font resolver or substitute is inferred. Status is tied to the open snapshot,
+never stored in the native drawing. The existing catalogue is migrated without
+adding font gallery panels.
+
 Studio grip/undo picture behavior is tracked separately in OCS #2325.
 Newly decoded header settings outside the shared mapping are explicitly
 reported as conversion losses when they differ from defaults.
@@ -144,3 +154,20 @@ wires staying on the regular wire path instead of the base-only analytical GPU
 path (OCS #2361). Document 3a3676b, codec ef27529c and kernel b2656bd are pinned
 together; the native 2026.45.0 release remains unchanged. The kernel also adds
 a bounded finest meshing retry and centerline selection/span corrections.
+
+
+
+### Combined 2026.45.1 integration
+
+The combined release includes the annotation contexts and uses
+profile 0.5.0 / CBOR5 through the exact pins above. Its separately built host,
+parser worker and browser reader use one compatible native/Document/codec set.
+The preparation script respects Cargo's resolved target directory when locating
+the parser-worker artifact. Its build record includes source/config/lock identity
+and asset hashes. The existing catalogue and house examples retain their scope.
+
+The bounded local smoke exercises actual IFCX opening, request inspection,
+CAD export/readback, and catalogue text edit/grip with undo/redo. Saved context
+MText requests are included in the inspector inventory. Native validation and
+source preservation do not certify complete host glyph or annotation editing
+fidelity. The2026.45.1 Explorer update is delivered through the checked production workflow.

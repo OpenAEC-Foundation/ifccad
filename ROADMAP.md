@@ -19,7 +19,7 @@ IFCCAD development now has two cooperating implementation boundaries:
 
 | Area | Implemented status | Remaining boundary |
 | --- | --- | --- |
-| Native source alpha | `2026.44.1`; profile `0.2.0`, CBOR mapping `2`, Zstd transport `1` | Release contains the native core only; alpha compatibility is not guaranteed; published format versions are immutable and format changes receive new identifiers |
+| Native source alpha | `2026.45.0`; profile `0.3.0`, CBOR mapping `3`, Zstd transport `1` | Release contains the native core only; the annotation candidate is unpublished profile `0.4.0` / CBOR `4`; published contracts remain immutable |
 | Drawing foundations | Primitive/path geometry, shared/nested blocks, Model/Paper layouts, presentation, Text/MText, line patterns, workspace and viewport data | Native storage does not establish complete CAD mapping or rendering |
 | Hatch | Solid, line-pattern and gradient fills; source/association state; classic editing and boundary-construction records | Fill evaluation, automatic updates and shared-route coverage remain separate |
 | SOLID/TRACE | Native kinds, planar corner state and extrusion thickness | Surface and display evidence remain distinct from stored coordinates |
@@ -77,8 +77,9 @@ above and in their topic/release documentation rather than as planned steps.
 
 Keep native IFCCAD contributions sequential: complete the annotation-context slice,
 then add the bounded font/symbol-source foundation, followed by selected drawing
-semantics. Integrate and release each substantial contribution against the preceding
-verified baseline. The independent Document preservation work described below can
+semantics. Qualify each substantial contribution against the preceding verified baseline;
+compatible unpublished slices may ship together, as annotation contexts and
+font/symbol sources do in2026.45.1. The independent Document preservation work described below can
 proceed in parallel; its later IFCCAD integration becomes a separate contribution
 between native extensions when the required Document support is ready.
 
@@ -93,6 +94,15 @@ scaling do not already provide this feature.
 Complete and qualify the selected stored-context slice before integrating the
 resource contribution. General association-update processing is a separate follow-up,
 not an additional prerequisite for font/symbol-source storage.
+
+The accepted storage/exchange slice is delivered with font/SHX sources in
+release 2026.45.1, profile 0.5.0 / CBOR5: Text/MText, all nine Dimension kinds,
+Hatch, Block definitions/references, independent scale/view identities and
+saved Model/Paper policies. Compact physical roundtrips and the local catalogue
+completed user review. Document PRs #10/#11 are merged and the matching Explorer
+update uses their official merged source. A bounded catalogue text edit/grip
+smoke covers undo/redo; general association regeneration and all annotation
+editing remain outside that claim.
 
 Stored source relations and automatic updates are distinct. IFCCAD owns the
 stored definitions, role-specific source references/selectors and their shared
@@ -280,3 +290,13 @@ preservation slice joins the same sequential integration/release path.
 Publishing, committing or merging still requires an explicit request. Mixed-IFCX
 editing, IFC-object links, source writeback, collaboration, application command/UI
 parity and a general CAD editor are not implicit requirements of this roadmap.
+
+Release 2026.45.1 combines the annotation and font/SHX contributions in profile
+0.5.0 / CBOR5 on annotation basis `100deb04`. It preserves exact source
+requests and independent SHX records, with bounded AC1032 DWG and ASCII/binary
+DXF roundtrips. The gallery and sample_AC1032 have completed user review. This does not
+complete issue 15. The local Explorer and embedded host use the pinned development
+pair, with existing examples migrated and a bounded text edit/grip/undo smoke.
+The release selects official Document merge 47031369 and a matching Explorer
+update. Resolution, portable locators, embedding and complete rendering remain
+later work. Historical release identifiers above remain unchanged.

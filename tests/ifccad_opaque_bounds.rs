@@ -22,6 +22,7 @@ fn opaque_only_unused_and_nested_definitions_never_use_empty_origin_fallback() {
     let opaque = d.model.entities.pop().unwrap();
     let leaf_id = d.id_counters.allocate_block_id().unwrap();
     d.blocks.push(IfccadBlockDefinition {
+        annotation: Default::default(),
         description: String::new(),
         anonymous: false,
         explodable: true,
@@ -37,6 +38,7 @@ fn opaque_only_unused_and_nested_definitions_never_use_empty_origin_fallback() {
     let mut instance = d.model.entities[0].as_native().unwrap().clone();
     instance.id = d.id_counters.allocate_entity_id().unwrap();
     instance.kind = IfccadEntityKind::BlockInstance {
+        annotation: None,
         definition_id: leaf_id,
         transform: IfccadBlockTransform {
             placement: IfccadPlacement {
@@ -51,6 +53,7 @@ fn opaque_only_unused_and_nested_definitions_never_use_empty_origin_fallback() {
     d.model.entities.push(IfccadEntity::Native(instance));
     let empty_id = d.id_counters.allocate_block_id().unwrap();
     d.blocks.push(IfccadBlockDefinition {
+        annotation: Default::default(),
         description: String::new(),
         anonymous: false,
         explodable: true,

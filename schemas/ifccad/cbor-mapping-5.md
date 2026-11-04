@@ -1,11 +1,11 @@
-# Experimental IFCCAD CBOR mapping, revision 3
+# Experimental IFCCAD CBOR mapping, revision 5 (development)
 
 This is a standalone encoding of `IfccadDocument`, not a general IFCX binary
 serialization. It retains the complete supported CAD projection, including
 opaque CAD preservation, but no original IFCX fragments, imports or foreign
 nodes. JSON/IFCX remains a separate mapping through the same typed document.
 
-The normative field/type inventory is [cbor-mapping-3.json](cbor-mapping-3.json).
+The normative field/type inventory is [cbor-mapping-5.json](cbor-mapping-5.json).
 It enumerates concrete records and generic instantiations reachable from the
 document. Names in that registry are explanatory, not transmitted type names.
 Record field codes are local to their record type. Codes and enum variants are
@@ -14,10 +14,12 @@ values and never inferred from field codes, vector indices or content.
 
 ## Envelope and revision
 
-Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 3, 2: Document}`.
+Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 4, 2: Document}`.
 All three fields are required. Other revisions are rejected; no migration,
 forward-compatible skipping, feature negotiation or historical decoder is
-provided. Revision 3 and profile 0.3.0 are published in native source alpha 2026.45.0.
+provided. Revision 4 and profile 0.5.0 are the annotation development candidate.
+Revision 3 and profile 0.3.0 were published in native source alpha 2026.45.0;
+that tagged contract is fixed.
 Revision 1 and profile 0.1.0 were published in native source alpha 2026.44.0;
 that tagged contract is fixed. Subsequent normative
 changes to language, semantics, codes, defaults or normalization advance the
@@ -183,5 +185,75 @@ Ordinary and graphics kind codes stay unchanged. Their contextual body additions
 are LineSegment 2=thickness, 3=extrusion_direction; Point 1=thickness; Circle
 2=thickness; Arc 4=thickness; PlanarPolyline 6=thickness (5 remains widths).
 Thickness scalars and the direction triple use binary64, with exact +0 and
-[+0,+0,1] defaults respectively; signed zero is not discarded. Profile 0.3.0 is
+[+0,+0,1] defaults respectively; signed zero is not discarded. Profile 0.5.0 is
 required. Release 2026.44.1's profile 0.2.0/mapping 2 remain fixed in its tag.
+
+## Annotation storage in the development candidate
+
+Document field 20 is the annotation-scale registry (omitted empty); allocation
+counter field 11 is required next_annotation_scale_id. Scale record fields are
+0 id, 1 name, 2 paper_units, 3 drawing_units, 4 unit_scale (default false).
+Text field 9 and MText field 14 optionally contain a saved annotation descriptor.
+Descriptor fields are 0 mode (0 Disabled, 1 Enabled, 2 ByDefinition), 1 optional
+reference key, 2 required context list. Each context has 0 key and 1 optional
+presentation; each key has 0 scale ID. Optional values omit their field; a
+present null is malformed. Family records and exact enum codes are declared in
+[cbor-mapping-5.json](cbor-mapping-5.json). Shared profile rules govern semantic
+validity in both encodings. Floating-point payloads retain their exact bits;
+no record field calculates a scale quotient or normalizes a direction.
+
+Dimension sizing replaces the previous positive scalar with a tagged record:
+kind 0 Fixed with body field 0 factor, kind 1 ByViewport without a body, or kind 2
+ByAnnotationScale with a required body containing optional field 0 dormant factor.
+Both factor alternatives require positive finite values when present. Dimension
+Style field 4 retains its independent annotative bool (default false).
+
+TextStyle field 3 and BlockDefinition field 11 retain definition annotation
+intent, omitted when disabled/fixed. Definition record fields 0 enabled (default
+false) and 1 orientation (0 Fixed, default; 1 MatchLayout) preserve inactive
+orientation independently of enabled. No entity membership is synthesized from a
+TextStyle flag. See shared profile rules for block inheritance and bounds limits.
+
+Descriptor field 3 optionally retains explicit object orientation (0 Fixed,
+1 MatchLayout). Absence is unspecified and differs from a saved Fixed value.
+This does not alter the separate definition policy defaults or apply a view
+transform. Null is malformed.
+
+Document field 21 stores the annotation-view registry, omitted empty. Counter
+field 12 stores next_annotation_view_id, omitted only for exact default 1. The
+stored-view record fields are 0 id, 1 name, 2 space (Model 0, Paper 1), 3 width,
+4 ordinary viewport camera, 5 optional annotation_scale_id. Domain IDs, names and
+watermark are validated independently of annotation scales.
+
+
+BlockInstance body code8 adds optional field2 annotation, using the shared record
+with IfccadBlockAnnotationContext presentation (field0 transform). Definition_id
+and base transform keep fields0/1. Context transform encoding reuses the ordinary
+IfccadBlockTransform record, including exact-default rules and independent values.
+
+
+Dimension record adds optional field8 annotation. Its presentation fields are
+0 text_location (XY), 1 user_text_location, 2 text_rotation, 3 layout, 4 geometry,
+5 optional graphics (the ordinary owned picture record). Layout fields0..4 are
+line_outside, suppress_arrows_outside, fit_switch, force_text_inside and
+text_movement_switch; each StoredBoolOverride requires0 active and1 value,
+including inactive values. Layout fields5..7 are second_arrow_present, flip_first
+and flip_second. Context geometry codes0..8 match DimensionKind; each body uses
+fields0.. in the order listed in the profile rules. All geometry points are XYZ.
+
+Document field22 optionally stores annotation settings: field0 optional
+insert_as_annotative bool; field1 optional model_linetype_scaling (0 Unscaled,
+1 ByAnnotationScale). The record must not be empty. Model field6 and Paper field8
+optionally store annotation state: field0 optional current_scale_id, field1
+optional visibility (0 CurrentScaleOnly, 1 All). Viewport field10 and stored-view
+field5 optionally store annotation_scale_id. ModelWindow adds no scale field.
+All references resolve against this document's scale registry; omitted values
+remain unspecified, independently of explicit false/zero enum values.
+
+## SHX request extension in mapping 5
+
+SHX variant code 0 retains body field 0 (`file_name`: required string). Optional
+body field 1 (`cad_file_name`: string) defaults to None and is omitted only when
+absent. Explicit null, duplicate fields and unknown fields are rejected. Present
+strings, including a request equal to the basename, survive exact native IO.
+Shared source validation applies the logical basename/request rule.

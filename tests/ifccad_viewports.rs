@@ -2,6 +2,7 @@ use ifccad::*;
 
 fn viewport() -> IfccadViewport {
     IfccadViewport {
+        annotation_scale_id: None,
         workspace: None,
 
         model_id: 1,
@@ -198,6 +199,7 @@ fn viewport_requires_paper_and_unique_model_target() {
     doc.model.entities.pop();
     let id = doc.id_counters.allocate_layout_id().unwrap();
     doc.paper_layouts.push(IfccadPaperLayout {
+        annotation_state: None,
         bounds_quality: None,
         canvas: None,
 
@@ -236,6 +238,7 @@ fn drawing_with_viewport() -> IfccadDocument {
     view.model_id = doc.model.id;
     entity.as_native_mut().unwrap().kind = IfccadEntityKind::Viewport(view);
     doc.paper_layouts.push(IfccadPaperLayout {
+        annotation_state: None,
         bounds_quality: None,
         canvas: None,
 

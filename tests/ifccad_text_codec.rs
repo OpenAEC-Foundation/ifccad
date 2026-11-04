@@ -7,6 +7,7 @@ fn rich() -> IfccadDocument {
     .unwrap()
     .into_document();
     d.text_styles.push(IfccadTextStyle {
+        annotation: Default::default(),
         id: IfccadTextStyleId(0),
         name: "Requested".into(),
         properties: TextStyleProperties::new(FontRequest::family("Requested face")),
@@ -41,6 +42,7 @@ fn rich() -> IfccadDocument {
     }
     inlines.push(MTextInline::LineBreak);
     e.kind = IfccadEntityKind::MText(Box::new(IfccadMText {
+        annotation: None,
         style_id: IfccadTextStyleId(0),
         placement: IfccadPlacement {
             origin: [20., 30., 40.],
@@ -175,6 +177,7 @@ fn native_text_layouts_and_column_states_are_independently_qualified() {
         let mut d = rich();
         let e = d.model.entities[0].as_native_mut().unwrap();
         e.kind = IfccadEntityKind::Text(IfccadText {
+            annotation: None,
             style_id: IfccadTextStyleId(0),
             placement: IfccadPlacement {
                 origin: [5., 6., 7.],

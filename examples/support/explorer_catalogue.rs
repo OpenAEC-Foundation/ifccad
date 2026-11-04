@@ -2,6 +2,8 @@
 use super::drawing::{diagonal_fill, plane, Drawing, Result, MODEL};
 use serde_json::json;
 use std::f64::consts::{FRAC_PI_2, PI};
+#[path = "explorer_annotations.rs"]
+mod annotations;
 
 pub struct Sample {
     pub title: &'static str,
@@ -92,7 +94,7 @@ pub const SAMPLES: &[Sample] = &[
     },
     Sample {
         title: "Text",
-        note: "Single-line text with a style",
+        note: "Style / annotation contexts 1:1, 1:2",
         draw: |d, x, y| {
             d.text(MODEL, 1, x + 5., y + 27., 7., "IFCCAD");
             d.text(MODEL, 1, x + 5., y + 10., 4., "Text at an anchor point");
@@ -100,7 +102,7 @@ pub const SAMPLES: &[Sample] = &[
     },
     Sample {
         title: "MText",
-        note: "Paragraphs and formatting",
+        note: "Paragraphs / contexts 1:1, 1:2",
         draw: |d, x, y| {
             d.entity(MODEL,1,json!({"ifccad::geom::placement":plane(x+5.,y+37.),"ifccad::mText":{"style":"/cad/d1/textStyle/0","height":4.,"wrapWidth":72.,"attachment":"topLeft","flow":"horizontal","content":[{"inlines":[{"kind":"run","text":"Multiple lines"}]},{"inlines":[{"kind":"run","text":"in a text frame"}]}]}}));
         },
@@ -129,7 +131,7 @@ pub const SAMPLES: &[Sample] = &[
     },
     Sample {
         title: "Pattern hatch",
-        note: "Explicit line family",
+        note: "Line family / contexts 1:1, 1:2",
         draw: |d, x, y| {
             d.hatch(
                 1,
@@ -146,14 +148,14 @@ pub const SAMPLES: &[Sample] = &[
     },
     Sample {
         title: "Gradient hatch",
-        note: "Two-colour linear gradient",
+        note: "Two colours / contexts 1:1, 1:2",
         draw: |d, x, y| {
             d.hatch(1,vec![[x+8.,y+5.],[x+74.,y+5.],[x+74.,y+37.],[x+8.,y+37.]],json!({"kind":"gradient"}),Some(json!({"type":"linear","colors":[{"rgb":[30,100,180]},{"rgb":[90,200,170]}],"colorMode":"twoColor","rotation":0.,"shift":0.})));
         },
     },
     Sample {
         title: "Block instances",
-        note: "Repeat, rotate and mirror",
+        note: "Rotate, mirror / contexts 1:1, 1:2",
         draw: |d, x, y| {
             let (owner, id) = d.block("Catalogue marker");
             d.poly(
@@ -526,6 +528,7 @@ fn dimension_section(d: &mut Drawing) -> Result<()> {
 
 pub fn build_with_samples(samples: &[Sample]) -> Result<Vec<u8>> {
     let mut d = Drawing::new("explorer-entity-catalogue");
+    let mut annotation_samples = Vec::new();
     d.layer("Samples", Some([40, 140, 185]), 0.3);
     d.layer("Dimensions", None, 0.13);
     d.layer("Green accent", Some([55, 175, 120]), 0.5);
@@ -565,7 +568,23 @@ pub fn build_with_samples(samples: &[Sample]) -> Result<Vec<u8>> {
             &format!("{:02}  {}", i + 1, sample.title),
         );
         d.text(MODEL, 0, x + 5., y + 54., 2.6, sample.note);
+        let start = d.nodes.len();
         (sample.draw)(&mut d, x + 5., y + 5.);
+        if matches!(
+            sample.title,
+            "Text"
+                | "MText"
+                | "Solid hatch"
+                | "Pattern hatch"
+                | "Gradient hatch"
+                | "Block instances"
+        ) {
+            annotation_samples.extend(
+                d.nodes[start..]
+                    .iter()
+                    .map(|n| n["path"].as_str().unwrap().to_owned()),
+            );
+        }
     }
     dimension_section(&mut d)?;
     d.text(
@@ -594,5 +613,6 @@ pub fn build_with_samples(samples: &[Sample]) -> Result<Vec<u8>> {
         "Geometry, annotation, reuse and presentation / experimental profile",
     );
     d.model_view([194., total_height / 2. + 15.], total_height + 190.);
+    annotations::attach(&mut d.nodes, &annotation_samples);
     d.finish("explorer-entity-catalogue")
 }

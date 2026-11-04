@@ -70,6 +70,7 @@ fn nested_nonuniform_mirrored_instances_transform_the_complete_sweep() {
     let inner = d.id_counters.allocate_block_id().unwrap();
     let outer = d.id_counters.allocate_block_id().unwrap();
     let block = |id, name: &str, entities| IfccadBlockDefinition {
+        annotation: Default::default(),
         id,
         name: name.into(),
         description: String::new(),
@@ -91,6 +92,7 @@ fn nested_nonuniform_mirrored_instances_transform_the_complete_sweep() {
     let mut instance = template.clone();
     instance.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
     instance.as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
+        annotation: None,
         definition_id: inner,
         transform: IfccadBlockTransform {
             placement: frame([0.; 3]),
@@ -102,6 +104,7 @@ fn nested_nonuniform_mirrored_instances_transform_the_complete_sweep() {
     let mut instance = template;
     instance.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
     instance.as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
+        annotation: None,
         definition_id: outer,
         transform: IfccadBlockTransform {
             placement: frame([10., 20., 30.]),

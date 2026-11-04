@@ -5,7 +5,7 @@ version = 4
 [[package]]
 name = "acadrust"
 version = "0.6.8"
-source = "git+https://github.com/HakanSeven12/acadrust.git?rev=ef27529c#ef27529c868a81bac0872e9260f597a2c6f85665"
+source = "git+https://github.com/BjornFidder/opencadcodec.git?rev=4018037daf8fd3e40aa1aa6455b80232849a2756#4018037daf8fd3e40aa1aa6455b80232849a2756"
 dependencies = [
  "anyhow",
  "bitflags",
@@ -117,7 +117,7 @@ checksum = "dc0b364ead1874514c8c2855ab558056ebfeb775653e7ae45ff72f28f8f3166c"
 
 [[package]]
 name = "browser"
-version = "2026.45.0"
+version = "2026.45.1"
 dependencies = [
  "js-sys",
  "serde_json",
@@ -531,7 +531,7 @@ dependencies = [
 
 [[package]]
 name = "ifccad"
-version = "2026.45.0"
+version = "2026.45.1"
 dependencies = [
  "base64",
  "fpmath",
@@ -823,7 +823,7 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 [[package]]
 name = "opencaddocument"
 version = "0.1.0"
-source = "git+https://github.com/HakanSeven12/opencaddocument.git?rev=3a3676b12e824292bcf46b29f4eaf02d9264c3a4#3a3676b12e824292bcf46b29f4eaf02d9264c3a4"
+source = "git+https://github.com/HakanSeven12/opencaddocument.git?rev=47031369d9d2bf8b192c508e31e772b41bb2b990#47031369d9d2bf8b192c508e31e772b41bb2b990"
 dependencies = [
  "acadrust",
  "ifccad",
@@ -1325,7 +1325,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "viewer"
-version = "2026.45.0"
+version = "2026.45.1"
 dependencies = [
  "base64",
  "ifccad",

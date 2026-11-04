@@ -7,6 +7,7 @@ record!(IfccadTextStyle;
 0 => id: IfccadTextStyleId = None,
 1 => name: String = None,
 2 => properties: TextStyleProperties = None,
+3 => annotation: IfccadAnnotationDefinition = Some(Default::default()),
 );
 impl CborValue for IfccadTextStyleId {
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
@@ -48,6 +49,7 @@ record!(IfccadText;
 6 => oblique_angle: f64 = Some(0.0),
 7 => thickness: f64 = Some(0.0),
 8 => content: Vec<TextRun> = None,
+9 => annotation: Option<Box<IfccadAnnotation<IfccadTextAnnotationContext>>> = Some(None),
 );
 record!(IfccadMText;
 0 => style_id: IfccadTextStyleId = None,
@@ -64,4 +66,5 @@ record!(IfccadMText;
 11 => character_format: CharacterFormat<IfccadColor> = None,
 12 => paragraph_format: ParagraphFormat = None,
 13 => content: Vec<MTextParagraph<IfccadColor>> = None,
+14 => annotation: Option<Box<IfccadAnnotation<IfccadMTextAnnotationContext>>> = Some(None),
 );

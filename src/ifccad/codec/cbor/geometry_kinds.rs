@@ -201,12 +201,18 @@ impl CborValue for IfccadEntityKind {
                 Self::BlockInstance {
                     definition_id,
                     transform,
+                    annotation,
                 },
                 Self::BlockInstance {
                     definition_id: definition_id_other,
                     transform: transform_other,
+                    annotation: annotation_other,
                 },
-            ) => definition_id.exact(definition_id_other) && transform.exact(transform_other),
+            ) => {
+                definition_id.exact(definition_id_other)
+                    && transform.exact(transform_other)
+                    && annotation.exact(annotation_other)
+            }
             (Self::Viewport(value_0), Self::Viewport(value_0_other)) => {
                 value_0.exact(value_0_other)
             }
@@ -488,8 +494,9 @@ impl IfccadEntityKind {
             Self::BlockInstance {
                 definition_id,
                 transform,
+                annotation,
             } => {
-                w.map(u64::from(true) + u64::from(true))?;
+                w.map(2 + u64::from(annotation.is_some()))?;
                 if true {
                     w.u64(0)?;
                     definition_id.encode(w)?;
@@ -497,6 +504,10 @@ impl IfccadEntityKind {
                 if true {
                     w.u64(1)?;
                     transform.encode(w)?;
+                }
+                if annotation.is_some() {
+                    w.u64(2)?;
+                    annotation.encode(w)?;
                 }
                 Ok(())
             }
@@ -730,13 +741,18 @@ impl IfccadEntityKind {
                 })
             }
             8 => {
-                let mut b = RecordFields::new(r, &[(0, "definition_id"), (1, "transform")])?;
+                let mut b = RecordFields::new(
+                    r,
+                    &[(0, "definition_id"), (1, "transform"), (2, "annotation")],
+                )?;
                 let definition_id: u64 = b.take(0, None)?;
                 let transform: IfccadBlockTransform = b.take(1, None)?;
+                let annotation = b.take(2, Some(None))?;
                 b.finish()?;
                 Ok(Self::BlockInstance {
                     definition_id,
                     transform,
+                    annotation,
                 })
             }
             9 => {

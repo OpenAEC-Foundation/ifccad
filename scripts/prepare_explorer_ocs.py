@@ -5,9 +5,22 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 INPUTS = ROOT / "format-explorer/ocs-inputs"
+
+
+def prepare_codec_patch(text, pins):
+    repository = pins.get("codecRepository")
+    if not repository:
+        return text
+    patch = ('[patch."https://github.com/HakanSeven12/acadrust.git"]\n'
+             f'acadrust = {{ git = "{repository}", rev = "{pins["codecCommit"]}" }}\n')
+    pattern = r'(?m)^\[patch\."https://github\.com/HakanSeven12/acadrust\.git"\]\n[^\[]*'
+    if re.search(pattern, text):
+        return re.sub(pattern, lambda _: patch + "\n", text)
+    return text.rstrip() + "\n\n" + patch + "\n"
 
 
 def identity():
@@ -30,6 +43,9 @@ def validate_packages(packages, pins):
         matches = [p for p in packages if p["name"] == name]
         if len(matches) != 1 or not (matches[0]["source"] or "").endswith("#" + revision):
             raise SystemExit(f"Unexpected resolved {name} dependency")
+        if name == "acadrust" and pins.get("codecRepository"):
+            if (matches[0]["source"] or "").split("?")[0] != "git+" + pins["codecRepository"]:
+                raise SystemExit("Unexpected acadrust repository")
 
 
 def main():
@@ -55,6 +71,20 @@ def main():
         if count != expected:
             raise SystemExit(f"Expected {expected} Document dependencies in {name}")
         path.write_text(text)
+    path = checkout / "Cargo.toml"
+    path.write_text(prepare_codec_patch(path.read_text(), pins))
+    worker = checkout / "scripts/build-web-worker.sh"
+    text = worker.read_text()
+    old_worker_path = "  target/wasm32-unknown-unknown/release/ocs_web_worker.wasm"
+    if old_worker_path in text:
+        python = "python" if sys.platform == "win32" else "python3"
+        target_query = ("worker_target_dir=$(cargo metadata --locked --offline --format-version 1 --no-deps | "
+                        + python + " -c \"import json, sys; sys.stdout.write(json.load(sys.stdin)['target_directory'])\")")
+        text = text.replace("set -eu", "set -eu\n\n" + target_query, 1)
+        text = text.replace(old_worker_path, '  "${worker_target_dir}/wasm32-unknown-unknown/release/ocs_web_worker.wasm"')
+        worker.write_text(text)
+    elif '"${worker_target_dir}/wasm32-unknown-unknown/release/ocs_web_worker.wasm"' not in text:
+        raise SystemExit("Unexpected parser-worker artifact path")
     if "kernelCommit" in pins:
         path = checkout / "Cargo.toml"
         text, count = re.subn(

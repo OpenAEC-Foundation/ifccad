@@ -1,7 +1,16 @@
 """Verify the shipped browser dependency graph uses the shared Document route."""
 from pathlib import Path
+import json
 import subprocess
 import sys
+
+
+def development_codec(pins):
+    if (pins.get('localDevelopment') in {'annotation-contexts', 'font-symbol-sources'}
+            and pins.get('explorerCodecRepository') == 'https://github.com/BjornFidder/opencadcodec.git'
+            and pins.get('explorerCodecCommit') == '4018037daf8fd3e40aa1aa6455b80232849a2756'):
+        return pins['explorerCodecRepository'] + '?rev=' + pins['explorerCodecCommit'] + '#'
+    return None
 
 
 def main():
@@ -16,10 +25,12 @@ def main():
         print(result.stderr, file=sys.stderr)
         return 1
     packages = result.stdout.splitlines()
+    pins = json.loads((root / 'format-explorer/ocs-source.json').read_text())
+    allowed_codec = development_codec(pins)
     forbidden = [line for line in packages if line.startswith('ifccad-convert ')
                  or 'github.com/HakanSeven12/opencadcodec.git' in line
                  or (line.startswith('acadrust ') and
-                     'github.com/HakanSeven12/acadrust.git' not in line)]
+                     'github.com/HakanSeven12/acadrust.git' not in line and not (allowed_codec and allowed_codec in line))]
     if forbidden:
         print('Explorer depends on the retired reference conversion route:\n' +
               '\n'.join(sorted(set(forbidden))), file=sys.stderr)

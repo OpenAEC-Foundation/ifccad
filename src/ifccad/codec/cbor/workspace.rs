@@ -234,6 +234,7 @@ record!(IfccadViewport;
 7 => paper_clip: IfccadViewportPaperClip = None,
 8 => layer_overrides: Vec<IfccadViewportLayerOverride> = None,
 9 => plot_shading_override: Option<ShadedPlotMode> = Some(None),
+10 => annotation_scale_id:Option<IfccadAnnotationScaleId>=Some(None),
 );
 record!(WorkspaceCanvasFrame;
 0 => center: Point3 = None,

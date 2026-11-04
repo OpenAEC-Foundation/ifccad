@@ -9,12 +9,14 @@ fn drawing() -> IfccadDocument {
     .unwrap()
     .into_document();
     d.text_styles.push(IfccadTextStyle {
+        annotation: Default::default(),
         id: IfccadTextStyleId(0),
         name: "Labels".into(),
         properties: TextStyleProperties::new(FontRequest::family("Requested")),
     });
     let mut entity = d.model.entities[0].as_native().unwrap().clone();
     entity.kind = IfccadEntityKind::Text(IfccadText {
+        annotation: None,
         style_id: IfccadTextStyleId(0),
         placement: IfccadPlacement {
             origin: [50., 60., 0.],
@@ -109,6 +111,7 @@ fn frame_stroke_uses_known_physical_units_and_unknown_units_stay_partial() {
         unreachable!()
     };
     entity.kind = IfccadEntityKind::MText(Box::new(IfccadMText {
+        annotation: None,
         style_id: text.style_id,
         placement: text.placement.clone(),
         rotation: 0.,
@@ -232,6 +235,7 @@ fn nested_estimates_and_partial_coverage_keep_projection_overflow_hard() {
     let block_id = d.id_counters.allocate_block_id().unwrap();
     let contents = std::mem::take(&mut d.model.entities);
     d.blocks.push(IfccadBlockDefinition {
+        annotation: Default::default(),
         description: String::new(),
         anonymous: false,
         explodable: true,
@@ -247,6 +251,7 @@ fn nested_estimates_and_partial_coverage_keep_projection_overflow_hard() {
     let mut instance = prototype.model.entities[0].as_native().unwrap().clone();
     instance.id = d.id_counters.allocate_entity_id().unwrap();
     instance.kind = IfccadEntityKind::BlockInstance {
+        annotation: None,
         definition_id: block_id,
         transform: IfccadBlockTransform {
             placement: IfccadPlacement {
@@ -292,6 +297,7 @@ fn empty_glyphs_do_not_turn_nonempty_definitions_into_insertion_point_geometry()
     t.content.clear();
     let id = d.id_counters.allocate_block_id().unwrap();
     d.blocks = vec![IfccadBlockDefinition {
+        annotation: Default::default(),
         description: String::new(),
         anonymous: false,
         explodable: true,
@@ -306,6 +312,7 @@ fn empty_glyphs_do_not_turn_nonempty_definitions_into_insertion_point_geometry()
     }];
     let mut e = d.model.entities[0].as_native().unwrap().clone();
     e.kind = IfccadEntityKind::BlockInstance {
+        annotation: None,
         definition_id: id,
         transform: IfccadBlockTransform {
             placement: IfccadPlacement {

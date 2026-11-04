@@ -182,6 +182,7 @@ pub(super) fn validate_dimensions(d: &IfccadDocument) -> Result<(), IfccadReport
             continue;
         };
         let path = format!("{prefix}/e{id}/ifccad::dimension");
+        super::annotation_dimension::validate(d, v, &path)?;
         let frame = v.placement.coordinate_frame()?;
         validate_dimension_definition(&v.definition).map_err(|e| fail(&path, e))?;
         for (_, p) in v.definition.measurement_anchors() {

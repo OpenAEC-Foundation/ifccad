@@ -119,7 +119,7 @@ fn replaced_invalid_fragment_is_not_validated_before_composition() {
 
 fn supplement(entry: &str) -> jsonschema::Validator {
     let mut s: Value = serde_json::from_str(include_str!(
-        "../schemas/ifccad/supplemental-values-0.3.0.schema.json"
+        "../schemas/ifccad/supplemental-values-0.5.0.schema.json"
     ))
     .unwrap();
     assert!(
@@ -154,10 +154,11 @@ fn formal_non_text_ranges_and_variants_have_real_boundaries() {
     value["appearance"]["opacity"] = json!({"mode":"ByLayer","value":0});
     assert!(!entity.is_valid(&value));
     let drawing = supplement("drawingExtras");
-    assert!(drawing.is_valid(&json!({"nextEntityId":9_007_199_254_740_993u64})));
-    assert!(drawing.is_valid(&json!({"nextEntityId":u64::MAX})));
-    assert!(!drawing.is_valid(&json!({"nextEntityId":0})));
-    assert!(!drawing.is_valid(&json!({"nextEntityId":-1})));
+    assert!(drawing
+        .is_valid(&json!({"nextAnnotationScaleId": 1, "nextEntityId":9_007_199_254_740_993u64})));
+    assert!(drawing.is_valid(&json!({"nextAnnotationScaleId": 1, "nextEntityId":u64::MAX})));
+    assert!(!drawing.is_valid(&json!({"nextAnnotationScaleId": 1, "nextEntityId":0})));
+    assert!(!drawing.is_valid(&json!({"nextAnnotationScaleId": 1, "nextEntityId":-1})));
     let circle = supplement("geometryCircleExtras");
     assert!(circle.is_valid(&json!({"radius":1})));
     assert!(!circle.is_valid(&json!({"radius":0})));
@@ -226,9 +227,9 @@ fn text_root_fields_and_types_match_ifcx_declarations() {
         }
     }
     let profile: Value =
-        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.3.0.ifcx")).unwrap();
+        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.5.0.ifcx")).unwrap();
     let supplemental: Value = serde_json::from_str(include_str!(
-        "../schemas/ifccad/supplemental-values-0.3.0.schema.json"
+        "../schemas/ifccad/supplemental-values-0.5.0.schema.json"
     ))
     .unwrap();
     for name in ["textStyle", "text", "mText"] {
@@ -364,9 +365,9 @@ fn workspace_view_nulls_are_rejected_like_authored_viewport_nulls() {
 #[test]
 fn closed_non_text_overlay_fields_agree_with_ordinary_ifcx_shapes() {
     let profile: Value =
-        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.3.0.ifcx")).unwrap();
+        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.5.0.ifcx")).unwrap();
     let supplement: Value = serde_json::from_str(include_str!(
-        "../schemas/ifccad/supplemental-values-0.3.0.schema.json"
+        "../schemas/ifccad/supplemental-values-0.5.0.schema.json"
     ))
     .unwrap();
     for (attribute, entry) in [

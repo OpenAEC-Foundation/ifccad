@@ -57,6 +57,7 @@ fn palette<M: Clone>(
 pub fn ifccad(mut d: IfccadDocument) -> Result<IfccadDocument> {
     let style = d.id_counters.allocate_text_style_id()?;
     d.text_styles.push(IfccadTextStyle {
+            annotation: Default::default(),
         id: style,
         name: "Pattern text".into(),
         properties: properties(),
@@ -67,7 +68,8 @@ pub fn ifccad(mut d: IfccadDocument) -> Result<IfccadDocument> {
         d.symbol_sources.push(IfccadSymbolSource {
             id,
             source: SymbolSource::Shx {
-                file_name: file_name.into(),
+                cad_file_name: None,
+            file_name: file_name.into(),
             },
         });
         sources.push(id);

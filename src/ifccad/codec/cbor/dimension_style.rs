@@ -8,10 +8,11 @@ use crate::dimension::{
     DimensionExtensionSettings, DimensionFactorApplication, DimensionFitOverrides,
     DimensionFitPlacement, DimensionFitSettings, DimensionFractionLayout, DimensionKind,
     DimensionLineOverrides, DimensionLineSettings, DimensionLineSpacing, DimensionMarker,
-    DimensionNumberOverrides, DimensionNumberSettings, DimensionPrimaryNumberOverrides,
-    DimensionPrimaryNumberSettings, DimensionStyleOverrides, DimensionStyleSettings,
-    DimensionTextMovement, DimensionTextOrientation, DimensionTextOverrides, DimensionTextSettings,
-    DimensionToleranceSettings, DimensionZeroSuppression,
+    DimensionNumberOverrides, DimensionNumberSettings, DimensionPresentationScale,
+    DimensionPrimaryNumberOverrides, DimensionPrimaryNumberSettings, DimensionStyleOverrides,
+    DimensionStyleSettings, DimensionTextMovement, DimensionTextOrientation,
+    DimensionTextOverrides, DimensionTextSettings, DimensionToleranceSettings,
+    DimensionZeroSuppression,
 };
 use crate::text::MTextAttachment;
 use std::collections::BTreeMap;
@@ -20,6 +21,7 @@ record!(IfccadDimensionStyle;
 1 => name: String = None,
 2 => settings: DimensionStyleSettings<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatternId> = None,
 3 => type_overrides: BTreeMap<DimensionKind,IfccadDimensionOverrides> = None,
+4 => annotative: bool = Some(false),
 );
 impl CborValue for IfccadDimensionStyleId {
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
@@ -39,7 +41,7 @@ record!(DimensionStyleSettings<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatte
 3 => text: DimensionTextSettings<IfccadTextStyleId,IfccadColor,IfccadLinePatternId> = None,
 4 => fit: DimensionFitSettings = None,
 5 => numbers: DimensionNumberSettings = None,
-6 => presentation_scale: f64 = None,
+6 => presentation_scale: DimensionPresentationScale = None,
 );
 record!(DimensionLineSettings<IfccadColor,IfccadLinePatternId>;
 0 => appearance: DimensionComponentAppearance<IfccadColor,IfccadLinePatternId> = None,
@@ -85,7 +87,7 @@ record!(DimensionStyleOverrides<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatt
 3 => text: DimensionTextOverrides<IfccadTextStyleId,IfccadColor,IfccadLinePatternId> = None,
 4 => fit: DimensionFitOverrides = None,
 5 => numbers: DimensionNumberOverrides = None,
-6 => presentation_scale: Option<f64> = Some(None),
+6 => presentation_scale: Option<DimensionPresentationScale> = Some(None),
 );
 record!(DimensionComponentAppearance<IfccadColor,IfccadLinePatternId>;
 0 => color: DimensionAppearanceChoice<IfccadColor> = None,
@@ -671,3 +673,74 @@ unit_enum!(DimensionFractionLayout;
 1 => Horizontal,
 2 => Diagonal,
 );
+
+impl CborValue for DimensionPresentationScale {
+    #[cfg(test)]
+    fn registered_codes() -> &'static [(u64, &'static str)] {
+        &[(0, "Fixed"), (1, "ByViewport"), (2, "ByAnnotationScale")]
+    }
+    fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
+        match self {
+            Self::Fixed { factor } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(0)?;
+                w.u64(1)?;
+                w.map(1)?;
+                w.u64(0)?;
+                factor.encode(w)
+            }
+            Self::ByViewport => {
+                w.map(1)?;
+                w.u64(0)?;
+                w.u64(1)
+            }
+            Self::ByAnnotationScale { dormant_factor } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(2)?;
+                w.u64(1)?;
+                w.map(u64::from(dormant_factor.is_some()))?;
+                if dormant_factor.is_some() {
+                    w.u64(0)?;
+                    dormant_factor.encode(w)?;
+                }
+                Ok(())
+            }
+        }
+    }
+    fn decode(r: &mut CborReader<'_>) -> Result<Self, IfccadCborReadError> {
+        let mut f = RecordFields::new(r, &[(0, "kind"), (1, "body")])?;
+        let out = match f.take::<u64>(0, None)? {
+            0 => {
+                let body = f.span(1)?;
+                let mut b = RecordFields::new(&body, &[(0, "factor")])?;
+                let factor = b.take(0, None)?;
+                b.finish()?;
+                Self::Fixed { factor }
+            }
+            1 => Self::ByViewport,
+            2 => {
+                let body = f.span(1)?;
+                let mut b = RecordFields::new(&body, &[(0, "dormant_factor")])?;
+                let dormant_factor = b.take(0, Some(None))?;
+                b.finish()?;
+                Self::ByAnnotationScale { dormant_factor }
+            }
+            _ => return Err(r.error("unknown Dimension sizing mode")),
+        };
+        f.finish()?;
+        Ok(out)
+    }
+    fn exact(&self, o: &Self) -> bool {
+        match (self, o) {
+            (Self::Fixed { factor: a }, Self::Fixed { factor: b }) => a.exact(b),
+            (Self::ByViewport, Self::ByViewport) => true,
+            (
+                Self::ByAnnotationScale { dormant_factor: a },
+                Self::ByAnnotationScale { dormant_factor: b },
+            ) => a.exact(b),
+            _ => false,
+        }
+    }
+}

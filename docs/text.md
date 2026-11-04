@@ -40,8 +40,8 @@ unused styles. A text payload contains a complete same-drawing `style` path,
 alongside the existing entity appearance and separate geometry placement.
 `ifccad::text`, `ifccad::mText` and `ifccad::textStyle` replace whole attribute
 values on LaterWins composition. No run/paragraph graph nodes are introduced.
-The [IFCCAD contract](../schemas/ifccad/experimental-contract-0.3.0.md#text-and-mtext)
-and [local-value supplement](../schemas/ifccad/supplemental-values-0.3.0.schema.json)
+The [IFCCAD contract](../schemas/ifccad/experimental-contract-0.5.0.md#text-and-mtext)
+and [local-value supplement](../schemas/ifccad/supplemental-values-0.5.0.schema.json)
 define its independent provisional mapping.
 
 `assess_ifccad_document_bounds` returns derived enclosing/estimated/partial
@@ -227,3 +227,20 @@ rotation. They do not introduce Text/MText entities or rich text markup. The
 fontless marker estimate reuses the Text extent estimator, with nominal height
 from fixed style height and marker scale. Marker numerical coverage remains
 unassessed beside the host curve proof. See [line patterns](line-patterns.md).
+
+## Font request contribution (unpublished)
+
+The profile 0.5 / CBOR5 candidate retains authored selectors without loading
+fonts. The paired Document mapping preserves ordinary STYLE family, primary
+and Big Font names, bold/italic, charset and combined pitch/family fields.
+Unspecified face fields materialize CAD defaults with a retained-content notice.
+Unsupported descriptor ranges or names refuse export rather than being truncated.
+MText selects family, otherwise the CAD font name; additional primary/Big Font
+selectors and dormant overrides receive located loss messages. Names that the
+MText grammar cannot emit exactly are refused, without sanitizing them.
+
+Backend inspection exposes authored requests with `notChecked`; the separate
+snapshot-bound report adapter accepts found/missing/unreadable/substituted
+results without rewriting the request or persisting resolution status. UI/host
+integration follows review of the physical roundtrip files. None of these checks
+qualifies glyph appearance, bounds, font availability or PDF output.

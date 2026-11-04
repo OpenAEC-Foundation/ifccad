@@ -14,6 +14,8 @@ pub enum IfccadIdDomain {
     PreservationRecord,
     Ucs,
     ModelWindow,
+    AnnotationScale,
+    AnnotationView,
 }
 
 /// Allocation cannot reserve a valid ID in the indicated domain.
@@ -38,6 +40,8 @@ pub struct IfccadIdAllocationError {
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct IfccadIdCounters {
+    pub next_annotation_view_id: u64,
+    pub next_annotation_scale_id: u64,
     pub next_dimension_style_id: u64,
     pub next_symbol_source_id: u64,
     pub next_text_style_id: u64,
@@ -54,6 +58,8 @@ pub struct IfccadIdCounters {
 impl Default for IfccadIdCounters {
     fn default() -> Self {
         Self {
+            next_annotation_view_id: 1,
+            next_annotation_scale_id: 1,
             next_dimension_style_id: 1,
             next_symbol_source_id: 1,
             next_text_style_id: 1,
@@ -78,6 +84,24 @@ fn allocate(next: &mut u64, domain: IfccadIdDomain) -> Result<u64, IfccadIdAlloc
 }
 
 impl IfccadIdCounters {
+    pub fn allocate_annotation_view_id(
+        &mut self,
+    ) -> Result<super::IfccadAnnotationViewId, IfccadIdAllocationError> {
+        allocate(
+            &mut self.next_annotation_view_id,
+            IfccadIdDomain::AnnotationView,
+        )
+        .map(super::IfccadAnnotationViewId)
+    }
+    pub fn allocate_annotation_scale_id(
+        &mut self,
+    ) -> Result<super::IfccadAnnotationScaleId, IfccadIdAllocationError> {
+        allocate(
+            &mut self.next_annotation_scale_id,
+            IfccadIdDomain::AnnotationScale,
+        )
+        .map(super::IfccadAnnotationScaleId)
+    }
     pub fn allocate_dimension_style_id(
         &mut self,
     ) -> Result<super::IfccadDimensionStyleId, IfccadIdAllocationError> {
@@ -266,6 +290,8 @@ mod tests {
         assert_eq!(
             ids,
             IfccadIdCounters {
+                next_annotation_view_id: 1,
+                next_annotation_scale_id: 1,
                 next_dimension_style_id: 1,
                 next_symbol_source_id: 1,
                 next_text_style_id: 1,
@@ -314,8 +340,12 @@ mod tests {
             IfccadIdDomain::SymbolSource,
             IfccadIdDomain::Ucs,
             IfccadIdDomain::ModelWindow,
+            IfccadIdDomain::AnnotationScale,
+            IfccadIdDomain::AnnotationView,
         ] {
             let mut ids = IfccadIdCounters {
+                next_annotation_view_id: u64::MAX - 1,
+                next_annotation_scale_id: u64::MAX - 1,
                 next_dimension_style_id: u64::MAX - 1,
                 next_symbol_source_id: u64::MAX - 1,
                 next_text_style_id: u64::MAX - 1,
@@ -333,6 +363,10 @@ mod tests {
                 IfccadIdDomain::PreservationRecord => {
                     ids.allocate_preservation_record_id().map(|id| id.0)
                 }
+                IfccadIdDomain::AnnotationScale => {
+                    ids.allocate_annotation_scale_id().map(|id| id.0)
+                }
+                IfccadIdDomain::AnnotationView => ids.allocate_annotation_view_id().map(|id| id.0),
                 IfccadIdDomain::Entity => ids.allocate_entity_id(),
                 IfccadIdDomain::Layer => ids.allocate_layer_id(),
                 IfccadIdDomain::Layout => ids.allocate_layout_id(),

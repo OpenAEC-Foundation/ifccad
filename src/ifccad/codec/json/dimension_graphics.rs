@@ -113,24 +113,31 @@ impl Reader<'_> {
         if link.as_str() != Some(&path) {
             return Err(fail(owner, "noncanonical graphics link"));
         }
+        v.graphics = Some(self.read_graphics(&path)?);
+        Ok(())
+    }
+    pub(super) fn read_graphics(
+        &mut self,
+        path: &str,
+    ) -> Result<IfccadDimensionGraphics, IfccadReport> {
         let n = self
             .nodes
-            .get(&path)
-            .ok_or_else(|| fail(&path, "missing graphics group"))?;
+            .get(path)
+            .ok_or_else(|| fail(path, "missing graphics group"))?;
         self.role(n, "ifccad::dimensionGraphics", &[])?;
         let raw = &n["attributes"]["ifccad::dimensionGraphics"];
-        super::supplemental::validate_value("ifccad::dimensionGraphics", raw, &path)?;
-        let g: Group = serde_json::from_value(raw.clone()).map_err(|e| fail(&path, e))?;
+        super::supplemental::validate_value("ifccad::dimensionGraphics", raw, path)?;
+        let g: Group = serde_json::from_value(raw.clone()).map_err(|e| fail(path, e))?;
         let children = n
             .get("children")
             .and_then(Value::as_object)
-            .ok_or_else(|| fail(&path, "graphics children map required"))?;
+            .ok_or_else(|| fail(path, "graphics children map required"))?;
         let mut parts = Vec::with_capacity(children.len());
         for i in 0..children.len() {
             let target = format!("{path}/p{i}");
             if children.get(&i.to_string()).and_then(Value::as_str) != Some(&target) {
                 return Err(fail(
-                    &path,
+                    path,
                     "graphics roles must be contiguous and canonical",
                 ));
             }
@@ -202,14 +209,13 @@ impl Reader<'_> {
                 },
             });
         }
-        v.graphics = Some(IfccadDimensionGraphics {
+        Ok(IfccadDimensionGraphics {
             origin: match g.origin {
                 Origin::SourceSnapshot => IfccadDimensionGraphicsOrigin::SourceSnapshot,
                 Origin::Generated => IfccadDimensionGraphicsOrigin::Generated,
             },
             parts,
-        });
-        Ok(())
+        })
     }
     fn role(&mut self, n: &Value, role: &str, extra: &[&str]) -> Result<(), IfccadReport> {
         let path = n["path"].as_str().expect("indexed path");
@@ -254,4 +260,98 @@ impl Reader<'_> {
         }
         Ok(())
     }
+}
+
+/// Inline contexts share the ordinary picture projection, without public node IDs.
+pub(super) fn encode_inline(g: &IfccadDimensionGraphics, prefix: &str) -> Value {
+    let nodes = encode(g, "/ownedGraphics", prefix);
+    json!({"origin":nodes[0].attributes["ifccad::dimensionGraphics"]["origin"],"parts":nodes.iter().skip(1).map(|n|&n.attributes).collect::<Vec<_>>()})
+}
+pub(super) fn decode_inline(
+    raw: &Value,
+    prefix: &str,
+    path: &str,
+) -> Result<IfccadDimensionGraphics, IfccadReport> {
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Inline {
+        origin: Value,
+        parts: Vec<Map<String, Value>>,
+    }
+    let wire: Inline = serde_json::from_value(raw.clone()).map_err(|e| fail(path, e))?;
+    let children: Map<String, Value> = wire
+        .parts
+        .iter()
+        .enumerate()
+        .map(|(i, _)| (i.to_string(), json!(format!("{path}/p{i}"))))
+        .collect();
+    let mut values = vec![
+        json!({"path":path,"attributes":{"ifccad::dimensionGraphics":{"origin":wire.origin}},"children":children}),
+    ];
+    for (i, attrs) in wire.parts.into_iter().enumerate() {
+        values.push(json!({"path":format!("{path}/p{i}"),"attributes":attrs}));
+    }
+    let nodes = values
+        .iter()
+        .map(|v| (v["path"].as_str().unwrap().to_string(), v))
+        .collect();
+    let mut layers = BTreeMap::new();
+    let mut blocks = BTreeMap::new();
+    let mut patterns = BTreeMap::new();
+    let mut styles = BTreeMap::new();
+    // Decode canonical IDs here; shared document validation resolves actual resources.
+    // This does not create registry entries or permit dangling references.
+    fn visit(v: &Value, action: &mut impl FnMut(&str)) {
+        match v {
+            Value::String(s) => action(s),
+            Value::Array(a) => {
+                for v in a {
+                    visit(v, action)
+                }
+            }
+            Value::Object(o) => {
+                for v in o.values() {
+                    visit(v, action)
+                }
+            }
+            _ => (),
+        }
+    }
+    visit(raw, &mut |s| {
+        for domain in ["layer", "block", "linePattern", "textStyle"] {
+            let root = format!("{prefix}/{domain}/");
+            let Some(id) = s
+                .strip_prefix(&root)
+                .and_then(|s| s.parse::<u64>().ok())
+                .filter(|id| s == format!("{root}{id}"))
+            else {
+                continue;
+            };
+            match domain {
+                "layer" => {
+                    layers.insert(s.into(), id);
+                }
+                "block" => {
+                    blocks.insert(s.into(), id);
+                }
+                "linePattern" => {
+                    patterns.insert(s.into(), IfccadLinePatternId(id));
+                }
+                "textStyle" => {
+                    styles.insert(s.into(), IfccadTextStyleId(id));
+                }
+                _ => unreachable!(),
+            }
+        }
+    });
+    let mut reader = Reader {
+        nodes: &nodes,
+        prefix,
+        layers: &layers,
+        blocks: &blocks,
+        patterns: &patterns,
+        styles: &styles,
+        seen: BTreeSet::new(),
+    };
+    reader.read_graphics(path)
 }

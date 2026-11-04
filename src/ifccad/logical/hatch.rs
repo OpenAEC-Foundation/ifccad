@@ -91,6 +91,8 @@ pub type IfccadHatchGradient = crate::geometry_kernel::hatch::HatchGradient<Ifcc
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadHatch {
+    pub annotation: Option<Box<IfccadAnnotation<IfccadHatchAnnotationContext>>>,
+    pub annotation_view_contexts: Option<Box<IfccadHatchAnnotationViewContexts>>,
     pub classic_settings: Option<crate::geometry_kernel::hatch::HatchClassicSettings>,
     pub boundary_construction: Option<crate::geometry_kernel::hatch::HatchBoundaryConstruction>,
     pub association_enabled: bool,
@@ -174,8 +176,8 @@ pub(crate) fn validate_hatch_sources(d: &IfccadDocument) -> Result<(), IfccadRep
         let IfccadEntityKind::Hatch(h) = &e.kind else {
             continue;
         };
-        for (i, l) in h.loops.iter().enumerate() {
-            for (j, id) in l.source_entity_ids.iter().enumerate() {
+        for (group, sources) in super::annotation_hatch::source_groups(h) {
+            for (j, id) in sources.iter().enumerate() {
                 let valid = entities.get(id).is_some_and(|(target_owner, target)| {
                     *target_owner == owner
                         && target
@@ -185,7 +187,7 @@ pub(crate) fn validate_hatch_sources(d: &IfccadDocument) -> Result<(), IfccadRep
                 if !valid {
                     return Err(crate::ifccad::diagnostics::failure(
                         "IFCCAD-HATCH-002",
-                        &format!("/cad/d{}/e{}/loops/{i}/sources/{j}", d.drawing_id, e.id),
+                        &format!("/cad/d{}/e{}/{group}/{j}", d.drawing_id, e.id),
                         "missing or unsupported same-owner boundary source entity",
                     ));
                 }

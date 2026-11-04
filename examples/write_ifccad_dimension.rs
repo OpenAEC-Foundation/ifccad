@@ -33,6 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
     font.last_used_height = Some(2.5);
     d.text_styles = vec![IfccadTextStyle {
+        annotation: Default::default(),
         id: IfccadTextStyleId(0),
         name: "Dimension text".into(),
         properties: font,
@@ -41,6 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut settings = DimensionStyleSettings::new(IfccadTextStyleId(0));
     settings.numbers.primary.suffix = " mm".into();
     d.dimension_styles = vec![IfccadDimensionStyle {
+        annotative: false,
         id: IfccadDimensionStyleId(0),
         name: "Building".into(),
         settings,
@@ -74,6 +76,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     ];
     let make = |definition: DimensionDefinition| IfccadDimension {
+        annotation: None,
         graphics: None,
         placement: IfccadPlacement {
             origin: [0.0; 3],
@@ -128,6 +131,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut paper_line = line.clone();
     paper_line.id = SOURCE + 4;
     d.paper_layouts = vec![IfccadPaperLayout {
+        annotation_state: None,
         id: 2,
         name: "Sheet".into(),
         tab_index: 1,
@@ -153,6 +157,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut block_line = line.clone();
     block_line.id = SOURCE + 6;
     d.blocks = vec![IfccadBlockDefinition {
+        annotation: Default::default(),
         id: 1,
         name: "Dimension example".into(),
         description: String::new(),

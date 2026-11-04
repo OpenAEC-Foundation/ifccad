@@ -162,6 +162,7 @@ fn graphics_marker_closure_rejects_nested_dimensions_and_cycles() {
     assert!(format!("{:?}", validate_ifccad_document(&d).unwrap_err())
         .contains("IFCCAD-DIMENSION-GRAPHICS-001"));
     d.blocks[0].entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
+        annotation: None,
         definition_id: 1,
         transform: IfccadBlockTransform {
             placement,
@@ -170,6 +171,28 @@ fn graphics_marker_closure_rejects_nested_dimensions_and_cycles() {
         },
     };
     assert!(format!("{:?}", validate_ifccad_document(&d).unwrap_err()).contains("cycle"));
+    let mut empty = d.blocks[0].clone();
+    empty.id = 2;
+    empty.name = "Empty marker".into();
+    empty.entities.clear();
+    d.blocks.push(empty);
+    d.id_counters.next_block_id = 3;
+    let IfccadEntityKind::BlockInstance {
+        definition_id,
+        annotation,
+        ..
+    } = &mut d.blocks[0].entities[0].as_native_mut().unwrap().kind
+    else {
+        unreachable!()
+    };
+    *definition_id = 2;
+    *annotation = Some(Box::new(IfccadAnnotation {
+        orientation: None,
+        mode: IfccadAnnotationMode::Enabled,
+        reference: None,
+        contexts: vec![],
+    }));
+    assert!(format!("{:?}", validate_ifccad_document(&d).unwrap_err()).contains("annotation"));
 }
 #[test]
 fn graphics_preserve_all_finite_filled_topologies_and_signed_thickness() {

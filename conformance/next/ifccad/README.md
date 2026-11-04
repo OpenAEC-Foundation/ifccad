@@ -45,3 +45,8 @@ noncontiguous canonical child roles and explicit null instead of an absent layer
 Native validation additionally closes picture/marker kinds, resources and helper
 purpose; ordered IFCX composition does not make omission delete a child. These
 values are optional independent stored state, without freshness or generation.
+
+`valid/annotation-text.ifcx` independently authors saved Text/MText contexts,
+equal-ratio distinct scales, membership-only and disabled saved representations,
+MText XYZ/direction and dormant column heights. Reproduce with
+`python conformance/next/annotation-text.py`; it never invokes a native writer.

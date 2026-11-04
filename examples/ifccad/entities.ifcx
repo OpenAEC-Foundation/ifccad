@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.3.0"
+      "uri": "urn:example:ifccad:0.5.0"
     }
   ],
   "schemas": {},
@@ -16,6 +16,8 @@
     {
       "path": "/cad/d1",
       "children": {
+        "annotationScale1": "/cad/d1/annotationScale/1",
+        "annotationScale2": "/cad/d1/annotationScale/2",
         "block1": "/cad/d1/block/1",
         "dimensionStyle0": "/cad/d1/dimensionStyle/0",
         "layer0": "/cad/d1/layer/0",
@@ -37,6 +39,7 @@
           "modelWindows": [
             "/cad/d1/modelWindow/1"
           ],
+          "nextAnnotationScaleId": 3,
           "nextBlockId": 2,
           "nextDimensionStyleId": 1,
           "nextEntityId": 134,
@@ -47,7 +50,7 @@
           "nextSymbolSourceId": 1,
           "nextTextStyleId": 1,
           "nextUcsId": 1,
-          "profileVersion": "0.3.0"
+          "profileVersion": "0.5.0"
         },
         "ifccad::drawingWorkspace": {
           "activeLayout": "/cad/d1/layout/1",
@@ -55,6 +58,26 @@
         },
         "ifccad::modelViewState": {
           "activeModelWindow": "/cad/d1/modelWindow/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/1",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 1.0,
+          "name": "1:1",
+          "paperUnits": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/2",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 2.0,
+          "name": "1:2",
+          "paperUnits": 1.0
         }
       }
     },
@@ -73,6 +96,7 @@
       "path": "/cad/d1/dimensionStyle/0",
       "attributes": {
         "ifccad::dimensionStyle": {
+          "annotative": true,
           "name": "Millimetres",
           "settings": {
             "arrows": {
@@ -185,7 +209,9 @@
                 "kind": "none"
               }
             },
-            "presentationScale": 1.0,
+            "presentationScale": {
+              "kind": "byAnnotationScale"
+            },
             "text": {
               "appearance": {
                 "color": {
@@ -425,19 +451,10 @@
       },
       "attributes": {
         "ifccad::layout": {
-          "bounds": {
-            "max": [
-              502.2,
-              734.0000000000001,
-              25.0
-            ],
-            "min": [
-              0.0,
-              -18.200000000000003,
-              -16.000000000000004
-            ]
+          "annotationState": {
+            "currentScale": "/cad/d1/annotationScale/1",
+            "visibility": "currentScaleOnly"
           },
-          "boundsQuality": "estimated",
           "kind": "Model",
           "tabIndex": 0
         }
@@ -717,6 +734,10 @@
       },
       "attributes": {
         "ifccad::blockDefinition": {
+          "annotation": {
+            "enabled": true,
+            "orientation": "fixed"
+          },
           "basePoint": [
             0.0,
             0.0,
@@ -2347,7 +2368,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Single-line text with a style",
+              "text": "Style / annotation contexts 1:1, 1:2",
               "underline": false
             }
           ],
@@ -2365,6 +2386,49 @@
     {
       "path": "/cad/d1/e42",
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "alignment": [
+                  0.0,
+                  0.0
+                ],
+                "horizontal": "left",
+                "insertion": [
+                  0.0,
+                  0.0
+                ],
+                "rotation": 0.0
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              },
+              "presentation": {
+                "alignment": [
+                  0.0,
+                  0.0
+                ],
+                "horizontal": "left",
+                "insertion": [
+                  0.0,
+                  0.0
+                ],
+                "rotation": 0.0
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
         },
@@ -2408,6 +2472,49 @@
     {
       "path": "/cad/d1/e43",
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "alignment": [
+                  0.0,
+                  0.0
+                ],
+                "horizontal": "left",
+                "insertion": [
+                  0.0,
+                  0.0
+                ],
+                "rotation": 0.0
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              },
+              "presentation": {
+                "alignment": [
+                  0.0,
+                  0.0
+                ],
+                "horizontal": "left",
+                "insertion": [
+                  0.0,
+                  0.0
+                ],
+                "rotation": 0.0
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
         },
@@ -2565,7 +2672,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Paragraphs and formatting",
+              "text": "Paragraphs / contexts 1:1, 1:2",
               "underline": false
             }
           ],
@@ -2583,6 +2690,55 @@
     {
       "path": "/cad/d1/e47",
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "attachment": "topLeft",
+                "insertion": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rectangleHeight": 0.0,
+                "rectangleWidth": 72.0,
+                "xDirection": [
+                  1.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              },
+              "presentation": {
+                "attachment": "topLeft",
+                "insertion": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rectangleHeight": 0.0,
+                "rectangleWidth": 72.0,
+                "xDirection": [
+                  1.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
         },
@@ -2773,6 +2929,131 @@
     {
       "path": "/cad/d1/e51",
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "loops": [
+                  {
+                    "baseLoopIndex": 0,
+                    "classification": {
+                      "derived": false,
+                      "doesNotSupportScale": false,
+                      "duplicate": false,
+                      "external": false,
+                      "forceAnnotationVisible": false,
+                      "isAnnotative": false,
+                      "isAnnotativeBlock": false,
+                      "notClosed": false,
+                      "orientToPaper": false,
+                      "outermost": false,
+                      "polyline": false,
+                      "selfIntersecting": false,
+                      "textBox": false,
+                      "textIsland": false
+                    },
+                    "kind": "shared"
+                  },
+                  {
+                    "baseLoopIndex": 1,
+                    "classification": {
+                      "derived": false,
+                      "doesNotSupportScale": false,
+                      "duplicate": false,
+                      "external": false,
+                      "forceAnnotationVisible": false,
+                      "isAnnotative": false,
+                      "isAnnotativeBlock": false,
+                      "notClosed": false,
+                      "orientToPaper": false,
+                      "outermost": false,
+                      "polyline": false,
+                      "selfIntersecting": false,
+                      "textBox": false,
+                      "textIsland": false
+                    },
+                    "kind": "shared"
+                  }
+                ],
+                "pattern": {
+                  "families": [],
+                  "orientationReference": [
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "scale": 1.0
+                }
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              },
+              "presentation": {
+                "loops": [
+                  {
+                    "baseLoopIndex": 0,
+                    "classification": {
+                      "derived": false,
+                      "doesNotSupportScale": false,
+                      "duplicate": false,
+                      "external": false,
+                      "forceAnnotationVisible": false,
+                      "isAnnotative": false,
+                      "isAnnotativeBlock": false,
+                      "notClosed": false,
+                      "orientToPaper": false,
+                      "outermost": false,
+                      "polyline": false,
+                      "selfIntersecting": false,
+                      "textBox": false,
+                      "textIsland": false
+                    },
+                    "kind": "shared"
+                  },
+                  {
+                    "baseLoopIndex": 1,
+                    "classification": {
+                      "derived": false,
+                      "doesNotSupportScale": false,
+                      "duplicate": false,
+                      "external": false,
+                      "forceAnnotationVisible": false,
+                      "isAnnotative": false,
+                      "isAnnotativeBlock": false,
+                      "notClosed": false,
+                      "orientToPaper": false,
+                      "outermost": false,
+                      "polyline": false,
+                      "selfIntersecting": false,
+                      "textBox": false,
+                      "textIsland": false
+                    },
+                    "kind": "shared"
+                  }
+                ],
+                "pattern": {
+                  "families": [],
+                  "orientationReference": [
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "scale": 2.0
+                }
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
         },
@@ -2960,7 +3241,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Explicit line family",
+              "text": "Line family / contexts 1:1, 1:2",
               "underline": false
             }
           ],
@@ -2978,6 +3259,117 @@
     {
       "path": "/cad/d1/e55",
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "loops": [
+                  {
+                    "baseLoopIndex": 0,
+                    "classification": {
+                      "derived": false,
+                      "doesNotSupportScale": false,
+                      "duplicate": false,
+                      "external": false,
+                      "forceAnnotationVisible": false,
+                      "isAnnotative": false,
+                      "isAnnotativeBlock": false,
+                      "notClosed": false,
+                      "orientToPaper": false,
+                      "outermost": false,
+                      "polyline": false,
+                      "selfIntersecting": false,
+                      "textBox": false,
+                      "textIsland": false
+                    },
+                    "kind": "shared"
+                  }
+                ],
+                "pattern": {
+                  "families": [
+                    {
+                      "angle": 0.7853981633974483,
+                      "basePoint": [
+                        0.0,
+                        0.0
+                      ],
+                      "dashes": [],
+                      "offset": [
+                        0.0,
+                        5.0
+                      ]
+                    }
+                  ],
+                  "orientationReference": [
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "scale": 1.0
+                }
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              },
+              "presentation": {
+                "loops": [
+                  {
+                    "baseLoopIndex": 0,
+                    "classification": {
+                      "derived": false,
+                      "doesNotSupportScale": false,
+                      "duplicate": false,
+                      "external": false,
+                      "forceAnnotationVisible": false,
+                      "isAnnotative": false,
+                      "isAnnotativeBlock": false,
+                      "notClosed": false,
+                      "orientToPaper": false,
+                      "outermost": false,
+                      "polyline": false,
+                      "selfIntersecting": false,
+                      "textBox": false,
+                      "textIsland": false
+                    },
+                    "kind": "shared"
+                  }
+                ],
+                "pattern": {
+                  "families": [
+                    {
+                      "angle": 0.7853981633974483,
+                      "basePoint": [
+                        0.0,
+                        0.0
+                      ],
+                      "dashes": [],
+                      "offset": [
+                        0.0,
+                        5.0
+                      ]
+                    }
+                  ],
+                  "orientationReference": [
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "scale": 2.0
+                }
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
         },
@@ -3171,7 +3563,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Two-colour linear gradient",
+              "text": "Two colours / contexts 1:1, 1:2",
               "underline": false
             }
           ],
@@ -3189,6 +3581,91 @@
     {
       "path": "/cad/d1/e59",
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "loops": [
+                  {
+                    "baseLoopIndex": 0,
+                    "classification": {
+                      "derived": false,
+                      "doesNotSupportScale": false,
+                      "duplicate": false,
+                      "external": false,
+                      "forceAnnotationVisible": false,
+                      "isAnnotative": false,
+                      "isAnnotativeBlock": false,
+                      "notClosed": false,
+                      "orientToPaper": false,
+                      "outermost": false,
+                      "polyline": false,
+                      "selfIntersecting": false,
+                      "textBox": false,
+                      "textIsland": false
+                    },
+                    "kind": "shared"
+                  }
+                ],
+                "pattern": {
+                  "families": [],
+                  "orientationReference": [
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "scale": 1.0
+                }
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              },
+              "presentation": {
+                "loops": [
+                  {
+                    "baseLoopIndex": 0,
+                    "classification": {
+                      "derived": false,
+                      "doesNotSupportScale": false,
+                      "duplicate": false,
+                      "external": false,
+                      "forceAnnotationVisible": false,
+                      "isAnnotative": false,
+                      "isAnnotativeBlock": false,
+                      "notClosed": false,
+                      "orientToPaper": false,
+                      "outermost": false,
+                      "polyline": false,
+                      "selfIntersecting": false,
+                      "textBox": false,
+                      "textIsland": false
+                    },
+                    "kind": "shared"
+                  }
+                ],
+                "pattern": {
+                  "families": [],
+                  "orientationReference": [
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "scale": 2.0
+                }
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
         },
@@ -3389,7 +3866,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Repeat, rotate and mirror",
+              "text": "Rotate, mirror / contexts 1:1, 1:2",
               "underline": false
             }
           ],
@@ -3407,6 +3884,79 @@
     {
       "path": "/cad/d1/e63",
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "transform": {
+                  "placement": {
+                    "origin": [
+                      115.0,
+                      391.0,
+                      0.0
+                    ],
+                    "xAxis": [
+                      1.0,
+                      0.0,
+                      0.0
+                    ],
+                    "yAxis": [
+                      0.0,
+                      1.0,
+                      0.0
+                    ]
+                  },
+                  "rotation": 0.0,
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                }
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              },
+              "presentation": {
+                "transform": {
+                  "placement": {
+                    "origin": [
+                      115.0,
+                      391.0,
+                      0.0
+                    ],
+                    "xAxis": [
+                      1.0,
+                      0.0,
+                      0.0
+                    ],
+                    "yAxis": [
+                      0.0,
+                      1.0,
+                      0.0
+                    ]
+                  },
+                  "rotation": 0.0,
+                  "scale": [
+                    1.25,
+                    1.25,
+                    1.25
+                  ]
+                }
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/1",
           "transform": {
@@ -3437,6 +3987,79 @@
     {
       "path": "/cad/d1/e64",
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "transform": {
+                  "placement": {
+                    "origin": [
+                      146.0,
+                      391.0,
+                      0.0
+                    ],
+                    "xAxis": [
+                      1.0,
+                      0.0,
+                      0.0
+                    ],
+                    "yAxis": [
+                      0.0,
+                      1.0,
+                      0.0
+                    ]
+                  },
+                  "rotation": 1.5707963267948966,
+                  "scale": [
+                    1.5,
+                    1.5,
+                    1.0
+                  ]
+                }
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              },
+              "presentation": {
+                "transform": {
+                  "placement": {
+                    "origin": [
+                      146.0,
+                      391.0,
+                      0.0
+                    ],
+                    "xAxis": [
+                      1.0,
+                      0.0,
+                      0.0
+                    ],
+                    "yAxis": [
+                      0.0,
+                      1.0,
+                      0.0
+                    ]
+                  },
+                  "rotation": 1.5707963267948966,
+                  "scale": [
+                    1.875,
+                    1.875,
+                    1.25
+                  ]
+                }
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/1",
           "transform": {
@@ -3473,6 +4096,79 @@
     {
       "path": "/cad/d1/e65",
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              },
+              "presentation": {
+                "transform": {
+                  "placement": {
+                    "origin": [
+                      177.0,
+                      391.0,
+                      0.0
+                    ],
+                    "xAxis": [
+                      1.0,
+                      0.0,
+                      0.0
+                    ],
+                    "yAxis": [
+                      0.0,
+                      1.0,
+                      0.0
+                    ]
+                  },
+                  "rotation": 0.0,
+                  "scale": [
+                    -1.0,
+                    1.0,
+                    1.0
+                  ]
+                }
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              },
+              "presentation": {
+                "transform": {
+                  "placement": {
+                    "origin": [
+                      177.0,
+                      391.0,
+                      0.0
+                    ],
+                    "xAxis": [
+                      1.0,
+                      0.0,
+                      0.0
+                    ],
+                    "yAxis": [
+                      0.0,
+                      1.0,
+                      0.0
+                    ]
+                  },
+                  "rotation": 0.0,
+                  "scale": [
+                    -1.25,
+                    1.25,
+                    1.25
+                  ]
+                }
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/1",
           "transform": {
@@ -5058,6 +5754,25 @@
         "graphics": "/cad/d1/e98/graphics"
       },
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::dimension": {
           "associations": [
             {
@@ -5406,6 +6121,25 @@
         "graphics": "/cad/d1/e101/graphics"
       },
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::dimension": {
           "associations": [
             {
@@ -5675,6 +6409,25 @@
         "graphics": "/cad/d1/e104/graphics"
       },
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::dimension": {
           "associations": [
             {
@@ -5996,6 +6749,25 @@
         "graphics": "/cad/d1/e107/graphics"
       },
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::dimension": {
           "associations": [
             {
@@ -6330,6 +7102,25 @@
         "graphics": "/cad/d1/e110/graphics"
       },
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::dimension": {
           "associations": [
             {
@@ -6700,6 +7491,25 @@
         "graphics": "/cad/d1/e114/graphics"
       },
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::dimension": {
           "associations": [
             {
@@ -6973,6 +7783,25 @@
         "graphics": "/cad/d1/e118/graphics"
       },
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::dimension": {
           "associations": [
             {
@@ -7334,6 +8163,25 @@
         "graphics": "/cad/d1/e121/graphics"
       },
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::dimension": {
           "associations": [
             {
@@ -7657,6 +8505,25 @@
         "graphics": "/cad/d1/e124/graphics"
       },
       "attributes": {
+        "ifccad::annotation": {
+          "contexts": [
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/1"
+              }
+            },
+            {
+              "key": {
+                "scaleId": "/cad/d1/annotationScale/2"
+              }
+            }
+          ],
+          "mode": "enabled",
+          "orientation": "fixed",
+          "reference": {
+            "scaleId": "/cad/d1/annotationScale/1"
+          }
+        },
         "ifccad::dimension": {
           "associations": [
             {

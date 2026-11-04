@@ -1,8 +1,8 @@
 {
   "header": {
-    "id": "urn:example:ifccad:0.3.0",
+    "id": "urn:example:ifccad:0.5.0",
     "ifcxVersion": "ifcx_alpha",
-    "dataVersion": "0.3.0",
+    "dataVersion": "0.5.0",
     "author": "OpenAEC",
     "timestamp": "2026-09-29T00:00:00Z"
   },
@@ -134,6 +134,35 @@
             "nextDimensionStyleId": {
               "dataType": "Integer",
               "optional": true
+            },
+            "nextAnnotationScaleId": {
+              "dataType": "Integer"
+            },
+            "nextAnnotationViewId": {
+              "dataType": "Integer",
+              "optional": true
+            },
+            "annotationSettings": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "insertAsAnnotative": {
+                    "dataType": "Boolean",
+                    "optional": true
+                  },
+                  "modelLinetypeScaling": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "unscaled",
+                        "byAnnotationScale"
+                      ]
+                    },
+                    "optional": true
+                  }
+                }
+              }
             }
           }
         }
@@ -510,6 +539,28 @@
                 ]
               },
               "optional": true
+            },
+            "annotationState": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "currentScale": {
+                    "dataType": "String",
+                    "optional": true
+                  },
+                  "visibility": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "currentScaleOnly",
+                        "all"
+                      ]
+                    },
+                    "optional": true
+                  }
+                }
+              }
             }
           }
         }
@@ -687,6 +738,28 @@
             "uniformScaling": {
               "dataType": "Boolean",
               "optional": true
+            },
+            "annotation": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "enabled": {
+                    "dataType": "Boolean",
+                    "optional": true
+                  },
+                  "orientation": {
+                    "dataType": "Enum",
+                    "optional": true,
+                    "enumRestrictions": {
+                      "options": [
+                        "fixed",
+                        "matchLayout"
+                      ]
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -1102,6 +1175,10 @@
                   "Rendered"
                 ]
               }
+            },
+            "annotationScale": {
+              "dataType": "String",
+              "optional": true
             }
           }
         }
@@ -1968,6 +2045,28 @@
             "creationUpsideDown": {
               "dataType": "Boolean",
               "optional": true
+            },
+            "annotation": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "enabled": {
+                    "dataType": "Boolean",
+                    "optional": true
+                  },
+                  "orientation": {
+                    "dataType": "Enum",
+                    "optional": true,
+                    "enumRestrictions": {
+                      "options": [
+                        "fixed",
+                        "matchLayout"
+                      ]
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -3964,6 +4063,9 @@
             },
             "fileName": {
               "dataType": "String"
+            },
+            "cadFileName": {
+              "dataType": "String"
             }
           }
         }
@@ -5719,7 +5821,7 @@
                     "optional": true
                   },
                   "presentationScale": {
-                    "dataType": "Real",
+                    "dataType": "Object",
                     "optional": true
                   }
                 }
@@ -7001,7 +7103,7 @@
                     }
                   },
                   "presentationScale": {
-                    "dataType": "Real"
+                    "dataType": "Object"
                   }
                 }
               }
@@ -8289,7 +8391,7 @@
                           "optional": true
                         },
                         "presentationScale": {
-                          "dataType": "Real",
+                          "dataType": "Object",
                           "optional": true
                         }
                       }
@@ -9575,7 +9677,7 @@
                           "optional": true
                         },
                         "presentationScale": {
-                          "dataType": "Real",
+                          "dataType": "Object",
                           "optional": true
                         }
                       }
@@ -10861,7 +10963,7 @@
                           "optional": true
                         },
                         "presentationScale": {
-                          "dataType": "Real",
+                          "dataType": "Object",
                           "optional": true
                         }
                       }
@@ -12147,7 +12249,7 @@
                           "optional": true
                         },
                         "presentationScale": {
-                          "dataType": "Real",
+                          "dataType": "Object",
                           "optional": true
                         }
                       }
@@ -13433,7 +13535,7 @@
                           "optional": true
                         },
                         "presentationScale": {
-                          "dataType": "Real",
+                          "dataType": "Object",
                           "optional": true
                         }
                       }
@@ -14719,7 +14821,7 @@
                           "optional": true
                         },
                         "presentationScale": {
-                          "dataType": "Real",
+                          "dataType": "Object",
                           "optional": true
                         }
                       }
@@ -16005,7 +16107,7 @@
                           "optional": true
                         },
                         "presentationScale": {
-                          "dataType": "Real",
+                          "dataType": "Object",
                           "optional": true
                         }
                       }
@@ -17291,7 +17393,7 @@
                           "optional": true
                         },
                         "presentationScale": {
-                          "dataType": "Real",
+                          "dataType": "Object",
                           "optional": true
                         }
                       }
@@ -18577,7 +18679,7 @@
                           "optional": true
                         },
                         "presentationScale": {
-                          "dataType": "Real",
+                          "dataType": "Object",
                           "optional": true
                         }
                       }
@@ -18586,6 +18688,10 @@
                   }
                 }
               },
+              "optional": true
+            },
+            "annotative": {
+              "dataType": "Boolean",
               "optional": true
             }
           }
@@ -18833,6 +18939,244 @@
                   "display",
                   "referencePoint"
                 ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::annotationScale": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "name": {
+              "dataType": "String"
+            },
+            "paperUnits": {
+              "dataType": "Real"
+            },
+            "drawingUnits": {
+              "dataType": "Real"
+            },
+            "unitScale": {
+              "dataType": "Boolean",
+              "optional": true
+            }
+          }
+        }
+      }
+    },
+    "ifccad::annotation": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "mode": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "disabled",
+                  "enabled",
+                  "byDefinition"
+                ]
+              }
+            },
+            "reference": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "scaleId": {
+                    "dataType": "String"
+                  }
+                }
+              },
+              "optional": true
+            },
+            "contexts": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "value": {
+                  "dataType": "Object",
+                  "objectRestrictions": {
+                    "values": {
+                      "key": {
+                        "dataType": "Object",
+                        "objectRestrictions": {
+                          "values": {
+                            "scaleId": {
+                              "dataType": "String"
+                            }
+                          }
+                        }
+                      },
+                      "presentation": {
+                        "dataType": "Object",
+                        "optional": true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "orientation": {
+              "dataType": "Enum",
+              "optional": true,
+              "enumRestrictions": {
+                "options": [
+                  "fixed",
+                  "matchLayout"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::annotationView": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "name": {
+              "dataType": "String"
+            },
+            "space": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "model",
+                  "paper"
+                ]
+              }
+            },
+            "width": {
+              "dataType": "Real"
+            },
+            "view": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "center": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 2,
+                      "max": 2,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "target": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "direction": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "height": {
+                    "dataType": "Real"
+                  },
+                  "twist": {
+                    "dataType": "Real"
+                  },
+                  "projection": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Orthographic",
+                        "Perspective"
+                      ]
+                    }
+                  },
+                  "lensLengthMm": {
+                    "dataType": "Real",
+                    "optional": true
+                  },
+                  "frontClip": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "Disabled",
+                              "AtCamera",
+                              "AtDistance"
+                            ]
+                          }
+                        },
+                        "distance": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    }
+                  },
+                  "backClip": {
+                    "dataType": "Object",
+                    "objectRestrictions": {
+                      "values": {
+                        "mode": {
+                          "dataType": "Enum",
+                          "enumRestrictions": {
+                            "options": [
+                              "Disabled",
+                              "AtCamera",
+                              "AtDistance"
+                            ]
+                          }
+                        },
+                        "distance": {
+                          "dataType": "Real",
+                          "optional": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "annotationScale": {
+              "dataType": "String",
+              "optional": true
+            }
+          }
+        }
+      }
+    },
+    "ifccad::hatchAnnotationViews": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "nextContextId": {
+              "dataType": "Integer"
+            },
+            "reference": {
+              "dataType": "Integer",
+              "optional": true
+            },
+            "contexts": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "value": {
+                  "dataType": "Object"
+                }
               }
             }
           }
