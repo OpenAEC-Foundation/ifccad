@@ -70,11 +70,12 @@ Native core validation, composed source inspection and binary codecs remain acti
 ## Development and verification
 
 Explorer and its embedded Studio host pin the resource contribution in
-Document `044bfcb7d096a50718cd15e9835477a23b813f1f` and codec
+Document `47031369d9d2bf8b192c508e31e772b41bb2b990` and codec
 `4018037daf8fd3e40aa1aa6455b80232849a2756`. Studio uses native resource core
 `0e8f5e6175c236f0bbef6466da7dd1aff5834045`; the browser uses the identical
-workspace core model. These public fork Git revisions are development inputs
-(Document PR #11 depends on annotation PR #10), not releases. No local source
+workspace core model. Document PRs #10/#11 are merged; the selected official PR#11 merge has the same
+source tree as the accepted resource head. Codec4018037d remains explicitly
+qualified through its existing fork URL for one kernel/Document model. No local source
 overrides are required. Host source `3d2c1bf4` uses kernel `b2656bd` and the
 explicit codec patch recorded in `ocs-source.json` and the frozen lockfile.
 Both native-open routes use profile 0.5.0 / CBOR5. Software release and file
@@ -156,9 +157,9 @@ a bounded finest meshing retry and centerline selection/span corrections.
 
 
 
-### Local resource candidate
+### Combined 2026.45.1 integration
 
-The local resource candidate includes the annotation contexts and uses
+The combined release includes the annotation contexts and uses
 profile 0.5.0 / CBOR5 through the exact pins above. Its separately built host,
 parser worker and browser reader use one compatible native/Document/codec set.
 The preparation script respects Cargo's resolved target directory when locating
@@ -169,4 +170,4 @@ The bounded local smoke exercises actual IFCX opening, request inspection,
 CAD export/readback, and catalogue text edit/grip with undo/redo. Saved context
 MText requests are included in the inspector inventory. Native validation and
 source preservation do not certify complete host glyph or annotation editing
-fidelity. Official dependency adoption and deployment remain separate work.
+fidelity. The2026.45.1 Explorer update is delivered through the checked production workflow.

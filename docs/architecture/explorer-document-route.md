@@ -237,15 +237,18 @@ Nonzero MText context layout-extents caches are omitted with an explicit diagnos
 saved rectangles and columns remain semantic state. The native candidate passes its full gate; official Document adoption and host
 build/deployment qualification remain subsequent integration steps.
 
-## Resource review candidate
+## Combined annotation/resource release 2026.45.1
 
 The resource contribution builds on native annotation basis `100deb04`. The
 viewer pins Document resource commit
-`044bfcb7d096a50718cd15e9835477a23b813f1f`, with unchanged codec `4018037d`.
+`47031369d9d2bf8b192c508e31e772b41bb2b990`, with unchanged codec `4018037d`.
 Document pins native resource commit `0e8f5e6175c236f0bbef6466da7dd1aff5834045`;
 the workspace uses its own identical native core model. No local dependency
-path override is required. These are development Git revisions, not releases.
-It targets unpublished profile 0.5.0 / CBOR5 and preserves exact STYLE/SHX
+path override is required. The selected official Document PR #11 merge is source-tree-identical to the
+accepted resource head 044bfcb7. Codec4018037d remains explicitly qualified
+through its existing fork URL, retaining one Document/kernel model. Later
+Document main and codec changes are outside this adoption.
+Release 2026.45.1 uses profile 0.5.0 / CBOR5 and preserves exact STYLE/SHX
 requests, qualified face flags and separate same-named source records through
 AC1032 DWG and ASCII/binary DXF production readback. Missing external resources
 remain valid; broken internal STYLE roles fail structurally. MText grammar
@@ -262,5 +265,5 @@ browser. Authored requests include inline MText in saved Dimension context
 pictures; availability remains an application report tied to the open snapshot.
 A representative catalogue text edit and anchor grip, with undo/redo, retain the
 text style and update displayed text. This bounded host smoke does not certify
-all annotation editing or glyph fidelity. Official dependency adoption, native
-release and production Explorer deployment remain separate stages.
+all annotation editing or glyph fidelity. The combined native release and matching Explorer update use their respective
+package, browser/host and production-deployment checks.

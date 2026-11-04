@@ -13,9 +13,9 @@ During alpha, later releases may be unable to open earlier IFCCAD files;
 backward compatibility and migration are not guaranteed. See the
 [alpha compatibility policy](docs/alpha-compatibility.md) and
 [release/version policy](docs/releases.md). The current native source alpha is
-[2026.45.0](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.45.0).
+[2026.45.1](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.45.1).
 Its attached artifacts contain only the native core. Explorer and CAD conversion
-are outside that release.
+are delivered separately from the native artifacts.
 See the [vision](docs/vision.md) for the long-term direction and the
 [roadmap](ROADMAP.md) for development priorities.
 
@@ -47,10 +47,10 @@ The core owns construction, shared validation, encoding and file IO and has no C
 runtime dependency. JSON/IFCX and experimental base-CBOR use the same logical
 model. The first alpha publishes profile 0.1.0, CBOR mapping revision 1 and
 optional native Zstd transport revision 1. Those tagged contracts are fixed.
-The current 2026.45.0 alpha uses profile 0.3.0 and CBOR mapping 3,
-with Zstd transport 1 unchanged. The annotation candidate advances the unpublished
-draft to profile 0.4.0 / CBOR4; it is not another release. Subsequent normative
-changes follow the release policy.
+The current 2026.45.1 alpha combines annotation contexts and exact font/SHX
+source requests in profile 0.5.0 and CBOR mapping 5. Zstd transport 1 remains
+unchanged. The unpublished intermediate annotation draft 0.4 is not released
+separately. Subsequent normative changes follow the release policy.
 The `ifccad-cbor-zstd` core feature is optional. The browser enables it for explicit
 experimental CBOR + Zstd downloads; ordinary IFCX download remains the default choice.
 
@@ -113,10 +113,9 @@ pins and applicable regressions. The remaining development sequence is:
    consistent undo/redo. Bounded interoperability and reusable update processing
    remain follow-ups, separate from the completed type expansion; a general update
    engine is not a prerequisite for the next resource contribution.
-   The annotation storage/exchange slice is implemented as the unpublished
-   profile 0.4.0 / CBOR4 candidate, with accepted CAD roundtrips and local
-   catalogue review and a passing full native gate. Document PR #10 integration
-   and production Explorer deployment remain pending.
+   The accepted annotation storage/exchange slice is delivered with font/SHX
+   sources in release 2026.45.1, profile 0.5.0 / CBOR5. Document PRs #10/#11
+   are merged; the matching Explorer update uses their official merged source.
 2. **Expand resources and selected drawing semantics.** After the annotation-context
    slice, add a bounded font/symbol-source foundation with application-owned
    resolution and explicit missing/substitute status. Then select bounded block
@@ -127,8 +126,8 @@ pins and applicable regressions. The remaining development sequence is:
    annotations, color/plot-style semantics and rendering before claiming faithful
    PDF output, xref workflows or dynamic-block retention.
 
-Native contributions integrate and release sequentially against the preceding
-verified baseline. In parallel, develop selective preservation in `opencaddocument`
+Native contributions are qualified sequentially against the preceding verified
+baseline; compatible unpublished slices may be released together. In parallel, develop selective preservation in `opencaddocument`
 through bounded typed capture/dependency storage and safe reconstruction. Once a
 tested capture, save, reopen and reconstruction chain is usable, insert a separate
 IFCCAD preservation slice between native extensions, without waiting for the full
@@ -233,9 +232,9 @@ The [reference diagnosis report](docs/conversion-diagnostics.md) records the old
 route's capabilities. Use the [active exchange coverage](docs/architecture/explorer-document-route.md)
 for the current Explorer/CLI boundary.
 
-The font/SHX source contribution is now a separate unpublished profile 0.5.0 /
-CBOR5 review candidate on annotation basis `100deb04`. It preserves exact source
-requests and independent SHX records, with bounded AC1032 DWG and ASCII/binary
-DXF roundtrips. The gallery and sample_AC1032 have completed user review. This does not
-complete issue 15; Explorer integration, resolution, portable locators, embedding
-and rendering remain later work. Published release identifiers above remain unchanged.
+Release 2026.45.1 combines annotation contexts and font/SHX source requests in
+profile 0.5.0 / CBOR5. Exact requests and independent SHX records have bounded
+AC1032 DWG and ASCII/binary DXF roundtrip evidence. The compact gallery and
+sample_AC1032 completed user review. The existing Explorer examples keep their
+scope. Resolution, portable locators, embedding and complete rendering remain
+later work under issue 15.

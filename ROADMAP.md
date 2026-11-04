@@ -77,8 +77,9 @@ above and in their topic/release documentation rather than as planned steps.
 
 Keep native IFCCAD contributions sequential: complete the annotation-context slice,
 then add the bounded font/symbol-source foundation, followed by selected drawing
-semantics. Integrate and release each substantial contribution against the preceding
-verified baseline. The independent Document preservation work described below can
+semantics. Qualify each substantial contribution against the preceding verified baseline;
+compatible unpublished slices may ship together, as annotation contexts and
+font/symbol sources do in2026.45.1. The independent Document preservation work described below can
 proceed in parallel; its later IFCCAD integration becomes a separate contribution
 between native extensions when the required Document support is ready.
 
@@ -94,16 +95,14 @@ Complete and qualify the selected stored-context slice before integrating the
 resource contribution. General association-update processing is a separate follow-up,
 not an additional prerequisite for font/symbol-source storage.
 
-The bounded storage/exchange slice is implemented as the unpublished
-profile 0.4.0 / CBOR4 candidate: Text/MText, all nine Dimension kinds, Hatch,
-Block definitions/references, independent scale/view identities and saved
-Model/Paper policies. The user accepted the compact physical roundtrips and
-the local catalogue, including corrected automatic Dimension text placement.
-The final native gate passes on the pinned development pair. The portable
-dependency update and upstream review in
-[Document PR #10](https://github.com/HakanSeven12/opencaddocument/pull/10)
-remain separate integration steps. This does not complete association updates or qualify host
-regeneration, grips, undo/redo or production Explorer deployment.
+The accepted storage/exchange slice is delivered with font/SHX sources in
+release 2026.45.1, profile 0.5.0 / CBOR5: Text/MText, all nine Dimension kinds,
+Hatch, Block definitions/references, independent scale/view identities and
+saved Model/Paper policies. Compact physical roundtrips and the local catalogue
+completed user review. Document PRs #10/#11 are merged and the matching Explorer
+update uses their official merged source. A bounded catalogue text edit/grip
+smoke covers undo/redo; general association regeneration and all annotation
+editing remain outside that claim.
 
 Stored source relations and automatic updates are distinct. IFCCAD owns the
 stored definitions, role-specific source references/selectors and their shared
@@ -292,12 +291,12 @@ Publishing, committing or merging still requires an explicit request. Mixed-IFCX
 editing, IFC-object links, source writeback, collaboration, application command/UI
 parity and a general CAD editor are not implicit requirements of this roadmap.
 
-The font/SHX source contribution is now a separate unpublished profile 0.5.0 /
-CBOR5 review candidate on annotation basis `100deb04`. It preserves exact source
+Release 2026.45.1 combines the annotation and font/SHX contributions in profile
+0.5.0 / CBOR5 on annotation basis `100deb04`. It preserves exact source
 requests and independent SHX records, with bounded AC1032 DWG and ASCII/binary
 DXF roundtrips. The gallery and sample_AC1032 have completed user review. This does not
 complete issue 15. The local Explorer and embedded host use the pinned development
 pair, with existing examples migrated and a bounded text edit/grip/undo smoke.
-Official adoption and deployment remain separate; resolution, portable locators,
-embedding and complete rendering remain later work. Published release identifiers
-above remain unchanged.
+The release selects official Document merge 47031369 and a matching Explorer
+update. Resolution, portable locators, embedding and complete rendering remain
+later work. Historical release identifiers above remain unchanged.
