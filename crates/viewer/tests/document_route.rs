@@ -11,10 +11,11 @@ fn capabilities_identify_the_selected_native_contract() {
     let caps = viewer::document_capabilities();
     assert_eq!(caps["ifccad"]["profileVersion"], "0.5.0");
     assert_eq!(caps["ifccad"]["cborMappingRevision"], 5);
-    assert_eq!(
-        caps["ifccad"]["revision"],
-        "044bfcb7d096a50718cd15e9835477a23b813f1f"
-    );
+    let pins: Value =
+        serde_json::from_str(include_str!("../../../format-explorer/ocs-source.json")).unwrap();
+    let revision = pins["explorerDocumentCommit"].as_str().unwrap();
+    assert_eq!(caps["ifccad"]["revision"], revision);
+    assert!(include_str!("../Cargo.toml").contains(&format!("rev = \"{revision}\"")));
 }
 
 fn line() -> Vec<u8> {
