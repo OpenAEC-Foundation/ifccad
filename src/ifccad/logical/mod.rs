@@ -64,3 +64,10 @@ mod annotation_text;
 pub use annotation_text::*;
 
 mod annotation_hatch;
+
+mod attributes;
+pub use attributes::*;
+mod annotation_attributes;
+pub use annotation_attributes::*;
+mod attribute_fields;
+pub use attribute_fields::*;

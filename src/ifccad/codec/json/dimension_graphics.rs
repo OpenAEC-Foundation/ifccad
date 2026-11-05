@@ -183,6 +183,7 @@ impl Reader<'_> {
                 &target,
                 self.blocks,
                 self.styles,
+                self.patterns,
             )?
             .try_into()?;
             let layer_id = p

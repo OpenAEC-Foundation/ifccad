@@ -1,10 +1,11 @@
 # IFCCAD examples
 
-The Explorer offers two curated drawings:
+The Explorer offers two curated drawings and a focused attribute review gallery:
 
 | File | Purpose |
 | --- | --- |
-| `ifccad/entities.ifcx` | A numbered catalogue: all 16 native entity families, three Hatch fills, all nine Dimension kinds in one shared section, layers, simple/text line patterns, block transforms and an A3 Paper viewport. |
+| `ifccad/entities.ifcx` | A numbered catalogue: all 17 native entity families, three Hatch fills, all nine Dimension kinds in one shared section, layers, simple/text line patterns, block transforms with Text/MText attributes and an A3 Paper viewport. |
+| `ifccad/attributes.ifcx` | Focused Text/MText attributes, flags, fields, contexts, nested/Model/Paper cases; A4 titleblock with explicit millimetre 1:1 plot mapping. |
 | `ifccad/house.ifcx` | A fictitious 10000 x 12000 mm ground floor with wall hatching, actual openings, repeated door/window/furniture blocks, room labels, dimensions, north arrow and an A3 sheet at 1:100. |
 
 Both open with an authored Model view. Their Paper tabs contain locked orthographic
@@ -100,3 +101,11 @@ Document `font_symbol_review` example exports the same drawing to AC1032 DWG
 and ASCII/binary DXF and checks resource requests and source bindings through
 production readback. The gallery is a regression/review aid, separate from the
 Explorer catalogue; it does not certify fonts, rendered glyphs or PDF output.
+
+The catalogue reuses its existing `Catalogue marker` block. Its three ordinary,
+rotated and mirrored references each own a CODE Text attribute (M-01, M-02, M-03)
+and a NOTE MText attribute (Marker plus Alpha, Beta or Gamma). The strong native
+ATTDEF references are explicit. Attribute labels are deliberately legible in the
+INSERT owner's scope, independent of the marker geometry's rotation/mirroring.
+The separate attribute gallery remains the bounded flag/field/context and ATTSYNC
+review input; adding basic attributes does not create a second catalogue section.

@@ -101,7 +101,23 @@ pub fn normalize(value: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
         .iter()
         .chain(papers.iter().flat_map(|p| &p.entities))
         .chain(d.blocks.iter().flat_map(|b| &b.entities));
-    let next_entity = assign_paths(&mut paths, &prefix, "e", entities.map(|e| e.id()), false);
+    let next_entity = assign_paths(
+        &mut paths,
+        &prefix,
+        "e",
+        entities.flat_map(|e| {
+            let mut ids = vec![e.id()];
+            if let Some(ifccad::IfccadNativeEntity {
+                kind: ifccad::IfccadEntityKind::BlockInstance { attributes, .. },
+                ..
+            }) = e.as_native()
+            {
+                ids.extend(attributes.iter().map(|a| a.id));
+            }
+            ids
+        }),
+        false,
+    );
     let next_layout = assign_paths(
         &mut paths,
         &prefix,

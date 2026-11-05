@@ -144,7 +144,15 @@ fields and loss rules from concrete Text/MText and line-pattern use cases rather
 than adopting a universal resource framework. A bounded PAT/NLCS importer can be
 a narrow independent contribution where existing semantics suffice.
 
-Then select block attributes and multileaders before tables or dynamic-block
+The selected block-attribute slice implements native Text/MText and paired Document
+conversion under unpublished profile 0.6.0 / CBOR6. The gallery and sample_AC1032
+roundtrips have user acceptance. Native conformance/inspection, full native and
+paired gates, local Explorer integration and bounded OCS editing/ATTSYNC checks
+pass on the explicit development pair. Upstream dependency publication and release
+remain pending. Necessary field/context relations are
+included; MINSERT and dynamic blocks are deferred. See [attributes](docs/block-attributes.md).
+
+Then select multileaders before tables or dynamic-block
 authoring as separate use-case-backed slices under
 [#2](https://github.com/OpenAEC-Foundation/ifccad/issues/2); their relative order
 and scope remain to be agreed. Native splines need their own profile under

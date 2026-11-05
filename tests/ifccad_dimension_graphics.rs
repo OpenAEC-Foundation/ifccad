@@ -162,6 +162,7 @@ fn graphics_marker_closure_rejects_nested_dimensions_and_cycles() {
     assert!(format!("{:?}", validate_ifccad_document(&d).unwrap_err())
         .contains("IFCCAD-DIMENSION-GRAPHICS-001"));
     d.blocks[0].entities[0].as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
+        attributes: Vec::new(),
         annotation: None,
         definition_id: 1,
         transform: IfccadBlockTransform {

@@ -175,7 +175,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         path: prefix.clone(),
         children: Some(drawing_children),
         attributes: attrs(json!({"ifccad::drawing":{
-            "profileVersion":"0.5.0","lengthUnit":document.length_unit,
+            "profileVersion":"0.6.0","lengthUnit":document.length_unit,"attributeVisibility":document.attribute_visibility,
             "linePatternScale":document.line_pattern_scale,
 
             "nextEntityId":document.id_counters.next_entity_id,
@@ -412,6 +412,34 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
                 data.extend(super::dimension_graphics::encode(g, &path, &prefix));
             }
         }
+        if let Some(IfccadEntityKind::BlockInstance { attributes, .. }) =
+            entity.as_native().map(|e| &e.kind)
+        {
+            node.children = Some(
+                attributes
+                    .iter()
+                    .enumerate()
+                    .map(|(i, a)| (i.to_string(), json!(format!("{prefix}/e{}", a.id))))
+                    .collect(),
+            );
+            for a in attributes {
+                let fake = IfccadEntity::Native(crate::IfccadNativeEntity {
+                    id: a.id,
+                    visible: a.visible,
+                    layer_id: a.layer_id,
+                    appearance: a.appearance.clone(),
+                    line_pattern_scale: a.line_pattern_scale,
+                    kind: IfccadEntityKind::Text(a.value.text.clone()),
+                });
+                let mut child = entity_node(&fake, &prefix);
+                child.attributes.remove("ifccad::text");
+                child.attributes.insert(
+                    "ifccad::blockAttribute".into(),
+                    super::attributes::encode_value(&a.value, &prefix),
+                );
+                data.push(child);
+            }
+        }
         data.push(node);
     }
     super::annotation_policy::encode_document(document, &prefix, &mut data);
@@ -451,6 +479,13 @@ pub(super) fn encode_payload(
                 super::hatch::encode_hatch(h, prefix),
             );
             super::annotation_hatch::encode_attrs(h, prefix, attrs);
+        }
+        IfccadEntityKind::AttributeDefinition(a) => {
+            attrs.insert(
+                "ifccad::attributeDefinition".into(),
+                super::attributes::encode_definition(a, prefix),
+            );
+            attrs.insert("ifccad::geom::placement".into(), json!(a.text.placement));
         }
         IfccadEntityKind::Text(_) | IfccadEntityKind::MText(_) => {
             super::text::encode_entity(kind, prefix, attrs);

@@ -267,3 +267,25 @@ A representative catalogue text edit and anchor grip, with undo/redo, retain the
 text style and update displayed text. This bounded host smoke does not certify
 all annotation editing or glyph fidelity. The combined native release and matching Explorer update use their respective
 package, browser/host and production-deployment checks.
+
+## Unpublished block-attribute pair
+
+Profile 0.6.0 / CBOR6 adds ATTDEF and ordered INSERT-owned ATTRIB, separate outer
+Text and embedded MText, selected field graphs and independent contexts. See
+[the contract](../block-attributes.md). This development pair is not connected to
+the published Explorer. File review is accepted. Local integration uses Studio
+`81bbb05e` and kernel `fc20d605` with explicit development patches. On 2026-11-05
+the native/paired full gates and matching browser/host checks passed. Actual IFCX
+opening, child-to-owner selection and AC1032 DWG export/readback were exercised in
+the local browser. The selected two-INSERT ATTSYNC case passed separately from
+ordinary storage roundtrips. This does not deploy the development pair.
+
+The 2026-11-05 PR candidate uses Document base `7b2a494e` and canonical codec
+`hakanaktt/acadrust` base `affa0ca4`, with the explicit attribute/thickness patches.
+Document's dependency migration does not itself add native semantics for Map3D
+object-data classes or ACIS solids. The codec's deferred solid reference-point
+option retains its eager default; the native solid boundary is unchanged.
+The pinned kernel still names the former codec repository, so the local host
+aliases both Git source names to one selected codec checkout. Dependency
+preflight rejects duplicate models. This is a local integration patch; deployment
+requires reachable compatible dependency revisions and a portable lockfile.

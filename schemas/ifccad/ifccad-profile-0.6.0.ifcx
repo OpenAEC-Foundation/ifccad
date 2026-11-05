@@ -1,8 +1,8 @@
 {
   "header": {
-    "id": "urn:example:ifccad:0.5.0",
+    "id": "urn:example:ifccad:0.6.0",
     "ifcxVersion": "ifcx_alpha",
-    "dataVersion": "0.5.0",
+    "dataVersion": "0.6.0",
     "author": "OpenAEC",
     "timestamp": "2026-09-29T00:00:00Z"
   },
@@ -163,6 +163,9 @@
                   }
                 }
               }
+            },
+            "attributeVisibility": {
+              "dataType": "String"
             }
           }
         }
@@ -19178,6 +19181,94 @@
                   "dataType": "Object"
                 }
               }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::attributeDefinition": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "tag": {
+              "dataType": "String"
+            },
+            "flags": {
+              "dataType": "Object"
+            },
+            "lockPosition": {
+              "dataType": "Boolean"
+            },
+            "fieldLength": {
+              "dataType": "Integer"
+            },
+            "text": {
+              "dataType": "Object"
+            },
+            "mText": {
+              "dataType": "Object"
+            },
+            "annotation": {
+              "dataType": "Object"
+            },
+            "secondaryAttributes": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "value": {
+                  "dataType": "String"
+                }
+              }
+            },
+            "fields": {
+              "dataType": "Object"
+            },
+            "prompt": {
+              "dataType": "String"
+            }
+          }
+        }
+      }
+    },
+    "ifccad::blockAttribute": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "tag": {
+              "dataType": "String"
+            },
+            "flags": {
+              "dataType": "Object"
+            },
+            "lockPosition": {
+              "dataType": "Boolean"
+            },
+            "fieldLength": {
+              "dataType": "Integer"
+            },
+            "text": {
+              "dataType": "Object"
+            },
+            "mText": {
+              "dataType": "Object"
+            },
+            "annotation": {
+              "dataType": "Object"
+            },
+            "secondaryAttributes": {
+              "dataType": "Array",
+              "arrayRestrictions": {
+                "value": {
+                  "dataType": "String"
+                }
+              }
+            },
+            "fields": {
+              "dataType": "Object"
+            },
+            "definition": {
+              "dataType": "String"
             }
           }
         }

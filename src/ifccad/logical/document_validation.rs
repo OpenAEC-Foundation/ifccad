@@ -220,6 +220,7 @@ fn validate_document_inner(
             })?;
         }
         match &entity.kind {
+            IfccadEntityKind::AttributeDefinition(_) => {}
             IfccadEntityKind::Dimension(_) => {}
             IfccadEntityKind::Hatch(h) => {
                 super::hatch::validate_hatch(h, &path)?;
@@ -237,6 +238,7 @@ fn validate_document_inner(
                 definition_id,
                 transform,
                 annotation,
+                ..
             } => {
                 validate_block_instance(document, *definition_id, transform, &path)?;
                 if let Some(a) = annotation {
@@ -302,6 +304,7 @@ fn validate_document_inner(
             }
         }
     }
+    super::attributes::validate(document)?;
     super::dimension_graphics_validation::validate(document)?;
     super::preservation_validation::validate_preservation(document)?;
     super::viewports::validate_references(document)?;

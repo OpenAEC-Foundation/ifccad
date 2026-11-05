@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.5.0"
+      "uri": "urn:example:ifccad:0.6.0"
     }
   ],
   "schemas": {},
@@ -35,6 +35,7 @@
       },
       "attributes": {
         "ifccad::drawing": {
+          "attributeVisibility": "Normal",
           "lengthUnit": "mm",
           "modelWindows": [
             "/cad/d1/modelWindow/1"
@@ -42,7 +43,7 @@
           "nextAnnotationScaleId": 3,
           "nextBlockId": 2,
           "nextDimensionStyleId": 1,
-          "nextEntityId": 134,
+          "nextEntityId": 142,
           "nextLayerId": 5,
           "nextLayoutId": 3,
           "nextLinePatternId": 3,
@@ -50,7 +51,7 @@
           "nextSymbolSourceId": 1,
           "nextTextStyleId": 1,
           "nextUcsId": 1,
-          "profileVersion": "0.5.0"
+          "profileVersion": "0.6.0"
         },
         "ifccad::drawingWorkspace": {
           "activeLayout": "/cad/d1/layout/1",
@@ -324,35 +325,35 @@
         "0": "/cad/d1/e1",
         "1": "/cad/d1/e2",
         "10": "/cad/d1/e11",
-        "100": "/cad/d1/e101",
-        "101": "/cad/d1/e102",
-        "102": "/cad/d1/e103",
-        "103": "/cad/d1/e104",
-        "104": "/cad/d1/e105",
-        "105": "/cad/d1/e106",
-        "106": "/cad/d1/e107",
-        "107": "/cad/d1/e108",
-        "108": "/cad/d1/e109",
-        "109": "/cad/d1/e110",
+        "100": "/cad/d1/e107",
+        "101": "/cad/d1/e108",
+        "102": "/cad/d1/e109",
+        "103": "/cad/d1/e110",
+        "104": "/cad/d1/e111",
+        "105": "/cad/d1/e112",
+        "106": "/cad/d1/e113",
+        "107": "/cad/d1/e114",
+        "108": "/cad/d1/e115",
+        "109": "/cad/d1/e116",
         "11": "/cad/d1/e12",
-        "110": "/cad/d1/e111",
-        "111": "/cad/d1/e112",
-        "112": "/cad/d1/e113",
-        "113": "/cad/d1/e114",
-        "114": "/cad/d1/e115",
-        "115": "/cad/d1/e116",
-        "116": "/cad/d1/e117",
-        "117": "/cad/d1/e118",
-        "118": "/cad/d1/e119",
-        "119": "/cad/d1/e120",
+        "110": "/cad/d1/e117",
+        "111": "/cad/d1/e118",
+        "112": "/cad/d1/e119",
+        "113": "/cad/d1/e120",
+        "114": "/cad/d1/e121",
+        "115": "/cad/d1/e122",
+        "116": "/cad/d1/e123",
+        "117": "/cad/d1/e124",
+        "118": "/cad/d1/e125",
+        "119": "/cad/d1/e126",
         "12": "/cad/d1/e13",
-        "120": "/cad/d1/e121",
-        "121": "/cad/d1/e122",
-        "122": "/cad/d1/e123",
-        "123": "/cad/d1/e124",
-        "124": "/cad/d1/e125",
-        "125": "/cad/d1/e126",
-        "126": "/cad/d1/e127",
+        "120": "/cad/d1/e127",
+        "121": "/cad/d1/e128",
+        "122": "/cad/d1/e129",
+        "123": "/cad/d1/e130",
+        "124": "/cad/d1/e131",
+        "125": "/cad/d1/e132",
+        "126": "/cad/d1/e133",
         "13": "/cad/d1/e14",
         "14": "/cad/d1/e15",
         "15": "/cad/d1/e16",
@@ -408,46 +409,46 @@
         "60": "/cad/d1/e61",
         "61": "/cad/d1/e62",
         "62": "/cad/d1/e63",
-        "63": "/cad/d1/e64",
-        "64": "/cad/d1/e65",
-        "65": "/cad/d1/e66",
-        "66": "/cad/d1/e67",
-        "67": "/cad/d1/e68",
-        "68": "/cad/d1/e69",
-        "69": "/cad/d1/e70",
+        "63": "/cad/d1/e66",
+        "64": "/cad/d1/e69",
+        "65": "/cad/d1/e72",
+        "66": "/cad/d1/e73",
+        "67": "/cad/d1/e74",
+        "68": "/cad/d1/e75",
+        "69": "/cad/d1/e76",
         "7": "/cad/d1/e8",
-        "70": "/cad/d1/e71",
-        "71": "/cad/d1/e72",
-        "72": "/cad/d1/e73",
-        "73": "/cad/d1/e74",
-        "74": "/cad/d1/e75",
-        "75": "/cad/d1/e76",
-        "76": "/cad/d1/e77",
-        "77": "/cad/d1/e78",
-        "78": "/cad/d1/e79",
-        "79": "/cad/d1/e80",
+        "70": "/cad/d1/e77",
+        "71": "/cad/d1/e78",
+        "72": "/cad/d1/e79",
+        "73": "/cad/d1/e80",
+        "74": "/cad/d1/e81",
+        "75": "/cad/d1/e82",
+        "76": "/cad/d1/e83",
+        "77": "/cad/d1/e84",
+        "78": "/cad/d1/e85",
+        "79": "/cad/d1/e86",
         "8": "/cad/d1/e9",
-        "80": "/cad/d1/e81",
-        "81": "/cad/d1/e82",
-        "82": "/cad/d1/e83",
-        "83": "/cad/d1/e84",
-        "84": "/cad/d1/e85",
-        "85": "/cad/d1/e86",
-        "86": "/cad/d1/e87",
-        "87": "/cad/d1/e88",
-        "88": "/cad/d1/e89",
-        "89": "/cad/d1/e90",
+        "80": "/cad/d1/e87",
+        "81": "/cad/d1/e88",
+        "82": "/cad/d1/e89",
+        "83": "/cad/d1/e90",
+        "84": "/cad/d1/e91",
+        "85": "/cad/d1/e92",
+        "86": "/cad/d1/e93",
+        "87": "/cad/d1/e94",
+        "88": "/cad/d1/e95",
+        "89": "/cad/d1/e96",
         "9": "/cad/d1/e10",
-        "90": "/cad/d1/e91",
-        "91": "/cad/d1/e92",
-        "92": "/cad/d1/e93",
-        "93": "/cad/d1/e94",
-        "94": "/cad/d1/e95",
-        "95": "/cad/d1/e96",
-        "96": "/cad/d1/e97",
-        "97": "/cad/d1/e98",
-        "98": "/cad/d1/e99",
-        "99": "/cad/d1/e100"
+        "90": "/cad/d1/e97",
+        "91": "/cad/d1/e98",
+        "92": "/cad/d1/e99",
+        "93": "/cad/d1/e100",
+        "94": "/cad/d1/e101",
+        "95": "/cad/d1/e102",
+        "96": "/cad/d1/e103",
+        "97": "/cad/d1/e104",
+        "98": "/cad/d1/e105",
+        "99": "/cad/d1/e106"
       },
       "attributes": {
         "ifccad::layout": {
@@ -463,10 +464,10 @@
     {
       "path": "/cad/d1/layout/2",
       "children": {
-        "0": "/cad/d1/e128",
-        "1": "/cad/d1/e129",
-        "2": "/cad/d1/e130",
-        "3": "/cad/d1/e131"
+        "0": "/cad/d1/e134",
+        "1": "/cad/d1/e135",
+        "2": "/cad/d1/e136",
+        "3": "/cad/d1/e137"
       },
       "attributes": {
         "ifccad::layout": {
@@ -729,8 +730,10 @@
     {
       "path": "/cad/d1/block/1",
       "children": {
-        "0": "/cad/d1/e132",
-        "1": "/cad/d1/e133"
+        "0": "/cad/d1/e138",
+        "1": "/cad/d1/e139",
+        "2": "/cad/d1/e140",
+        "3": "/cad/d1/e141"
       },
       "attributes": {
         "ifccad::blockDefinition": {
@@ -3866,7 +3869,7 @@
             {
               "overline": false,
               "strikeThrough": false,
-              "text": "Rotate, mirror / contexts 1:1, 1:2",
+              "text": "Text + MText attributes / rotate, mirror",
               "underline": false
             }
           ],
@@ -3882,7 +3885,176 @@
       }
     },
     {
+      "path": "/cad/d1/e64",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e140",
+          "fieldLength": 0,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "CODE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "M-01",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 1.8,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/0"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            107.0,
+            412.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e65",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e141",
+          "fieldLength": 0,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                107.0,
+                386.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Marker"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                },
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Alpha"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 1.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/0",
+              "wrapWidth": 24.0
+            },
+            "visible": true
+          },
+          "tag": "NOTE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Marker\\PAlpha",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 1.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/0"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            107.0,
+            386.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
       "path": "/cad/d1/e63",
+      "children": {
+        "0": "/cad/d1/e64",
+        "1": "/cad/d1/e65"
+      },
       "attributes": {
         "ifccad::annotation": {
           "contexts": [
@@ -3985,7 +4157,176 @@
       }
     },
     {
-      "path": "/cad/d1/e64",
+      "path": "/cad/d1/e67",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e140",
+          "fieldLength": 0,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "CODE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "M-02",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 1.8,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/0"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            138.0,
+            412.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e68",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e141",
+          "fieldLength": 0,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                138.0,
+                386.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Marker"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                },
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Beta"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 1.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/0",
+              "wrapWidth": 24.0
+            },
+            "visible": true
+          },
+          "tag": "NOTE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Marker\\PBeta",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 1.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/0"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            138.0,
+            386.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e66",
+      "children": {
+        "0": "/cad/d1/e67",
+        "1": "/cad/d1/e68"
+      },
       "attributes": {
         "ifccad::annotation": {
           "contexts": [
@@ -4094,7 +4435,176 @@
       }
     },
     {
-      "path": "/cad/d1/e65",
+      "path": "/cad/d1/e70",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e140",
+          "fieldLength": 0,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "CODE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "M-03",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 1.8,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/0"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            169.0,
+            412.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e71",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e141",
+          "fieldLength": 0,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                169.0,
+                386.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Marker"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                },
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Gamma"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 1.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/0",
+              "wrapWidth": 24.0
+            },
+            "visible": true
+          },
+          "tag": "NOTE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Marker\\PGamma",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 1.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/0"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            169.0,
+            386.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e69",
+      "children": {
+        "0": "/cad/d1/e70",
+        "1": "/cad/d1/e71"
+      },
       "attributes": {
         "ifccad::annotation": {
           "contexts": [
@@ -4202,7 +4712,7 @@
       }
     },
     {
-      "path": "/cad/d1/e66",
+      "path": "/cad/d1/e72",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4248,7 +4758,7 @@
       }
     },
     {
-      "path": "/cad/d1/e67",
+      "path": "/cad/d1/e73",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4291,7 +4801,7 @@
       }
     },
     {
-      "path": "/cad/d1/e68",
+      "path": "/cad/d1/e74",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4334,7 +4844,7 @@
       }
     },
     {
-      "path": "/cad/d1/e69",
+      "path": "/cad/d1/e75",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -4352,7 +4862,7 @@
       }
     },
     {
-      "path": "/cad/d1/e70",
+      "path": "/cad/d1/e76",
       "attributes": {
         "ifccad::entity": {
           "appearance": {
@@ -4376,7 +4886,7 @@
       }
     },
     {
-      "path": "/cad/d1/e71",
+      "path": "/cad/d1/e77",
       "attributes": {
         "ifccad::entity": {
           "appearance": {
@@ -4400,7 +4910,7 @@
       }
     },
     {
-      "path": "/cad/d1/e72",
+      "path": "/cad/d1/e78",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4446,7 +4956,7 @@
       }
     },
     {
-      "path": "/cad/d1/e73",
+      "path": "/cad/d1/e79",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4489,7 +4999,7 @@
       }
     },
     {
-      "path": "/cad/d1/e74",
+      "path": "/cad/d1/e80",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4532,7 +5042,7 @@
       }
     },
     {
-      "path": "/cad/d1/e75",
+      "path": "/cad/d1/e81",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -4578,7 +5088,7 @@
       }
     },
     {
-      "path": "/cad/d1/e76",
+      "path": "/cad/d1/e82",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/3"
@@ -4624,7 +5134,7 @@
       }
     },
     {
-      "path": "/cad/d1/e77",
+      "path": "/cad/d1/e83",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/4"
@@ -4670,7 +5180,7 @@
       }
     },
     {
-      "path": "/cad/d1/e78",
+      "path": "/cad/d1/e84",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4716,7 +5226,7 @@
       }
     },
     {
-      "path": "/cad/d1/e79",
+      "path": "/cad/d1/e85",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4759,7 +5269,7 @@
       }
     },
     {
-      "path": "/cad/d1/e80",
+      "path": "/cad/d1/e86",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4802,7 +5312,7 @@
       }
     },
     {
-      "path": "/cad/d1/e81",
+      "path": "/cad/d1/e87",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4848,7 +5358,7 @@
       }
     },
     {
-      "path": "/cad/d1/e82",
+      "path": "/cad/d1/e88",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -4894,7 +5404,7 @@
       }
     },
     {
-      "path": "/cad/d1/e83",
+      "path": "/cad/d1/e89",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4937,7 +5447,7 @@
       }
     },
     {
-      "path": "/cad/d1/e84",
+      "path": "/cad/d1/e90",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -4983,7 +5493,7 @@
       }
     },
     {
-      "path": "/cad/d1/e85",
+      "path": "/cad/d1/e91",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5026,7 +5536,7 @@
       }
     },
     {
-      "path": "/cad/d1/e86",
+      "path": "/cad/d1/e92",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5069,7 +5579,7 @@
       }
     },
     {
-      "path": "/cad/d1/e87",
+      "path": "/cad/d1/e93",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -5114,7 +5624,7 @@
       }
     },
     {
-      "path": "/cad/d1/e88",
+      "path": "/cad/d1/e94",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -5159,7 +5669,7 @@
       }
     },
     {
-      "path": "/cad/d1/e89",
+      "path": "/cad/d1/e95",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5205,7 +5715,7 @@
       }
     },
     {
-      "path": "/cad/d1/e90",
+      "path": "/cad/d1/e96",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5248,7 +5758,7 @@
       }
     },
     {
-      "path": "/cad/d1/e91",
+      "path": "/cad/d1/e97",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5291,7 +5801,7 @@
       }
     },
     {
-      "path": "/cad/d1/e92",
+      "path": "/cad/d1/e98",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -5336,7 +5846,7 @@
       }
     },
     {
-      "path": "/cad/d1/e93",
+      "path": "/cad/d1/e99",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -5381,7 +5891,7 @@
       }
     },
     {
-      "path": "/cad/d1/e94",
+      "path": "/cad/d1/e100",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -5426,7 +5936,7 @@
       }
     },
     {
-      "path": "/cad/d1/e95",
+      "path": "/cad/d1/e101",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5472,7 +5982,7 @@
       }
     },
     {
-      "path": "/cad/d1/e96",
+      "path": "/cad/d1/e102",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5515,7 +6025,7 @@
       }
     },
     {
-      "path": "/cad/d1/e97",
+      "path": "/cad/d1/e103",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5558,14 +6068,14 @@
       }
     },
     {
-      "path": "/cad/d1/e98/graphics",
+      "path": "/cad/d1/e104/graphics",
       "children": {
-        "0": "/cad/d1/e98/graphics/p0",
-        "1": "/cad/d1/e98/graphics/p1",
-        "2": "/cad/d1/e98/graphics/p2",
-        "3": "/cad/d1/e98/graphics/p3",
-        "4": "/cad/d1/e98/graphics/p4",
-        "5": "/cad/d1/e98/graphics/p5"
+        "0": "/cad/d1/e104/graphics/p0",
+        "1": "/cad/d1/e104/graphics/p1",
+        "2": "/cad/d1/e104/graphics/p2",
+        "3": "/cad/d1/e104/graphics/p3",
+        "4": "/cad/d1/e104/graphics/p4",
+        "5": "/cad/d1/e104/graphics/p5"
       },
       "attributes": {
         "ifccad::dimensionGraphics": {
@@ -5574,7 +6084,7 @@
       }
     },
     {
-      "path": "/cad/d1/e98/graphics/p0",
+      "path": "/cad/d1/e104/graphics/p0",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -5590,7 +6100,7 @@
       }
     },
     {
-      "path": "/cad/d1/e98/graphics/p1",
+      "path": "/cad/d1/e104/graphics/p1",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -5606,7 +6116,7 @@
       }
     },
     {
-      "path": "/cad/d1/e98/graphics/p2",
+      "path": "/cad/d1/e104/graphics/p2",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -5622,7 +6132,7 @@
       }
     },
     {
-      "path": "/cad/d1/e98/graphics/p3",
+      "path": "/cad/d1/e104/graphics/p3",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -5665,7 +6175,7 @@
       }
     },
     {
-      "path": "/cad/d1/e98/graphics/p4",
+      "path": "/cad/d1/e104/graphics/p4",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -5708,7 +6218,7 @@
       }
     },
     {
-      "path": "/cad/d1/e98/graphics/p5",
+      "path": "/cad/d1/e104/graphics/p5",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -5749,9 +6259,9 @@
       }
     },
     {
-      "path": "/cad/d1/e98",
+      "path": "/cad/d1/e104",
       "children": {
-        "graphics": "/cad/d1/e98/graphics"
+        "graphics": "/cad/d1/e104/graphics"
       },
       "attributes": {
         "ifccad::annotation": {
@@ -5780,14 +6290,14 @@
               "selector": {
                 "kind": "start"
               },
-              "source": "/cad/d1/e99"
+              "source": "/cad/d1/e105"
             },
             {
               "role": "secondPoint",
               "selector": {
                 "kind": "end"
               },
-              "source": "/cad/d1/e99"
+              "source": "/cad/d1/e105"
             }
           ],
           "definition": {
@@ -5864,7 +6374,7 @@
       }
     },
     {
-      "path": "/cad/d1/e99",
+      "path": "/cad/d1/e105",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -5882,7 +6392,7 @@
       }
     },
     {
-      "path": "/cad/d1/e100",
+      "path": "/cad/d1/e106",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -5925,14 +6435,14 @@
       }
     },
     {
-      "path": "/cad/d1/e101/graphics",
+      "path": "/cad/d1/e107/graphics",
       "children": {
-        "0": "/cad/d1/e101/graphics/p0",
-        "1": "/cad/d1/e101/graphics/p1",
-        "2": "/cad/d1/e101/graphics/p2",
-        "3": "/cad/d1/e101/graphics/p3",
-        "4": "/cad/d1/e101/graphics/p4",
-        "5": "/cad/d1/e101/graphics/p5"
+        "0": "/cad/d1/e107/graphics/p0",
+        "1": "/cad/d1/e107/graphics/p1",
+        "2": "/cad/d1/e107/graphics/p2",
+        "3": "/cad/d1/e107/graphics/p3",
+        "4": "/cad/d1/e107/graphics/p4",
+        "5": "/cad/d1/e107/graphics/p5"
       },
       "attributes": {
         "ifccad::dimensionGraphics": {
@@ -5941,7 +6451,7 @@
       }
     },
     {
-      "path": "/cad/d1/e101/graphics/p0",
+      "path": "/cad/d1/e107/graphics/p0",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -5957,7 +6467,7 @@
       }
     },
     {
-      "path": "/cad/d1/e101/graphics/p1",
+      "path": "/cad/d1/e107/graphics/p1",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -5973,7 +6483,7 @@
       }
     },
     {
-      "path": "/cad/d1/e101/graphics/p2",
+      "path": "/cad/d1/e107/graphics/p2",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -5989,7 +6499,7 @@
       }
     },
     {
-      "path": "/cad/d1/e101/graphics/p3",
+      "path": "/cad/d1/e107/graphics/p3",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -6032,7 +6542,7 @@
       }
     },
     {
-      "path": "/cad/d1/e101/graphics/p4",
+      "path": "/cad/d1/e107/graphics/p4",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -6075,7 +6585,7 @@
       }
     },
     {
-      "path": "/cad/d1/e101/graphics/p5",
+      "path": "/cad/d1/e107/graphics/p5",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -6116,9 +6626,9 @@
       }
     },
     {
-      "path": "/cad/d1/e101",
+      "path": "/cad/d1/e107",
       "children": {
-        "graphics": "/cad/d1/e101/graphics"
+        "graphics": "/cad/d1/e107/graphics"
       },
       "attributes": {
         "ifccad::annotation": {
@@ -6147,14 +6657,14 @@
               "selector": {
                 "kind": "start"
               },
-              "source": "/cad/d1/e102"
+              "source": "/cad/d1/e108"
             },
             {
               "role": "secondPoint",
               "selector": {
                 "kind": "end"
               },
-              "source": "/cad/d1/e102"
+              "source": "/cad/d1/e108"
             }
           ],
           "definition": {
@@ -6230,7 +6740,7 @@
       }
     },
     {
-      "path": "/cad/d1/e102",
+      "path": "/cad/d1/e108",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -6248,7 +6758,7 @@
       }
     },
     {
-      "path": "/cad/d1/e103",
+      "path": "/cad/d1/e109",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -6291,11 +6801,11 @@
       }
     },
     {
-      "path": "/cad/d1/e104/graphics",
+      "path": "/cad/d1/e110/graphics",
       "children": {
-        "0": "/cad/d1/e104/graphics/p0",
-        "1": "/cad/d1/e104/graphics/p1",
-        "2": "/cad/d1/e104/graphics/p2"
+        "0": "/cad/d1/e110/graphics/p0",
+        "1": "/cad/d1/e110/graphics/p1",
+        "2": "/cad/d1/e110/graphics/p2"
       },
       "attributes": {
         "ifccad::dimensionGraphics": {
@@ -6304,7 +6814,7 @@
       }
     },
     {
-      "path": "/cad/d1/e104/graphics/p0",
+      "path": "/cad/d1/e110/graphics/p0",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -6320,7 +6830,7 @@
       }
     },
     {
-      "path": "/cad/d1/e104/graphics/p1",
+      "path": "/cad/d1/e110/graphics/p1",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -6363,7 +6873,7 @@
       }
     },
     {
-      "path": "/cad/d1/e104/graphics/p2",
+      "path": "/cad/d1/e110/graphics/p2",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -6404,9 +6914,9 @@
       }
     },
     {
-      "path": "/cad/d1/e104",
+      "path": "/cad/d1/e110",
       "children": {
-        "graphics": "/cad/d1/e104/graphics"
+        "graphics": "/cad/d1/e110/graphics"
       },
       "attributes": {
         "ifccad::annotation": {
@@ -6435,7 +6945,7 @@
               "selector": {
                 "kind": "center"
               },
-              "source": "/cad/d1/e105"
+              "source": "/cad/d1/e111"
             },
             {
               "role": "curvePoint",
@@ -6443,7 +6953,7 @@
                 "angle": 0.9272952180016122,
                 "kind": "circlePoint"
               },
-              "source": "/cad/d1/e105"
+              "source": "/cad/d1/e111"
             }
           ],
           "definition": {
@@ -6516,7 +7026,7 @@
       }
     },
     {
-      "path": "/cad/d1/e105",
+      "path": "/cad/d1/e111",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -6544,7 +7054,7 @@
       }
     },
     {
-      "path": "/cad/d1/e106",
+      "path": "/cad/d1/e112",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -6587,12 +7097,12 @@
       }
     },
     {
-      "path": "/cad/d1/e107/graphics",
+      "path": "/cad/d1/e113/graphics",
       "children": {
-        "0": "/cad/d1/e107/graphics/p0",
-        "1": "/cad/d1/e107/graphics/p1",
-        "2": "/cad/d1/e107/graphics/p2",
-        "3": "/cad/d1/e107/graphics/p3"
+        "0": "/cad/d1/e113/graphics/p0",
+        "1": "/cad/d1/e113/graphics/p1",
+        "2": "/cad/d1/e113/graphics/p2",
+        "3": "/cad/d1/e113/graphics/p3"
       },
       "attributes": {
         "ifccad::dimensionGraphics": {
@@ -6601,7 +7111,7 @@
       }
     },
     {
-      "path": "/cad/d1/e107/graphics/p0",
+      "path": "/cad/d1/e113/graphics/p0",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -6617,7 +7127,7 @@
       }
     },
     {
-      "path": "/cad/d1/e107/graphics/p1",
+      "path": "/cad/d1/e113/graphics/p1",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -6660,7 +7170,7 @@
       }
     },
     {
-      "path": "/cad/d1/e107/graphics/p2",
+      "path": "/cad/d1/e113/graphics/p2",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -6703,7 +7213,7 @@
       }
     },
     {
-      "path": "/cad/d1/e107/graphics/p3",
+      "path": "/cad/d1/e113/graphics/p3",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -6744,9 +7254,9 @@
       }
     },
     {
-      "path": "/cad/d1/e107",
+      "path": "/cad/d1/e113",
       "children": {
-        "graphics": "/cad/d1/e107/graphics"
+        "graphics": "/cad/d1/e113/graphics"
       },
       "attributes": {
         "ifccad::annotation": {
@@ -6776,7 +7286,7 @@
                 "angle": -2.214297435588181,
                 "kind": "circlePoint"
               },
-              "source": "/cad/d1/e108"
+              "source": "/cad/d1/e114"
             },
             {
               "role": "secondDiameterPoint",
@@ -6784,7 +7294,7 @@
                 "angle": 0.9272952180016122,
                 "kind": "circlePoint"
               },
-              "source": "/cad/d1/e108"
+              "source": "/cad/d1/e114"
             }
           ],
           "definition": {
@@ -6857,7 +7367,7 @@
       }
     },
     {
-      "path": "/cad/d1/e108",
+      "path": "/cad/d1/e114",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -6885,7 +7395,7 @@
       }
     },
     {
-      "path": "/cad/d1/e109",
+      "path": "/cad/d1/e115",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -6928,12 +7438,12 @@
       }
     },
     {
-      "path": "/cad/d1/e110/graphics",
+      "path": "/cad/d1/e116/graphics",
       "children": {
-        "0": "/cad/d1/e110/graphics/p0",
-        "1": "/cad/d1/e110/graphics/p1",
-        "2": "/cad/d1/e110/graphics/p2",
-        "3": "/cad/d1/e110/graphics/p3"
+        "0": "/cad/d1/e116/graphics/p0",
+        "1": "/cad/d1/e116/graphics/p1",
+        "2": "/cad/d1/e116/graphics/p2",
+        "3": "/cad/d1/e116/graphics/p3"
       },
       "attributes": {
         "ifccad::dimensionGraphics": {
@@ -6942,7 +7452,7 @@
       }
     },
     {
-      "path": "/cad/d1/e110/graphics/p0",
+      "path": "/cad/d1/e116/graphics/p0",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::arc": {
@@ -6970,7 +7480,7 @@
       }
     },
     {
-      "path": "/cad/d1/e110/graphics/p1",
+      "path": "/cad/d1/e116/graphics/p1",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -7013,7 +7523,7 @@
       }
     },
     {
-      "path": "/cad/d1/e110/graphics/p2",
+      "path": "/cad/d1/e116/graphics/p2",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -7056,7 +7566,7 @@
       }
     },
     {
-      "path": "/cad/d1/e110/graphics/p3",
+      "path": "/cad/d1/e116/graphics/p3",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -7097,9 +7607,9 @@
       }
     },
     {
-      "path": "/cad/d1/e110",
+      "path": "/cad/d1/e116",
       "children": {
-        "graphics": "/cad/d1/e110/graphics"
+        "graphics": "/cad/d1/e116/graphics"
       },
       "attributes": {
         "ifccad::annotation": {
@@ -7128,28 +7638,28 @@
               "selector": {
                 "kind": "start"
               },
-              "source": "/cad/d1/e111"
+              "source": "/cad/d1/e117"
             },
             {
               "role": "line1End",
               "selector": {
                 "kind": "end"
               },
-              "source": "/cad/d1/e111"
+              "source": "/cad/d1/e117"
             },
             {
               "role": "line2Start",
               "selector": {
                 "kind": "start"
               },
-              "source": "/cad/d1/e112"
+              "source": "/cad/d1/e118"
             },
             {
               "role": "line2End",
               "selector": {
                 "kind": "end"
               },
-              "source": "/cad/d1/e112"
+              "source": "/cad/d1/e118"
             }
           ],
           "definition": {
@@ -7238,7 +7748,7 @@
       }
     },
     {
-      "path": "/cad/d1/e111",
+      "path": "/cad/d1/e117",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -7256,7 +7766,7 @@
       }
     },
     {
-      "path": "/cad/d1/e112",
+      "path": "/cad/d1/e118",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -7274,7 +7784,7 @@
       }
     },
     {
-      "path": "/cad/d1/e113",
+      "path": "/cad/d1/e119",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -7317,12 +7827,12 @@
       }
     },
     {
-      "path": "/cad/d1/e114/graphics",
+      "path": "/cad/d1/e120/graphics",
       "children": {
-        "0": "/cad/d1/e114/graphics/p0",
-        "1": "/cad/d1/e114/graphics/p1",
-        "2": "/cad/d1/e114/graphics/p2",
-        "3": "/cad/d1/e114/graphics/p3"
+        "0": "/cad/d1/e120/graphics/p0",
+        "1": "/cad/d1/e120/graphics/p1",
+        "2": "/cad/d1/e120/graphics/p2",
+        "3": "/cad/d1/e120/graphics/p3"
       },
       "attributes": {
         "ifccad::dimensionGraphics": {
@@ -7331,7 +7841,7 @@
       }
     },
     {
-      "path": "/cad/d1/e114/graphics/p0",
+      "path": "/cad/d1/e120/graphics/p0",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::arc": {
@@ -7359,7 +7869,7 @@
       }
     },
     {
-      "path": "/cad/d1/e114/graphics/p1",
+      "path": "/cad/d1/e120/graphics/p1",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -7402,7 +7912,7 @@
       }
     },
     {
-      "path": "/cad/d1/e114/graphics/p2",
+      "path": "/cad/d1/e120/graphics/p2",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -7445,7 +7955,7 @@
       }
     },
     {
-      "path": "/cad/d1/e114/graphics/p3",
+      "path": "/cad/d1/e120/graphics/p3",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -7486,9 +7996,9 @@
       }
     },
     {
-      "path": "/cad/d1/e114",
+      "path": "/cad/d1/e120",
       "children": {
-        "graphics": "/cad/d1/e114/graphics"
+        "graphics": "/cad/d1/e120/graphics"
       },
       "attributes": {
         "ifccad::annotation": {
@@ -7517,21 +8027,21 @@
               "selector": {
                 "kind": "start"
               },
-              "source": "/cad/d1/e115"
+              "source": "/cad/d1/e121"
             },
             {
               "role": "firstLegPoint",
               "selector": {
                 "kind": "end"
               },
-              "source": "/cad/d1/e115"
+              "source": "/cad/d1/e121"
             },
             {
               "role": "secondLegPoint",
               "selector": {
                 "kind": "end"
               },
-              "source": "/cad/d1/e116"
+              "source": "/cad/d1/e122"
             }
           ],
           "definition": {
@@ -7613,7 +8123,7 @@
       }
     },
     {
-      "path": "/cad/d1/e115",
+      "path": "/cad/d1/e121",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -7631,7 +8141,7 @@
       }
     },
     {
-      "path": "/cad/d1/e116",
+      "path": "/cad/d1/e122",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -7649,7 +8159,7 @@
       }
     },
     {
-      "path": "/cad/d1/e117",
+      "path": "/cad/d1/e123",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -7692,11 +8202,11 @@
       }
     },
     {
-      "path": "/cad/d1/e118/graphics",
+      "path": "/cad/d1/e124/graphics",
       "children": {
-        "0": "/cad/d1/e118/graphics/p0",
-        "1": "/cad/d1/e118/graphics/p1",
-        "2": "/cad/d1/e118/graphics/p2"
+        "0": "/cad/d1/e124/graphics/p0",
+        "1": "/cad/d1/e124/graphics/p1",
+        "2": "/cad/d1/e124/graphics/p2"
       },
       "attributes": {
         "ifccad::dimensionGraphics": {
@@ -7705,7 +8215,7 @@
       }
     },
     {
-      "path": "/cad/d1/e118/graphics/p0",
+      "path": "/cad/d1/e124/graphics/p0",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -7721,7 +8231,7 @@
       }
     },
     {
-      "path": "/cad/d1/e118/graphics/p1",
+      "path": "/cad/d1/e124/graphics/p1",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -7737,7 +8247,7 @@
       }
     },
     {
-      "path": "/cad/d1/e118/graphics/p2",
+      "path": "/cad/d1/e124/graphics/p2",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -7778,9 +8288,9 @@
       }
     },
     {
-      "path": "/cad/d1/e118",
+      "path": "/cad/d1/e124",
       "children": {
-        "graphics": "/cad/d1/e118/graphics"
+        "graphics": "/cad/d1/e124/graphics"
       },
       "attributes": {
         "ifccad::annotation": {
@@ -7809,14 +8319,14 @@
               "selector": {
                 "kind": "start"
               },
-              "source": "/cad/d1/e119"
+              "source": "/cad/d1/e125"
             },
             {
               "role": "featurePoint",
               "selector": {
                 "kind": "end"
               },
-              "source": "/cad/d1/e119"
+              "source": "/cad/d1/e125"
             }
           ],
           "definition": {
@@ -7894,7 +8404,7 @@
       }
     },
     {
-      "path": "/cad/d1/e119",
+      "path": "/cad/d1/e125",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -7912,7 +8422,7 @@
       }
     },
     {
-      "path": "/cad/d1/e120",
+      "path": "/cad/d1/e126",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -7955,14 +8465,14 @@
       }
     },
     {
-      "path": "/cad/d1/e121/graphics",
+      "path": "/cad/d1/e127/graphics",
       "children": {
-        "0": "/cad/d1/e121/graphics/p0",
-        "1": "/cad/d1/e121/graphics/p1",
-        "2": "/cad/d1/e121/graphics/p2",
-        "3": "/cad/d1/e121/graphics/p3",
-        "4": "/cad/d1/e121/graphics/p4",
-        "5": "/cad/d1/e121/graphics/p5"
+        "0": "/cad/d1/e127/graphics/p0",
+        "1": "/cad/d1/e127/graphics/p1",
+        "2": "/cad/d1/e127/graphics/p2",
+        "3": "/cad/d1/e127/graphics/p3",
+        "4": "/cad/d1/e127/graphics/p4",
+        "5": "/cad/d1/e127/graphics/p5"
       },
       "attributes": {
         "ifccad::dimensionGraphics": {
@@ -7971,7 +8481,7 @@
       }
     },
     {
-      "path": "/cad/d1/e121/graphics/p0",
+      "path": "/cad/d1/e127/graphics/p0",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::arc": {
@@ -7999,7 +8509,7 @@
       }
     },
     {
-      "path": "/cad/d1/e121/graphics/p1",
+      "path": "/cad/d1/e127/graphics/p1",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -8015,7 +8525,7 @@
       }
     },
     {
-      "path": "/cad/d1/e121/graphics/p2",
+      "path": "/cad/d1/e127/graphics/p2",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -8031,7 +8541,7 @@
       }
     },
     {
-      "path": "/cad/d1/e121/graphics/p3",
+      "path": "/cad/d1/e127/graphics/p3",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -8074,7 +8584,7 @@
       }
     },
     {
-      "path": "/cad/d1/e121/graphics/p4",
+      "path": "/cad/d1/e127/graphics/p4",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -8117,7 +8627,7 @@
       }
     },
     {
-      "path": "/cad/d1/e121/graphics/p5",
+      "path": "/cad/d1/e127/graphics/p5",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -8158,9 +8668,9 @@
       }
     },
     {
-      "path": "/cad/d1/e121",
+      "path": "/cad/d1/e127",
       "children": {
-        "graphics": "/cad/d1/e121/graphics"
+        "graphics": "/cad/d1/e127/graphics"
       },
       "attributes": {
         "ifccad::annotation": {
@@ -8189,21 +8699,21 @@
               "selector": {
                 "kind": "center"
               },
-              "source": "/cad/d1/e122"
+              "source": "/cad/d1/e128"
             },
             {
               "role": "arcStart",
               "selector": {
                 "kind": "start"
               },
-              "source": "/cad/d1/e122"
+              "source": "/cad/d1/e128"
             },
             {
               "role": "arcEnd",
               "selector": {
                 "kind": "end"
               },
-              "source": "/cad/d1/e122"
+              "source": "/cad/d1/e128"
             }
           ],
           "definition": {
@@ -8280,7 +8790,7 @@
       }
     },
     {
-      "path": "/cad/d1/e122",
+      "path": "/cad/d1/e128",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -8310,7 +8820,7 @@
       }
     },
     {
-      "path": "/cad/d1/e123",
+      "path": "/cad/d1/e129",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -8353,13 +8863,13 @@
       }
     },
     {
-      "path": "/cad/d1/e124/graphics",
+      "path": "/cad/d1/e130/graphics",
       "children": {
-        "0": "/cad/d1/e124/graphics/p0",
-        "1": "/cad/d1/e124/graphics/p1",
-        "2": "/cad/d1/e124/graphics/p2",
-        "3": "/cad/d1/e124/graphics/p3",
-        "4": "/cad/d1/e124/graphics/p4"
+        "0": "/cad/d1/e130/graphics/p0",
+        "1": "/cad/d1/e130/graphics/p1",
+        "2": "/cad/d1/e130/graphics/p2",
+        "3": "/cad/d1/e130/graphics/p3",
+        "4": "/cad/d1/e130/graphics/p4"
       },
       "attributes": {
         "ifccad::dimensionGraphics": {
@@ -8368,7 +8878,7 @@
       }
     },
     {
-      "path": "/cad/d1/e124/graphics/p0",
+      "path": "/cad/d1/e130/graphics/p0",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -8384,7 +8894,7 @@
       }
     },
     {
-      "path": "/cad/d1/e124/graphics/p1",
+      "path": "/cad/d1/e130/graphics/p1",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -8400,7 +8910,7 @@
       }
     },
     {
-      "path": "/cad/d1/e124/graphics/p2",
+      "path": "/cad/d1/e130/graphics/p2",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::lineSegment": {
@@ -8416,7 +8926,7 @@
       }
     },
     {
-      "path": "/cad/d1/e124/graphics/p3",
+      "path": "/cad/d1/e130/graphics/p3",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -8459,7 +8969,7 @@
       }
     },
     {
-      "path": "/cad/d1/e124/graphics/p4",
+      "path": "/cad/d1/e130/graphics/p4",
       "attributes": {
         "ifccad::dimensionGraphicsPart": {},
         "ifccad::geom::placement": {
@@ -8500,9 +9010,9 @@
       }
     },
     {
-      "path": "/cad/d1/e124",
+      "path": "/cad/d1/e130",
       "children": {
-        "graphics": "/cad/d1/e124/graphics"
+        "graphics": "/cad/d1/e130/graphics"
       },
       "attributes": {
         "ifccad::annotation": {
@@ -8531,7 +9041,7 @@
               "selector": {
                 "kind": "center"
               },
-              "source": "/cad/d1/e125"
+              "source": "/cad/d1/e131"
             },
             {
               "role": "curvePoint",
@@ -8539,7 +9049,7 @@
                 "angle": 0.9272952180016122,
                 "kind": "circlePoint"
               },
-              "source": "/cad/d1/e125"
+              "source": "/cad/d1/e131"
             }
           ],
           "definition": {
@@ -8620,7 +9130,7 @@
       }
     },
     {
-      "path": "/cad/d1/e125",
+      "path": "/cad/d1/e131",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/1"
@@ -8648,7 +9158,7 @@
       }
     },
     {
-      "path": "/cad/d1/e126",
+      "path": "/cad/d1/e132",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -8691,7 +9201,7 @@
       }
     },
     {
-      "path": "/cad/d1/e127",
+      "path": "/cad/d1/e133",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -8734,7 +9244,7 @@
       }
     },
     {
-      "path": "/cad/d1/e128",
+      "path": "/cad/d1/e134",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -8786,7 +9296,7 @@
       }
     },
     {
-      "path": "/cad/d1/e129",
+      "path": "/cad/d1/e135",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -8832,7 +9342,7 @@
       }
     },
     {
-      "path": "/cad/d1/e130",
+      "path": "/cad/d1/e136",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -8875,7 +9385,7 @@
       }
     },
     {
-      "path": "/cad/d1/e131",
+      "path": "/cad/d1/e137",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -8918,7 +9428,7 @@
       }
     },
     {
-      "path": "/cad/d1/e132",
+      "path": "/cad/d1/e138",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -8963,7 +9473,7 @@
       }
     },
     {
-      "path": "/cad/d1/e133",
+      "path": "/cad/d1/e139",
       "attributes": {
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
@@ -8975,6 +9485,171 @@
           "origin": [
             3.0,
             3.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e140",
+      "attributes": {
+        "ifccad::attributeDefinition": {
+          "fieldLength": 0,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "prompt": "Marker code",
+          "tag": "CODE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "M-00",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 1.8,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/0"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            2.0,
+            2.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e141",
+      "attributes": {
+        "ifccad::attributeDefinition": {
+          "fieldLength": 0,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/0",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                0.0,
+                -4.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Marker"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                },
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Default"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 1.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/0",
+              "wrapWidth": 24.0
+            },
+            "visible": true
+          },
+          "prompt": "Description",
+          "tag": "NOTE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Marker\\PDefault",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 1.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/0"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -4.0,
             0.0
           ],
           "xAxis": [

@@ -9,6 +9,8 @@ use std::collections::{BTreeMap, BTreeSet};
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DrawingValue {
+    #[serde(default)]
+    attribute_visibility: IfccadAttributeVisibility,
     #[serde(default, deserialize_with = "crate::dimension::present_option")]
     annotation_settings: Option<IfccadDrawingAnnotationSettings>,
     #[serde(default, deserialize_with = "super::presentation::present")]
@@ -310,7 +312,7 @@ fn entity(
         .get("attributes")
         .and_then(Value::as_object)
         .ok_or_else(|| problem(format!("{path} missing attributes")))?;
-    let kind = decode_payload(attrs, prefix, path, block_paths, style_paths)?;
+    let kind = decode_payload(attrs, prefix, path, block_paths, style_paths, pattern_paths)?;
     Ok(IfccadEntity::Native(IfccadNativeEntity {
         id,
         visible: value.visible,
@@ -378,7 +380,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .and_then(Value::as_object)
         .ok_or_else(|| problem("IFCX schemas must be an object"))?;
     let profile_module: Value = serde_json::from_str(include_str!(
-        "../../../../schemas/ifccad/ifccad-profile-0.5.0.ifcx"
+        "../../../../schemas/ifccad/ifccad-profile-0.6.0.ifcx"
     ))
     .map_err(|e| problem(format!("invalid built-in CAD schema module: {e}")))?;
     let known = profile_module["schemas"]
@@ -435,7 +437,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let drawing_id = numbered(drawing_path, "/cad/d")?;
     let prefix = drawing_prefix(drawing_id);
     let drawing: DrawingValue = required(drawing_node, "ifccad::drawing")?;
-    if drawing.profile_version != "0.5.0" {
+    if drawing.profile_version != "0.6.0" {
         return Err(crate::ifccad::diagnostics::failure(
             "IFCCAD-WIRE-001",
             &format!("{drawing_path}/ifccad::drawing/profileVersion"),
@@ -680,6 +682,61 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
                     &style_paths,
                 )?;
                 graphics.attach(&mut entity, child)?;
+                if let Some(IfccadNativeEntity {
+                    kind: IfccadEntityKind::BlockInstance { attributes, .. },
+                    ..
+                }) = entity.as_native_mut()
+                {
+                    for attribute_path in children(child)? {
+                        if !owners.insert(attribute_path.clone()) {
+                            return Err(problem("attribute has more than one owner"));
+                        }
+                        let child_node = nodes
+                            .get(&attribute_path)
+                            .ok_or_else(|| problem("missing INSERT child"))?;
+                        if !children(child_node)?.is_empty() {
+                            return Err(problem("attribute cannot own drawable children"));
+                        }
+                        let payload =
+                            attr(child_node, "ifccad::blockAttribute").ok_or_else(|| {
+                                problem("INSERT numeric children must be block attributes")
+                            })?;
+                        let (_, value) = super::attributes::decode_value(
+                            payload,
+                            &child_node["attributes"]["ifccad::geom::placement"],
+                            &prefix,
+                            &attribute_path,
+                            &style_paths,
+                            &pattern_paths,
+                            false,
+                        )?;
+                        let mut ordinary = (*child_node).clone();
+                        let attrs = ordinary["attributes"]
+                            .as_object_mut()
+                            .ok_or_else(|| problem("attribute object required"))?;
+                        attrs.remove("ifccad::blockAttribute");
+                        attrs.insert("ifccad::text".into(), payload["text"].clone());
+                        let common = self::entity(
+                            &ordinary,
+                            &prefix,
+                            &layer_paths,
+                            &block_paths,
+                            &pattern_paths,
+                            &style_paths,
+                        )?;
+                        let common = common
+                            .as_native()
+                            .ok_or_else(|| problem("attribute needs native properties"))?;
+                        attributes.push(IfccadBlockAttribute {
+                            id: common.id,
+                            visible: common.visible,
+                            layer_id: common.layer_id,
+                            appearance: common.appearance.clone(),
+                            line_pattern_scale: common.line_pattern_scale,
+                            value,
+                        });
+                    }
+                }
                 Ok(entity)
             })
             .collect()
@@ -851,6 +908,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         _ => return Err(problem("preservation requires allocation watermark")),
     };
     let mut document = IfccadDocument {
+        attribute_visibility: drawing.attribute_visibility,
         annotation_settings: drawing.annotation_settings,
         annotation_views: vec![],
         annotation_scales: vec![],
@@ -912,9 +970,11 @@ pub(super) fn decode_payload(
     path: &str,
     block_paths: &BTreeMap<String, u64>,
     style_paths: &BTreeMap<String, IfccadTextStyleId>,
+    pattern_paths: &BTreeMap<String, IfccadLinePatternId>,
 ) -> Result<IfccadEntityKind, IfccadReport> {
     let mut payloads = super::geometry::PAYLOADS.to_vec();
     payloads.extend([
+        "ifccad::attributeDefinition",
         "ifccad::viewport",
         "ifccad::blockInstance",
         "ifccad::text",
@@ -939,6 +999,16 @@ pub(super) fn decode_payload(
         return Err(problem(format!("{path} unsupported CAD geometry")));
     }
     let mut kind = match *present[0] {
+        "ifccad::attributeDefinition" => {
+            IfccadEntityKind::AttributeDefinition(Box::new(super::attributes::definition(
+                &attrs["ifccad::attributeDefinition"],
+                &attrs["ifccad::geom::placement"],
+                prefix,
+                path,
+                style_paths,
+                pattern_paths,
+            )?))
+        }
         "ifccad::dimension" => super::dimension::decode(
             &attrs["ifccad::dimension"],
             attrs
@@ -993,6 +1063,7 @@ pub(super) fn decode_payload(
                 ))
             })?;
             IfccadEntityKind::BlockInstance {
+                attributes: Vec::new(),
                 annotation: None,
                 definition_id,
                 transform: instance.transform.into_typed(),

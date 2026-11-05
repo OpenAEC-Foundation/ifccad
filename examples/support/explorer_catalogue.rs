@@ -155,7 +155,7 @@ pub const SAMPLES: &[Sample] = &[
     },
     Sample {
         title: "Block instances",
-        note: "Rotate, mirror / contexts 1:1, 1:2",
+        note: "Text + MText attributes / rotate, mirror",
         draw: |d, x, y| {
             let (owner, id) = d.block("Catalogue marker");
             d.poly(
@@ -165,9 +165,23 @@ pub const SAMPLES: &[Sample] = &[
                 false,
             );
             d.circle(owner, 0, 3., 3., 1.5);
-            d.insert(1, id, x + 12., y + 12., 0., [1., 1., 1.]);
-            d.insert(1, id, x + 43., y + 12., FRAC_PI_2, [1.5, 1.5, 1.]);
-            d.insert(1, id, x + 74., y + 12., 0., [-1., 1., 1.]);
+            let text = |value: &str, vertical: &str, height: f64| json!({"style":"/cad/d1/textStyle/0","layout":{"kind":"anchored","horizontal":"left","vertical":vertical,"height":height,"widthFactor":1.},"content":[{"text":value}]});
+            let code_def=d.entity(owner,0,json!({"ifccad::geom::placement":plane(2.,2.),"ifccad::attributeDefinition":{"tag":"CODE","prompt":"Marker code","text":text("M-00","baseline",1.8)}}));
+            let note_def=d.entity(owner,0,json!({"ifccad::geom::placement":plane(0.,-4.),"ifccad::attributeDefinition":{"tag":"NOTE","prompt":"Description","text":text("Marker\\PDefault","top",1.5),"mText":{"layer":"/cad/d1/layer/0","placement":plane(0.,-4.),"text":{"style":"/cad/d1/textStyle/0","height":1.5,"wrapWidth":24.,"attachment":"topLeft","content":[{"inlines":[{"kind":"run","text":"Marker"}]},{"inlines":[{"kind":"run","text":"Default"}]}]}}}}));
+            // Attribute coordinates are authored in the INSERT owner's scope.
+            // Keep labels legible beside the rotated and mirrored marker geometry.
+            for (column, rotation, scale, label) in [
+                (0, 0., [1., 1., 1.], "Alpha"),
+                (1, FRAC_PI_2, [1.5, 1.5, 1.], "Beta"),
+                (2, 0., [-1., 1., 1.], "Gamma"),
+            ] {
+                let dx = 31. * f64::from(column);
+                d.insert(1, id, x + 12. + dx, y + 12., rotation, scale);
+                let insert_owner = d.nodes.len() - 1;
+                d.nodes[insert_owner]["children"] = json!({});
+                d.entity(insert_owner,1,json!({"ifccad::geom::placement":plane(x+4.+dx,y+33.),"ifccad::blockAttribute":{"tag":"CODE","definition":format!("/cad/d1/e{code_def}"),"text":text(&format!("M-0{}",column+1),"baseline",1.8)}}));
+                d.entity(insert_owner,1,json!({"ifccad::geom::placement":plane(x+4.+dx,y+7.),"ifccad::blockAttribute":{"tag":"NOTE","definition":format!("/cad/d1/e{note_def}"),"text":text(&format!("Marker\\P{label}"),"top",1.5),"mText":{"layer":"/cad/d1/layer/1","placement":plane(x+4.+dx,y+7.),"text":{"style":"/cad/d1/textStyle/0","height":1.5,"wrapWidth":24.,"attachment":"topLeft","content":[{"inlines":[{"kind":"run","text":"Marker"}]},{"inlines":[{"kind":"run","text":label}]}]}}}}));
+            }
         },
     },
     Sample {

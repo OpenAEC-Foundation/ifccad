@@ -92,6 +92,7 @@ fn nested_nonuniform_mirrored_instances_transform_the_complete_sweep() {
     let mut instance = template.clone();
     instance.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
     instance.as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
+        attributes: Vec::new(),
         annotation: None,
         definition_id: inner,
         transform: IfccadBlockTransform {
@@ -104,6 +105,7 @@ fn nested_nonuniform_mirrored_instances_transform_the_complete_sweep() {
     let mut instance = template;
     instance.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
     instance.as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
+        attributes: Vec::new(),
         annotation: None,
         definition_id: outer,
         transform: IfccadBlockTransform {

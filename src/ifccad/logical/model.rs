@@ -17,6 +17,7 @@ pub struct IfccadHeader {
 /// This document does not contain foreign nodes or original IFCX fragments.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDocument {
+    pub attribute_visibility: super::IfccadAttributeVisibility,
     pub annotation_settings: Option<super::IfccadDrawingAnnotationSettings>,
     pub annotation_views: Vec<super::IfccadAnnotationStoredView>,
     pub annotation_scales: Vec<super::IfccadAnnotationScale>,
@@ -226,6 +227,7 @@ fn unit_block_scale() -> [f64; 3] {
 // unmeasured side effect of extending the logical contract.
 #[allow(clippy::large_enum_variant)]
 pub enum IfccadEntityKind {
+    AttributeDefinition(Box<super::IfccadAttributeDefinition>),
     Solid(IfccadFilledQuadrilateral),
     Trace(IfccadFilledQuadrilateral),
     Dimension(Box<super::IfccadDimension>),
@@ -282,6 +284,7 @@ pub enum IfccadEntityKind {
         thickness: f64,
     },
     BlockInstance {
+        attributes: Vec<super::IfccadBlockAttribute>,
         annotation: Option<Box<super::IfccadAnnotation<super::IfccadBlockAnnotationContext>>>,
         definition_id: u64,
         transform: IfccadBlockTransform,

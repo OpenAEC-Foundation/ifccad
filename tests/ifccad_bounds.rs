@@ -77,6 +77,7 @@ fn separate_layout_and_block_ids_do_not_alias_during_preparation() {
     let mut instance = template;
     instance.as_native_mut().unwrap().id = d.id_counters.allocate_entity_id().unwrap();
     instance.as_native_mut().unwrap().kind = IfccadEntityKind::BlockInstance {
+        attributes: Vec::new(),
         annotation: None,
         definition_id: block_id,
         transform: IfccadBlockTransform {

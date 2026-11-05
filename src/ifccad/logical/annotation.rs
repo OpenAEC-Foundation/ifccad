@@ -1,7 +1,9 @@
 //! Saved scale membership and independent presentation snapshots.
 
 /// Drawing-local scale identity; equal numeric ratios do not merge identities.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub struct IfccadAnnotationScaleId(pub u64);
 
 #[derive(Clone, Debug, PartialEq)]

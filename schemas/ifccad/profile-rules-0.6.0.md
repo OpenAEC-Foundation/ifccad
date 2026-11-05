@@ -1,10 +1,10 @@
-# IFCCAD supplemental profile rules 0.5.0
+# IFCCAD supplemental profile rules 0.6.0
 
-This is a normative companion to the [experimental contract](experimental-contract-0.5.0.md),
-the ordinary [IFCX declarations](ifccad-profile-0.5.0.ifcx), and the
-[local-value supplement](supplemental-values-0.5.0.schema.json). All apply after
+This is a normative companion to the [experimental contract](experimental-contract-0.6.0.md),
+the ordinary [IFCX declarations](ifccad-profile-0.6.0.ifcx), and the
+[local-value supplement](supplemental-values-0.6.0.schema.json). All apply after
 fragment composition. It is not an IFCX schema extension or an independent drawing format.
-The existing `urn:example:ifccad:0.5.0` import remains the only drawing import needed
+The existing `urn:example:ifccad:0.6.0` import remains the only drawing import needed
 by the bundled offline reader. Full IFCCAD validation includes local values,
 graph relationships and domain algorithms, not just ordinary IFCX attribute shapes.
 
@@ -99,7 +99,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 
 | ID | Requirement and algorithm | Phase / gap | Positive and negative evidence |
 |---|---|---|---|
-| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.5.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
+| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.6.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
 | IFCCAD-WIRE-002 | Duplicate keys within one JSON object MUST fail. Same-path fragments merge children/inherits/attributes by key in file order; repeated values replace whole values, not nested arrays/overrides. Null inheritance removes its key; child/attribute null remains a marker. RejectConflicts MUST reject differing repeated values, including foreign nodes. | C; G3 | [composer](../../src/ifccad/source/composition.rs), [text wire](../../tests/ifccad_text_wire.rs) |
 | IFCCAD-WIRE-003 | CAD validation MUST run on the composed graph, retaining exact immutable original bytes and foreign context. Foreign children confer no CAD ownership. No supplement may validate all foreign objects or interpret provider bytes as CAD fields. | C/V/G; G3/G8 | [profile rules tests](../../tests/ifccad_profile_rules.rs), [native](../../tests/ifccad_native.rs) |
 | IFCCAD-WIRE-004 | Closed native value objects MUST reject unknown members and forbidden nulls as specified in the contract and local variant definitions. Unsupported CAD namespaces/payloads MUST fail at their existing role boundaries. No legacy unknown-field or null acceptance exception is provided. | V/G; G7 | [geometry](../../tests/ifccad_geometry.rs), [text codec](../../tests/ifccad_text_codec.rs), [workspace](../../tests/ifccad_workspace_state.rs) |
@@ -564,3 +564,23 @@ is involved. Explicit `cadFileName` equal to `fileName` remains present in nativ
 IO. Whole-attribute composition replaces the source without rebasing its request.
 External file absence never invalidates a drawing; local source references still
 MUST resolve to their correct drawing-local roles.
+
+## Block attributes (IFCCAD-ATTRIBUTE-001)
+
+AttributeDefinition is an entity role; blockAttribute is exclusively a numeric
+INSERT child. Both use the global entity-ID domain/watermark. Children are
+ordered, singly owned and may not own children themselves. An explicit definition
+reference must target an ATTDEF in the directly referenced block definition;
+no uniqueness or matching-tag requirement is imposed. Secondary references target
+only attributes/definitions in the same drawing and do not confer ownership.
+Tags are nonempty and reject ASCII whitespace/control characters. Text, embedded
+MText, appearance/resources, position lock, flags and annotation context kinds
+are independently validated; active empty MText never falls back to outer Text.
+
+Stored field graphs use local IDs below nextId, one root, reachable records,
+acyclic child ownership and same-drawing object dependencies. Literals cannot
+hide raw source-handle/index tokens. CurrentBlockReference is allowed only on
+definitions. Scalar caches must be finite and typed Object caches must resolve.
+Only the selected evaluator families/spellings are valid; no evaluation occurs.
+The supplemental attributeDefinition/blockAttribute local schemas and shared
+semantic validators jointly enforce this contract. See [details](../../docs/block-attributes.md).

@@ -170,6 +170,7 @@ fn family(kind: &ifccad::IfccadEntityKind) -> &'static str {
         SpatialPolyline { .. } => "spatialPolyline",
         Circle { .. } => "circle",
         BlockInstance { .. } => "blockInstance",
+        AttributeDefinition(_) => "attributeDefinition",
     }
 }
 
@@ -188,6 +189,7 @@ fn catalogue_covers_every_native_family_and_all_nine_dimension_kinds() {
         .entities
         .iter()
         .chain(d.paper_layouts.iter().flat_map(|p| &p.entities))
+        .chain(d.blocks.iter().flat_map(|b| &b.entities))
         .filter_map(ifccad::IfccadEntity::as_native)
         .collect();
     let actual: BTreeSet<_> = entities.iter().map(|e| family(&e.kind)).collect();
@@ -209,7 +211,8 @@ fn catalogue_covers_every_native_family_and_all_nine_dimension_kinds() {
             "circle",
             "blockInstance",
             "solid",
-            "trace"
+            "trace",
+            "attributeDefinition"
         ])
     );
     let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
@@ -573,7 +576,17 @@ fn every_ifccad_example_uses_compact_ids_and_writer_node_order() {
             .iter()
             .chain(papers.iter().flat_map(|p| &p.entities))
             .chain(d.blocks.iter().flat_map(|b| &b.entities))
-            .map(|e| e.id())
+            .flat_map(|e| {
+                let mut ids = vec![e.id()];
+                if let Some(ifccad::IfccadNativeEntity {
+                    kind: ifccad::IfccadEntityKind::BlockInstance { attributes, .. },
+                    ..
+                }) = e.as_native()
+                {
+                    ids.extend(attributes.iter().map(|a| a.id));
+                }
+                ids
+            })
             .collect();
         assert_eq!(
             ids,
@@ -665,4 +678,60 @@ fn curated_overviews_include_complex_patterns_without_expanding_the_chooser() {
         .line_patterns
         .iter()
         .any(|p| p.name == "Mixed" && p.pattern.iter().any(|e| e.marker.is_some())));
+}
+
+#[test]
+fn catalogue_marker_instances_own_distinct_text_and_mtext_attributes() {
+    use ifccad::*;
+    let bytes = catalogue::build().unwrap();
+    let d = load_ifccad_bytes(&bytes, Default::default()).unwrap();
+    let d = d.document();
+    let marker = d
+        .blocks
+        .iter()
+        .find(|b| b.name == "Catalogue marker")
+        .unwrap();
+    assert_eq!(
+        marker
+            .entities
+            .iter()
+            .filter_map(|e| e.as_native())
+            .filter(|e| matches!(e.kind, IfccadEntityKind::AttributeDefinition(_)))
+            .count(),
+        2
+    );
+    let mut codes = std::collections::BTreeSet::new();
+    let mut count = 0;
+    for e in d.model.entities.iter().filter_map(|e| e.as_native()) {
+        if let IfccadEntityKind::BlockInstance {
+            definition_id,
+            attributes,
+            ..
+        } = &e.kind
+        {
+            if *definition_id != marker.id {
+                continue;
+            }
+            count += 1;
+            assert_eq!(attributes.len(), 2);
+            for a in attributes {
+                let id = a
+                    .value
+                    .definition_id
+                    .expect("reliable native definition reference");
+                assert!(marker.entities.iter().any(|e| e.id() == id));
+            }
+            let code = attributes.iter().find(|a| a.value.tag == "CODE").unwrap();
+            codes.insert(code.value.text.content[0].text.clone());
+            assert!(attributes
+                .iter()
+                .find(|a| a.value.tag == "NOTE")
+                .unwrap()
+                .value
+                .m_text
+                .is_some());
+        }
+    }
+    assert_eq!(count, 3);
+    assert_eq!(codes.len(), 3);
 }

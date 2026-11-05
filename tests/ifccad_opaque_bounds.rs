@@ -38,6 +38,7 @@ fn opaque_only_unused_and_nested_definitions_never_use_empty_origin_fallback() {
     let mut instance = d.model.entities[0].as_native().unwrap().clone();
     instance.id = d.id_counters.allocate_entity_id().unwrap();
     instance.kind = IfccadEntityKind::BlockInstance {
+        attributes: Vec::new(),
         annotation: None,
         definition_id: leaf_id,
         transform: IfccadBlockTransform {

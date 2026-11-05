@@ -88,6 +88,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let mut model_entities = vec![entity(text.clone())?, entity(mtext.clone())?];
     model_entities.push(entity(IfccadEntityKind::BlockInstance {
+        attributes: Vec::new(),
         annotation: None,
         definition_id: block_id,
         transform: IfccadBlockTransform {
@@ -99,6 +100,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let paper_entities = vec![entity(text.clone())?, entity(mtext.clone())?];
     let block_entities = vec![entity(text)?, entity(mtext)?];
     let mut d = IfccadDocument {
+        attribute_visibility: Default::default(),
         annotation_settings: None,
         dimension_styles: Vec::new(),
         symbol_sources: vec![],

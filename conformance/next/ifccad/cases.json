@@ -650,5 +650,37 @@
   {
     "file": "invalid/font-symbol-source-requests-unknown.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/attributes-ownership-and-strong-link.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/attributes-empty-active-mtext.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid/attributes-field-graph.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/attributes-wrong-definition.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/attributes-wrong-secondary-target.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/attributes-null-field.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/attributes-unknown-field.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/attributes-field-cycle.ifcx",
+    "valid": false
   }
 ]

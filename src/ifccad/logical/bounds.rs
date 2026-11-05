@@ -359,6 +359,41 @@ impl<'a> Evaluation<'a> {
         self.completed.insert(key, combined.clone());
         Ok(combined)
     }
+    fn attribute_extents(
+        &mut self,
+        owner: Owner,
+        text: &IfccadText,
+        mtext: Option<&IfccadAttributeMText>,
+        annotation: Option<&IfccadAnnotation<IfccadAttributeAnnotationContext>>,
+        input: ExtentContext<'_>,
+    ) -> Result<Extents, IfccadReport> {
+        let (kind, input) = if let Some(m) = mtext {
+            (
+                IfccadEntityKind::MText(Box::new(m.text.clone())),
+                ExtentContext {
+                    appearance: &m.appearance,
+                    layer_id: Some(m.layer_id),
+                    line_pattern_scale: m.line_pattern_scale,
+                    ..input
+                },
+            )
+        } else {
+            (IfccadEntityKind::Text(text.clone()), input)
+        };
+        let source_path = input.source_path.to_owned();
+        let mut result = self.kind_extents(owner, &kind, input)?;
+        if let Some(a) = annotation {
+            if a.mode != IfccadAnnotationMode::Disabled || !a.contexts.is_empty() {
+                result.unavailable = true;
+                result.annotation_reasons.push(IfccadAnnotationBoundsIssue {
+                    source_path,
+                    occurrence_path: vec![],
+                    reason: IfccadAnnotationBoundsReason::PresentationUnassessed,
+                });
+            }
+        }
+        Ok(result)
+    }
     fn kind_extents(
         &mut self,
         owner: Owner,
@@ -378,6 +413,7 @@ impl<'a> Evaluation<'a> {
                 definition_id,
                 transform,
                 annotation,
+                attributes,
             } => {
                 let block = self.blocks[definition_id];
                 let mut local =
@@ -461,7 +497,51 @@ impl<'a> Evaluation<'a> {
                         },
                     });
                 }
+                for a in attributes {
+                    let child = self.attribute_extents(
+                        owner,
+                        &a.value.text,
+                        a.value.m_text.as_deref(),
+                        a.value.annotation.as_deref(),
+                        ExtentContext {
+                            entity_id: a.id,
+                            source_path: &format!("/cad/d{}/e{}", self.drawing.drawing_id, a.id),
+                            appearance: &a.appearance,
+                            layer_id: Some(a.layer_id),
+                            occurrence: context,
+                            line_pattern_scale: a.line_pattern_scale,
+                        },
+                    )?;
+                    local.merge(child);
+                }
                 local
+            }
+            IfccadEntityKind::AttributeDefinition(a) => {
+                if matches!(owner, Owner::BlockDefinition(_)) && !a.flags.constant {
+                    Extents::default()
+                } else {
+                    let mut text = a.text.clone();
+                    if !a.flags.constant {
+                        text.content = vec![TextRun {
+                            text: a.tag.clone(),
+                            ..Default::default()
+                        }];
+                    }
+                    self.attribute_extents(
+                        owner,
+                        &text,
+                        a.m_text.as_deref(),
+                        a.annotation.as_deref(),
+                        ExtentContext {
+                            entity_id,
+                            source_path,
+                            appearance,
+                            layer_id,
+                            occurrence: context,
+                            line_pattern_scale,
+                        },
+                    )?
+                }
             }
             IfccadEntityKind::Text(t) => {
                 let style = self

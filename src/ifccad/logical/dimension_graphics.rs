@@ -191,6 +191,7 @@ impl From<IfccadDimensionGraphicsKind> for IfccadEntityKind {
                 definition_id,
                 transform,
             } => Self::BlockInstance {
+                attributes: Vec::new(),
                 annotation: None,
                 definition_id,
                 transform,
@@ -305,7 +306,8 @@ impl TryFrom<IfccadEntityKind> for IfccadDimensionGraphicsKind {
                 definition_id,
                 transform,
                 annotation: None,
-            } => Self::BlockInstance {
+                attributes,
+            } if attributes.is_empty() => Self::BlockInstance {
                 definition_id,
                 transform,
             },

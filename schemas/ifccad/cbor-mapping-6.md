@@ -1,11 +1,11 @@
-# Experimental IFCCAD CBOR mapping, revision 5 (development)
+# Experimental IFCCAD CBOR mapping, revision 6 (development)
 
 This is a standalone encoding of `IfccadDocument`, not a general IFCX binary
 serialization. It retains the complete supported CAD projection, including
 opaque CAD preservation, but no original IFCX fragments, imports or foreign
 nodes. JSON/IFCX remains a separate mapping through the same typed document.
 
-The normative field/type inventory is [cbor-mapping-5.json](cbor-mapping-5.json).
+The normative field/type inventory is [cbor-mapping-6.json](cbor-mapping-6.json).
 It enumerates concrete records and generic instantiations reachable from the
 document. Names in that registry are explanatory, not transmitted type names.
 Record field codes are local to their record type. Codes and enum variants are
@@ -14,10 +14,11 @@ values and never inferred from field codes, vector indices or content.
 
 ## Envelope and revision
 
-Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 4, 2: Document}`.
+Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 6, 2: Document}`.
 All three fields are required. Other revisions are rejected; no migration,
 forward-compatible skipping, feature negotiation or historical decoder is
-provided. Revision 4 and profile 0.5.0 are the annotation development candidate.
+provided. Revision 6 and profile 0.6.0 are the unpublished block-attribute development candidate.
+Published revision 5 / profile 0.5.0 remains fixed in tag 2026.45.1.
 Revision 3 and profile 0.3.0 were published in native source alpha 2026.45.0;
 that tagged contract is fixed.
 Revision 1 and profile 0.1.0 were published in native source alpha 2026.44.0;
@@ -185,7 +186,7 @@ Ordinary and graphics kind codes stay unchanged. Their contextual body additions
 are LineSegment 2=thickness, 3=extrusion_direction; Point 1=thickness; Circle
 2=thickness; Arc 4=thickness; PlanarPolyline 6=thickness (5 remains widths).
 Thickness scalars and the direction triple use binary64, with exact +0 and
-[+0,+0,1] defaults respectively; signed zero is not discarded. Profile 0.5.0 is
+[+0,+0,1] defaults respectively; signed zero is not discarded. Profile 0.6.0 is
 required. Release 2026.44.1's profile 0.2.0/mapping 2 remain fixed in its tag.
 
 ## Annotation storage in the development candidate
@@ -198,7 +199,7 @@ Descriptor fields are 0 mode (0 Disabled, 1 Enabled, 2 ByDefinition), 1 optional
 reference key, 2 required context list. Each context has 0 key and 1 optional
 presentation; each key has 0 scale ID. Optional values omit their field; a
 present null is malformed. Family records and exact enum codes are declared in
-[cbor-mapping-5.json](cbor-mapping-5.json). Shared profile rules govern semantic
+[cbor-mapping-6.json](cbor-mapping-6.json). Shared profile rules govern semantic
 validity in both encodings. Floating-point payloads retain their exact bits;
 no record field calculates a scale quotient or normalizes a direction.
 
@@ -257,3 +258,15 @@ body field 1 (`cad_file_name`: string) defaults to None and is omitted only when
 absent. Explicit null, duplicate fields and unknown fields are rejected. Present
 strings, including a request equal to the basename, survive exact native IO.
 Shared source validation applies the logical basename/request rule.
+
+## Revision 6 attributes
+
+The single active registry includes AttributeDefinition (entity-kind code 16),
+BlockInstance attributes (local field 3), and drawing attribute_visibility (local
+field 23, integer enum Normal=0, HideAll=1, ShowAll=2). All attribute records,
+annotation contexts and field graph/cache/codepart variants have explicit local
+codes in the registry. Signed field metadata uses i32; signed Integer caches use
+i64. Object caches and Object codeparts carry global entity IDs, while Child
+codeparts and field record IDs are local to the owning attribute graph. JSON
+path spelling is not embedded in CBOR. Physical CAD limitations do not weaken
+native exact-equality readback or graph validation.

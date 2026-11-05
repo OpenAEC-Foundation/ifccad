@@ -24,6 +24,7 @@ record!(IfccadDocument;
 20 => annotation_scales: Vec<IfccadAnnotationScale> = Some(Vec::new()),
 21 => annotation_views:Vec<IfccadAnnotationStoredView>=Some(Vec::new()),
 22 => annotation_settings:Option<IfccadDrawingAnnotationSettings>=Some(None),
+23 => attribute_visibility:IfccadAttributeVisibility=Some(IfccadAttributeVisibility::Normal),
 );
 record!(IfccadLayout;
 0 => bounds_quality: Option<IfccadBoundsQuality> = Some(None),

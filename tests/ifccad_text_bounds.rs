@@ -251,6 +251,7 @@ fn nested_estimates_and_partial_coverage_keep_projection_overflow_hard() {
     let mut instance = prototype.model.entities[0].as_native().unwrap().clone();
     instance.id = d.id_counters.allocate_entity_id().unwrap();
     instance.kind = IfccadEntityKind::BlockInstance {
+        attributes: Vec::new(),
         annotation: None,
         definition_id: block_id,
         transform: IfccadBlockTransform {
@@ -312,6 +313,7 @@ fn empty_glyphs_do_not_turn_nonempty_definitions_into_insertion_point_geometry()
     }];
     let mut e = d.model.entities[0].as_native().unwrap().clone();
     e.kind = IfccadEntityKind::BlockInstance {
+        attributes: Vec::new(),
         annotation: None,
         definition_id: id,
         transform: IfccadBlockTransform {

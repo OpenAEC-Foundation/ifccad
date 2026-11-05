@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:example:ifccad:supplemental-values:0.5.0",
+  "$id": "urn:example:ifccad:supplemental-values:0.6.0",
   "title": "IFCCAD supplemental local value constraints",
   "$defs": {
     "mTextBackground": {
@@ -1118,6 +1118,13 @@
         },
         "annotationSettings": {
           "$ref": "#/$defs/annotationSettings"
+        },
+        "attributeVisibility": {
+          "enum": [
+            "Normal",
+            "HideAll",
+            "ShowAll"
+          ]
         }
       },
       "additionalProperties": false,
@@ -7985,6 +7992,587 @@
           ]
         }
       }
+    },
+    "attributeFlags": {
+      "type": "object",
+      "properties": {
+        "invisible": {
+          "type": "boolean"
+        },
+        "constant": {
+          "type": "boolean"
+        },
+        "verify": {
+          "type": "boolean"
+        },
+        "preset": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "attributeFieldValue": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Empty"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Text"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Integer"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": -9223372036854775808,
+              "maximum": 9223372036854775807
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Real"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Boolean"
+            },
+            "value": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Object"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^/cad/d(?:0|[1-9][0-9]*)/e(?:0|[1-9][0-9]*)$"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "attributeFieldCache": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/attributeFieldValue"
+        },
+        "display": {
+          "type": "string"
+        },
+        "flags": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "unit_type": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "format": {
+          "type": "string"
+        },
+        "formatted_value": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "display"
+      ],
+      "additionalProperties": false
+    },
+    "attributeFieldCodePart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Literal"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Child"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Object"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^/cad/d(?:0|[1-9][0-9]*)/e(?:0|[1-9][0-9]*)$"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "CurrentBlockReference"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "attributeFieldRecord": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "evaluator": {
+          "enum": [
+            "TextTemplate",
+            "DrawingVariable",
+            "ObjectProperty"
+          ]
+        },
+        "code": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/attributeFieldCodePart"
+          }
+        },
+        "format": {
+          "type": "string"
+        },
+        "cache": {
+          "$ref": "#/$defs/attributeFieldCache"
+        },
+        "evaluationOptions": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "filingOptions": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "state": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "evaluationStatus": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "errorCode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "errorMessage": {
+          "type": "string"
+        },
+        "sourceEvaluator": {
+          "type": "string"
+        },
+        "auxiliaryValues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "cache": {
+                "$ref": "#/$defs/attributeFieldCache"
+              }
+            },
+            "required": [
+              "key",
+              "cache"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "evaluator",
+        "code",
+        "format",
+        "cache",
+        "evaluationOptions",
+        "filingOptions",
+        "state",
+        "evaluationStatus",
+        "errorCode",
+        "errorMessage"
+      ],
+      "additionalProperties": false
+    },
+    "attributeFields": {
+      "type": "object",
+      "properties": {
+        "root": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "nextId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/attributeFieldRecord"
+          }
+        }
+      },
+      "required": [
+        "root",
+        "nextId",
+        "records"
+      ],
+      "additionalProperties": false
+    },
+    "attributeEmbeddedContext": {
+      "type": "object",
+      "properties": {
+        "scaleId": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/annotationScale/(?:0|[1-9][0-9]*)$"
+        },
+        "isDefault": {
+          "type": "boolean"
+        },
+        "presentation": {
+          "$ref": "#/$defs/annotationMText"
+        }
+      },
+      "required": [
+        "scaleId",
+        "isDefault",
+        "presentation"
+      ],
+      "additionalProperties": false
+    },
+    "attributeContext": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "Text"
+            },
+            "text": {
+              "$ref": "#/$defs/annotationText"
+            }
+          },
+          "required": [
+            "kind",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "MText"
+            },
+            "text": {
+              "$ref": "#/$defs/annotationText"
+            },
+            "mTextEnabled": {
+              "type": "boolean"
+            },
+            "embedded": {
+              "$ref": "#/$defs/attributeEmbeddedContext"
+            }
+          },
+          "required": [
+            "kind",
+            "text",
+            "mTextEnabled"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "attributeAnnotation": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": [
+            "disabled",
+            "enabled",
+            "byDefinition"
+          ]
+        },
+        "reference": {
+          "$ref": "#/$defs/annotationKey"
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/annotationKey"
+              },
+              "presentation": {
+                "$ref": "#/$defs/attributeContext"
+              }
+            },
+            "required": [
+              "key"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "orientation": {
+          "enum": [
+            "fixed",
+            "matchLayout"
+          ]
+        }
+      },
+      "required": [
+        "mode",
+        "contexts"
+      ],
+      "additionalProperties": false
+    },
+    "attributeMText": {
+      "type": "object",
+      "properties": {
+        "visible": {
+          "type": "boolean"
+        },
+        "layer": {
+          "type": "string"
+        },
+        "appearance": {
+          "type": "object"
+        },
+        "linePatternScale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "text": {
+          "$ref": "#/$defs/mText"
+        },
+        "placement": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "layer",
+        "text",
+        "placement"
+      ],
+      "additionalProperties": false
+    },
+    "attributeDefinition": {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "flags": {
+          "$ref": "#/$defs/attributeFlags"
+        },
+        "lockPosition": {
+          "type": "boolean"
+        },
+        "fieldLength": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "text": {
+          "$ref": "#/$defs/text"
+        },
+        "mText": {
+          "$ref": "#/$defs/attributeMText"
+        },
+        "annotation": {
+          "$ref": "#/$defs/attributeAnnotation"
+        },
+        "secondaryAttributes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^/cad/d(?:0|[1-9][0-9]*)/e(?:0|[1-9][0-9]*)$"
+          }
+        },
+        "fields": {
+          "$ref": "#/$defs/attributeFields"
+        },
+        "prompt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag",
+        "text",
+        "prompt"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
+    },
+    "blockAttribute": {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "flags": {
+          "$ref": "#/$defs/attributeFlags"
+        },
+        "lockPosition": {
+          "type": "boolean"
+        },
+        "fieldLength": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "text": {
+          "$ref": "#/$defs/text"
+        },
+        "mText": {
+          "$ref": "#/$defs/attributeMText"
+        },
+        "annotation": {
+          "$ref": "#/$defs/attributeAnnotation"
+        },
+        "secondaryAttributes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^/cad/d(?:0|[1-9][0-9]*)/e(?:0|[1-9][0-9]*)$"
+          }
+        },
+        "fields": {
+          "$ref": "#/$defs/attributeFields"
+        },
+        "definition": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/e(?:0|[1-9][0-9]*)$"
+        }
+      },
+      "required": [
+        "tag",
+        "text"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNullValue"
+        }
+      ]
     }
   },
   "$comment": "Mandatory IFCCAD local supplements. Ordinary IFCX shapes, typed decoding and profile-rules graph/domain algorithms also apply. This is not a whole drawing schema or IFCX core syntax."

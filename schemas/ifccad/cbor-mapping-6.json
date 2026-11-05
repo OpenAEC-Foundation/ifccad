@@ -1,6 +1,6 @@
 {
   "format": "IFCCAD-CBOR",
-  "mappingRevision": 5,
+  "mappingRevision": 6,
   "rootType": "IfccadDocument",
   "types": {
     "IfccadDocument": {
@@ -163,32 +163,43 @@
           "name": "annotation_settings",
           "type": "Option<IfccadDrawingAnnotationSettings>",
           "presence": "optional"
+        },
+        {
+          "code": 23,
+          "name": "attribute_visibility",
+          "type": "IfccadAttributeVisibility",
+          "presence": "default",
+          "default": {
+            "variant": "Normal"
+          },
+          "omit": "exact"
         }
       ],
       "dependencies": [
         "IfccadHeader",
+        "u64",
         "IfccadIdCounters",
-        "IfccadLayout",
-        "Option<IfccadDrawingWorkspaceState>",
-        "Option<IfccadModelViewState>",
-        "Option<IfccadPointDisplay>",
-        "Option<IfccadPreservation>",
-        "PlotStyleMode",
         "String",
-        "Vec<IfccadAnnotationScale>",
-        "Vec<IfccadBlockDefinition>",
-        "Vec<IfccadDimensionStyle>",
+        "PlotStyleMode",
+        "IfccadLayout",
         "Vec<IfccadLayer>",
-        "Vec<IfccadLinePattern>",
-        "Vec<IfccadModelWindow>",
+        "Vec<IfccadBlockDefinition>",
         "Vec<IfccadPaperLayout>",
+        "Vec<IfccadLinePattern>",
+        "f64",
         "Vec<IfccadSymbolSource>",
         "Vec<IfccadTextStyle>",
+        "Vec<IfccadDimensionStyle>",
         "Vec<IfccadUcsDefinition>",
-        "f64",
-        "u64",
+        "Vec<IfccadModelWindow>",
+        "Option<IfccadPointDisplay>",
+        "Option<IfccadDrawingWorkspaceState>",
+        "Option<IfccadModelViewState>",
+        "Option<IfccadPreservation>",
+        "Vec<IfccadAnnotationScale>",
         "Vec<IfccadAnnotationStoredView>",
-        "Option<IfccadDrawingAnnotationSettings>"
+        "Option<IfccadDrawingAnnotationSettings>",
+        "IfccadAttributeVisibility"
       ]
     },
     "IfccadHeader": {
@@ -3553,6 +3564,14 @@
               "name": "annotation",
               "type": "Option<Box<IfccadAnnotation<IfccadBlockAnnotationContext>>>",
               "presence": "optional"
+            },
+            {
+              "code": 3,
+              "name": "attributes",
+              "type": "Vec<IfccadBlockAttribute>",
+              "presence": "default",
+              "default": [],
+              "omit": "exact"
             }
           ]
         },
@@ -3646,28 +3665,43 @@
             }
           ],
           "shape": "("
+        },
+        {
+          "code": 16,
+          "name": "AttributeDefinition",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Box<IfccadAttributeDefinition>",
+              "presence": "required"
+            }
+          ]
         }
       ],
       "dependencies": [
-        "Box<IfccadDimension>",
-        "Box<IfccadMText>",
-        "IfccadBlockTransform",
-        "IfccadHatch",
-        "IfccadLinePatternGeneration",
-        "IfccadPlacement",
-        "IfccadText",
-        "IfccadViewport",
         "LinePoint",
-        "Vec<[f64;2]>",
-        "Vec<[f64;3]>",
-        "Vec<f64>",
-        "[f64;3]",
-        "bool",
         "f64",
-        "u64",
-        "IfccadFilledQuadrilateral",
+        "[f64;3]",
+        "IfccadPlacement",
+        "Vec<[f64;2]>",
+        "Vec<f64>",
+        "bool",
+        "IfccadLinePatternGeneration",
         "IfccadPlanarPolylineWidths",
-        "Option<Box<IfccadAnnotation<IfccadBlockAnnotationContext>>>"
+        "Vec<[f64;3]>",
+        "u64",
+        "IfccadBlockTransform",
+        "Option<Box<IfccadAnnotation<IfccadBlockAnnotationContext>>>",
+        "Vec<IfccadBlockAttribute>",
+        "IfccadViewport",
+        "IfccadText",
+        "Box<IfccadMText>",
+        "IfccadHatch",
+        "Box<IfccadDimension>",
+        "IfccadFilledQuadrilateral",
+        "Box<IfccadAttributeDefinition>"
       ]
     },
     "IfccadEntityAppearance": {
@@ -13033,6 +13067,988 @@
       ],
       "dependencies": [
         "IfccadLayoutAnnotationState"
+      ]
+    },
+    "IfccadAttributeFlags": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "invisible",
+          "type": "bool",
+          "presence": "default",
+          "omit": "exact",
+          "default": false
+        },
+        {
+          "code": 1,
+          "name": "constant",
+          "type": "bool",
+          "presence": "default",
+          "omit": "exact",
+          "default": false
+        },
+        {
+          "code": 2,
+          "name": "verify",
+          "type": "bool",
+          "presence": "default",
+          "omit": "exact",
+          "default": false
+        },
+        {
+          "code": 3,
+          "name": "preset",
+          "type": "bool",
+          "presence": "default",
+          "omit": "exact",
+          "default": false
+        }
+      ],
+      "dependencies": [
+        "bool"
+      ]
+    },
+    "IfccadAttributeMText": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "visible",
+          "type": "bool",
+          "presence": "default",
+          "omit": "exact",
+          "default": true
+        },
+        {
+          "code": 1,
+          "name": "layer_id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "appearance",
+          "type": "IfccadEntityAppearance",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "line_pattern_scale",
+          "type": "f64",
+          "presence": "default",
+          "omit": "exact",
+          "default": 1.0
+        },
+        {
+          "code": 4,
+          "name": "text",
+          "type": "IfccadMText",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "bool",
+        "u64",
+        "IfccadEntityAppearance",
+        "f64",
+        "IfccadMText"
+      ]
+    },
+    "IfccadBlockAttribute": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "visible",
+          "type": "bool",
+          "presence": "default",
+          "omit": "exact",
+          "default": true
+        },
+        {
+          "code": 2,
+          "name": "layer_id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "appearance",
+          "type": "IfccadEntityAppearance",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "line_pattern_scale",
+          "type": "f64",
+          "presence": "default",
+          "omit": "exact",
+          "default": 1.0
+        },
+        {
+          "code": 5,
+          "name": "value",
+          "type": "IfccadAttributeValue",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "bool",
+        "IfccadEntityAppearance",
+        "f64",
+        "IfccadAttributeValue"
+      ]
+    },
+    "IfccadAttributeEmbeddedContext": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "scale_id",
+          "type": "IfccadAnnotationScaleId",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "is_default",
+          "type": "bool",
+          "presence": "default",
+          "omit": "exact",
+          "default": false
+        },
+        {
+          "code": 2,
+          "name": "presentation",
+          "type": "IfccadMTextAnnotationContext",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadAnnotationScaleId",
+        "bool",
+        "IfccadMTextAnnotationContext"
+      ]
+    },
+    "IfccadAttributeFieldGraph": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "root",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "next_id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "records",
+          "type": "Vec<IfccadAttributeFieldRecord>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "Vec<IfccadAttributeFieldRecord>"
+      ]
+    },
+    "IfccadAttributeFieldRecord": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "evaluator",
+          "type": "IfccadAttributeFieldEvaluator",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "code",
+          "type": "Vec<IfccadAttributeFieldCodePart>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "format",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "cache",
+          "type": "IfccadAttributeFieldCache",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "evaluation_options",
+          "type": "i32",
+          "presence": "default",
+          "omit": "exact",
+          "default": 0
+        },
+        {
+          "code": 6,
+          "name": "filing_options",
+          "type": "i32",
+          "presence": "default",
+          "omit": "exact",
+          "default": 0
+        },
+        {
+          "code": 7,
+          "name": "state",
+          "type": "i32",
+          "presence": "default",
+          "omit": "exact",
+          "default": 0
+        },
+        {
+          "code": 8,
+          "name": "evaluation_status",
+          "type": "i32",
+          "presence": "default",
+          "omit": "exact",
+          "default": 0
+        },
+        {
+          "code": 9,
+          "name": "error_code",
+          "type": "i32",
+          "presence": "default",
+          "omit": "exact",
+          "default": 0
+        },
+        {
+          "code": 10,
+          "name": "error_message",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 11,
+          "name": "source_evaluator",
+          "type": "String",
+          "presence": "default",
+          "omit": "exact",
+          "default": ""
+        },
+        {
+          "code": 12,
+          "name": "auxiliary_values",
+          "type": "Vec<IfccadAttributeFieldAuxiliaryValue>",
+          "presence": "default",
+          "omit": "exact",
+          "default": []
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "IfccadAttributeFieldEvaluator",
+        "Vec<IfccadAttributeFieldCodePart>",
+        "String",
+        "IfccadAttributeFieldCache",
+        "i32",
+        "Vec<IfccadAttributeFieldAuxiliaryValue>"
+      ]
+    },
+    "IfccadAttributeFieldCache": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "value",
+          "type": "IfccadAttributeFieldValue",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "display",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "flags",
+          "type": "i32",
+          "presence": "default",
+          "omit": "exact",
+          "default": 0
+        },
+        {
+          "code": 3,
+          "name": "unit_type",
+          "type": "i32",
+          "presence": "default",
+          "omit": "exact",
+          "default": 0
+        },
+        {
+          "code": 4,
+          "name": "format",
+          "type": "String",
+          "presence": "default",
+          "omit": "exact",
+          "default": ""
+        },
+        {
+          "code": 5,
+          "name": "formatted_value",
+          "type": "String",
+          "presence": "default",
+          "omit": "exact",
+          "default": ""
+        }
+      ],
+      "dependencies": [
+        "IfccadAttributeFieldValue",
+        "String",
+        "i32"
+      ]
+    },
+    "IfccadAttributeDefinition": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "tag",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "prompt",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "flags",
+          "type": "IfccadAttributeFlags",
+          "presence": "default",
+          "omit": "exact",
+          "default": {
+            "invisible": false,
+            "constant": false,
+            "verify": false,
+            "preset": false
+          }
+        },
+        {
+          "code": 3,
+          "name": "lock_position",
+          "type": "bool",
+          "presence": "default",
+          "omit": "exact",
+          "default": false
+        },
+        {
+          "code": 4,
+          "name": "field_length",
+          "type": "i32",
+          "presence": "default",
+          "omit": "exact",
+          "default": 0
+        },
+        {
+          "code": 5,
+          "name": "text",
+          "type": "IfccadText",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "m_text",
+          "type": "Option<Box<IfccadAttributeMText>>",
+          "presence": "optional"
+        },
+        {
+          "code": 7,
+          "name": "annotation",
+          "type": "Option<Box<IfccadAnnotation<IfccadAttributeAnnotationContext>>>",
+          "presence": "optional"
+        },
+        {
+          "code": 8,
+          "name": "secondary_attributes",
+          "type": "Vec<u64>",
+          "presence": "default",
+          "omit": "exact",
+          "default": []
+        },
+        {
+          "code": 9,
+          "name": "fields",
+          "type": "Option<IfccadAttributeFieldGraph>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "String",
+        "IfccadAttributeFlags",
+        "bool",
+        "i32",
+        "IfccadText",
+        "Option<Box<IfccadAttributeMText>>",
+        "Option<Box<IfccadAnnotation<IfccadAttributeAnnotationContext>>>",
+        "Vec<u64>",
+        "Option<IfccadAttributeFieldGraph>"
+      ]
+    },
+    "IfccadAttributeValue": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "tag",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "definition_id",
+          "type": "Option<u64>",
+          "presence": "optional"
+        },
+        {
+          "code": 2,
+          "name": "flags",
+          "type": "IfccadAttributeFlags",
+          "presence": "default",
+          "omit": "exact",
+          "default": {
+            "invisible": false,
+            "constant": false,
+            "verify": false,
+            "preset": false
+          }
+        },
+        {
+          "code": 3,
+          "name": "lock_position",
+          "type": "bool",
+          "presence": "default",
+          "omit": "exact",
+          "default": false
+        },
+        {
+          "code": 4,
+          "name": "field_length",
+          "type": "i32",
+          "presence": "default",
+          "omit": "exact",
+          "default": 0
+        },
+        {
+          "code": 5,
+          "name": "text",
+          "type": "IfccadText",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "m_text",
+          "type": "Option<Box<IfccadAttributeMText>>",
+          "presence": "optional"
+        },
+        {
+          "code": 7,
+          "name": "annotation",
+          "type": "Option<Box<IfccadAnnotation<IfccadAttributeAnnotationContext>>>",
+          "presence": "optional"
+        },
+        {
+          "code": 8,
+          "name": "secondary_attributes",
+          "type": "Vec<u64>",
+          "presence": "default",
+          "omit": "exact",
+          "default": []
+        },
+        {
+          "code": 9,
+          "name": "fields",
+          "type": "Option<IfccadAttributeFieldGraph>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "String",
+        "Option<u64>",
+        "IfccadAttributeFlags",
+        "bool",
+        "i32",
+        "IfccadText",
+        "Option<Box<IfccadAttributeMText>>",
+        "Option<Box<IfccadAnnotation<IfccadAttributeAnnotationContext>>>",
+        "Vec<u64>",
+        "Option<IfccadAttributeFieldGraph>"
+      ]
+    },
+    "IfccadAttributeAnnotationContext": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Text",
+          "fields": [
+            {
+              "code": 0,
+              "name": "text",
+              "type": "IfccadTextAnnotationContext",
+              "presence": "required"
+            }
+          ],
+          "shape": "{"
+        },
+        {
+          "code": 1,
+          "name": "MText",
+          "fields": [
+            {
+              "code": 0,
+              "name": "text",
+              "type": "IfccadTextAnnotationContext",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "m_text_enabled",
+              "type": "bool",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "embedded",
+              "type": "Option<IfccadAttributeEmbeddedContext>",
+              "presence": "required"
+            }
+          ],
+          "shape": "{"
+        }
+      ],
+      "dependencies": [
+        "IfccadTextAnnotationContext",
+        "bool",
+        "Option<IfccadAttributeEmbeddedContext>"
+      ]
+    },
+    "IfccadAttributeFieldCodePart": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Literal",
+          "fields": [
+            {
+              "code": 0,
+              "name": "v",
+              "type": "String",
+              "presence": "required"
+            }
+          ],
+          "shape": "("
+        },
+        {
+          "code": 1,
+          "name": "Child",
+          "fields": [
+            {
+              "code": 0,
+              "name": "v",
+              "type": "u64",
+              "presence": "required"
+            }
+          ],
+          "shape": "("
+        },
+        {
+          "code": 2,
+          "name": "Object",
+          "fields": [
+            {
+              "code": 0,
+              "name": "v",
+              "type": "u64",
+              "presence": "required"
+            }
+          ],
+          "shape": "("
+        },
+        {
+          "code": 3,
+          "name": "CurrentBlockReference",
+          "fields": [],
+          "shape": "unit"
+        }
+      ],
+      "dependencies": [
+        "String",
+        "u64"
+      ]
+    },
+    "IfccadAttributeFieldValue": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Empty",
+          "fields": [],
+          "shape": "unit"
+        },
+        {
+          "code": 1,
+          "name": "Text",
+          "fields": [
+            {
+              "code": 0,
+              "name": "v",
+              "type": "String",
+              "presence": "required"
+            }
+          ],
+          "shape": "("
+        },
+        {
+          "code": 2,
+          "name": "Integer",
+          "fields": [
+            {
+              "code": 0,
+              "name": "v",
+              "type": "i64",
+              "presence": "required"
+            }
+          ],
+          "shape": "("
+        },
+        {
+          "code": 3,
+          "name": "Real",
+          "fields": [
+            {
+              "code": 0,
+              "name": "v",
+              "type": "f64",
+              "presence": "required"
+            }
+          ],
+          "shape": "("
+        },
+        {
+          "code": 4,
+          "name": "Boolean",
+          "fields": [
+            {
+              "code": 0,
+              "name": "v",
+              "type": "bool",
+              "presence": "required"
+            }
+          ],
+          "shape": "("
+        },
+        {
+          "code": 5,
+          "name": "Object",
+          "fields": [
+            {
+              "code": 0,
+              "name": "v",
+              "type": "u64",
+              "presence": "required"
+            }
+          ],
+          "shape": "("
+        }
+      ],
+      "dependencies": [
+        "String",
+        "i64",
+        "f64",
+        "bool",
+        "u64"
+      ]
+    },
+    "IfccadAttributeVisibility": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Normal",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "HideAll",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 2,
+          "name": "ShowAll",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadAttributeFieldEvaluator": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "TextTemplate",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "DrawingVariable",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 2,
+          "name": "ObjectProperty",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadAttributeFieldAuxiliaryValue": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "key",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "cache",
+          "type": "IfccadAttributeFieldCache",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "String",
+        "IfccadAttributeFieldCache"
+      ]
+    },
+    "i32": {
+      "kind": "scalar",
+      "dependencies": [],
+      "encoding": "integer",
+      "signed": true,
+      "minimum": -2147483648,
+      "maximum": 2147483647
+    },
+    "i64": {
+      "kind": "scalar",
+      "dependencies": [],
+      "encoding": "integer",
+      "signed": true,
+      "minimum": -9223372036854775808,
+      "maximum": 9223372036854775807
+    },
+    "Vec<IfccadBlockAttribute>": {
+      "kind": "list",
+      "items": [
+        "IfccadBlockAttribute"
+      ],
+      "dependencies": [
+        "IfccadBlockAttribute"
+      ]
+    },
+    "Box<IfccadAttributeDefinition>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadAttributeDefinition"
+      ],
+      "dependencies": [
+        "IfccadAttributeDefinition"
+      ]
+    },
+    "Vec<IfccadAttributeFieldRecord>": {
+      "kind": "list",
+      "items": [
+        "IfccadAttributeFieldRecord"
+      ],
+      "dependencies": [
+        "IfccadAttributeFieldRecord"
+      ]
+    },
+    "Vec<IfccadAttributeFieldCodePart>": {
+      "kind": "list",
+      "items": [
+        "IfccadAttributeFieldCodePart"
+      ],
+      "dependencies": [
+        "IfccadAttributeFieldCodePart"
+      ]
+    },
+    "Vec<IfccadAttributeFieldAuxiliaryValue>": {
+      "kind": "list",
+      "items": [
+        "IfccadAttributeFieldAuxiliaryValue"
+      ],
+      "dependencies": [
+        "IfccadAttributeFieldAuxiliaryValue"
+      ]
+    },
+    "Box<IfccadAttributeMText>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadAttributeMText"
+      ],
+      "dependencies": [
+        "IfccadAttributeMText"
+      ]
+    },
+    "Option<Box<IfccadAttributeMText>>": {
+      "kind": "optional",
+      "items": [
+        "Box<IfccadAttributeMText>"
+      ],
+      "dependencies": [
+        "Box<IfccadAttributeMText>"
+      ]
+    },
+    "IfccadAnnotation<IfccadAttributeAnnotationContext>": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "mode",
+          "type": "IfccadAnnotationMode",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "reference",
+          "type": "Option<IfccadAnnotationContextKey>",
+          "presence": "optional"
+        },
+        {
+          "code": 2,
+          "name": "contexts",
+          "type": "Vec<IfccadAnnotationContext<IfccadAttributeAnnotationContext>>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "orientation",
+          "type": "Option<IfccadAnnotationOrientation>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "IfccadAnnotationMode",
+        "Option<IfccadAnnotationContextKey>",
+        "Vec<IfccadAnnotationContext<IfccadAttributeAnnotationContext>>",
+        "Option<IfccadAnnotationOrientation>"
+      ]
+    },
+    "IfccadAnnotationContext<IfccadAttributeAnnotationContext>": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "key",
+          "type": "IfccadAnnotationContextKey",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "presentation",
+          "type": "Option<IfccadAttributeAnnotationContext>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "IfccadAnnotationContextKey",
+        "Option<IfccadAttributeAnnotationContext>"
+      ]
+    },
+    "Option<IfccadAttributeAnnotationContext>": {
+      "kind": "optional",
+      "items": [
+        "IfccadAttributeAnnotationContext"
+      ],
+      "dependencies": [
+        "IfccadAttributeAnnotationContext"
+      ]
+    },
+    "Vec<IfccadAnnotationContext<IfccadAttributeAnnotationContext>>": {
+      "kind": "list",
+      "items": [
+        "IfccadAnnotationContext<IfccadAttributeAnnotationContext>"
+      ],
+      "dependencies": [
+        "IfccadAnnotationContext<IfccadAttributeAnnotationContext>"
+      ]
+    },
+    "Box<IfccadAnnotation<IfccadAttributeAnnotationContext>>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadAnnotation<IfccadAttributeAnnotationContext>"
+      ],
+      "dependencies": [
+        "IfccadAnnotation<IfccadAttributeAnnotationContext>"
+      ]
+    },
+    "Option<Box<IfccadAnnotation<IfccadAttributeAnnotationContext>>>": {
+      "kind": "optional",
+      "items": [
+        "Box<IfccadAnnotation<IfccadAttributeAnnotationContext>>"
+      ],
+      "dependencies": [
+        "Box<IfccadAnnotation<IfccadAttributeAnnotationContext>>"
+      ]
+    },
+    "Option<IfccadAttributeFieldGraph>": {
+      "kind": "optional",
+      "items": [
+        "IfccadAttributeFieldGraph"
+      ],
+      "dependencies": [
+        "IfccadAttributeFieldGraph"
+      ]
+    },
+    "Option<IfccadAttributeEmbeddedContext>": {
+      "kind": "optional",
+      "items": [
+        "IfccadAttributeEmbeddedContext"
+      ],
+      "dependencies": [
+        "IfccadAttributeEmbeddedContext"
       ]
     }
   }

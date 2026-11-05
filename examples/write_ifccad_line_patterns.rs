@@ -193,6 +193,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             appearance: appearance(IfccadMode::Explicit(mixed)),
             line_pattern_scale: 1.,
             kind: IfccadEntityKind::BlockInstance {
+                attributes: Vec::new(),
                 annotation: None,
                 definition_id: block,
                 transform: IfccadBlockTransform {

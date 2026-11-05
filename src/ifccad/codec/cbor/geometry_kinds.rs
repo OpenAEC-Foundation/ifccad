@@ -20,6 +20,7 @@ impl CborValue for IfccadEntityKind {
             (13, "Dimension"),
             (14, "Solid"),
             (15, "Trace"),
+            (16, "AttributeDefinition"),
         ]
     }
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
@@ -197,21 +198,25 @@ impl CborValue for IfccadEntityKind {
                     && closed.exact(closed_other)
                     && line_pattern_generation.exact(line_pattern_generation_other)
             }
+            (Self::AttributeDefinition(a), Self::AttributeDefinition(b)) => a.exact(b),
             (
                 Self::BlockInstance {
                     definition_id,
                     transform,
                     annotation,
+                    attributes,
                 },
                 Self::BlockInstance {
                     definition_id: definition_id_other,
                     transform: transform_other,
                     annotation: annotation_other,
+                    attributes: attributes_other,
                 },
             ) => {
                 definition_id.exact(definition_id_other)
                     && transform.exact(transform_other)
                     && annotation.exact(annotation_other)
+                    && attributes.exact(attributes_other)
             }
             (Self::Viewport(value_0), Self::Viewport(value_0_other)) => {
                 value_0.exact(value_0_other)
@@ -239,6 +244,7 @@ impl IfccadEntityKind {
             Self::EllipseArc { .. } => 5,
             Self::PlanarPolyline { .. } => 6,
             Self::SpatialPolyline { .. } => 7,
+            Self::AttributeDefinition(_) => 16,
             Self::BlockInstance { .. } => 8,
             Self::Viewport(..) => 9,
             Self::Text(..) => 10,
@@ -251,6 +257,11 @@ impl IfccadEntityKind {
     }
     pub(super) fn encode_body(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
         match self {
+            Self::AttributeDefinition(v) => {
+                w.map(1)?;
+                w.u64(0)?;
+                v.encode(w)
+            }
             Self::LineSegment {
                 start,
                 end,
@@ -495,8 +506,9 @@ impl IfccadEntityKind {
                 definition_id,
                 transform,
                 annotation,
+                attributes,
             } => {
-                w.map(2 + u64::from(annotation.is_some()))?;
+                w.map(2 + u64::from(annotation.is_some()) + u64::from(!attributes.is_empty()))?;
                 if true {
                     w.u64(0)?;
                     definition_id.encode(w)?;
@@ -508,6 +520,10 @@ impl IfccadEntityKind {
                 if annotation.is_some() {
                     w.u64(2)?;
                     annotation.encode(w)?;
+                }
+                if !attributes.is_empty() {
+                    w.u64(3)?;
+                    attributes.encode(w)?;
                 }
                 Ok(())
             }
@@ -743,17 +759,30 @@ impl IfccadEntityKind {
             8 => {
                 let mut b = RecordFields::new(
                     r,
-                    &[(0, "definition_id"), (1, "transform"), (2, "annotation")],
+                    &[
+                        (0, "definition_id"),
+                        (1, "transform"),
+                        (2, "annotation"),
+                        (3, "attributes"),
+                    ],
                 )?;
                 let definition_id: u64 = b.take(0, None)?;
                 let transform: IfccadBlockTransform = b.take(1, None)?;
                 let annotation = b.take(2, Some(None))?;
+                let attributes = b.take(3, Some(Vec::new()))?;
                 b.finish()?;
                 Ok(Self::BlockInstance {
                     definition_id,
                     transform,
                     annotation,
+                    attributes,
                 })
+            }
+            16 => {
+                let mut b = RecordFields::new(r, &[(0, "value_0")])?;
+                let v = b.take(0, None)?;
+                b.finish()?;
+                Ok(Self::AttributeDefinition(v))
             }
             9 => {
                 let mut b = RecordFields::new(r, &[(0, "value_0")])?;

@@ -175,6 +175,7 @@ fn occurrences(byblock: bool) -> IfccadDocument {
             line_weight: IfccadMode::ByLayer,
         },
         kind: IfccadEntityKind::BlockInstance {
+            attributes: Vec::new(),
             annotation: None,
             definition_id: block,
             transform: IfccadBlockTransform {

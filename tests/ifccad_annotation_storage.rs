@@ -46,11 +46,11 @@ fn unused_scales_and_allocation_history_survive_json_and_cbor() {
     }
     assert_eq!(
         cbor.bytes()[15],
-        5,
+        6,
         "mapping revision advances with the contract"
     );
     let wire: serde_json::Value = serde_json::from_slice(json.bytes()).unwrap();
-    assert_eq!(wire["imports"][0]["uri"], "urn:example:ifccad:0.5.0");
+    assert_eq!(wire["imports"][0]["uri"], "urn:example:ifccad:0.6.0");
 }
 
 #[test]

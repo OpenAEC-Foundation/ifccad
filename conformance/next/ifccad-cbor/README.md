@@ -13,7 +13,7 @@ version mismatch, forbidden tokens, truncation and excessive length claims.
 Broader typed content is also exercised by encoding all positive current IFCX
 candidate cases and by rich-content/preservation/conversion tests.
 
-See [the physical contract](../../../schemas/ifccad/cbor-mapping-5.md).
+See [the physical contract](../../../schemas/ifccad/cbor-mapping-6.md).
 
 `../dimension-kinds.py` independently authors literal code/body maps for all
 seven added definitions, including spatial references, signed ordinate and an

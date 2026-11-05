@@ -181,7 +181,15 @@ fn graphics_ifcx_reuses_every_allowed_payload_body() {
                 hatch.annotation = None;
                 hatch.annotation_view_contexts = None;
             }
-            IfccadEntityKind::BlockInstance { annotation, .. } => *annotation = None,
+            IfccadEntityKind::BlockInstance {
+                annotation,
+                attributes,
+                ..
+            } => {
+                // Attribute children are authored INSERT semantics, not saved graphic bodies.
+                *annotation = None;
+                attributes.clear();
+            }
             _ => (),
         }
         if let Ok(kind) = IfccadDimensionGraphicsKind::try_from(body) {

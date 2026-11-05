@@ -13,7 +13,7 @@ fn base() -> IfccadDocument {
 fn binary_roundtrip_preserves_complete_document() {
     let document = base();
     let encoded = encode_ifccad_cbor_document(&document).unwrap();
-    assert_eq!(&encoded.bytes()[..16], b"\xa3\x00\x6bIFCCAD-CBOR\x01\x05");
+    assert_eq!(&encoded.bytes()[..16], b"\xa3\x00\x6bIFCCAD-CBOR\x01\x06");
     let loaded = load_ifccad_cbor_bytes(encoded.bytes(), Default::default()).unwrap();
     assert_eq!(loaded.document(), &document);
     assert_eq!(
@@ -59,6 +59,7 @@ fn compact_and_expanded_current_conformance_survives_cbor() {
                     IfccadEntityKind::Dimension(_) => 13,
                     IfccadEntityKind::Solid(_) => 14,
                     IfccadEntityKind::Trace(_) => 15,
+                    IfccadEntityKind::AttributeDefinition(_) => 16,
                 });
             }
         }
@@ -69,18 +70,18 @@ fn compact_and_expanded_current_conformance_survives_cbor() {
     }
     assert_eq!(
         seen,
-        (0..16).collect(),
+        (0..17).collect(),
         "all current native families must be exercised"
     );
 }
 
 #[test]
 fn unknown_revision_is_not_best_effort() {
-    for revision in [0_u8, 1, 2, 3, 4] {
+    for revision in [0_u8, 1, 2, 3, 4, 5, 7] {
         // {0: "IFCCAD-CBOR", 1: revision, 2: {}}; do not map the document.
         let mut bytes = b"\xa3\x00\x6bIFCCAD-CBOR\x01\x00\x02\xa0".to_vec();
         bytes[15] = revision;
         assert!(matches!(load_ifccad_cbor_bytes(&bytes, Default::default()),
-            Err(IfccadCborReadError::UnsupportedRevision {found, supported: 5}) if found == u32::from(revision)));
+            Err(IfccadCborReadError::UnsupportedRevision {found, supported: 6}) if found == u32::from(revision)));
     }
 }

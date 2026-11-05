@@ -171,7 +171,7 @@ cargo run -p viewer -- export-ifccad examples/ifccad/house.ifcx dxf
 CAD input defaults to IFCCAD. `--drawing-format ifccad` remains accepted;
 `--drawing-format ocdraw` reports `OCDRAW_PARKED` before reading the input.
 See the [IFCCAD lifecycle and API conventions](docs/experiments/ifccad-document-lifecycle.md),
-[experimental contract](schemas/ifccad/experimental-contract-0.5.0.md) and
+[experimental contract](schemas/ifccad/experimental-contract-0.6.0.md) and
 [CBOR experiment](docs/experiments/ifccad-cbor.md).
 
 ## Verification
@@ -238,3 +238,11 @@ AC1032 DWG and ASCII/binary DXF roundtrip evidence. The compact gallery and
 sample_AC1032 completed user review. The existing Explorer examples keep their
 scope. Resolution, portable locators, embedding and complete rendering remain
 later work under issue 15.
+
+The selected block-attribute slice is locally qualified: native Text/MText, paired
+Document mapping and bounded fields use unpublished profile 0.6.0 / CBOR6.
+Gallery and sample_AC1032 review is accepted; native/paired gates, local Explorer
+integration and bounded OCS editing/ATTSYNC checks pass. Reachable upstream
+dependency revisions and publication remain pending. MINSERT and dynamic blocks
+remain later work. See
+[attributes](docs/block-attributes.md) and [roadmap](ROADMAP.md).

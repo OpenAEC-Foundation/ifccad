@@ -5,6 +5,16 @@ use std::{collections::BTreeMap, sync::OnceLock};
 
 const ENTRIES: &[(&str, &str, &str)] = &[
     (
+        "ifccad::attributeDefinition",
+        "attributeDefinition",
+        "IFCCAD-ATTRIBUTE-001",
+    ),
+    (
+        "ifccad::blockAttribute",
+        "blockAttribute",
+        "IFCCAD-ATTRIBUTE-001",
+    ),
+    (
         "ifccad::hatchAnnotationViews",
         "hatchAnnotationViews",
         "IFCCAD-ANNOTATION-006",
@@ -181,7 +191,7 @@ pub(super) fn validate_value(
     static VALIDATORS: OnceLock<BTreeMap<&str, jsonschema::Validator>> = OnceLock::new();
     let validators = VALIDATORS.get_or_init(|| {
         let base: Value = serde_json::from_str(include_str!(
-            "../../../../schemas/ifccad/supplemental-values-0.5.0.schema.json"
+            "../../../../schemas/ifccad/supplemental-values-0.6.0.schema.json"
         ))
         .expect("bundled IFCCAD supplements");
         ENTRIES

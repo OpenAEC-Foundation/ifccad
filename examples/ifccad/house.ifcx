@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.5.0"
+      "uri": "urn:example:ifccad:0.6.0"
     }
   ],
   "schemas": {},
@@ -39,6 +39,7 @@
       },
       "attributes": {
         "ifccad::drawing": {
+          "attributeVisibility": "Normal",
           "lengthUnit": "mm",
           "modelWindows": [
             "/cad/d1/modelWindow/1"
@@ -54,7 +55,7 @@
           "nextSymbolSourceId": 1,
           "nextTextStyleId": 1,
           "nextUcsId": 1,
-          "profileVersion": "0.5.0"
+          "profileVersion": "0.6.0"
         },
         "ifccad::drawingWorkspace": {
           "activeLayout": "/cad/d1/layout/1",
@@ -3155,6 +3156,7 @@
     },
     {
       "path": "/cad/d1/e37",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/1",
@@ -3185,6 +3187,7 @@
     },
     {
       "path": "/cad/d1/e38",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/1",
@@ -3215,6 +3218,7 @@
     },
     {
       "path": "/cad/d1/e39",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/1",
@@ -3250,6 +3254,7 @@
     },
     {
       "path": "/cad/d1/e40",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/1",
@@ -3281,6 +3286,7 @@
     },
     {
       "path": "/cad/d1/e41",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/1",
@@ -3317,6 +3323,7 @@
     },
     {
       "path": "/cad/d1/e42",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/1",
@@ -3353,6 +3360,7 @@
     },
     {
       "path": "/cad/d1/e43",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/1",
@@ -3389,6 +3397,7 @@
     },
     {
       "path": "/cad/d1/e44",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/2",
@@ -3419,6 +3428,7 @@
     },
     {
       "path": "/cad/d1/e45",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/2",
@@ -3450,6 +3460,7 @@
     },
     {
       "path": "/cad/d1/e46",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/2",
@@ -3486,6 +3497,7 @@
     },
     {
       "path": "/cad/d1/e47",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/3",
@@ -3516,6 +3528,7 @@
     },
     {
       "path": "/cad/d1/e48",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/4",
@@ -3684,6 +3697,7 @@
     },
     {
       "path": "/cad/d1/e52",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/5",
@@ -3714,6 +3728,7 @@
     },
     {
       "path": "/cad/d1/e53",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/5",
@@ -3745,6 +3760,7 @@
     },
     {
       "path": "/cad/d1/e54",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/5",
@@ -3775,6 +3791,7 @@
     },
     {
       "path": "/cad/d1/e55",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/5",
@@ -3806,6 +3823,7 @@
     },
     {
       "path": "/cad/d1/e56",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/5",
@@ -3836,6 +3854,7 @@
     },
     {
       "path": "/cad/d1/e57",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/5",
@@ -4271,6 +4290,7 @@
     },
     {
       "path": "/cad/d1/e71",
+      "children": {},
       "attributes": {
         "ifccad::blockInstance": {
           "definition": "/cad/d1/block/6",
