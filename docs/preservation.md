@@ -49,7 +49,7 @@ Capture is opt-in and separate from restoration qualification. Ownership/coordin
 
 Simple open cubic splines are initial test fixtures, not an input whitelist. Storage tests cover broad variants/bit patterns; actual DXF/DWG tests compare the direct codec chain with the preservation chain in every supported owner kind. Codec restrictions are reported independently of successful capture.
 
-Original entity DWG records are not included in that typed snapshot. Their omission is reported separately from interpreted semantic retention. Full original/private/shared codec storage remains later work, associated with [opencadcodec issue #91](https://github.com/HakanSeven12/opencadcodec/issues/91).
+Original entity DWG records are not included in that typed snapshot. Their omission is reported separately from interpreted semantic retention. Full original/private/shared codec storage remains later work, associated with [acadrust issue #307](https://github.com/hakanaktt/acadrust/issues/307) (formerly opencadcodec #91).
 
 Spline is the first end-to-end pilot for the preservation model. The implemented pilot covers core storage, native common properties, dependencies and restoration evidence, with multiple spline variants and all supported scopes. Keep the codec-specific snapshot implementation isolated and replaceable in its adapter. Broad expansion to other entity families and raw/private/shared codec storage waits for an agreed direction from #91 or a separately approved alternative; a complete upstream implementation is not required to finish the pilot. Integrating it later requires audited payload versioning and continued read support or verified migration for stored pilot snapshots.
 
