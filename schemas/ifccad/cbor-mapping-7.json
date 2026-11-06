@@ -1,6 +1,6 @@
 {
   "format": "IFCCAD-CBOR",
-  "mappingRevision": 6,
+  "mappingRevision": 7,
   "rootType": "IfccadDocument",
   "types": {
     "IfccadDocument": {
@@ -173,6 +173,14 @@
             "variant": "Normal"
           },
           "omit": "exact"
+        },
+        {
+          "code": 24,
+          "name": "multi_leader_styles",
+          "type": "Vec<IfccadMultiLeaderStyle>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
         }
       ],
       "dependencies": [
@@ -199,7 +207,8 @@
         "Vec<IfccadAnnotationScale>",
         "Vec<IfccadAnnotationStoredView>",
         "Option<IfccadDrawingAnnotationSettings>",
-        "IfccadAttributeVisibility"
+        "IfccadAttributeVisibility",
+        "Vec<IfccadMultiLeaderStyle>"
       ]
     },
     "IfccadHeader": {
@@ -320,6 +329,14 @@
         {
           "code": 12,
           "name": "next_annotation_view_id",
+          "type": "u64",
+          "presence": "default",
+          "default": 1,
+          "omit": "exact"
+        },
+        {
+          "code": 13,
+          "name": "next_multi_leader_style_id",
           "type": "u64",
           "presence": "default",
           "default": 1,
@@ -978,14 +995,25 @@
           "presence": "default",
           "default": false,
           "omit": "exact"
+        },
+        {
+          "code": 5,
+          "name": "leader_arrow",
+          "type": "IfccadLeaderArrow",
+          "presence": "default",
+          "default": {
+            "variant": "DefaultClosedFilled"
+          },
+          "omit": "exact"
         }
       ],
       "dependencies": [
-        "BTreeMap<DimensionKind,IfccadDimensionOverrides>",
-        "DimensionStyleSettings<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatternId>",
         "IfccadDimensionStyleId",
         "String",
-        "bool"
+        "DimensionStyleSettings<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatternId>",
+        "BTreeMap<DimensionKind,IfccadDimensionOverrides>",
+        "bool",
+        "IfccadLeaderArrow"
       ]
     },
     "IfccadUcsDefinition": {
@@ -3678,6 +3706,45 @@
               "presence": "required"
             }
           ]
+        },
+        {
+          "code": 17,
+          "name": "Leader",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Box<IfccadLeader>",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 18,
+          "name": "MultiLeader",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Box<IfccadMultiLeader>",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 19,
+          "name": "Tolerance",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Box<IfccadTolerance>",
+              "presence": "required"
+            }
+          ]
         }
       ],
       "dependencies": [
@@ -3701,7 +3768,10 @@
         "IfccadHatch",
         "Box<IfccadDimension>",
         "IfccadFilledQuadrilateral",
-        "Box<IfccadAttributeDefinition>"
+        "Box<IfccadAttributeDefinition>",
+        "Box<IfccadLeader>",
+        "Box<IfccadMultiLeader>",
+        "Box<IfccadTolerance>"
       ]
     },
     "IfccadEntityAppearance": {
@@ -14049,6 +14119,3240 @@
       ],
       "dependencies": [
         "IfccadAttributeEmbeddedContext"
+      ]
+    },
+    "IfccadLeaderGraphics": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "origin",
+          "type": "IfccadLeaderGraphicsOrigin",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "placement",
+          "type": "IfccadPlacement",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "commands",
+          "type": "Vec<IfccadLeaderGraphicCommand>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadLeaderGraphicsOrigin",
+        "IfccadPlacement",
+        "Vec<IfccadLeaderGraphicCommand>"
+      ]
+    },
+    "IfccadLeaderGraphicFont": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "family",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "font_file",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "big_font_file",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "bold",
+          "type": "Option<bool>",
+          "presence": "optional"
+        },
+        {
+          "code": 4,
+          "name": "italic",
+          "type": "Option<bool>",
+          "presence": "optional"
+        },
+        {
+          "code": 5,
+          "name": "charset",
+          "type": "Option<u32>",
+          "presence": "optional"
+        },
+        {
+          "code": 6,
+          "name": "pitch_family",
+          "type": "Option<u32>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "String",
+        "Option<bool>",
+        "Option<u32>"
+      ]
+    },
+    "IfccadLeaderGraphicText": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "position",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "normal",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "direction",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "text",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "processing",
+          "type": "IfccadLeaderGraphicTextProcessing",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "height",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "width_factor",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 7,
+          "name": "oblique_angle",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 8,
+          "name": "tracking",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 9,
+          "name": "backwards",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 10,
+          "name": "upside_down",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 11,
+          "name": "vertical",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 12,
+          "name": "underline",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 13,
+          "name": "overline",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 14,
+          "name": "font",
+          "type": "Option<IfccadLeaderGraphicFont>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "[f64;3]",
+        "String",
+        "IfccadLeaderGraphicTextProcessing",
+        "f64",
+        "bool",
+        "Option<IfccadLeaderGraphicFont>"
+      ]
+    },
+    "IfccadLeader": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "placement",
+          "type": "IfccadPlacement",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "path",
+          "type": "IfccadLeaderPath",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "annotation_kind",
+          "type": "IfccadLeaderAnnotationKind",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "annotation_entity",
+          "type": "Option<u64>",
+          "presence": "optional"
+        },
+        {
+          "code": 4,
+          "name": "dimension_style",
+          "type": "IfccadDimensionStyleId",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "overrides",
+          "type": "DimensionStyleOverrides<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatternId>",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "arrow",
+          "type": "Option<IfccadLeaderArrow>",
+          "presence": "optional"
+        },
+        {
+          "code": 7,
+          "name": "arrow_enabled",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 8,
+          "name": "hook_enabled",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 9,
+          "name": "hook_direction",
+          "type": "IfccadLeaderHookDirection",
+          "presence": "required"
+        },
+        {
+          "code": 10,
+          "name": "annotation_box",
+          "type": "Option<[f64;2]>",
+          "presence": "optional"
+        },
+        {
+          "code": 11,
+          "name": "horizontal_direction",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 12,
+          "name": "block_offset",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 13,
+          "name": "annotation_offset",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 14,
+          "name": "origin",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 15,
+          "name": "annotation",
+          "type": "Option<IfccadAnnotation<IfccadLeaderAnnotationContext>>",
+          "presence": "optional"
+        },
+        {
+          "code": 16,
+          "name": "graphics",
+          "type": "Option<IfccadLeaderGraphics>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "IfccadPlacement",
+        "IfccadLeaderPath",
+        "IfccadLeaderAnnotationKind",
+        "Option<u64>",
+        "IfccadDimensionStyleId",
+        "DimensionStyleOverrides<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatternId>",
+        "Option<IfccadLeaderArrow>",
+        "bool",
+        "IfccadLeaderHookDirection",
+        "Option<[f64;2]>",
+        "[f64;3]",
+        "Option<IfccadAnnotation<IfccadLeaderAnnotationContext>>",
+        "Option<IfccadLeaderGraphics>"
+      ]
+    },
+    "IfccadLeaderAnnotationContext": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "points",
+          "type": "Vec<[f64;3]>",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "horizontal_direction",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "annotation_enabled",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "insertion_offset",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "endpoint_projection",
+          "type": "[f64;3]",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "Vec<[f64;3]>",
+        "[f64;3]",
+        "bool"
+      ]
+    },
+    "IfccadTolerance": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "placement",
+          "type": "IfccadPlacement",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "dimension_style",
+          "type": "IfccadDimensionStyleId",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "overrides",
+          "type": "DimensionStyleOverrides<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatternId>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "notation",
+          "type": "IfccadToleranceNotation",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "annotation",
+          "type": "Option<IfccadAnnotation<IfccadToleranceAnnotationContext>>",
+          "presence": "optional"
+        },
+        {
+          "code": 5,
+          "name": "graphics",
+          "type": "Option<IfccadLeaderGraphics>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "IfccadPlacement",
+        "IfccadDimensionStyleId",
+        "DimensionStyleOverrides<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatternId>",
+        "IfccadToleranceNotation",
+        "Option<IfccadAnnotation<IfccadToleranceAnnotationContext>>",
+        "Option<IfccadLeaderGraphics>"
+      ]
+    },
+    "IfccadToleranceAnnotationContext": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "location",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "horizontal_direction",
+          "type": "[f64;3]",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "[f64;3]"
+      ]
+    },
+    "IfccadMultiLeaderLineSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "path_kind",
+          "type": "IfccadMultiLeaderPathKind",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "color",
+          "type": "IfccadMode<IfccadColor>",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "line_pattern",
+          "type": "IfccadMode<IfccadLinePatternId>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "line_weight",
+          "type": "IfccadLeaderLineWeight",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "arrow",
+          "type": "IfccadLeaderArrow",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "arrow_size",
+          "type": "f64",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderPathKind",
+        "IfccadMode<IfccadColor>",
+        "IfccadMode<IfccadLinePatternId>",
+        "IfccadLeaderLineWeight",
+        "IfccadLeaderArrow",
+        "f64"
+      ]
+    },
+    "IfccadLeaderBreakInterval": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "start",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "end",
+          "type": "[f64;3]",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "[f64;3]"
+      ]
+    },
+    "IfccadMultiLeaderSegmentBreaks": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "segment_index",
+          "type": "u32",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "intervals",
+          "type": "Vec<IfccadLeaderBreakInterval>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u32",
+        "Vec<IfccadLeaderBreakInterval>"
+      ]
+    },
+    "IfccadMultiLeaderLine": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "key",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "source_index",
+          "type": "Option<i32>",
+          "presence": "optional"
+        },
+        {
+          "code": 2,
+          "name": "settings",
+          "type": "IfccadMultiLeaderLineSettings",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "overridden_properties",
+          "type": "BTreeSet<IfccadMultiLeaderLineProperty>",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "vertices",
+          "type": "Vec<[f64;3]>",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "connection",
+          "type": "IfccadMultiLeaderConnection",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "breaks",
+          "type": "Vec<IfccadMultiLeaderSegmentBreaks>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "Option<i32>",
+        "IfccadMultiLeaderLineSettings",
+        "BTreeSet<IfccadMultiLeaderLineProperty>",
+        "Vec<[f64;3]>",
+        "IfccadMultiLeaderConnection",
+        "Vec<IfccadMultiLeaderSegmentBreaks>"
+      ]
+    },
+    "IfccadMultiLeaderGroup": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "key",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "source_index",
+          "type": "Option<i32>",
+          "presence": "optional"
+        },
+        {
+          "code": 2,
+          "name": "has_connection_point",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "connection_point",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "has_dogleg_direction",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "dogleg_direction",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "dogleg_length",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 7,
+          "name": "text_attachment_direction",
+          "type": "IfccadMultiLeaderAttachmentDirection",
+          "presence": "required"
+        },
+        {
+          "code": 8,
+          "name": "lines",
+          "type": "Vec<IfccadMultiLeaderLine>",
+          "presence": "required"
+        },
+        {
+          "code": 9,
+          "name": "breaks",
+          "type": "Vec<IfccadLeaderBreakInterval>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "Option<i32>",
+        "bool",
+        "[f64;3]",
+        "f64",
+        "IfccadMultiLeaderAttachmentDirection",
+        "Vec<IfccadMultiLeaderLine>",
+        "Vec<IfccadLeaderBreakInterval>"
+      ]
+    },
+    "IfccadMultiLeaderBlockContent": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "definition_id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "transform",
+          "type": "IfccadBlockTransform",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "color",
+          "type": "IfccadMode<IfccadColor>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "connection",
+          "type": "IfccadMultiLeaderBlockConnection",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "stored_transform",
+          "type": "Option<[f64;16]>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "IfccadBlockTransform",
+        "IfccadMode<IfccadColor>",
+        "IfccadMultiLeaderBlockConnection",
+        "Option<[f64;16]>"
+      ]
+    },
+    "IfccadMultiLeaderBlockLabel": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "key",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "definition_id",
+          "type": "Option<u64>",
+          "presence": "optional"
+        },
+        {
+          "code": 2,
+          "name": "source_index",
+          "type": "Option<i32>",
+          "presence": "optional"
+        },
+        {
+          "code": 3,
+          "name": "width",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "text",
+          "type": "String",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "Option<u64>",
+        "Option<i32>",
+        "f64",
+        "String"
+      ]
+    },
+    "IfccadMultiLeaderTextAttachments": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "left",
+          "type": "IfccadMultiLeaderTextAttachment",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "right",
+          "type": "IfccadMultiLeaderTextAttachment",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "top",
+          "type": "IfccadMultiLeaderTextAttachment",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "bottom",
+          "type": "IfccadMultiLeaderTextAttachment",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderTextAttachment"
+      ]
+    },
+    "IfccadMultiLeaderTextBackground": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "enabled",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "mask_enabled",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "color",
+          "type": "IfccadMode<IfccadColor>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "scale_factor",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "opacity",
+          "type": "IfccadMode<f64>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "bool",
+        "IfccadMode<IfccadColor>",
+        "f64",
+        "IfccadMode<f64>"
+      ]
+    },
+    "IfccadMultiLeaderTextState": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "boundary_height",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "automatic_height",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "word_break",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "color",
+          "type": "IfccadMode<IfccadColor>",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "attachments",
+          "type": "IfccadMultiLeaderTextAttachments",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "attachment_point",
+          "type": "IfccadMultiLeaderTextAttachmentPoint",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "alignment",
+          "type": "IfccadMultiLeaderTextAlignment",
+          "presence": "required"
+        },
+        {
+          "code": 7,
+          "name": "background",
+          "type": "IfccadMultiLeaderTextBackground",
+          "presence": "required"
+        },
+        {
+          "code": 8,
+          "name": "stored_rotation",
+          "type": "Option<f64>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "f64",
+        "bool",
+        "IfccadMode<IfccadColor>",
+        "IfccadMultiLeaderTextAttachments",
+        "IfccadMultiLeaderTextAttachmentPoint",
+        "IfccadMultiLeaderTextAlignment",
+        "IfccadMultiLeaderTextBackground",
+        "Option<f64>"
+      ]
+    },
+    "IfccadMultiLeaderTextContent": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "text",
+          "type": "IfccadMText",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "state",
+          "type": "IfccadMultiLeaderTextState",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadMText",
+        "IfccadMultiLeaderTextState"
+      ]
+    },
+    "IfccadMultiLeaderToleranceContent": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "placement",
+          "type": "IfccadPlacement",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "dimension_style",
+          "type": "IfccadDimensionStyleId",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "overrides",
+          "type": "DimensionStyleOverrides<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatternId>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "notation",
+          "type": "IfccadToleranceNotation",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadPlacement",
+        "IfccadDimensionStyleId",
+        "DimensionStyleOverrides<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatternId>",
+        "IfccadToleranceNotation"
+      ]
+    },
+    "IfccadMultiLeaderStoredContent": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "m_text",
+          "type": "Option<Box<IfccadMultiLeaderTextContent>>",
+          "presence": "optional"
+        },
+        {
+          "code": 1,
+          "name": "block",
+          "type": "Option<IfccadMultiLeaderBlockContent>",
+          "presence": "optional"
+        },
+        {
+          "code": 2,
+          "name": "tolerance",
+          "type": "Option<Box<IfccadMultiLeaderToleranceContent>>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "Option<Box<IfccadMultiLeaderTextContent>>",
+        "Option<IfccadMultiLeaderBlockContent>",
+        "Option<Box<IfccadMultiLeaderToleranceContent>>"
+      ]
+    },
+    "IfccadMultiLeaderPresentation": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "plane",
+          "type": "IfccadPlacement",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "normal_reversed",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "content_base_point",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "scale_factor",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "text_height",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "arrow_size",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "landing_gap",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 7,
+          "name": "next_part_id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 8,
+          "name": "groups",
+          "type": "Vec<IfccadMultiLeaderGroup>",
+          "presence": "required"
+        },
+        {
+          "code": 9,
+          "name": "content",
+          "type": "IfccadMultiLeaderStoredContent",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadPlacement",
+        "bool",
+        "[f64;3]",
+        "f64",
+        "u64",
+        "Vec<IfccadMultiLeaderGroup>",
+        "IfccadMultiLeaderStoredContent"
+      ]
+    },
+    "IfccadMultiLeaderTextSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "style_id",
+          "type": "Option<IfccadTextStyleId>",
+          "presence": "optional"
+        },
+        {
+          "code": 1,
+          "name": "color",
+          "type": "IfccadMode<IfccadColor>",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "height",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "frame",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "attachments",
+          "type": "IfccadMultiLeaderTextAttachments",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "attachment_direction",
+          "type": "IfccadMultiLeaderAttachmentDirection",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "angle",
+          "type": "IfccadMultiLeaderTextAngle",
+          "presence": "required"
+        },
+        {
+          "code": 7,
+          "name": "alignment",
+          "type": "IfccadMultiLeaderTextAlignment",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "Option<IfccadTextStyleId>",
+        "IfccadMode<IfccadColor>",
+        "f64",
+        "bool",
+        "IfccadMultiLeaderTextAttachments",
+        "IfccadMultiLeaderAttachmentDirection",
+        "IfccadMultiLeaderTextAngle",
+        "IfccadMultiLeaderTextAlignment"
+      ]
+    },
+    "IfccadMultiLeaderBlockSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "definition_id",
+          "type": "Option<u64>",
+          "presence": "optional"
+        },
+        {
+          "code": 1,
+          "name": "color",
+          "type": "IfccadMode<IfccadColor>",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "connection",
+          "type": "IfccadMultiLeaderBlockConnection",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "rotation",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "scale",
+          "type": "[f64;3]",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "Option<u64>",
+        "IfccadMode<IfccadColor>",
+        "IfccadMultiLeaderBlockConnection",
+        "f64",
+        "[f64;3]"
+      ]
+    },
+    "IfccadMultiLeaderCommonSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "line",
+          "type": "IfccadMultiLeaderLineSettings",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "landing_enabled",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "dogleg_enabled",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "dogleg_length",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "content_kind",
+          "type": "IfccadMultiLeaderContentKind",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "text",
+          "type": "IfccadMultiLeaderTextSettings",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "block",
+          "type": "IfccadMultiLeaderBlockSettings",
+          "presence": "required"
+        },
+        {
+          "code": 7,
+          "name": "scale_factor",
+          "type": "f64",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderLineSettings",
+        "bool",
+        "f64",
+        "IfccadMultiLeaderContentKind",
+        "IfccadMultiLeaderTextSettings",
+        "IfccadMultiLeaderBlockSettings"
+      ]
+    },
+    "IfccadMultiLeaderSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "common",
+          "type": "IfccadMultiLeaderCommonSettings",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "text_attachment_point",
+          "type": "IfccadMultiLeaderTextAttachmentPoint",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "text_direction_negative",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "extend_leader_to_text",
+          "type": "bool",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderCommonSettings",
+        "IfccadMultiLeaderTextAttachmentPoint",
+        "bool"
+      ]
+    },
+    "IfccadMultiLeaderDefaultText": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "character_format",
+          "type": "CharacterFormat<IfccadColor>",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "paragraph_format",
+          "type": "ParagraphFormat",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "content",
+          "type": "Vec<MTextParagraph<IfccadColor>>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "CharacterFormat<IfccadColor>",
+        "ParagraphFormat",
+        "Vec<MTextParagraph<IfccadColor>>"
+      ]
+    },
+    "IfccadMultiLeaderStyle": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "id",
+          "type": "IfccadMultiLeaderStyleId",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "name",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "description",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "common",
+          "type": "IfccadMultiLeaderCommonSettings",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "landing_gap",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "default_m_text",
+          "type": "IfccadMultiLeaderDefaultText",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "text_always_left",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 7,
+          "name": "block_scale_enabled",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 8,
+          "name": "block_rotation_enabled",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 9,
+          "name": "align_space",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 10,
+          "name": "break_gap_size",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 11,
+          "name": "max_leader_points",
+          "type": "u32",
+          "presence": "required"
+        },
+        {
+          "code": 12,
+          "name": "first_segment_angle",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 13,
+          "name": "second_segment_angle",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 14,
+          "name": "leader_draw_order",
+          "type": "IfccadMultiLeaderDrawOrder",
+          "presence": "required"
+        },
+        {
+          "code": 15,
+          "name": "content_draw_order",
+          "type": "IfccadMultiLeaderContentDrawOrder",
+          "presence": "required"
+        },
+        {
+          "code": 16,
+          "name": "annotative",
+          "type": "bool",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderStyleId",
+        "String",
+        "IfccadMultiLeaderCommonSettings",
+        "f64",
+        "IfccadMultiLeaderDefaultText",
+        "bool",
+        "u32",
+        "IfccadMultiLeaderDrawOrder",
+        "IfccadMultiLeaderContentDrawOrder"
+      ]
+    },
+    "IfccadMultiLeaderLegacyArrowOverride": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "line_key",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "is_default",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "arrow",
+          "type": "IfccadLeaderArrow",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "bool",
+        "IfccadLeaderArrow"
+      ]
+    },
+    "IfccadMultiLeader": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "style_id",
+          "type": "Option<IfccadMultiLeaderStyleId>",
+          "presence": "optional"
+        },
+        {
+          "code": 1,
+          "name": "settings",
+          "type": "IfccadMultiLeaderSettings",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "overridden_properties",
+          "type": "BTreeSet<IfccadMultiLeaderProperty>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "block_labels",
+          "type": "Vec<IfccadMultiLeaderBlockLabel>",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "next_label_id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "legacy_arrow_overrides",
+          "type": "Vec<IfccadMultiLeaderLegacyArrowOverride>",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "presentation",
+          "type": "IfccadMultiLeaderPresentation",
+          "presence": "required"
+        },
+        {
+          "code": 7,
+          "name": "annotation",
+          "type": "Option<IfccadAnnotation<IfccadMultiLeaderPresentation>>",
+          "presence": "optional"
+        },
+        {
+          "code": 8,
+          "name": "graphics",
+          "type": "Option<IfccadLeaderGraphics>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "Option<IfccadMultiLeaderStyleId>",
+        "IfccadMultiLeaderSettings",
+        "BTreeSet<IfccadMultiLeaderProperty>",
+        "Vec<IfccadMultiLeaderBlockLabel>",
+        "u64",
+        "Vec<IfccadMultiLeaderLegacyArrowOverride>",
+        "IfccadMultiLeaderPresentation",
+        "Option<IfccadAnnotation<IfccadMultiLeaderPresentation>>",
+        "Option<IfccadLeaderGraphics>"
+      ]
+    },
+    "IfccadLeaderGraphicsOrigin": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "SourceSnapshot",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Generated",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadLeaderGraphicLineWeight": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "Owner",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ByLayer",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ByBlock",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "DrawingDefault",
+          "code": 3,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Explicit",
+          "code": 4,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "f64"
+      ]
+    },
+    "IfccadLeaderGraphicTextProcessing": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "Interpreted",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Raw",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadLeaderGraphicCommand": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "Draw",
+          "code": 0,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadLeaderGraphicPrimitive",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "StoredExtents",
+          "code": 1,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "min",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "max",
+              "type": "[f64;3]",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "SetColor",
+          "code": 2,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadLeaderGraphicInheritance<IfccadColor>",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "SetLayer",
+          "code": 3,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Option<u64>",
+              "presence": "optional"
+            }
+          ]
+        },
+        {
+          "name": "SetLinePattern",
+          "code": 4,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadLeaderGraphicInheritance<IfccadLinePatternId>",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "SetSelectionMarker",
+          "code": 5,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "u32",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "SetFill",
+          "code": 6,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "bool",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "SetLineWeight",
+          "code": 7,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadLeaderGraphicLineWeight",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "SetLinePatternScale",
+          "code": 8,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "SetThickness",
+          "code": 9,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "PushTransform",
+          "code": 10,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "[f64;16]",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "PopTransform",
+          "code": 11,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "CadCompatibility51Zero",
+          "code": 12,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": [
+        "IfccadLeaderGraphicPrimitive",
+        "[f64;3]",
+        "IfccadLeaderGraphicInheritance<IfccadColor>",
+        "Option<u64>",
+        "IfccadLeaderGraphicInheritance<IfccadLinePatternId>",
+        "u32",
+        "bool",
+        "IfccadLeaderGraphicLineWeight",
+        "f64",
+        "[f64;16]"
+      ]
+    },
+    "IfccadLeaderGraphicPrimitive": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "Point",
+          "code": 0,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "[f64;3]",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Polyline",
+          "code": 1,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "vertices",
+              "type": "Vec<[f64;3]>",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "normal",
+              "type": "Option<[f64;3]>",
+              "presence": "optional"
+            }
+          ]
+        },
+        {
+          "name": "Polygon",
+          "code": 2,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "vertices",
+              "type": "Vec<[f64;3]>",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Circle",
+          "code": 3,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "center",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "radius",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "normal",
+              "type": "[f64;3]",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Circle3",
+          "code": 4,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "points",
+              "type": "[[f64;3];3]",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Arc",
+          "code": 5,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "center",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "radius",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "normal",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 3,
+              "name": "start_direction",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 4,
+              "name": "sweep_angle",
+              "type": "f64",
+              "presence": "required"
+            },
+            {
+              "code": 5,
+              "name": "closure",
+              "type": "IfccadLeaderGraphicArcClosure",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Arc3",
+          "code": 6,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "points",
+              "type": "[[f64;3];3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "closure",
+              "type": "IfccadLeaderGraphicArcClosure",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "Text",
+          "code": 7,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Box<IfccadLeaderGraphicText>",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "[f64;3]",
+        "Vec<[f64;3]>",
+        "Option<[f64;3]>",
+        "f64",
+        "[[f64;3];3]",
+        "IfccadLeaderGraphicArcClosure",
+        "Box<IfccadLeaderGraphicText>"
+      ]
+    },
+    "IfccadLeaderGraphicArcClosure": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "Simple",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Sector",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Chord",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadLeaderPath": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "StraightSegments",
+          "code": 0,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Vec<[f64;3]>",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "SplineThroughVertices",
+          "code": 1,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Vec<[f64;3]>",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "Vec<[f64;3]>"
+      ]
+    },
+    "IfccadLeaderAnnotationKind": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "None",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "MText",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Block",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Tolerance",
+          "code": 3,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadLeaderHookDirection": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "OppositeHorizontal",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "AlongHorizontal",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadLeaderArrow": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "DefaultClosedFilled",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "None",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Symbol",
+          "code": 2,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "definition_id",
+              "type": "u64",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "u64"
+      ]
+    },
+    "IfccadToleranceNotation": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "CadFeatureControlTextV1",
+          "code": 0,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "code",
+              "type": "String",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "String"
+      ]
+    },
+    "IfccadMultiLeaderPathKind": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "Invisible",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "StraightSegments",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "SplineThroughVertices",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadLeaderLineWeight": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "ByLayer",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ByBlock",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "DrawingDefault",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Explicit",
+          "code": 3,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "f64"
+      ]
+    },
+    "IfccadMultiLeaderLineProperty": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "PathKind",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Color",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "LinePattern",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "LineWeight",
+          "code": 3,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Arrow",
+          "code": 4,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ArrowSize",
+          "code": 5,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadMultiLeaderConnection": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "GroupConnection",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ExplicitLastVertex",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadMultiLeaderAttachmentDirection": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "Horizontal",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Vertical",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadMultiLeaderBlockConnection": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "Extents",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "BasePoint",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadMultiLeaderTextAttachment": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "TopOfTopLine",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "MiddleOfTopLine",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "MiddleOfText",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "MiddleOfBottomLine",
+          "code": 3,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "BottomOfBottomLine",
+          "code": 4,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "BottomLine",
+          "code": 5,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "BottomOfTopLineUnderlineBottomLine",
+          "code": 6,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "BottomOfTopLineUnderlineTopLine",
+          "code": 7,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "BottomOfTopLineUnderlineAll",
+          "code": 8,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "CenterOfText",
+          "code": 9,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "CenterOfTextOverline",
+          "code": 10,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadMultiLeaderTextAttachmentPoint": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "Left",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Center",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Right",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadMultiLeaderTextAlignment": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "Left",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Center",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Right",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadMultiLeaderContentKind": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "None",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "MText",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Block",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Tolerance",
+          "code": 3,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadMultiLeaderTextAngle": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "ParallelToLastSegment",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Horizontal",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ReadableParallel",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadMultiLeaderDrawOrder": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "HeadFirst",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TailFirst",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadMultiLeaderContentDrawOrder": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "ContentFirst",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "LeadersFirst",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadMultiLeaderProperty": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "PathKind",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "LineColor",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "LinePattern",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "LineWeight",
+          "code": 3,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "LandingEnabled",
+          "code": 4,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "LandingGap",
+          "code": 5,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "DoglegEnabled",
+          "code": 6,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "DoglegLength",
+          "code": 7,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Arrow",
+          "code": 8,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ArrowSize",
+          "code": 9,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ContentKind",
+          "code": 10,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TextStyle",
+          "code": 11,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TextLeftAttachment",
+          "code": 12,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TextAngle",
+          "code": 13,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TextAlignment",
+          "code": 14,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TextColor",
+          "code": 15,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TextHeight",
+          "code": 16,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TextFrame",
+          "code": 17,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "UseDefaultMText",
+          "code": 18,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "BlockDefinition",
+          "code": 19,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "BlockColor",
+          "code": 20,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "BlockScale",
+          "code": 21,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "BlockRotation",
+          "code": 22,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "BlockConnection",
+          "code": 23,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ScaleFactor",
+          "code": 24,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TextRightAttachment",
+          "code": 25,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TextSwitchAlignment",
+          "code": 26,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TextAttachmentDirection",
+          "code": 27,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TextTopAttachment",
+          "code": 28,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "TextBottomAttachment",
+          "code": 29,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadLeaderGraphicInheritance<IfccadColor>": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "Owner",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ByLayer",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ByBlock",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Explicit",
+          "code": 3,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadColor",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "IfccadColor"
+      ]
+    },
+    "IfccadLeaderGraphicInheritance<IfccadLinePatternId>": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "Owner",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ByLayer",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "ByBlock",
+          "code": 2,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Explicit",
+          "code": 3,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadLinePatternId",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "IfccadLinePatternId"
+      ]
+    },
+    "IfccadMultiLeaderStyleId": {
+      "kind": "transparent",
+      "items": [
+        "u64"
+      ],
+      "dependencies": [
+        "u64"
+      ]
+    },
+    "IfccadAnnotation<IfccadLeaderAnnotationContext>": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "mode",
+          "type": "IfccadAnnotationMode",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "reference",
+          "type": "Option<IfccadAnnotationContextKey>",
+          "presence": "optional"
+        },
+        {
+          "code": 2,
+          "name": "contexts",
+          "type": "Vec<IfccadAnnotationContext<IfccadLeaderAnnotationContext>>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "orientation",
+          "type": "Option<IfccadAnnotationOrientation>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "IfccadAnnotationMode",
+        "Option<IfccadAnnotationContextKey>",
+        "Vec<IfccadAnnotationContext<IfccadLeaderAnnotationContext>>",
+        "Option<IfccadAnnotationOrientation>"
+      ]
+    },
+    "IfccadAnnotationContext<IfccadLeaderAnnotationContext>": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "key",
+          "type": "IfccadAnnotationContextKey",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "presentation",
+          "type": "Option<IfccadLeaderAnnotationContext>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "IfccadAnnotationContextKey",
+        "Option<IfccadLeaderAnnotationContext>"
+      ]
+    },
+    "IfccadAnnotation<IfccadToleranceAnnotationContext>": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "mode",
+          "type": "IfccadAnnotationMode",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "reference",
+          "type": "Option<IfccadAnnotationContextKey>",
+          "presence": "optional"
+        },
+        {
+          "code": 2,
+          "name": "contexts",
+          "type": "Vec<IfccadAnnotationContext<IfccadToleranceAnnotationContext>>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "orientation",
+          "type": "Option<IfccadAnnotationOrientation>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "IfccadAnnotationMode",
+        "Option<IfccadAnnotationContextKey>",
+        "Vec<IfccadAnnotationContext<IfccadToleranceAnnotationContext>>",
+        "Option<IfccadAnnotationOrientation>"
+      ]
+    },
+    "IfccadAnnotationContext<IfccadToleranceAnnotationContext>": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "key",
+          "type": "IfccadAnnotationContextKey",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "presentation",
+          "type": "Option<IfccadToleranceAnnotationContext>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "IfccadAnnotationContextKey",
+        "Option<IfccadToleranceAnnotationContext>"
+      ]
+    },
+    "IfccadAnnotation<IfccadMultiLeaderPresentation>": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "mode",
+          "type": "IfccadAnnotationMode",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "reference",
+          "type": "Option<IfccadAnnotationContextKey>",
+          "presence": "optional"
+        },
+        {
+          "code": 2,
+          "name": "contexts",
+          "type": "Vec<IfccadAnnotationContext<IfccadMultiLeaderPresentation>>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "orientation",
+          "type": "Option<IfccadAnnotationOrientation>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "IfccadAnnotationMode",
+        "Option<IfccadAnnotationContextKey>",
+        "Vec<IfccadAnnotationContext<IfccadMultiLeaderPresentation>>",
+        "Option<IfccadAnnotationOrientation>"
+      ]
+    },
+    "IfccadAnnotationContext<IfccadMultiLeaderPresentation>": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "key",
+          "type": "IfccadAnnotationContextKey",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "presentation",
+          "type": "Option<IfccadMultiLeaderPresentation>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "IfccadAnnotationContextKey",
+        "Option<IfccadMultiLeaderPresentation>"
+      ]
+    },
+    "Vec<IfccadAnnotationContext<IfccadLeaderAnnotationContext>>": {
+      "kind": "list",
+      "items": [
+        "IfccadAnnotationContext<IfccadLeaderAnnotationContext>"
+      ],
+      "dependencies": [
+        "IfccadAnnotationContext<IfccadLeaderAnnotationContext>"
+      ]
+    },
+    "Vec<IfccadAnnotationContext<IfccadMultiLeaderPresentation>>": {
+      "kind": "list",
+      "items": [
+        "IfccadAnnotationContext<IfccadMultiLeaderPresentation>"
+      ],
+      "dependencies": [
+        "IfccadAnnotationContext<IfccadMultiLeaderPresentation>"
+      ]
+    },
+    "Vec<IfccadAnnotationContext<IfccadToleranceAnnotationContext>>": {
+      "kind": "list",
+      "items": [
+        "IfccadAnnotationContext<IfccadToleranceAnnotationContext>"
+      ],
+      "dependencies": [
+        "IfccadAnnotationContext<IfccadToleranceAnnotationContext>"
+      ]
+    },
+    "Option<IfccadLeaderAnnotationContext>": {
+      "kind": "optional",
+      "items": [
+        "IfccadLeaderAnnotationContext"
+      ],
+      "dependencies": [
+        "IfccadLeaderAnnotationContext"
+      ]
+    },
+    "Option<IfccadMultiLeaderPresentation>": {
+      "kind": "optional",
+      "items": [
+        "IfccadMultiLeaderPresentation"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderPresentation"
+      ]
+    },
+    "Option<IfccadToleranceAnnotationContext>": {
+      "kind": "optional",
+      "items": [
+        "IfccadToleranceAnnotationContext"
+      ],
+      "dependencies": [
+        "IfccadToleranceAnnotationContext"
+      ]
+    },
+    "Vec<IfccadMultiLeaderStyle>": {
+      "kind": "list",
+      "items": [
+        "IfccadMultiLeaderStyle"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderStyle"
+      ]
+    },
+    "Box<IfccadLeader>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadLeader"
+      ],
+      "dependencies": [
+        "IfccadLeader"
+      ]
+    },
+    "Box<IfccadMultiLeader>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadMultiLeader"
+      ],
+      "dependencies": [
+        "IfccadMultiLeader"
+      ]
+    },
+    "Box<IfccadTolerance>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadTolerance"
+      ],
+      "dependencies": [
+        "IfccadTolerance"
+      ]
+    },
+    "Option<IfccadLeaderArrow>": {
+      "kind": "optional",
+      "items": [
+        "IfccadLeaderArrow"
+      ],
+      "dependencies": [
+        "IfccadLeaderArrow"
+      ]
+    },
+    "Option<IfccadAnnotation<IfccadLeaderAnnotationContext>>": {
+      "kind": "optional",
+      "items": [
+        "IfccadAnnotation<IfccadLeaderAnnotationContext>"
+      ],
+      "dependencies": [
+        "IfccadAnnotation<IfccadLeaderAnnotationContext>"
+      ]
+    },
+    "Option<IfccadLeaderGraphics>": {
+      "kind": "optional",
+      "items": [
+        "IfccadLeaderGraphics"
+      ],
+      "dependencies": [
+        "IfccadLeaderGraphics"
+      ]
+    },
+    "[f64;16]": {
+      "kind": "tuple",
+      "itemType": "f64",
+      "length": 16,
+      "dependencies": [
+        "f64"
+      ],
+      "items": [
+        "f64"
+      ]
+    },
+    "Option<[f64;3]>": {
+      "kind": "optional",
+      "items": [
+        "[f64;3]"
+      ],
+      "dependencies": [
+        "[f64;3]"
+      ]
+    },
+    "[[f64;3];3]": {
+      "kind": "tuple",
+      "itemType": "f64",
+      "length": 3,
+      "dependencies": [
+        "[f64;3]"
+      ],
+      "items": [
+        "[f64;3]"
+      ]
+    },
+    "Box<IfccadLeaderGraphicText>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadLeaderGraphicText"
+      ],
+      "dependencies": [
+        "IfccadLeaderGraphicText"
+      ]
+    },
+    "Option<IfccadLeaderGraphicFont>": {
+      "kind": "optional",
+      "items": [
+        "IfccadLeaderGraphicFont"
+      ],
+      "dependencies": [
+        "IfccadLeaderGraphicFont"
+      ]
+    },
+    "Vec<IfccadLeaderGraphicCommand>": {
+      "kind": "list",
+      "items": [
+        "IfccadLeaderGraphicCommand"
+      ],
+      "dependencies": [
+        "IfccadLeaderGraphicCommand"
+      ]
+    },
+    "Option<IfccadMultiLeaderStyleId>": {
+      "kind": "optional",
+      "items": [
+        "IfccadMultiLeaderStyleId"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderStyleId"
+      ]
+    },
+    "BTreeSet<IfccadMultiLeaderProperty>": {
+      "kind": "set",
+      "items": [
+        "IfccadMultiLeaderProperty"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderProperty"
+      ],
+      "representation": "array",
+      "unique": true,
+      "canonicalOrder": "encodedItem"
+    },
+    "Vec<IfccadMultiLeaderBlockLabel>": {
+      "kind": "list",
+      "items": [
+        "IfccadMultiLeaderBlockLabel"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderBlockLabel"
+      ]
+    },
+    "Vec<IfccadMultiLeaderLegacyArrowOverride>": {
+      "kind": "list",
+      "items": [
+        "IfccadMultiLeaderLegacyArrowOverride"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderLegacyArrowOverride"
+      ]
+    },
+    "Option<IfccadAnnotation<IfccadMultiLeaderPresentation>>": {
+      "kind": "optional",
+      "items": [
+        "IfccadAnnotation<IfccadMultiLeaderPresentation>"
+      ],
+      "dependencies": [
+        "IfccadAnnotation<IfccadMultiLeaderPresentation>"
+      ]
+    },
+    "Option<[f64;16]>": {
+      "kind": "optional",
+      "items": [
+        "[f64;16]"
+      ],
+      "dependencies": [
+        "[f64;16]"
+      ]
+    },
+    "Option<i32>": {
+      "kind": "optional",
+      "items": [
+        "i32"
+      ],
+      "dependencies": [
+        "i32"
+      ]
+    },
+    "Vec<IfccadMultiLeaderLine>": {
+      "kind": "list",
+      "items": [
+        "IfccadMultiLeaderLine"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderLine"
+      ]
+    },
+    "Vec<IfccadLeaderBreakInterval>": {
+      "kind": "list",
+      "items": [
+        "IfccadLeaderBreakInterval"
+      ],
+      "dependencies": [
+        "IfccadLeaderBreakInterval"
+      ]
+    },
+    "BTreeSet<IfccadMultiLeaderLineProperty>": {
+      "kind": "set",
+      "items": [
+        "IfccadMultiLeaderLineProperty"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderLineProperty"
+      ],
+      "representation": "array",
+      "unique": true,
+      "canonicalOrder": "encodedItem"
+    },
+    "Vec<IfccadMultiLeaderSegmentBreaks>": {
+      "kind": "list",
+      "items": [
+        "IfccadMultiLeaderSegmentBreaks"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderSegmentBreaks"
+      ]
+    },
+    "Vec<IfccadMultiLeaderGroup>": {
+      "kind": "list",
+      "items": [
+        "IfccadMultiLeaderGroup"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderGroup"
+      ]
+    },
+    "Box<IfccadMultiLeaderTextContent>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadMultiLeaderTextContent"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderTextContent"
+      ]
+    },
+    "Option<Box<IfccadMultiLeaderTextContent>>": {
+      "kind": "optional",
+      "items": [
+        "Box<IfccadMultiLeaderTextContent>"
+      ],
+      "dependencies": [
+        "Box<IfccadMultiLeaderTextContent>"
+      ]
+    },
+    "Option<IfccadMultiLeaderBlockContent>": {
+      "kind": "optional",
+      "items": [
+        "IfccadMultiLeaderBlockContent"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderBlockContent"
+      ]
+    },
+    "Box<IfccadMultiLeaderToleranceContent>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadMultiLeaderToleranceContent"
+      ],
+      "dependencies": [
+        "IfccadMultiLeaderToleranceContent"
+      ]
+    },
+    "Option<Box<IfccadMultiLeaderToleranceContent>>": {
+      "kind": "optional",
+      "items": [
+        "Box<IfccadMultiLeaderToleranceContent>"
+      ],
+      "dependencies": [
+        "Box<IfccadMultiLeaderToleranceContent>"
+      ]
+    },
+    "Option<IfccadAnnotation<IfccadToleranceAnnotationContext>>": {
+      "kind": "optional",
+      "items": [
+        "IfccadAnnotation<IfccadToleranceAnnotationContext>"
+      ],
+      "dependencies": [
+        "IfccadAnnotation<IfccadToleranceAnnotationContext>"
       ]
     }
   }

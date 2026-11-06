@@ -20,3 +20,18 @@ The frozen local review files and their provenance remain outside Git.
 Preparation and bundle provenance hash every file here. Local path overrides
 are not part of the released pins or lockfile. A source patch is distinct from an
 upstream Studio contribution; it must not be attributed to unmodified upstream.
+
+The current untagged `leader-slice` candidate selects `leaders.patch`, which
+includes the earlier attribute patch, adds bounded leader-picture invalidation
+for changed properties/grips and uses worker protocol7 with matching cache URLs.
+Saving also materializes the host's selected annotation scale through its
+existing scale-list helper before writing CANNOSCALE; an empty native scale
+registry must not turn into a dangling reference after opening in the host.
+It uses the explicit relative local
+overrides in `ocs-source.json`. The preparation tool applies all codec URL
+aliases to that one selected model and verifies the resolved graph. Its recorded
+lock is specific to this development pair, not a portable upstream release pin.
+`leaders_smoke.rs` is copied only for this candidate and exercises opening from
+IFCX and DWG, shared Leader targets, a MLeader text edit and grip, undo/redo,
+stored-picture invalidation and strict native save/reopen. Its source describes
+the intended check; only a recorded successful execution qualifies that behavior.

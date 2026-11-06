@@ -11,6 +11,17 @@ ROOT = Path(__file__).resolve().parents[1]
 INPUTS = ROOT / "format-explorer/ocs-inputs"
 
 
+def development_sources(pins, package):
+    sources = {
+        'ifccad': ['https://github.com/OpenAEC-Foundation/ifccad.git'],
+        'opencaddocument': ['https://github.com/HakanSeven12/opencaddocument.git'],
+        'acadrust': ['https://github.com/hakanaktt/acadrust.git', 'https://github.com/HakanSeven12/acadrust.git'],
+    }[package]
+    if package == 'acadrust':
+        sources += [pins[key] for key in ['codecRepository', 'explorerCodecRepository'] if pins.get(key)]
+    return sorted(set(sources))
+
+
 def prepare_codec_patch(text, pins):
     repository = pins.get("codecRepository")
     if not repository or repository == "https://github.com/hakanaktt/acadrust.git" or "acadrust" in pins.get("developmentOverrides", {}):
@@ -129,6 +140,12 @@ def main():
         text = module.read_text(encoding='utf-8')
         if 'mod block_attributes_smoke;' not in text:
             module.write_text(text + '\n#[cfg(test)]\nmod block_attributes_smoke;\n', encoding='utf-8')
+        if pins.get('localDevelopment') == 'leader-slice':
+            (checkout / 'src/app/leaders_smoke.rs').write_bytes(
+                (INPUTS / 'leaders_smoke.rs').read_bytes())
+            text = module.read_text(encoding='utf-8')
+            if 'mod leaders_smoke;' not in text:
+                module.write_text(text + '\n#[cfg(test)]\nmod leaders_smoke;\n', encoding='utf-8')
     manifests = ["Cargo.toml", "crates/ocs_save/Cargo.toml", "crates/ocs_web_worker/Cargo.toml", "crates/ocs_plugin_api/Cargo.toml"]
     for name in manifests:
         path = checkout / name
@@ -144,16 +161,15 @@ def main():
     # Explicit local development pairs do not masquerade as unmodified Git revisions.
     config_path = checkout / ".cargo/config.toml"
     config = config_path.read_text(encoding="utf-8")
-    repositories = {"ifccad":"https://github.com/OpenAEC-Foundation/ifccad.git", "opencaddocument":"https://github.com/HakanSeven12/opencaddocument.git", "acadrust":"https://github.com/hakanaktt/acadrust.git"}
     for package, override in pins.get("developmentOverrides", {}).items():
         source = (ROOT / override["path"]).resolve()
         actual = subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True).strip()
         if actual != override["baseCommit"]:
             raise SystemExit(f"Unexpected {package} development base")
-        repository = repositories[package]
-        patch = f'[patch."{repository}"]\n{package} = {{ path = "{source.as_posix()}" }}\n'
-        pattern = r'(?m)^\[patch\."' + re.escape(repository) + r'"\]\n[^\[]*'
-        config = re.sub(pattern, lambda _: patch + "\n", config) if re.search(pattern, config) else config.rstrip() + "\n\n" + patch
+        for repository in development_sources(pins, package):
+            patch = f'[patch."{repository}"]\n{package} = {{ path = "{source.as_posix()}" }}\n'
+            pattern = r'(?m)^\[patch\."' + re.escape(repository) + r'"\]\n[^\[]*'
+            config = re.sub(pattern, lambda _: patch + "\n", config) if re.search(pattern, config) else config.rstrip() + "\n\n" + patch
     config_path.write_text(config, encoding="utf-8")
     worker = checkout / "scripts/build-web-worker.sh"
     text = worker.read_text()

@@ -9,6 +9,8 @@ use std::collections::{BTreeMap, BTreeSet};
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DrawingValue {
+    #[serde(default = "initial_workspace_id")]
+    next_multi_leader_style_id: u64,
     #[serde(default)]
     attribute_visibility: IfccadAttributeVisibility,
     #[serde(default, deserialize_with = "crate::dimension::present_option")]
@@ -272,6 +274,7 @@ fn entity(
     block_paths: &BTreeMap<String, u64>,
     pattern_paths: &BTreeMap<String, IfccadLinePatternId>,
     style_paths: &BTreeMap<String, IfccadTextStyleId>,
+    leaders: Option<&mut super::leader_graph::Reader<'_>>,
 ) -> Result<IfccadEntity, IfccadReport> {
     let path = node["path"].as_str().unwrap();
     let id = numbered(path, &format!("{prefix}/e"))?;
@@ -312,7 +315,15 @@ fn entity(
         .get("attributes")
         .and_then(Value::as_object)
         .ok_or_else(|| problem(format!("{path} missing attributes")))?;
-    let kind = decode_payload(attrs, prefix, path, block_paths, style_paths, pattern_paths)?;
+    let kind = decode_payload(
+        attrs,
+        prefix,
+        path,
+        block_paths,
+        style_paths,
+        pattern_paths,
+        leaders,
+    )?;
     Ok(IfccadEntity::Native(IfccadNativeEntity {
         id,
         visible: value.visible,
@@ -380,7 +391,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .and_then(Value::as_object)
         .ok_or_else(|| problem("IFCX schemas must be an object"))?;
     let profile_module: Value = serde_json::from_str(include_str!(
-        "../../../../schemas/ifccad/ifccad-profile-0.6.0.ifcx"
+        "../../../../schemas/ifccad/ifccad-profile-0.7.0.ifcx"
     ))
     .map_err(|e| problem(format!("invalid built-in CAD schema module: {e}")))?;
     let known = profile_module["schemas"]
@@ -437,7 +448,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let drawing_id = numbered(drawing_path, "/cad/d")?;
     let prefix = drawing_prefix(drawing_id);
     let drawing: DrawingValue = required(drawing_node, "ifccad::drawing")?;
-    if drawing.profile_version != "0.6.0" {
+    if drawing.profile_version != "0.7.0" {
         return Err(crate::ifccad::diagnostics::failure(
             "IFCCAD-WIRE-001",
             &format!("{drawing_path}/ifccad::drawing/profileVersion"),
@@ -624,6 +635,28 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         }
     }
     dimension_styles.sort_by_key(|s| s.id);
+    let mut multi_leader_paths = BTreeMap::new();
+    let mut multi_leader_styles = Vec::new();
+    for (path, node) in &nodes {
+        if let Some(value) = attr(node, "ifccad::multiLeaderStyle") {
+            if node["attributes"]
+                .as_object()
+                .is_none_or(|attrs| attrs.len() != 1)
+                || node.get("children").is_some_and(|children| {
+                    !children.as_object().is_some_and(serde_json::Map::is_empty)
+                })
+            {
+                return Err(problem(
+                    "MultiLeaderStyle has incompatible role or children",
+                ));
+            }
+            let id =
+                IfccadMultiLeaderStyleId(numbered(path, &format!("{prefix}/multiLeaderStyle/"))?);
+            multi_leader_paths.insert(path.clone(), id);
+            multi_leader_styles.push(super::leader_graph::read_style(value, id, &prefix, path)?);
+        }
+    }
+    multi_leader_styles.sort_by_key(|style| style.id);
     let next_dimension_style_id = match drawing.next_dimension_style_id {
         Some(v) => v,
         None if dimension_styles.is_empty() => 1,
@@ -642,6 +675,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .chain(pattern_paths.keys())
         .chain(style_paths.keys())
         .chain(dimension_paths.keys())
+        .chain(multi_leader_paths.keys())
         .chain(source_paths.keys())
         .chain(std::iter::once(&model_path))
         .chain(paper_paths.values().map(|(path, ..)| path))
@@ -660,6 +694,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         seen: BTreeSet::new(),
     };
     let mut owners = BTreeSet::new();
+    let mut leaders = super::leader_graph::Reader::new(&nodes, &prefix);
     let mut parse_owner = |path: &str| -> Result<Vec<IfccadEntity>, IfccadReport> {
         let node = nodes
             .get(path)
@@ -680,8 +715,18 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
                     &block_paths,
                     &pattern_paths,
                     &style_paths,
+                    Some(&mut leaders),
                 )?;
-                graphics.attach(&mut entity, child)?;
+                if !matches!(
+                    entity.as_native().map(|entity| &entity.kind),
+                    Some(
+                        IfccadEntityKind::Leader(_)
+                            | IfccadEntityKind::MultiLeader(_)
+                            | IfccadEntityKind::Tolerance(_)
+                    )
+                ) {
+                    graphics.attach(&mut entity, child)?;
+                }
                 if let Some(IfccadNativeEntity {
                     kind: IfccadEntityKind::BlockInstance { attributes, .. },
                     ..
@@ -723,6 +768,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
                             &block_paths,
                             &pattern_paths,
                             &style_paths,
+                            None,
                         )?;
                         let common = common
                             .as_native()
@@ -797,6 +843,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         });
     }
     graphics.finish()?;
+    leaders.finish()?;
     let entity_paths: BTreeSet<_> = nodes
         .iter()
         .filter(|(_, n)| {
@@ -908,6 +955,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         _ => return Err(problem("preservation requires allocation watermark")),
     };
     let mut document = IfccadDocument {
+        multi_leader_styles,
         attribute_visibility: drawing.attribute_visibility,
         annotation_settings: drawing.annotation_settings,
         annotation_views: vec![],
@@ -928,6 +976,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         header,
         drawing_id,
         id_counters: IfccadIdCounters {
+            next_multi_leader_style_id: drawing.next_multi_leader_style_id,
             next_annotation_view_id: drawing.next_annotation_view_id,
             next_annotation_scale_id: drawing.next_annotation_scale_id,
             next_dimension_style_id,
@@ -971,6 +1020,7 @@ pub(super) fn decode_payload(
     block_paths: &BTreeMap<String, u64>,
     style_paths: &BTreeMap<String, IfccadTextStyleId>,
     pattern_paths: &BTreeMap<String, IfccadLinePatternId>,
+    leaders: Option<&mut super::leader_graph::Reader<'_>>,
 ) -> Result<IfccadEntityKind, IfccadReport> {
     let mut payloads = super::geometry::PAYLOADS.to_vec();
     payloads.extend([
@@ -981,6 +1031,9 @@ pub(super) fn decode_payload(
         "ifccad::mText",
         "ifccad::hatch",
         "ifccad::dimension",
+        "ifccad::leader",
+        "ifccad::multiLeader",
+        "ifccad::tolerance",
     ]);
     let present: Vec<_> = payloads
         .iter()
@@ -999,6 +1052,21 @@ pub(super) fn decode_payload(
         return Err(problem(format!("{path} unsupported CAD geometry")));
     }
     let mut kind = match *present[0] {
+        "ifccad::leader" => IfccadEntityKind::Leader(Box::new(
+            leaders
+                .ok_or_else(|| problem("Leader requires owned graph reader"))?
+                .read_leader(path)?,
+        )),
+        "ifccad::multiLeader" => IfccadEntityKind::MultiLeader(Box::new(
+            leaders
+                .ok_or_else(|| problem("MultiLeader requires owned graph reader"))?
+                .read_multi_leader(path)?,
+        )),
+        "ifccad::tolerance" => IfccadEntityKind::Tolerance(Box::new(
+            leaders
+                .ok_or_else(|| problem("Tolerance requires owned graph reader"))?
+                .read_tolerance(path)?,
+        )),
         "ifccad::attributeDefinition" => {
             IfccadEntityKind::AttributeDefinition(Box::new(super::attributes::definition(
                 &attrs["ifccad::attributeDefinition"],
@@ -1072,7 +1140,14 @@ pub(super) fn decode_payload(
         key => super::geometry::decode_kind(attrs, key, path)?,
     };
     if let Some(a) = attrs.get("ifccad::annotation") {
-        super::annotation::attach(&mut kind, a, prefix, path)?;
+        if !matches!(
+            kind,
+            IfccadEntityKind::Leader(_)
+                | IfccadEntityKind::MultiLeader(_)
+                | IfccadEntityKind::Tolerance(_)
+        ) {
+            super::annotation::attach(&mut kind, a, prefix, path)?;
+        }
     }
     if let Some(a) = attrs.get("ifccad::hatchAnnotationViews") {
         super::annotation_hatch::attach_views(&mut kind, a, prefix, path)?;

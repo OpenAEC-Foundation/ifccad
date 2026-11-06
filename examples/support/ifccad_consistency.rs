@@ -174,6 +174,22 @@ pub fn normalize(value: &Value) -> Result<Vec<u8>, Box<dyn Error>> {
         d.model_windows.iter().map(|w| w.id.0),
         false,
     );
+    // Owned nodes move with their ordinary entity. Register exact validated
+    // node paths before rewriting references, including branches and content.
+    let entity_prefix = format!("{prefix}/e");
+    for node in value["data"].as_array().unwrap() {
+        let path = node["path"].as_str().unwrap();
+        let Some((id, suffix)) = path
+            .strip_prefix(&entity_prefix)
+            .and_then(|tail| tail.split_once('/'))
+        else {
+            continue;
+        };
+        if let Some(owner) = paths.get(&format!("{entity_prefix}{id}")) {
+            let target = format!("{owner}/{suffix}");
+            paths.insert(path.to_owned(), target);
+        }
+    }
     let mut result = value.clone();
     rewrite_paths(&mut result, &paths);
     for node in result["data"].as_array_mut().unwrap() {

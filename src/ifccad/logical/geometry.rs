@@ -131,7 +131,11 @@ impl IfccadEntityKind {
             | Self::Text(_)
             | Self::MText(_)
             | Self::Hatch(_) => return Ok(None),
-            Self::Dimension(_) | Self::AttributeDefinition(_) => return Ok(None),
+            Self::Dimension(_)
+            | Self::AttributeDefinition(_)
+            | Self::Leader(_)
+            | Self::MultiLeader(_)
+            | Self::Tolerance(_) => return Ok(None),
         }))
     }
 }

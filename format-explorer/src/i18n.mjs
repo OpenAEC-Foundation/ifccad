@@ -189,6 +189,13 @@ Object.assign(copy, {
   "Dimension styles",
   "Bematingsstijlen"
  ],
+ "leader": ["Leader","Leader"],
+ "multiLeader": ["Multileader","Multileader"],
+ "tolerance": ["Tolerance frame","Tolerantiekader"],
+ "plural.leader": ["Leaders","Leaders"],
+ "plural.multiLeader": ["Multileaders","Multileaders"],
+ "plural.tolerance": ["Tolerance frames","Tolerantiekaders"],
+ "multiLeaderStyles": ["Multileader styles","Multileaderstijlen"],
  "dimension.calculatedMeasurement": [
   "Calculated measurement",
   "Berekende maat"

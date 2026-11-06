@@ -1,4 +1,5 @@
 use super::dimension_values::*;
+use super::leader_values::LeaderJsonValue;
 use crate::{dimension::DimensionKind, *};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -6,6 +7,8 @@ use std::collections::BTreeMap;
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct StyleValue {
+    #[serde(default, deserialize_with = "super::presentation::present")]
+    leader_arrow: Option<Value>,
     #[serde(default)]
     annotative: bool,
     name: String,
@@ -17,6 +20,9 @@ pub(super) fn encode_style(s: &IfccadDimensionStyle, prefix: &str) -> Value {
     let mut value = json!({"name":s.name,"settings":encode_settings(&s.settings,prefix),"typeOverrides":s.type_overrides.iter().map(|(k,v)|(*k,encode_overrides(v,prefix))).collect::<BTreeMap<_,_>>()});
     if s.annotative {
         value["annotative"] = json!(true);
+    }
+    if s.leader_arrow != IfccadLeaderArrow::DefaultClosedFilled {
+        value["leaderArrow"] = s.leader_arrow.write_value(prefix);
     }
     value
 }
@@ -35,6 +41,12 @@ pub(super) fn decode_style(
         types.insert(k, decode_overrides(&over, prefix, path)?);
     }
     Ok(IfccadDimensionStyle {
+        leader_arrow: v
+            .leader_arrow
+            .as_ref()
+            .map(|value| IfccadLeaderArrow::read_value(value, prefix, path))
+            .transpose()?
+            .unwrap_or_default(),
         annotative: v.annotative,
         id,
         name: v.name,

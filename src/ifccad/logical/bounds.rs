@@ -713,6 +713,12 @@ impl<'a> Evaluation<'a> {
                 }
                 result
             }
+            IfccadEntityKind::Leader(_)
+            | IfccadEntityKind::MultiLeader(_)
+            | IfccadEntityKind::Tolerance(_) => Extents {
+                unavailable: true,
+                ..Default::default()
+            },
             IfccadEntityKind::Dimension(dimension) => {
                 let mut local = Extents {
                     unavailable: dimension.graphics.is_none(),

@@ -1,6 +1,6 @@
 //! Contract checks for explicit revision-1 mapping declarations.
 #[cfg(test)]
-pub(super) const MAPPING: &str = include_str!("../../../../schemas/ifccad/cbor-mapping-6.json");
+pub(super) const MAPPING: &str = include_str!("../../../../schemas/ifccad/cbor-mapping-7.json");
 #[cfg(test)]
 mod tests {
     use super::super::*;
@@ -29,6 +29,68 @@ mod tests {
     fn explicit_code_declarations_match_contract() {
         let r: serde_json::Value = serde_json::from_str(super::MAPPING).unwrap();
         check::<IfccadDocument>(&r, "IfccadDocument");
+        check::<IfccadLeaderGraphics>(&r, "IfccadLeaderGraphics");
+        check::<IfccadLeaderGraphicFont>(&r, "IfccadLeaderGraphicFont");
+        check::<IfccadLeaderGraphicText>(&r, "IfccadLeaderGraphicText");
+        check::<IfccadLeader>(&r, "IfccadLeader");
+        check::<IfccadLeaderAnnotationContext>(&r, "IfccadLeaderAnnotationContext");
+        check::<IfccadTolerance>(&r, "IfccadTolerance");
+        check::<IfccadToleranceAnnotationContext>(&r, "IfccadToleranceAnnotationContext");
+        check::<IfccadMultiLeaderLineSettings>(&r, "IfccadMultiLeaderLineSettings");
+        check::<IfccadLeaderBreakInterval>(&r, "IfccadLeaderBreakInterval");
+        check::<IfccadMultiLeaderSegmentBreaks>(&r, "IfccadMultiLeaderSegmentBreaks");
+        check::<IfccadMultiLeaderLine>(&r, "IfccadMultiLeaderLine");
+        check::<IfccadMultiLeaderGroup>(&r, "IfccadMultiLeaderGroup");
+        check::<IfccadMultiLeaderBlockContent>(&r, "IfccadMultiLeaderBlockContent");
+        check::<IfccadMultiLeaderBlockLabel>(&r, "IfccadMultiLeaderBlockLabel");
+        check::<IfccadMultiLeaderTextAttachments>(&r, "IfccadMultiLeaderTextAttachments");
+        check::<IfccadMultiLeaderTextBackground>(&r, "IfccadMultiLeaderTextBackground");
+        check::<IfccadMultiLeaderTextState>(&r, "IfccadMultiLeaderTextState");
+        check::<IfccadMultiLeaderTextContent>(&r, "IfccadMultiLeaderTextContent");
+        check::<IfccadMultiLeaderToleranceContent>(&r, "IfccadMultiLeaderToleranceContent");
+        check::<IfccadMultiLeaderStoredContent>(&r, "IfccadMultiLeaderStoredContent");
+        check::<IfccadMultiLeaderPresentation>(&r, "IfccadMultiLeaderPresentation");
+        check::<IfccadMultiLeaderTextSettings>(&r, "IfccadMultiLeaderTextSettings");
+        check::<IfccadMultiLeaderBlockSettings>(&r, "IfccadMultiLeaderBlockSettings");
+        check::<IfccadMultiLeaderCommonSettings>(&r, "IfccadMultiLeaderCommonSettings");
+        check::<IfccadMultiLeaderSettings>(&r, "IfccadMultiLeaderSettings");
+        check::<IfccadMultiLeaderDefaultText>(&r, "IfccadMultiLeaderDefaultText");
+        check::<IfccadMultiLeaderStyle>(&r, "IfccadMultiLeaderStyle");
+        check::<IfccadMultiLeaderLegacyArrowOverride>(&r, "IfccadMultiLeaderLegacyArrowOverride");
+        check::<IfccadMultiLeader>(&r, "IfccadMultiLeader");
+        check::<IfccadLeaderGraphicsOrigin>(&r, "IfccadLeaderGraphicsOrigin");
+        check::<IfccadLeaderGraphicLineWeight>(&r, "IfccadLeaderGraphicLineWeight");
+        check::<IfccadLeaderGraphicTextProcessing>(&r, "IfccadLeaderGraphicTextProcessing");
+        check::<IfccadLeaderGraphicCommand>(&r, "IfccadLeaderGraphicCommand");
+        check::<IfccadLeaderGraphicPrimitive>(&r, "IfccadLeaderGraphicPrimitive");
+        check::<IfccadLeaderGraphicArcClosure>(&r, "IfccadLeaderGraphicArcClosure");
+        check::<IfccadLeaderPath>(&r, "IfccadLeaderPath");
+        check::<IfccadLeaderAnnotationKind>(&r, "IfccadLeaderAnnotationKind");
+        check::<IfccadLeaderHookDirection>(&r, "IfccadLeaderHookDirection");
+        check::<IfccadLeaderArrow>(&r, "IfccadLeaderArrow");
+        check::<IfccadToleranceNotation>(&r, "IfccadToleranceNotation");
+        check::<IfccadMultiLeaderPathKind>(&r, "IfccadMultiLeaderPathKind");
+        check::<IfccadLeaderLineWeight>(&r, "IfccadLeaderLineWeight");
+        check::<IfccadMultiLeaderLineProperty>(&r, "IfccadMultiLeaderLineProperty");
+        check::<IfccadMultiLeaderConnection>(&r, "IfccadMultiLeaderConnection");
+        check::<IfccadMultiLeaderAttachmentDirection>(&r, "IfccadMultiLeaderAttachmentDirection");
+        check::<IfccadMultiLeaderBlockConnection>(&r, "IfccadMultiLeaderBlockConnection");
+        check::<IfccadMultiLeaderTextAttachment>(&r, "IfccadMultiLeaderTextAttachment");
+        check::<IfccadMultiLeaderTextAttachmentPoint>(&r, "IfccadMultiLeaderTextAttachmentPoint");
+        check::<IfccadMultiLeaderTextAlignment>(&r, "IfccadMultiLeaderTextAlignment");
+        check::<IfccadMultiLeaderContentKind>(&r, "IfccadMultiLeaderContentKind");
+        check::<IfccadMultiLeaderTextAngle>(&r, "IfccadMultiLeaderTextAngle");
+        check::<IfccadMultiLeaderDrawOrder>(&r, "IfccadMultiLeaderDrawOrder");
+        check::<IfccadMultiLeaderContentDrawOrder>(&r, "IfccadMultiLeaderContentDrawOrder");
+        check::<IfccadMultiLeaderProperty>(&r, "IfccadMultiLeaderProperty");
+        check::<IfccadLeaderGraphicInheritance<IfccadColor>>(
+            &r,
+            "IfccadLeaderGraphicInheritance<IfccadColor>",
+        );
+        check::<IfccadLeaderGraphicInheritance<IfccadLinePatternId>>(
+            &r,
+            "IfccadLeaderGraphicInheritance<IfccadLinePatternId>",
+        );
         check::<IfccadFilledQuadrilateral>(&r, "IfccadFilledQuadrilateral");
         check::<IfccadPlanarPolylineWidths>(&r, "IfccadPlanarPolylineWidths");
         check::<IfccadPolylineVertexWidthOverride>(&r, "IfccadPolylineVertexWidthOverride");

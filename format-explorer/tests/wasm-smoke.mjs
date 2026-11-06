@@ -32,11 +32,24 @@ function catalogueAutomaticText(result){
   assert.ok(a['ifccad::annotation'].contexts.every(c=>c.presentation==null),'membership-only contexts must not acquire artificial text positions');
  }
 }
+function catalogueLeaders(result){
+ const leaders=result.presentation.leaders;
+ assert.deepEqual(leaders.map(v=>v.kind).sort(),['Leader','Leader','MultiLeader','Tolerance']);
+ const targets=leaders.filter(v=>v.kind==='Leader').map(v=>v.definition.annotationEntity);
+ assert.ok(targets[0]);assert.equal(targets[0],targets[1],'classic leaders retain one shared ordinary target');
+ const multi=leaders.find(v=>v.kind==='MultiLeader');
+ assert.ok(multi.ownedNodes.some(v=>v.attributes?.['ifccad::multiLeaderLine']));
+ assert.equal(multi.graphics.commandCount,5);
+ const selection=result.preview.viewerSelection;
+ const owner=selection.entities.find(v=>v.path===multi.path);
+ assert.ok(owner);
+ assert.ok(selection.ownedPartOwners.some(v=>v.ownerPath===multi.path&&v.handle===owner.handle));
+}
 
 for(const example of examples){
  const name=example.path.split('/').at(-1),bytes=await readFile(new URL('../../'+example.path,import.meta.url)),source=request(name,bytes);
  const opened=checked(source);
- if(example.name==='Entity catalogue')catalogueAutomaticText(opened);
+ if(example.name==='Entity catalogue'){catalogueAutomaticText(opened);catalogueLeaders(opened);}
  assert.deepEqual(Buffer.from(opened.nativeFile.base64,'base64'),bytes,'preview retains actual source bytes');
  assert.ok(opened.nativeFile.fileName.endsWith('.ifcx'));
  assert.equal(opened.preview.rendering,'unassessed');
@@ -78,6 +91,7 @@ for(const example of examples){
   assert.deepEqual(decoded.presentation.extrusions,opened.presentation.extrusions);
   assert.deepEqual(decoded.presentation.dimensions,opened.presentation.dimensions);
   assert.deepEqual(decoded.presentation.blockAttributes,opened.presentation.blockAttributes);
+  assert.deepEqual(decoded.presentation.leaders,opened.presentation.leaders);
   const same=checked(nativeExportRequest(binary,decoded,{format:'ifccad',encoding})).export.download;
   assert.deepEqual(bytesOf(same),bytesOf(saved),'same binary encoding retains validated source bytes');
   const projected=checked(nativeExportRequest(binary,decoded,{format:'ifccad'})).export.download;
@@ -92,6 +106,7 @@ for(const example of examples){
   const file=exported.export.download,returned=checked(request('returned.'+format,bytesOf(file),'cad'));
   if(example.name==='Entity catalogue'){
    catalogueAutomaticText(returned);
+   catalogueLeaders(returned);
    const expected=opened.presentation.extrusions.filter(row=>row.thickness===15);
    const returnedModel=createInspection(returned),remaining=returned.presentation.extrusions.filter(row=>row.thickness!==0);
    assert.equal(expected.length,7,'the five existing primitive samples include both arcs and both planar polylines');

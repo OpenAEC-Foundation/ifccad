@@ -3,6 +3,7 @@ use super::{IfccadLinePatternId, IfccadTextStyleId};
 /// Drawing-local domains with independent allocation watermarks.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum IfccadIdDomain {
+    MultiLeaderStyle,
     Entity,
     Layer,
     Layout,
@@ -40,6 +41,7 @@ pub struct IfccadIdAllocationError {
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct IfccadIdCounters {
+    pub next_multi_leader_style_id: u64,
     pub next_annotation_view_id: u64,
     pub next_annotation_scale_id: u64,
     pub next_dimension_style_id: u64,
@@ -58,6 +60,7 @@ pub struct IfccadIdCounters {
 impl Default for IfccadIdCounters {
     fn default() -> Self {
         Self {
+            next_multi_leader_style_id: 1,
             next_annotation_view_id: 1,
             next_annotation_scale_id: 1,
             next_dimension_style_id: 1,
@@ -84,6 +87,15 @@ fn allocate(next: &mut u64, domain: IfccadIdDomain) -> Result<u64, IfccadIdAlloc
 }
 
 impl IfccadIdCounters {
+    pub fn allocate_multi_leader_style_id(
+        &mut self,
+    ) -> Result<super::IfccadMultiLeaderStyleId, IfccadIdAllocationError> {
+        allocate(
+            &mut self.next_multi_leader_style_id,
+            IfccadIdDomain::MultiLeaderStyle,
+        )
+        .map(super::IfccadMultiLeaderStyleId)
+    }
     pub fn allocate_annotation_view_id(
         &mut self,
     ) -> Result<super::IfccadAnnotationViewId, IfccadIdAllocationError> {
@@ -191,6 +203,15 @@ pub(super) fn validate(document: &super::IfccadDocument) -> Result<(), super::If
         .max();
     for (field, next, maximum) in [
         (
+            "nextMultiLeaderStyleId",
+            ids.next_multi_leader_style_id,
+            document
+                .multi_leader_styles
+                .iter()
+                .map(|style| style.id.0)
+                .max(),
+        ),
+        (
             "nextDimensionStyleId",
             ids.next_dimension_style_id,
             document.dimension_styles.iter().map(|s| s.id.0).max(),
@@ -290,6 +311,7 @@ mod tests {
         assert_eq!(
             ids,
             IfccadIdCounters {
+                next_multi_leader_style_id: 1,
                 next_annotation_view_id: 1,
                 next_annotation_scale_id: 1,
                 next_dimension_style_id: 1,
@@ -329,6 +351,7 @@ mod tests {
     #[test]
     fn exhaustion_is_atomic_in_every_domain() {
         for domain in [
+            IfccadIdDomain::MultiLeaderStyle,
             IfccadIdDomain::PreservationRecord,
             IfccadIdDomain::Entity,
             IfccadIdDomain::Layer,
@@ -344,6 +367,7 @@ mod tests {
             IfccadIdDomain::AnnotationView,
         ] {
             let mut ids = IfccadIdCounters {
+                next_multi_leader_style_id: u64::MAX - 1,
                 next_annotation_view_id: u64::MAX - 1,
                 next_annotation_scale_id: u64::MAX - 1,
                 next_dimension_style_id: u64::MAX - 1,
@@ -360,6 +384,9 @@ mod tests {
                 next_line_pattern_id: u64::MAX - 1,
             };
             let allocate = |ids: &mut IfccadIdCounters| match domain {
+                IfccadIdDomain::MultiLeaderStyle => {
+                    ids.allocate_multi_leader_style_id().map(|id| id.0)
+                }
                 IfccadIdDomain::PreservationRecord => {
                     ids.allocate_preservation_record_id().map(|id| id.0)
                 }

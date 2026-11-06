@@ -5,7 +5,6 @@ version = 4
 [[package]]
 name = "acadrust"
 version = "0.6.8"
-source = "git+https://github.com/BjornFidder/opencadcodec.git?rev=0f20af02a1d6be744272e64dd505e8c8933c8772#0f20af02a1d6be744272e64dd505e8c8933c8772"
 dependencies = [
  "anyhow",
  "bitflags",
@@ -823,7 +822,6 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 [[package]]
 name = "opencaddocument"
 version = "0.1.0"
-source = "git+https://github.com/HakanSeven12/opencaddocument.git?rev=e7b79f163e1a4e847f3f98109021a5671683b342#e7b79f163e1a4e847f3f98109021a5671683b342"
 dependencies = [
  "acadrust",
  "ifccad",

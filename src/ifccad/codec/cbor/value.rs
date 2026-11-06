@@ -1,6 +1,6 @@
 use super::*;
 use minicbor::{data::Type, Decoder};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub(super) trait CborValue: Sized {
     fn encode(&self, writer: &mut CborWriter) -> Result<(), IfccadCborEncodeError>;
@@ -268,6 +268,33 @@ impl<K: CborValue + Ord, V: CborValue> CborValue for BTreeMap<K, V> {
                 .iter()
                 .zip(o)
                 .all(|((ak, av), (bk, bv))| ak.exact(bk) && av.exact(bv))
+    }
+}
+
+impl<T: CborValue + Ord> CborValue for BTreeSet<T> {
+    fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
+        let mut entries = self
+            .iter()
+            .map(|value| Ok((value.sort_key()?, value)))
+            .collect::<Result<Vec<_>, IfccadCborEncodeError>>()?;
+        entries.sort_by(|a, b| a.0.cmp(&b.0));
+        w.array(entries.len() as u64)?;
+        for (_, value) in entries {
+            value.encode(w)?;
+        }
+        Ok(())
+    }
+    fn decode(r: &mut CborReader<'_>) -> Result<Self, IfccadCborReadError> {
+        let values = Vec::<T>::decode(r)?;
+        let count = values.len();
+        let out = values.into_iter().collect::<Self>();
+        if out.len() != count {
+            return Err(r.error("duplicate set member"));
+        }
+        Ok(out)
+    }
+    fn exact(&self, other: &Self) -> bool {
+        self.len() == other.len() && self.iter().zip(other).all(|(a, b)| a.exact(b))
     }
 }
 

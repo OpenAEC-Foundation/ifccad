@@ -22,6 +22,7 @@ record!(IfccadDimensionStyle;
 2 => settings: DimensionStyleSettings<IfccadTextStyleId,u64,IfccadColor,IfccadLinePatternId> = None,
 3 => type_overrides: BTreeMap<DimensionKind,IfccadDimensionOverrides> = None,
 4 => annotative: bool = Some(false),
+5 => leader_arrow: IfccadLeaderArrow = Some(IfccadLeaderArrow::DefaultClosedFilled),
 );
 impl CborValue for IfccadDimensionStyleId {
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {

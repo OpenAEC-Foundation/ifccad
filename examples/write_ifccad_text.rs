@@ -100,6 +100,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let paper_entities = vec![entity(text.clone())?, entity(mtext.clone())?];
     let block_entities = vec![entity(text)?, entity(mtext)?];
     let mut d = IfccadDocument {
+        multi_leader_styles: Vec::new(),
         attribute_visibility: Default::default(),
         annotation_settings: None,
         dimension_styles: Vec::new(),

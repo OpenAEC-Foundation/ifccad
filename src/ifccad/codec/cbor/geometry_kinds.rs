@@ -1,5 +1,19 @@
 use super::geometry::{decode_line_point, encode_line_point};
 use super::*;
+fn encode_boxed_body<T: CborValue>(
+    value: &T,
+    w: &mut CborWriter,
+) -> Result<(), IfccadCborEncodeError> {
+    w.map(1)?;
+    w.u64(0)?;
+    value.encode(w)
+}
+fn decode_boxed_body<T: CborValue>(r: &mut CborReader<'_>) -> Result<T, IfccadCborReadError> {
+    let mut fields = RecordFields::new(r, &[(0, "value_0")])?;
+    let value = fields.take(0, None)?;
+    fields.finish()?;
+    Ok(value)
+}
 impl CborValue for IfccadEntityKind {
     #[cfg(test)]
     fn registered_codes() -> &'static [(u64, &'static str)] {
@@ -21,6 +35,9 @@ impl CborValue for IfccadEntityKind {
             (14, "Solid"),
             (15, "Trace"),
             (16, "AttributeDefinition"),
+            (17, "Leader"),
+            (18, "MultiLeader"),
+            (19, "Tolerance"),
         ]
     }
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
@@ -199,6 +216,9 @@ impl CborValue for IfccadEntityKind {
                     && line_pattern_generation.exact(line_pattern_generation_other)
             }
             (Self::AttributeDefinition(a), Self::AttributeDefinition(b)) => a.exact(b),
+            (Self::Leader(a), Self::Leader(b)) => a.exact(b),
+            (Self::MultiLeader(a), Self::MultiLeader(b)) => a.exact(b),
+            (Self::Tolerance(a), Self::Tolerance(b)) => a.exact(b),
             (
                 Self::BlockInstance {
                     definition_id,
@@ -245,6 +265,9 @@ impl IfccadEntityKind {
             Self::PlanarPolyline { .. } => 6,
             Self::SpatialPolyline { .. } => 7,
             Self::AttributeDefinition(_) => 16,
+            Self::Leader(_) => 17,
+            Self::MultiLeader(_) => 18,
+            Self::Tolerance(_) => 19,
             Self::BlockInstance { .. } => 8,
             Self::Viewport(..) => 9,
             Self::Text(..) => 10,
@@ -257,6 +280,9 @@ impl IfccadEntityKind {
     }
     pub(super) fn encode_body(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
         match self {
+            Self::Leader(value) => encode_boxed_body(value, w),
+            Self::MultiLeader(value) => encode_boxed_body(value, w),
+            Self::Tolerance(value) => encode_boxed_body(value, w),
             Self::AttributeDefinition(v) => {
                 w.map(1)?;
                 w.u64(0)?;
@@ -826,6 +852,9 @@ impl IfccadEntityKind {
                 b.finish()?;
                 Ok(Self::Trace(value_0))
             }
+            17 => Ok(Self::Leader(decode_boxed_body(r)?)),
+            18 => Ok(Self::MultiLeader(decode_boxed_body(r)?)),
+            19 => Ok(Self::Tolerance(decode_boxed_body(r)?)),
             _ => Err(r.error("unknown entity kind")),
         }
     }

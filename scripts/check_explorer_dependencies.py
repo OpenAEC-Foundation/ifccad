@@ -6,6 +6,11 @@ import sys
 
 
 def development_codec(pins):
+    override = pins.get('developmentOverrides', {}).get('acadrust')
+    if (pins.get('localDevelopment') == 'leader-slice' and override
+            and override.get('baseCommit') == pins.get('explorerCodecCommit')
+            and pins.get('explorerCodecRepository') == 'https://github.com/BjornFidder/opencadcodec.git'):
+        return (Path(__file__).resolve().parents[1] / override['path']).resolve().as_posix()
     if (pins.get('localDevelopment') == 'block-attributes'
             and pins.get('explorerCodecRepository') == 'https://github.com/BjornFidder/opencadcodec.git'
             and pins.get('explorerCodecCommit') == '0f20af02a1d6be744272e64dd505e8c8933c8772'):

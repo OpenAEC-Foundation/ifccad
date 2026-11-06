@@ -282,3 +282,32 @@ same Git model, and checks the resolved dependency graph. No local path override
 is used. Byte-hashed patch, source pins, lockfile and build provenance qualify
 the host main/worker pair. Existing accepted sample/gallery evidence and bounded
 editing/ATTSYNC checks do not imply general editor or whole-file fidelity.
+
+## Leader slice (development candidate)
+
+The untagged profile 0.7.0 / CBOR7 candidate adds separate Leader, MultiLeader
+and Tolerance kinds. MultiLeader presentations own their branches, content,
+direct block labels and saved graphics; those parts are IFCX children without
+ordinary CAD entity identities. Classic Leader annotation targets remain
+ordinary same-owner entities, including shared Tolerance targets. DIMLDRBLK,
+MLeader styles, typed override presence and scale presentations are independent.
+See [the leader contract](../leaders.md).
+
+The active development pair explicitly patches Document e7b79f16 and codec
+0f20af02 with the local leader slice. These are qualified local sources, not
+unmodified upstream revisions. Strict production readback covers native
+IFCX/CBOR and physical AC1032 DWG, ASCII DXF and binary DXF. One grouped gallery
+and sample_AC1032 exercise this route; review evidence and final gate status
+remain in the local task record. The bounded host lifecycle passes from both
+IFCX and DWG: MLeader text editing, a committed grip, undo/redo, saved-picture
+invalidation/restoration and strict native save/reopen retain shared ordinary
+Leader targets. A no-op keeps the picture. This qualifies those exercised
+operations only; final browser/main-worker qualification remains separate.
+
+Owned MLeader tolerance content is preserved natively. Its physical CAD payload
+is explicitly open: the provisional type3/text-context experiment proves codec
+self-consistency only. Document conversion refuses that unqualified physical
+interpretation. Classic Leader-to-Tolerance exchange is independently covered.
+Saved graphics are captured atomically with real table bindings; unsupported
+commands or referenced resources fail rather than yielding a partial picture.
+Native bounds and visual evaluation of these kinds remain unavailable.

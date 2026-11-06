@@ -20,6 +20,7 @@ record!(IfccadIdCounters;
 10 => next_dimension_style_id: u64 = None,
 11 => next_annotation_scale_id: u64 = None,
 12 => next_annotation_view_id:u64=Some(1_u64),
+13 => next_multi_leader_style_id:u64=Some(1_u64),
 );
 record!(IfccadLayer;
 0 => id: u64 = None,

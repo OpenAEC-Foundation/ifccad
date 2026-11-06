@@ -29,6 +29,8 @@ pub(crate) use encode::encode_bytes;
 pub(crate) use validate::project;
 
 mod layout;
+mod leader_graph;
+mod leader_values;
 
 mod preservation;
 mod workspace;

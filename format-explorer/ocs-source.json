@@ -10,10 +10,24 @@
   "explorerCodecCommit": "0f20af02a1d6be744272e64dd505e8c8933c8772",
   "explorerCodecRepository": "https://github.com/BjornFidder/opencadcodec.git",
   "documentRepository": "https://github.com/HakanSeven12/opencaddocument.git",
-  "profile": "0.6.0",
-  "cborRevision": 6,
+  "profile": "0.7.0",
+  "cborRevision": 7,
   "kernelCommit": "fc20d6055cd9aa8f0622b480796d966573bb19b1",
-  "localDevelopment": "block-attributes",
+  "localDevelopment": "leader-slice",
   "codecRepository": "https://github.com/BjornFidder/opencadcodec.git",
-  "hostPatch": "block-attributes.patch"
+  "hostPatch": "leaders.patch",
+  "developmentOverrides": {
+    "ifccad": {
+      "path": ".",
+      "baseCommit": "21660ce10453bf8a32afd22281e085d16980f70a"
+    },
+    "opencaddocument": {
+      "path": "../leaders-document",
+      "baseCommit": "e7b79f163e1a4e847f3f98109021a5671683b342"
+    },
+    "acadrust": {
+      "path": "../leaders-codec",
+      "baseCommit": "0f20af02a1d6be744272e64dd505e8c8933c8772"
+    }
+  }
 }

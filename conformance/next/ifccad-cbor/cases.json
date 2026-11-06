@@ -1,5 +1,5 @@
 {
-  "mappingRevision": 6,
+  "mappingRevision": 7,
   "cases": [
     {
       "file": "valid/empty.ifccad.cbor",
@@ -722,6 +722,29 @@
       "file": "invalid/font-symbol-source-requests-duplicate.ifccad.cbor",
       "valid": false,
       "diagnostic": "invalid/font-symbol-source-requests-duplicate.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "valid/leaders-family.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/leaders-family.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/leader-wrong-target-kind.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/leader-wrong-target-kind.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/multileader-duplicate-override.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/multileader-duplicate-override.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/leader-command-unit-body.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/leader-command-unit-body.ifccad.cbor.diag",
       "errorClass": "Malformed"
     }
   ]

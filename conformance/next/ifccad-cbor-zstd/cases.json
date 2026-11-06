@@ -1,6 +1,6 @@
 {
   "transport": "IFCCAD CBOR Zstd experimental 1",
-  "mappingRevision": 6,
+  "mappingRevision": 7,
   "generator": "Python 3.14 compression.zstd; libzstd 1.5.7",
   "cases": [
     {

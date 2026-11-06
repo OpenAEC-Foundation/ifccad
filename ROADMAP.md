@@ -152,10 +152,16 @@ pass on the explicit pair. Official Document PR #12 is merged; the thickness
 codec support revision remains explicitly pinned in the user fork. Necessary field/context relations are
 included; MINSERT and dynamic blocks are deferred. See [attributes](docs/block-attributes.md).
 
-Then select multileaders before tables or dynamic-block
-authoring as separate use-case-backed slices under
-[#2](https://github.com/OpenAEC-Foundation/ifccad/issues/2); their relative order
-and scope remain to be agreed. Native splines need their own profile under
+The active next slice is the [Leader family](docs/leaders.md): separate ordinary
+Leader, MultiLeader and supporting Tolerance, owned branches/content/labels,
+independent scale presentations and typed saved graphics, paired with Document
+and the codec. Its development contract is profile 0.7.0 / CBOR7. Focused native,
+mapping and physical readback evidence is recorded; final gates and host
+qualification remain pending. Owned MLeader tolerance content is native, but its
+physical payload remains an explicit open qualification point. An H1 self-writer
+experiment does not close it. Tables and dynamic-block authoring stay later,
+separate slices under [#2](https://github.com/OpenAEC-Foundation/ifccad/issues/2).
+Native splines need their own profile under
 [#4](https://github.com/OpenAEC-Foundation/ifccad/issues/4). They are largely
 independent of resource resolution, but are not selected ahead of the resource
 foundation without a concrete use case justifying that priority. Neither generic

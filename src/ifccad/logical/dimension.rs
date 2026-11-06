@@ -9,6 +9,8 @@ pub type IfccadDimensionOverrides =
     DimensionStyleOverrides<IfccadTextStyleId, u64, IfccadColor, IfccadLinePatternId>;
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDimensionStyle {
+    /// Independent leader arrow (CAD DIMLDRBLK), distinct from dimension arrow pairs.
+    pub leader_arrow: super::IfccadLeaderArrow,
     pub annotative: bool,
     pub id: IfccadDimensionStyleId,
     pub name: String,

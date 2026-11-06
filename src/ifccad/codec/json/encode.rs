@@ -147,6 +147,12 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             json!(format!("{prefix}/block/{}", block.id)),
         );
     }
+    for style in &document.multi_leader_styles {
+        drawing_children.insert(
+            format!("multiLeaderStyle{}", style.id.0),
+            json!(format!("{prefix}/multiLeaderStyle/{}", style.id.0)),
+        );
+    }
     for ucs in &document.ucs_definitions {
         drawing_children.insert(
             format!("ucs{}", ucs.id.0),
@@ -175,7 +181,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         path: prefix.clone(),
         children: Some(drawing_children),
         attributes: attrs(json!({"ifccad::drawing":{
-            "profileVersion":"0.6.0","lengthUnit":document.length_unit,"attributeVisibility":document.attribute_visibility,
+            "profileVersion":"0.7.0","lengthUnit":document.length_unit,"attributeVisibility":document.attribute_visibility,
             "linePatternScale":document.line_pattern_scale,
 
             "nextEntityId":document.id_counters.next_entity_id,
@@ -187,6 +193,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             "nextUcsId":document.id_counters.next_ucs_id,
             "nextModelWindowId":document.id_counters.next_model_window_id,
             "nextAnnotationScaleId":document.id_counters.next_annotation_scale_id,
+            "nextMultiLeaderStyleId":document.id_counters.next_multi_leader_style_id,
         }})),
     });
     if document.preservation.is_some() || document.id_counters.next_preservation_record_id != 1 {
@@ -238,6 +245,15 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
     }
     for style in &document.dimension_styles {
         data.push(NodeOut{path:format!("{prefix}/dimensionStyle/{}",style.id.0),children:None,attributes:attrs(json!({"ifccad::dimensionStyle":super::dimension_style::encode_style(style,&prefix)}))});
+    }
+    for style in &document.multi_leader_styles {
+        data.push(NodeOut {
+            path: format!("{prefix}/multiLeaderStyle/{}", style.id.0),
+            children: None,
+            attributes: attrs(
+                json!({"ifccad::multiLeaderStyle":super::leader_graph::style_value(style,&prefix)}),
+            ),
+        });
     }
     if document.plot_style_mode == IfccadPlotStyleMode::Named {
         data[0].attributes["ifccad::drawing"]["plotStyleMode"] = json!("named");
@@ -397,6 +413,24 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         .chain(document.blocks.iter().flat_map(|b| b.entities.iter()))
     {
         let mut node = entity_node(entity, &prefix);
+        let mut leader_nodes = match entity.as_native().map(|entity| &entity.kind) {
+            Some(IfccadEntityKind::Leader(value)) => {
+                super::leader_graph::write_leader(value, &node.path, &prefix)
+            }
+            Some(IfccadEntityKind::MultiLeader(value)) => {
+                super::leader_graph::write_multi_leader(value, &node.path, &prefix)
+            }
+            Some(IfccadEntityKind::Tolerance(value)) => {
+                super::leader_graph::write_tolerance(value, &node.path, &prefix)
+            }
+            _ => Vec::new(),
+        };
+        if !leader_nodes.is_empty() {
+            let root = leader_nodes.remove(0);
+            node.children = root.children;
+            node.attributes.extend(root.attributes);
+            data.extend(leader_nodes);
+        }
         if let Some(IfccadEntityKind::Viewport(viewport)) = entity.as_native().map(|e| &e.kind) {
             if let Some(workspace) = &viewport.workspace {
                 node.attributes.insert(
@@ -464,6 +498,10 @@ pub(super) fn encode_payload(
     attrs: &mut Map<String, Value>,
 ) {
     match kind {
+        // Their root value and owned nodes are emitted together by leader_graph.
+        IfccadEntityKind::Leader(_)
+        | IfccadEntityKind::MultiLeader(_)
+        | IfccadEntityKind::Tolerance(_) => {}
         IfccadEntityKind::Dimension(v) => {
             super::annotation::encode_entity(kind, prefix, attrs);
             attrs.insert("ifccad::geom::placement".into(), json!(v.placement));

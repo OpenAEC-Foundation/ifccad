@@ -51,6 +51,11 @@ The current 2026.45.2 alpha adds Text/MText block attributes and stored attribut
 fields in profile 0.6.0 and CBOR mapping 6. Annotation contexts and exact font/SHX
 requests remain supported. Zstd transport 1 remains unchanged. Subsequent
 normative changes follow the release policy.
+The active development slice adds the [Leader family](docs/leaders.md) in
+profile 0.7.0 / CBOR7: classic Leader, owned MultiLeader parts and supporting
+Tolerance, with paired Document conversion and saved graphics. Physical owned
+MLeader tolerance content remains explicitly unqualified. This is not a new
+published release or a complete editing/rendering qualification.
 The `ifccad-cbor-zstd` core feature is optional. The browser enables it for explicit
 experimental CBOR + Zstd downloads; ordinary IFCX download remains the default choice.
 
@@ -171,7 +176,7 @@ cargo run -p viewer -- export-ifccad examples/ifccad/house.ifcx dxf
 CAD input defaults to IFCCAD. `--drawing-format ifccad` remains accepted;
 `--drawing-format ocdraw` reports `OCDRAW_PARKED` before reading the input.
 See the [IFCCAD lifecycle and API conventions](docs/experiments/ifccad-document-lifecycle.md),
-[experimental contract](schemas/ifccad/experimental-contract-0.6.0.md) and
+[experimental contract](schemas/ifccad/experimental-contract-0.7.0.md) and
 [CBOR experiment](docs/experiments/ifccad-cbor.md).
 
 ## Verification

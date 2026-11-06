@@ -146,14 +146,17 @@ fn adding_catalogue_samples_grows_the_grid_and_saved_views() {
         .iter()
         .find_map(|n| n["attributes"].get("ifccad::viewport"))
         .unwrap();
-    assert_eq!(viewport["view"]["height"].as_f64(), Some(834.)); // Six rows, grouped dimensions and sheet margin.
-    assert_eq!(loaded.document().model_windows[0].view.height, 954.);
+    assert_eq!(viewport["view"]["height"].as_f64(), Some(912.)); // Seven rows, grouped dimensions and sheet margin.
+    assert_eq!(loaded.document().model_windows[0].view.height, 1032.);
 }
 
 // Exhaustive on purpose: a new native kind requires a catalogue coverage decision.
 fn family(kind: &ifccad::IfccadEntityKind) -> &'static str {
     use ifccad::IfccadEntityKind::*;
     match kind {
+        Leader(_) => "leader",
+        MultiLeader(_) => "multiLeader",
+        Tolerance(_) => "tolerance",
         Solid(_) => "solid",
         Trace(_) => "trace",
         Dimension(_) => "dimension",
@@ -196,6 +199,9 @@ fn catalogue_covers_every_native_family_and_all_nine_dimension_kinds() {
     assert_eq!(
         actual,
         BTreeSet::from([
+            "leader",
+            "multiLeader",
+            "tolerance",
             "dimension",
             "hatch",
             "text",

@@ -48,7 +48,7 @@ mod logical;
 mod read;
 mod source;
 mod storage;
-pub(crate) const PROFILE_URI: &str = "urn:example:ifccad:0.6.0";
+pub(crate) const PROFILE_URI: &str = "urn:example:ifccad:0.7.0";
 pub use encode::{encode_ifccad_cbor_document, IfccadCborEncodeError};
 #[cfg(feature = "ifccad-cbor-zstd")]
 pub use encode::{

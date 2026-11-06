@@ -11,6 +11,20 @@ fn document() -> IfccadDocument {
 }
 
 #[test]
+fn leader_family_uses_the_optional_production_transport() {
+    let drawing = load_ifccad_bytes(
+        include_bytes!("../conformance/next/ifccad/valid/leaders-family.ifcx"),
+        Default::default(),
+    )
+    .unwrap()
+    .into_document();
+    let encoded = encode_ifccad_cbor_zstd_document(&drawing, Default::default()).unwrap();
+    let loaded = load_ifccad_cbor_zstd_bytes(encoded.bytes(), Default::default()).unwrap();
+    validate_ifccad_document(loaded.document()).unwrap();
+    assert_eq!(loaded.document(), &drawing);
+}
+
+#[test]
 fn optional_zstd_wraps_exact_standard_cbor_and_defaults_to_level_three() {
     let d = document();
     let raw = encode_ifccad_cbor_document(&d).unwrap();

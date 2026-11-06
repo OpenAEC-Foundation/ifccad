@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.6.0"
+      "uri": "urn:example:ifccad:0.7.0"
     }
   ],
   "schemas": {},
@@ -52,10 +52,11 @@
           "nextLayoutId": 3,
           "nextLinePatternId": 2,
           "nextModelWindowId": 2,
+          "nextMultiLeaderStyleId": 1,
           "nextSymbolSourceId": 1,
           "nextTextStyleId": 1,
           "nextUcsId": 1,
-          "profileVersion": "0.6.0"
+          "profileVersion": "0.7.0"
         },
         "ifccad::drawingWorkspace": {
           "activeLayout": "/cad/d1/layout/1",

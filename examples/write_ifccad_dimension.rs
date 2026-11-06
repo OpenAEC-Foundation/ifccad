@@ -42,6 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut settings = DimensionStyleSettings::new(IfccadTextStyleId(0));
     settings.numbers.primary.suffix = " mm".into();
     d.dimension_styles = vec![IfccadDimensionStyle {
+        leader_arrow: Default::default(),
         annotative: false,
         id: IfccadDimensionStyleId(0),
         name: "Building".into(),

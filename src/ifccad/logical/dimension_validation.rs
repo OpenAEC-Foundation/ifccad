@@ -7,7 +7,7 @@ use std::{
 fn fail(path: &str, message: impl ToString) -> IfccadReport {
     crate::ifccad::diagnostics::failure("IFCCAD-DIMENSION-001", path, message.to_string())
 }
-fn settings(
+pub(super) fn settings(
     d: &IfccadDocument,
     path: &str,
     s: &IfccadDimensionSettings,
@@ -171,9 +171,10 @@ pub(super) fn validate_dimensions(d: &IfccadDocument) -> Result<(), IfccadReport
     let mut edges = BTreeMap::<u64, Vec<u64>>::new();
     for (owner, list) in d.blocks.iter().map(|b| (b.id, &b.entities)) {
         for e in list.iter().filter_map(IfccadEntity::as_native) {
-            if let IfccadEntityKind::BlockInstance { definition_id, .. } = e.kind {
-                edges.entry(owner).or_default().push(definition_id);
-            }
+            edges
+                .entry(owner)
+                .or_default()
+                .extend(super::leader_validation::referenced_blocks(&e.kind, d));
         }
     }
     for (id, (owner, e)) in &owned {

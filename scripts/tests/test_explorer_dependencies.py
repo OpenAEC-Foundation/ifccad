@@ -7,6 +7,10 @@ guard=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(guard)
 
 class ResourceDevelopmentPair(unittest.TestCase):
+    def test_leader_pair_uses_its_explicit_local_codec_content(self):
+        pins=dict(localDevelopment='leader-slice',explorerCodecRepository='https://github.com/BjornFidder/opencadcodec.git',explorerCodecCommit='0f20af02a1d6be744272e64dd505e8c8933c8772',developmentOverrides={'acadrust':dict(baseCommit='0f20af02a1d6be744272e64dd505e8c8933c8772',path='../leaders-codec')})
+        self.assertEqual(guard.development_codec(pins),(Path(guard.__file__).resolve().parents[1]/'../leaders-codec').resolve().as_posix())
+
     def test_attribute_pair_uses_the_current_canonical_codec_repository(self):
         pins=dict(localDevelopment='block-attributes',explorerCodecRepository='https://github.com/hakanaktt/acadrust.git',explorerCodecCommit='a'*40,developmentOverrides={'acadrust':dict(baseCommit='a'*40,path='../block-attributes-codec')})
         self.assertEqual(guard.development_codec(pins),(Path(guard.__file__).resolve().parents[1]/'../block-attributes-codec').resolve().as_posix())

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:example:ifccad:supplemental-values:0.6.0",
+  "$id": "urn:example:ifccad:supplemental-values:0.7.0",
   "title": "IFCCAD supplemental local value constraints",
   "$defs": {
     "mTextBackground": {
@@ -1125,6 +1125,11 @@
             "HideAll",
             "ShowAll"
           ]
+        },
+        "nextMultiLeaderStyleId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
         }
       },
       "additionalProperties": false,
@@ -6599,6 +6604,9 @@
         },
         "annotative": {
           "type": "boolean"
+        },
+        "leaderArrow": {
+          "$ref": "#/$defs/IfccadLeaderArrow"
         }
       },
       "required": [
@@ -7188,6 +7196,15 @@
                   },
                   {
                     "$ref": "#/$defs/annotationDimension"
+                  },
+                  {
+                    "$ref": "#/$defs/IfccadLeaderAnnotationContext"
+                  },
+                  {
+                    "$ref": "#/$defs/IfccadToleranceAnnotationContext"
+                  },
+                  {
+                    "$ref": "#/$defs/leaderPresentationGraph"
                   }
                 ]
               }
@@ -8573,6 +8590,3074 @@
           "$ref": "#/$defs/nonNullValue"
         }
       ]
+    },
+    "IfccadLeaderGraphicsOrigin": {
+      "enum": [
+        "sourceSnapshot",
+        "generated"
+      ]
+    },
+    "IfccadPlacement": {
+      "type": "object",
+      "properties": {
+        "origin": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "xAxis": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "yAxis": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "origin",
+        "xAxis",
+        "yAxis"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadLeaderGraphicArcClosure": {
+      "enum": [
+        "simple",
+        "sector",
+        "chord"
+      ]
+    },
+    "IfccadLeaderGraphicTextProcessing": {
+      "enum": [
+        "interpreted",
+        "raw"
+      ]
+    },
+    "IfccadLeaderGraphicFont": {
+      "type": "object",
+      "properties": {
+        "family": {
+          "type": "string",
+          "pattern": "^[^\u0000]*$"
+        },
+        "fontFile": {
+          "type": "string",
+          "pattern": "^[^\u0000]*$"
+        },
+        "bigFontFile": {
+          "type": "string",
+          "pattern": "^[^\u0000]*$"
+        },
+        "bold": {
+          "type": "boolean"
+        },
+        "italic": {
+          "type": "boolean"
+        },
+        "charset": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "pitchFamily": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      },
+      "required": [
+        "family",
+        "fontFile",
+        "bigFontFile"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadLeaderGraphicText": {
+      "type": "object",
+      "properties": {
+        "position": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "normal": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "direction": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "text": {
+          "type": "string",
+          "pattern": "^[^\u0000]*$"
+        },
+        "processing": {
+          "$ref": "#/$defs/IfccadLeaderGraphicTextProcessing"
+        },
+        "height": {
+          "type": "number"
+        },
+        "widthFactor": {
+          "type": "number"
+        },
+        "obliqueAngle": {
+          "type": "number"
+        },
+        "tracking": {
+          "type": "number"
+        },
+        "backwards": {
+          "type": "boolean"
+        },
+        "upsideDown": {
+          "type": "boolean"
+        },
+        "vertical": {
+          "type": "boolean"
+        },
+        "underline": {
+          "type": "boolean"
+        },
+        "overline": {
+          "type": "boolean"
+        },
+        "font": {
+          "$ref": "#/$defs/IfccadLeaderGraphicFont"
+        }
+      },
+      "required": [
+        "position",
+        "normal",
+        "direction",
+        "text",
+        "processing",
+        "height",
+        "widthFactor",
+        "obliqueAngle",
+        "tracking",
+        "backwards",
+        "upsideDown",
+        "vertical",
+        "underline",
+        "overline"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadLeaderGraphicPrimitive": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "point"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "position": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                }
+              },
+              "required": [
+                "position"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "polyline"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "vertices": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  }
+                },
+                "normal": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                }
+              },
+              "required": [
+                "vertices"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "polygon"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "vertices": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  }
+                }
+              },
+              "required": [
+                "vertices"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "circle"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "center": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "radius": {
+                  "type": "number"
+                },
+                "normal": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                }
+              },
+              "required": [
+                "center",
+                "radius",
+                "normal"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "circle3"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "points": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                }
+              },
+              "required": [
+                "points"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "arc"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "center": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "radius": {
+                  "type": "number"
+                },
+                "normal": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "startDirection": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "sweepAngle": {
+                  "type": "number"
+                },
+                "closure": {
+                  "$ref": "#/$defs/IfccadLeaderGraphicArcClosure"
+                }
+              },
+              "required": [
+                "center",
+                "radius",
+                "normal",
+                "startDirection",
+                "sweepAngle",
+                "closure"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "arc3"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "points": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "closure": {
+                  "$ref": "#/$defs/IfccadLeaderGraphicArcClosure"
+                }
+              },
+              "required": [
+                "points",
+                "closure"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "text"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "$ref": "#/$defs/IfccadLeaderGraphicText"
+                }
+              },
+              "required": [
+                "text"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "IfccadLeaderGraphicInheritance<IfccadColor>": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "owner"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "byLayer"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "byBlock"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "explicit"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "$ref": "#/$defs/concreteColor"
+                }
+              },
+              "required": [
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "IfccadLeaderGraphicInheritance<IfccadLinePatternId>": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "owner"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "byLayer"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "byBlock"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "explicit"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "pattern": "^/cad/d(?:0|[1-9][0-9]*)/linePattern/(?:0|[1-9][0-9]*)$"
+                }
+              },
+              "required": [
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "IfccadLeaderGraphicLineWeight": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "owner"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "byLayer"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "byBlock"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "drawingDefault"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "explicit"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "IfccadLeaderGraphicCommand": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "draw"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "primitive": {
+                  "$ref": "#/$defs/IfccadLeaderGraphicPrimitive"
+                }
+              },
+              "required": [
+                "primitive"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "storedExtents"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "min": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "max": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                }
+              },
+              "required": [
+                "min",
+                "max"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "setColor"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "color": {
+                  "$ref": "#/$defs/IfccadLeaderGraphicInheritance%3CIfccadColor%3E"
+                }
+              },
+              "required": [
+                "color"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "setLayer"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "layer": {
+                  "type": "string",
+                  "pattern": "^/cad/d(?:0|[1-9][0-9]*)/layer/(?:0|[1-9][0-9]*)$"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "setLinePattern"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "linePattern": {
+                  "$ref": "#/$defs/IfccadLeaderGraphicInheritance%3CIfccadLinePatternId%3E"
+                }
+              },
+              "required": [
+                "linePattern"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "setSelectionMarker"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "marker": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                }
+              },
+              "required": [
+                "marker"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "setFill"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "enabled"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "setLineWeight"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "weight": {
+                  "$ref": "#/$defs/IfccadLeaderGraphicLineWeight"
+                }
+              },
+              "required": [
+                "weight"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "setLinePatternScale"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "scale": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "scale"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "setThickness"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "thickness": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "thickness"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "pushTransform"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "matrix": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 16,
+                  "maxItems": 16
+                }
+              },
+              "required": [
+                "matrix"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "popTransform"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "cadCompatibility51Zero"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "IfccadLeaderGraphics": {
+      "type": "object",
+      "properties": {
+        "origin": {
+          "$ref": "#/$defs/IfccadLeaderGraphicsOrigin"
+        },
+        "placement": {
+          "$ref": "#/$defs/IfccadPlacement"
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadLeaderGraphicCommand"
+          }
+        }
+      },
+      "required": [
+        "origin",
+        "placement",
+        "commands"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadLeaderPath": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "straightSegments"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "vertices": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  }
+                }
+              },
+              "required": [
+                "vertices"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "splineThroughVertices"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "vertices": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  }
+                }
+              },
+              "required": [
+                "vertices"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "IfccadLeaderAnnotationKind": {
+      "enum": [
+        "none",
+        "mText",
+        "block",
+        "tolerance"
+      ]
+    },
+    "IfccadLeaderArrow": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "defaultClosedFilled"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "none"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "symbol"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "definition": {
+                  "type": "string",
+                  "pattern": "^/cad/d(?:0|[1-9][0-9]*)/block/(?:0|[1-9][0-9]*)$"
+                }
+              },
+              "required": [
+                "definition"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "IfccadLeaderHookDirection": {
+      "enum": [
+        "oppositeHorizontal",
+        "alongHorizontal"
+      ]
+    },
+    "IfccadLeaderAnnotationContext": {
+      "type": "object",
+      "properties": {
+        "points": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "horizontalDirection": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "annotationEnabled": {
+          "type": "boolean"
+        },
+        "insertionOffset": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "endpointProjection": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "points",
+        "horizontalDirection",
+        "annotationEnabled",
+        "insertionOffset",
+        "endpointProjection"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadAnnotation<IfccadLeaderAnnotationContext>": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": [
+            "disabled",
+            "enabled",
+            "byDefinition"
+          ]
+        },
+        "reference": {
+          "$ref": "#/$defs/annotationKey"
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/annotationKey"
+              },
+              "presentation": {
+                "$ref": "#/$defs/IfccadLeaderAnnotationContext"
+              }
+            },
+            "required": [
+              "key"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "orientation": {
+          "enum": [
+            "fixed",
+            "matchLayout"
+          ]
+        }
+      },
+      "required": [
+        "mode",
+        "contexts"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadLeader": {
+      "type": "object",
+      "properties": {
+        "placement": {
+          "$ref": "#/$defs/IfccadPlacement"
+        },
+        "path": {
+          "$ref": "#/$defs/IfccadLeaderPath"
+        },
+        "annotationKind": {
+          "$ref": "#/$defs/IfccadLeaderAnnotationKind"
+        },
+        "annotationEntity": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/e(?:0|[1-9][0-9]*)$"
+        },
+        "dimensionStyle": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/dimensionStyle/(?:0|[1-9][0-9]*)$"
+        },
+        "overrides": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "arrow": {
+          "$ref": "#/$defs/IfccadLeaderArrow"
+        },
+        "arrowEnabled": {
+          "type": "boolean"
+        },
+        "hookEnabled": {
+          "type": "boolean"
+        },
+        "hookDirection": {
+          "$ref": "#/$defs/IfccadLeaderHookDirection"
+        },
+        "annotationBox": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "horizontalDirection": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "blockOffset": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "annotationOffset": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "origin": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "annotation": {
+          "$ref": "#/$defs/IfccadAnnotation%3CIfccadLeaderAnnotationContext%3E"
+        },
+        "graphics": {
+          "$ref": "#/$defs/IfccadLeaderGraphics"
+        }
+      },
+      "required": [
+        "placement",
+        "path",
+        "annotationKind",
+        "dimensionStyle",
+        "overrides",
+        "arrowEnabled",
+        "hookEnabled",
+        "hookDirection",
+        "horizontalDirection",
+        "blockOffset",
+        "annotationOffset",
+        "origin"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadToleranceNotation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "cadFeatureControlTextV1"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[^\u0000]*$"
+                }
+              },
+              "required": [
+                "code"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "IfccadToleranceAnnotationContext": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "horizontalDirection": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "location",
+        "horizontalDirection"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadAnnotation<IfccadToleranceAnnotationContext>": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": [
+            "disabled",
+            "enabled",
+            "byDefinition"
+          ]
+        },
+        "reference": {
+          "$ref": "#/$defs/annotationKey"
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/annotationKey"
+              },
+              "presentation": {
+                "$ref": "#/$defs/IfccadToleranceAnnotationContext"
+              }
+            },
+            "required": [
+              "key"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "orientation": {
+          "enum": [
+            "fixed",
+            "matchLayout"
+          ]
+        }
+      },
+      "required": [
+        "mode",
+        "contexts"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadTolerance": {
+      "type": "object",
+      "properties": {
+        "placement": {
+          "$ref": "#/$defs/IfccadPlacement"
+        },
+        "dimensionStyle": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/dimensionStyle/(?:0|[1-9][0-9]*)$"
+        },
+        "overrides": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "notation": {
+          "$ref": "#/$defs/IfccadToleranceNotation"
+        },
+        "annotation": {
+          "$ref": "#/$defs/IfccadAnnotation%3CIfccadToleranceAnnotationContext%3E"
+        },
+        "graphics": {
+          "$ref": "#/$defs/IfccadLeaderGraphics"
+        }
+      },
+      "required": [
+        "placement",
+        "dimensionStyle",
+        "overrides",
+        "notation"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderPathKind": {
+      "enum": [
+        "invisible",
+        "straightSegments",
+        "splineThroughVertices"
+      ]
+    },
+    "IfccadMode<IfccadColor>": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "ByLayer"
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "ByBlock"
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Explicit"
+            },
+            "value": {
+              "$ref": "#/$defs/concreteColor"
+            }
+          },
+          "required": [
+            "mode",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "IfccadMode<IfccadLinePatternId>": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "ByLayer"
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "ByBlock"
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Explicit"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^/cad/d(?:0|[1-9][0-9]*)/linePattern/(?:0|[1-9][0-9]*)$"
+            }
+          },
+          "required": [
+            "mode",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "IfccadLeaderLineWeight": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "byLayer"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "byBlock"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "drawingDefault"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "explicit"
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "IfccadMultiLeaderLineSettings": {
+      "type": "object",
+      "properties": {
+        "pathKind": {
+          "$ref": "#/$defs/IfccadMultiLeaderPathKind"
+        },
+        "color": {
+          "$ref": "#/$defs/IfccadMode%3CIfccadColor%3E"
+        },
+        "linePattern": {
+          "$ref": "#/$defs/IfccadMode%3CIfccadLinePatternId%3E"
+        },
+        "lineWeight": {
+          "$ref": "#/$defs/IfccadLeaderLineWeight"
+        },
+        "arrow": {
+          "$ref": "#/$defs/IfccadLeaderArrow"
+        },
+        "arrowSize": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "pathKind",
+        "color",
+        "linePattern",
+        "lineWeight",
+        "arrow",
+        "arrowSize"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadLeaderBreakInterval": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "end": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderSegmentBreaks": {
+      "type": "object",
+      "properties": {
+        "segmentIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "intervals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadLeaderBreakInterval"
+          }
+        }
+      },
+      "required": [
+        "segmentIndex",
+        "intervals"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderLineProperty": {
+      "enum": [
+        "pathKind",
+        "color",
+        "linePattern",
+        "lineWeight",
+        "arrow",
+        "arrowSize"
+      ]
+    },
+    "IfccadMultiLeaderConnection": {
+      "enum": [
+        "groupConnection",
+        "explicitLastVertex"
+      ]
+    },
+    "IfccadMultiLeaderLine": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "sourceIndex": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "settings": {
+          "$ref": "#/$defs/IfccadMultiLeaderLineSettings"
+        },
+        "overriddenProperties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadMultiLeaderLineProperty"
+          },
+          "uniqueItems": true
+        },
+        "vertices": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "connection": {
+          "$ref": "#/$defs/IfccadMultiLeaderConnection"
+        },
+        "breaks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadMultiLeaderSegmentBreaks"
+          }
+        }
+      },
+      "required": [
+        "key",
+        "settings",
+        "overriddenProperties",
+        "vertices",
+        "connection",
+        "breaks"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderAttachmentDirection": {
+      "enum": [
+        "horizontal",
+        "vertical"
+      ]
+    },
+    "IfccadMultiLeaderGroup": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "sourceIndex": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "hasConnectionPoint": {
+          "type": "boolean"
+        },
+        "connectionPoint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "hasDoglegDirection": {
+          "type": "boolean"
+        },
+        "doglegDirection": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "doglegLength": {
+          "type": "number"
+        },
+        "textAttachmentDirection": {
+          "$ref": "#/$defs/IfccadMultiLeaderAttachmentDirection"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadMultiLeaderLine"
+          }
+        },
+        "breaks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadLeaderBreakInterval"
+          }
+        }
+      },
+      "required": [
+        "key",
+        "hasConnectionPoint",
+        "connectionPoint",
+        "hasDoglegDirection",
+        "doglegDirection",
+        "doglegLength",
+        "textAttachmentDirection",
+        "lines",
+        "breaks"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadBlockTransform": {
+      "type": "object",
+      "properties": {
+        "placement": {
+          "$ref": "#/$defs/IfccadPlacement"
+        },
+        "rotation": {
+          "type": "number"
+        },
+        "scale": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "placement"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderBlockConnection": {
+      "enum": [
+        "extents",
+        "basePoint"
+      ]
+    },
+    "IfccadMultiLeaderBlockContent": {
+      "type": "object",
+      "properties": {
+        "definition": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/block/(?:0|[1-9][0-9]*)$"
+        },
+        "transform": {
+          "$ref": "#/$defs/IfccadBlockTransform"
+        },
+        "color": {
+          "$ref": "#/$defs/IfccadMode%3CIfccadColor%3E"
+        },
+        "connection": {
+          "$ref": "#/$defs/IfccadMultiLeaderBlockConnection"
+        },
+        "storedTransform": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 16,
+          "maxItems": 16
+        }
+      },
+      "required": [
+        "definition",
+        "transform",
+        "color",
+        "connection"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderBlockLabel": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "definition": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/e(?:0|[1-9][0-9]*)$"
+        },
+        "sourceIndex": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "width": {
+          "type": "number"
+        },
+        "text": {
+          "type": "string",
+          "pattern": "^[^\u0000]*$"
+        }
+      },
+      "required": [
+        "key",
+        "width",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderTextAttachment": {
+      "enum": [
+        "topOfTopLine",
+        "middleOfTopLine",
+        "middleOfText",
+        "middleOfBottomLine",
+        "bottomOfBottomLine",
+        "bottomLine",
+        "bottomOfTopLineUnderlineBottomLine",
+        "bottomOfTopLineUnderlineTopLine",
+        "bottomOfTopLineUnderlineAll",
+        "centerOfText",
+        "centerOfTextOverline"
+      ]
+    },
+    "IfccadMultiLeaderTextAttachments": {
+      "type": "object",
+      "properties": {
+        "left": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextAttachment"
+        },
+        "right": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextAttachment"
+        },
+        "top": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextAttachment"
+        },
+        "bottom": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextAttachment"
+        }
+      },
+      "required": [
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMode<f64>": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "ByLayer"
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "ByBlock"
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "Explicit"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "mode",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "IfccadMultiLeaderTextBackground": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "maskEnabled": {
+          "type": "boolean"
+        },
+        "color": {
+          "$ref": "#/$defs/IfccadMode%3CIfccadColor%3E"
+        },
+        "scaleFactor": {
+          "type": "number"
+        },
+        "opacity": {
+          "$ref": "#/$defs/IfccadMode%3Cf64%3E"
+        }
+      },
+      "required": [
+        "enabled",
+        "maskEnabled",
+        "color",
+        "scaleFactor",
+        "opacity"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderTextAttachmentPoint": {
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ]
+    },
+    "IfccadMultiLeaderTextAlignment": {
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ]
+    },
+    "IfccadMultiLeaderTextState": {
+      "type": "object",
+      "properties": {
+        "boundaryHeight": {
+          "type": "number"
+        },
+        "automaticHeight": {
+          "type": "boolean"
+        },
+        "wordBreak": {
+          "type": "boolean"
+        },
+        "color": {
+          "$ref": "#/$defs/IfccadMode%3CIfccadColor%3E"
+        },
+        "attachments": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextAttachments"
+        },
+        "attachmentPoint": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextAttachmentPoint"
+        },
+        "alignment": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextAlignment"
+        },
+        "background": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextBackground"
+        },
+        "storedRotation": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "boundaryHeight",
+        "automaticHeight",
+        "wordBreak",
+        "color",
+        "attachments",
+        "attachmentPoint",
+        "alignment",
+        "background"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMText": {
+      "type": "object",
+      "properties": {
+        "placement": {
+          "$ref": "#/$defs/IfccadPlacement"
+        },
+        "value": {
+          "$ref": "#/$defs/mText"
+        }
+      },
+      "required": [
+        "placement",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderTextContent": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "$ref": "#/$defs/IfccadMText"
+        },
+        "state": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextState"
+        }
+      },
+      "required": [
+        "text",
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderToleranceContent": {
+      "type": "object",
+      "properties": {
+        "placement": {
+          "$ref": "#/$defs/IfccadPlacement"
+        },
+        "dimensionStyle": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/dimensionStyle/(?:0|[1-9][0-9]*)$"
+        },
+        "overrides": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "notation": {
+          "$ref": "#/$defs/IfccadToleranceNotation"
+        }
+      },
+      "required": [
+        "placement",
+        "dimensionStyle",
+        "overrides",
+        "notation"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderStoredContent": {
+      "type": "object",
+      "properties": {
+        "mText": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextContent"
+        },
+        "block": {
+          "$ref": "#/$defs/IfccadMultiLeaderBlockContent"
+        },
+        "tolerance": {
+          "$ref": "#/$defs/IfccadMultiLeaderToleranceContent"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderPresentation": {
+      "type": "object",
+      "properties": {
+        "plane": {
+          "$ref": "#/$defs/IfccadPlacement"
+        },
+        "normalReversed": {
+          "type": "boolean"
+        },
+        "contentBasePoint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "scaleFactor": {
+          "type": "number"
+        },
+        "textHeight": {
+          "type": "number"
+        },
+        "arrowSize": {
+          "type": "number"
+        },
+        "landingGap": {
+          "type": "number"
+        },
+        "nextPartId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadMultiLeaderGroup"
+          }
+        },
+        "content": {
+          "$ref": "#/$defs/IfccadMultiLeaderStoredContent"
+        }
+      },
+      "required": [
+        "plane",
+        "normalReversed",
+        "contentBasePoint",
+        "scaleFactor",
+        "textHeight",
+        "arrowSize",
+        "landingGap",
+        "nextPartId",
+        "groups",
+        "content"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderTextAngle": {
+      "enum": [
+        "parallelToLastSegment",
+        "horizontal",
+        "readableParallel"
+      ]
+    },
+    "IfccadMultiLeaderTextSettings": {
+      "type": "object",
+      "properties": {
+        "style": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/textStyle/(?:0|[1-9][0-9]*)$"
+        },
+        "color": {
+          "$ref": "#/$defs/IfccadMode%3CIfccadColor%3E"
+        },
+        "height": {
+          "type": "number"
+        },
+        "frame": {
+          "type": "boolean"
+        },
+        "attachments": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextAttachments"
+        },
+        "attachmentDirection": {
+          "$ref": "#/$defs/IfccadMultiLeaderAttachmentDirection"
+        },
+        "angle": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextAngle"
+        },
+        "alignment": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextAlignment"
+        }
+      },
+      "required": [
+        "color",
+        "height",
+        "frame",
+        "attachments",
+        "attachmentDirection",
+        "angle",
+        "alignment"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderBlockSettings": {
+      "type": "object",
+      "properties": {
+        "definition": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/block/(?:0|[1-9][0-9]*)$"
+        },
+        "color": {
+          "$ref": "#/$defs/IfccadMode%3CIfccadColor%3E"
+        },
+        "connection": {
+          "$ref": "#/$defs/IfccadMultiLeaderBlockConnection"
+        },
+        "rotation": {
+          "type": "number"
+        },
+        "scale": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "color",
+        "connection",
+        "rotation",
+        "scale"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderContentKind": {
+      "enum": [
+        "none",
+        "mText",
+        "block",
+        "tolerance"
+      ]
+    },
+    "IfccadMultiLeaderCommonSettings": {
+      "type": "object",
+      "properties": {
+        "line": {
+          "$ref": "#/$defs/IfccadMultiLeaderLineSettings"
+        },
+        "landingEnabled": {
+          "type": "boolean"
+        },
+        "doglegEnabled": {
+          "type": "boolean"
+        },
+        "doglegLength": {
+          "type": "number"
+        },
+        "contentKind": {
+          "$ref": "#/$defs/IfccadMultiLeaderContentKind"
+        },
+        "text": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextSettings"
+        },
+        "block": {
+          "$ref": "#/$defs/IfccadMultiLeaderBlockSettings"
+        },
+        "scaleFactor": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "line",
+        "landingEnabled",
+        "doglegEnabled",
+        "doglegLength",
+        "contentKind",
+        "text",
+        "block",
+        "scaleFactor"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderSettings": {
+      "type": "object",
+      "properties": {
+        "common": {
+          "$ref": "#/$defs/IfccadMultiLeaderCommonSettings"
+        },
+        "textAttachmentPoint": {
+          "$ref": "#/$defs/IfccadMultiLeaderTextAttachmentPoint"
+        },
+        "textDirectionNegative": {
+          "type": "boolean"
+        },
+        "extendLeaderToText": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "common",
+        "textAttachmentPoint",
+        "textDirectionNegative",
+        "extendLeaderToText"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderDefaultText": {
+      "type": "object",
+      "properties": {
+        "characterFormat": {
+          "$ref": "#/$defs/characterFormat"
+        },
+        "paragraphFormat": {
+          "$ref": "#/$defs/paragraphFormat"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mTextParagraph"
+          }
+        }
+      },
+      "required": [
+        "characterFormat",
+        "paragraphFormat",
+        "content"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderDrawOrder": {
+      "enum": [
+        "headFirst",
+        "tailFirst"
+      ]
+    },
+    "IfccadMultiLeaderContentDrawOrder": {
+      "enum": [
+        "contentFirst",
+        "leadersFirst"
+      ]
+    },
+    "IfccadMultiLeaderStyle": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/multiLeaderStyle/(?:0|[1-9][0-9]*)$"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[^\u0000]*$"
+        },
+        "description": {
+          "type": "string",
+          "pattern": "^[^\u0000]*$"
+        },
+        "common": {
+          "$ref": "#/$defs/IfccadMultiLeaderCommonSettings"
+        },
+        "landingGap": {
+          "type": "number"
+        },
+        "defaultMText": {
+          "$ref": "#/$defs/IfccadMultiLeaderDefaultText"
+        },
+        "textAlwaysLeft": {
+          "type": "boolean"
+        },
+        "blockScaleEnabled": {
+          "type": "boolean"
+        },
+        "blockRotationEnabled": {
+          "type": "boolean"
+        },
+        "alignSpace": {
+          "type": "number"
+        },
+        "breakGapSize": {
+          "type": "number"
+        },
+        "maxLeaderPoints": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "firstSegmentAngle": {
+          "type": "number"
+        },
+        "secondSegmentAngle": {
+          "type": "number"
+        },
+        "leaderDrawOrder": {
+          "$ref": "#/$defs/IfccadMultiLeaderDrawOrder"
+        },
+        "contentDrawOrder": {
+          "$ref": "#/$defs/IfccadMultiLeaderContentDrawOrder"
+        },
+        "annotative": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "common",
+        "landingGap",
+        "defaultMText",
+        "textAlwaysLeft",
+        "blockScaleEnabled",
+        "blockRotationEnabled",
+        "alignSpace",
+        "breakGapSize",
+        "maxLeaderPoints",
+        "firstSegmentAngle",
+        "secondSegmentAngle",
+        "leaderDrawOrder",
+        "contentDrawOrder",
+        "annotative"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderLegacyArrowOverride": {
+      "type": "object",
+      "properties": {
+        "lineKey": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "isDefault": {
+          "type": "boolean"
+        },
+        "arrow": {
+          "$ref": "#/$defs/IfccadLeaderArrow"
+        }
+      },
+      "required": [
+        "lineKey",
+        "isDefault",
+        "arrow"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeaderProperty": {
+      "enum": [
+        "pathKind",
+        "lineColor",
+        "linePattern",
+        "lineWeight",
+        "landingEnabled",
+        "landingGap",
+        "doglegEnabled",
+        "doglegLength",
+        "arrow",
+        "arrowSize",
+        "contentKind",
+        "textStyle",
+        "textLeftAttachment",
+        "textAngle",
+        "textAlignment",
+        "textColor",
+        "textHeight",
+        "textFrame",
+        "useDefaultMText",
+        "blockDefinition",
+        "blockColor",
+        "blockScale",
+        "blockRotation",
+        "blockConnection",
+        "scaleFactor",
+        "textRightAttachment",
+        "textSwitchAlignment",
+        "textAttachmentDirection",
+        "textTopAttachment",
+        "textBottomAttachment"
+      ]
+    },
+    "IfccadAnnotation<IfccadMultiLeaderPresentation>": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": [
+            "disabled",
+            "enabled",
+            "byDefinition"
+          ]
+        },
+        "reference": {
+          "$ref": "#/$defs/annotationKey"
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/$defs/annotationKey"
+              },
+              "presentation": {
+                "$ref": "#/$defs/IfccadMultiLeaderPresentation"
+              }
+            },
+            "required": [
+              "key"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "orientation": {
+          "enum": [
+            "fixed",
+            "matchLayout"
+          ]
+        }
+      },
+      "required": [
+        "mode",
+        "contexts"
+      ],
+      "additionalProperties": false
+    },
+    "IfccadMultiLeader": {
+      "type": "object",
+      "properties": {
+        "style": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/multiLeaderStyle/(?:0|[1-9][0-9]*)$"
+        },
+        "settings": {
+          "$ref": "#/$defs/IfccadMultiLeaderSettings"
+        },
+        "overriddenProperties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadMultiLeaderProperty"
+          },
+          "uniqueItems": true
+        },
+        "blockLabels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadMultiLeaderBlockLabel"
+          }
+        },
+        "nextLabelId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "legacyArrowOverrides": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadMultiLeaderLegacyArrowOverride"
+          }
+        },
+        "presentation": {
+          "$ref": "#/$defs/IfccadMultiLeaderPresentation"
+        },
+        "annotation": {
+          "$ref": "#/$defs/IfccadAnnotation%3CIfccadMultiLeaderPresentation%3E"
+        },
+        "graphics": {
+          "$ref": "#/$defs/IfccadLeaderGraphics"
+        }
+      },
+      "required": [
+        "settings",
+        "overriddenProperties",
+        "blockLabels",
+        "nextLabelId",
+        "legacyArrowOverrides",
+        "presentation"
+      ],
+      "additionalProperties": false
+    },
+    "leaderBody": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/IfccadLeaderPath"
+        },
+        "annotationKind": {
+          "$ref": "#/$defs/IfccadLeaderAnnotationKind"
+        },
+        "annotationEntity": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/e(?:0|[1-9][0-9]*)$"
+        },
+        "dimensionStyle": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/dimensionStyle/(?:0|[1-9][0-9]*)$"
+        },
+        "overrides": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "arrow": {
+          "$ref": "#/$defs/IfccadLeaderArrow"
+        },
+        "arrowEnabled": {
+          "type": "boolean"
+        },
+        "hookEnabled": {
+          "type": "boolean"
+        },
+        "hookDirection": {
+          "$ref": "#/$defs/IfccadLeaderHookDirection"
+        },
+        "annotationBox": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "horizontalDirection": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "blockOffset": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "annotationOffset": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "origin": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "path",
+        "annotationKind",
+        "dimensionStyle",
+        "overrides",
+        "arrowEnabled",
+        "hookEnabled",
+        "hookDirection",
+        "horizontalDirection",
+        "blockOffset",
+        "annotationOffset",
+        "origin"
+      ],
+      "additionalProperties": false
+    },
+    "toleranceBody": {
+      "type": "object",
+      "properties": {
+        "dimensionStyle": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/dimensionStyle/(?:0|[1-9][0-9]*)$"
+        },
+        "overrides": {
+          "$ref": "#/$defs/dimensionOverrides"
+        },
+        "notation": {
+          "$ref": "#/$defs/IfccadToleranceNotation"
+        }
+      },
+      "required": [
+        "dimensionStyle",
+        "overrides",
+        "notation"
+      ],
+      "additionalProperties": false
+    },
+    "multiLeaderPresentationBody": {
+      "type": "object",
+      "properties": {
+        "plane": {
+          "$ref": "#/$defs/IfccadPlacement"
+        },
+        "normalReversed": {
+          "type": "boolean"
+        },
+        "contentBasePoint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "scaleFactor": {
+          "type": "number"
+        },
+        "textHeight": {
+          "type": "number"
+        },
+        "arrowSize": {
+          "type": "number"
+        },
+        "landingGap": {
+          "type": "number"
+        },
+        "nextPartId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        }
+      },
+      "required": [
+        "plane",
+        "normalReversed",
+        "contentBasePoint",
+        "scaleFactor",
+        "textHeight",
+        "arrowSize",
+        "landingGap",
+        "nextPartId"
+      ],
+      "additionalProperties": false
+    },
+    "multiLeaderBody": {
+      "type": "object",
+      "properties": {
+        "style": {
+          "type": "string",
+          "pattern": "^/cad/d(?:0|[1-9][0-9]*)/multiLeaderStyle/(?:0|[1-9][0-9]*)$"
+        },
+        "settings": {
+          "$ref": "#/$defs/IfccadMultiLeaderSettings"
+        },
+        "overriddenProperties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadMultiLeaderProperty"
+          },
+          "uniqueItems": true
+        },
+        "nextLabelId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "legacyArrowOverrides": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadMultiLeaderLegacyArrowOverride"
+          }
+        },
+        "presentation": {
+          "$ref": "#/$defs/multiLeaderPresentationBody"
+        }
+      },
+      "required": [
+        "settings",
+        "overriddenProperties",
+        "nextLabelId",
+        "legacyArrowOverrides",
+        "presentation"
+      ],
+      "additionalProperties": false
+    },
+    "multiLeaderStyleBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[^\u0000]*$"
+        },
+        "description": {
+          "type": "string",
+          "pattern": "^[^\u0000]*$"
+        },
+        "common": {
+          "$ref": "#/$defs/IfccadMultiLeaderCommonSettings"
+        },
+        "landingGap": {
+          "type": "number"
+        },
+        "defaultMText": {
+          "$ref": "#/$defs/IfccadMultiLeaderDefaultText"
+        },
+        "textAlwaysLeft": {
+          "type": "boolean"
+        },
+        "blockScaleEnabled": {
+          "type": "boolean"
+        },
+        "blockRotationEnabled": {
+          "type": "boolean"
+        },
+        "alignSpace": {
+          "type": "number"
+        },
+        "breakGapSize": {
+          "type": "number"
+        },
+        "maxLeaderPoints": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "firstSegmentAngle": {
+          "type": "number"
+        },
+        "secondSegmentAngle": {
+          "type": "number"
+        },
+        "leaderDrawOrder": {
+          "$ref": "#/$defs/IfccadMultiLeaderDrawOrder"
+        },
+        "contentDrawOrder": {
+          "$ref": "#/$defs/IfccadMultiLeaderContentDrawOrder"
+        },
+        "annotative": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "common",
+        "landingGap",
+        "defaultMText",
+        "textAlwaysLeft",
+        "blockScaleEnabled",
+        "blockRotationEnabled",
+        "alignSpace",
+        "breakGapSize",
+        "maxLeaderPoints",
+        "firstSegmentAngle",
+        "secondSegmentAngle",
+        "leaderDrawOrder",
+        "contentDrawOrder",
+        "annotative"
+      ],
+      "additionalProperties": false
+    },
+    "multiLeaderBranchBody": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "sourceIndex": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "hasConnectionPoint": {
+          "type": "boolean"
+        },
+        "connectionPoint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "hasDoglegDirection": {
+          "type": "boolean"
+        },
+        "doglegDirection": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "doglegLength": {
+          "type": "number"
+        },
+        "textAttachmentDirection": {
+          "$ref": "#/$defs/IfccadMultiLeaderAttachmentDirection"
+        },
+        "breaks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadLeaderBreakInterval"
+          }
+        }
+      },
+      "required": [
+        "key",
+        "hasConnectionPoint",
+        "connectionPoint",
+        "hasDoglegDirection",
+        "doglegDirection",
+        "doglegLength",
+        "textAttachmentDirection",
+        "breaks"
+      ],
+      "additionalProperties": false
+    },
+    "leaderGraphicsBody": {
+      "type": "object",
+      "properties": {
+        "origin": {
+          "$ref": "#/$defs/IfccadLeaderGraphicsOrigin"
+        },
+        "placement": {
+          "$ref": "#/$defs/IfccadPlacement"
+        }
+      },
+      "required": [
+        "origin",
+        "placement"
+      ],
+      "additionalProperties": false
+    },
+    "leaderEmptyContainer": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "leaderPresentationGraph": {
+      "type": "object",
+      "properties": {
+        "graph": {
+          "type": "string",
+          "pattern": "^/cad/d[0-9]+/e[0-9]+/context[0-9]+$"
+        }
+      },
+      "required": [
+        "graph"
+      ],
+      "additionalProperties": false
     }
   },
   "$comment": "Mandatory IFCCAD local supplements. Ordinary IFCX shapes, typed decoding and profile-rules graph/domain algorithms also apply. This is not a whole drawing schema or IFCX core syntax."

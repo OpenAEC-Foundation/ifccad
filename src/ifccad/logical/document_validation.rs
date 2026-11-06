@@ -80,6 +80,7 @@ fn validate_document_inner(
     super::symbol_source::validate_sources(document)?;
     super::text::validate_styles(document)?;
     super::dimension_validation::validate_dimensions(document)?;
+    super::leader_validation::validate(document)?;
     let patterns: BTreeSet<_> = document.line_patterns.iter().map(|p| p.id).collect();
     let mut layers = BTreeSet::new();
     for layer in &document.layers {
@@ -222,6 +223,9 @@ fn validate_document_inner(
         match &entity.kind {
             IfccadEntityKind::AttributeDefinition(_) => {}
             IfccadEntityKind::Dimension(_) => {}
+            IfccadEntityKind::Leader(_)
+            | IfccadEntityKind::MultiLeader(_)
+            | IfccadEntityKind::Tolerance(_) => {}
             IfccadEntityKind::Hatch(h) => {
                 super::hatch::validate_hatch(h, &path)?;
                 super::annotation_hatch::validate(document, h, &path)?;
@@ -309,7 +313,7 @@ fn validate_document_inner(
     super::preservation_validation::validate_preservation(document)?;
     super::viewports::validate_references(document)?;
     super::hatch::validate_hatch_sources(document)?;
-    if cycle(&document.blocks) {
+    if cycle(document) {
         return Err(crate::ifccad::diagnostics::failure(
             "IFCCAD-OWN-003",
             "/",
@@ -438,7 +442,7 @@ pub(super) fn entity_appearance(
     }
     Ok(())
 }
-fn cycle(blocks: &[IfccadBlockDefinition]) -> bool {
+fn cycle(document: &IfccadDocument) -> bool {
     fn visit(
         id: u64,
         graph: &BTreeMap<u64, Vec<u64>>,
@@ -462,7 +466,8 @@ fn cycle(blocks: &[IfccadBlockDefinition]) -> bool {
         done.insert(id);
         false
     }
-    let graph: BTreeMap<_, _> = blocks
+    let graph: BTreeMap<_, _> = document
+        .blocks
         .iter()
         .map(|b| {
             (
@@ -470,12 +475,7 @@ fn cycle(blocks: &[IfccadBlockDefinition]) -> bool {
                 b.entities
                     .iter()
                     .filter_map(IfccadEntity::as_native)
-                    .filter_map(|e| match e.kind {
-                        IfccadEntityKind::BlockInstance { definition_id, .. } => {
-                            Some(definition_id)
-                        }
-                        _ => None,
-                    })
+                    .flat_map(|e| super::leader_validation::referenced_blocks(&e.kind, document))
                     .collect(),
             )
         })
@@ -493,10 +493,26 @@ pub(super) fn validate_block_instance(
     transform: &IfccadBlockTransform,
     path: &str,
 ) -> Result<(), IfccadReport> {
+    validate_block_reference(
+        document,
+        definition_id,
+        transform,
+        &format!("{path}/ifccad::blockInstance"),
+        path,
+    )
+}
+
+pub(super) fn validate_block_reference(
+    document: &IfccadDocument,
+    definition_id: u64,
+    transform: &IfccadBlockTransform,
+    path: &str,
+    placement_context: &str,
+) -> Result<(), IfccadReport> {
     if !document.blocks.iter().any(|b| b.id == definition_id) {
         return Err(crate::ifccad::diagnostics::failure(
             "IFCCAD-OWN-003",
-            &format!("{path}/ifccad::blockInstance/definition"),
+            &format!("{path}/definition"),
             format!("{path} unresolved block definition {definition_id}"),
         ));
     }
@@ -508,11 +524,11 @@ pub(super) fn validate_block_instance(
     {
         return Err(crate::ifccad::diagnostics::failure(
             "IFCCAD-GEOMETRY-004",
-            &format!("{path}/ifccad::blockInstance/transform/scale"),
+            &format!("{path}/transform/scale"),
             "definition requires signed uniform scaling",
         ));
     }
-    let frame = placement(&transform.placement, path)?;
+    let frame = placement(&transform.placement, placement_context)?;
     BlockTransform::try_new(
         frame,
         transform.rotation,
@@ -521,7 +537,7 @@ pub(super) fn validate_block_instance(
     .map_err(|e| {
         crate::ifccad::diagnostics::failure(
             "IFCCAD-GEOMETRY-004",
-            &format!("{path}/ifccad::blockInstance/transform"),
+            &format!("{path}/transform"),
             format!("invalid block transform: {e}"),
         )
     })?;

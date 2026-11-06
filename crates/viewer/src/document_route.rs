@@ -8,7 +8,7 @@ use std::{collections::BTreeMap, path::Path};
 const LIMITATIONS: &str = "Shared Studio mapping: numerical error bounds and rendered appearance are unassessed. Partial recovery, spline preservation and Reject policy are unavailable. Reported losses are not an exhaustive preservation audit.";
 
 pub fn document_capabilities() -> Value {
-    json!({"ifccad":{"backend":"opencaddocument","revision":"e7b79f163e1a4e847f3f98109021a5671683b342","revisionKind":"gitRevision","profileVersion":"0.6.0","cborMappingRevision":6,"developmentPatch":"block-attributes","partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
+    json!({"ifccad":{"backend":"opencaddocument","revision":"e7b79f163e1a4e847f3f98109021a5671683b342","revisionKind":"gitRevisionWithLocalPatch","profileVersion":"0.7.0","cborMappingRevision":7,"developmentPatch":"leader-slice","partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
 }
 
 fn parse_options(
@@ -119,7 +119,7 @@ fn unperformed_options(name: &str, format: &str, code: &str, message: impl ToStr
     output
 }
 
-fn selection(drawing: &IfccadDocument, imported: &IfccadImportOutcome) -> Value {
+fn selection(drawing: &IfccadDocument, imported: &IfccadImportOutcome, leaders: &Value) -> Value {
     let mut entities = Vec::new();
     let mut attribute_owners = Vec::new();
     for (layout, members) in std::iter::once(("Model", &drawing.model.entities)).chain(
@@ -145,13 +145,22 @@ fn selection(drawing: &IfccadDocument, imported: &IfccadImportOutcome) -> Value 
             }
         }
     }
-    json!({"format":"ifccad","qualification":"pinnedStudioIfcxImport","entities":entities,"attributeOwners":attribute_owners})
+    let mut owned = Vec::new();
+    for leader in leaders.as_array().into_iter().flatten() {
+        let Some(root) = entities.iter().find(|e| e["path"] == leader["path"]) else {
+            continue;
+        };
+        for node in leader["ownedNodes"].as_array().into_iter().flatten() {
+            owned.push(json!({"path":node["path"],"ownerPath":root["path"],"handle":root["handle"],"layout":root["layout"]}));
+        }
+    }
+    json!({"format":"ifccad","qualification":"pinnedStudioIfcxImport","entities":entities,"attributeOwners":attribute_owners,"ownedPartOwners":owned})
 }
 
 fn preview(output: &mut Value, drawing: &IfccadDocument) {
     match Ifcx.import_ifccad(drawing) {
         Ok(imported) => {
-            output["preview"] = json!({"backend":"opencaddocument","viewerSelection":selection(drawing,&imported),"diagnostics":diagnostics(&imported.losses),"rendering":"unassessed"})
+            output["preview"] = json!({"backend":"opencaddocument","viewerSelection":selection(drawing,&imported,&output["presentation"]["leaders"]),"diagnostics":diagnostics(&imported.losses),"rendering":"unassessed"})
         }
         Err(error) => {
             output["preview"] =

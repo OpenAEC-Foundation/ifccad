@@ -8,6 +8,7 @@ mod inspection_dimension_label;
 mod inspection_extrusion;
 mod inspection_font_symbols;
 mod inspection_ifccad_dimension;
+mod inspection_leaders;
 mod inspection_polyline_widths;
 mod native_inspection;
 mod options;

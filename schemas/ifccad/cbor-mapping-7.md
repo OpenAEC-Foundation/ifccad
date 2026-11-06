@@ -1,11 +1,11 @@
-# Experimental IFCCAD CBOR mapping, revision 6 (development)
+# Experimental IFCCAD CBOR mapping, revision 7 (development)
 
 This is a standalone encoding of `IfccadDocument`, not a general IFCX binary
 serialization. It retains the complete supported CAD projection, including
 opaque CAD preservation, but no original IFCX fragments, imports or foreign
 nodes. JSON/IFCX remains a separate mapping through the same typed document.
 
-The normative field/type inventory is [cbor-mapping-6.json](cbor-mapping-6.json).
+The normative field/type inventory is [cbor-mapping-7.json](cbor-mapping-7.json).
 It enumerates concrete records and generic instantiations reachable from the
 document. Names in that registry are explanatory, not transmitted type names.
 Record field codes are local to their record type. Codes and enum variants are
@@ -199,7 +199,7 @@ Descriptor fields are 0 mode (0 Disabled, 1 Enabled, 2 ByDefinition), 1 optional
 reference key, 2 required context list. Each context has 0 key and 1 optional
 presentation; each key has 0 scale ID. Optional values omit their field; a
 present null is malformed. Family records and exact enum codes are declared in
-[cbor-mapping-6.json](cbor-mapping-6.json). Shared profile rules govern semantic
+[cbor-mapping-7.json](cbor-mapping-7.json). Shared profile rules govern semantic
 validity in both encodings. Floating-point payloads retain their exact bits;
 no record field calculates a scale quotient or normalizes a direction.
 
@@ -270,3 +270,6 @@ i64. Object caches and Object codeparts carry global entity IDs, while Child
 codeparts and field record IDs are local to the owning attribute graph. JSON
 path spelling is not embedded in CBOR. Physical CAD limitations do not weaken
 native exact-equality readback or graph validation.
+
+
+Leader-family extension (unreleased profile0.7/CBOR7): kinds17/18/19 use the same closed wrapper0 as other boxed native values. Document field24 is the MultiLeaderStyle registry; counter13 allocates its IDs. DimensionStyle field5 is the independent leader arrow. The JSON register enumerates all nested command, branch, label, settings and presentation records. Ordered command streams retain state/transform order and bounded CadCompatibility51Zero; no second primitive list is stored. Sets of override properties use unique arrays in canonical encoded-key order. Source indices and positive part/label keys remain separate domains. ToleranceContent physical CAD payload qualification remains open; native storage does not claim that qualification.

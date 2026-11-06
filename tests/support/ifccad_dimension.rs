@@ -27,6 +27,7 @@ pub fn drawing() -> IfccadDocument {
     }];
     d.id_counters.next_text_style_id = 1;
     d.dimension_styles = vec![IfccadDimensionStyle {
+        leader_arrow: Default::default(),
         annotative: false,
         id: IfccadDimensionStyleId(0),
         name: "Building".into(),

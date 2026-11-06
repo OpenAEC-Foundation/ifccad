@@ -17,6 +17,7 @@ pub struct IfccadHeader {
 /// This document does not contain foreign nodes or original IFCX fragments.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDocument {
+    pub multi_leader_styles: Vec<super::IfccadMultiLeaderStyle>,
     pub attribute_visibility: super::IfccadAttributeVisibility,
     pub annotation_settings: Option<super::IfccadDrawingAnnotationSettings>,
     pub annotation_views: Vec<super::IfccadAnnotationStoredView>,
@@ -227,6 +228,9 @@ fn unit_block_scale() -> [f64; 3] {
 // unmeasured side effect of extending the logical contract.
 #[allow(clippy::large_enum_variant)]
 pub enum IfccadEntityKind {
+    Leader(Box<super::IfccadLeader>),
+    MultiLeader(Box<super::IfccadMultiLeader>),
+    Tolerance(Box<super::IfccadTolerance>),
     AttributeDefinition(Box<super::IfccadAttributeDefinition>),
     Solid(IfccadFilledQuadrilateral),
     Trace(IfccadFilledQuadrilateral),

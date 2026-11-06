@@ -57,6 +57,8 @@ pub(crate) fn present_document(output: &mut Value, d: &IfccadDocument, graph: &V
     output["presentation"]["blockAttributes"] = crate::inspection_attributes::authored(graph);
     output["presentation"]["dimensions"] = crate::inspection_ifccad_dimension::entities(d);
     output["presentation"]["dimensionStyles"] = crate::inspection_ifccad_dimension::styles(d);
+    output["presentation"]["leaders"] = crate::inspection_leaders::authored(graph);
+    output["presentation"]["multiLeaderStyles"] = json!(role("ifccad::multiLeaderStyle"));
 }
 pub fn inspect_ifccad_bytes(name: &str, bytes: &[u8]) -> Value {
     if name.to_ascii_lowercase().ends_with(".ocdraw.json")

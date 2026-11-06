@@ -10,6 +10,11 @@ spec.loader.exec_module(prepare)
 
 
 class HostDependencies(unittest.TestCase):
+    def test_local_codec_override_binds_every_selected_source_to_one_model(self):
+        pins=dict(codecRepository='https://github.com/BjornFidder/opencadcodec.git')
+        self.assertEqual(set(prepare.development_sources(pins,'acadrust')),
+            {'https://github.com/hakanaktt/acadrust.git','https://github.com/HakanSeven12/acadrust.git','https://github.com/BjornFidder/opencadcodec.git'})
+
     def setUp(self):
         self.pins = dict(documentCommit='doc', nativeCoreCommit='core', codecCommit='cad', kernelCommit='kernel')
         self.packages = [dict(name=name, source='git+https://example.test/repo#'+rev) for name, rev in [

@@ -4,6 +4,82 @@ use serde_json::{json, Value};
 use std::{collections::BTreeMap, sync::OnceLock};
 
 const ENTRIES: &[(&str, &str, &str)] = &[
+    ("ifccad::leader", "leaderBody", "IFCCAD-LEADER-JSON-001"),
+    (
+        "ifccad::multiLeader",
+        "multiLeaderBody",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::tolerance",
+        "toleranceBody",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::multiLeaderStyle",
+        "multiLeaderStyleBody",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::multiLeaderPresentation",
+        "multiLeaderPresentationBody",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::leaderGraphics",
+        "leaderGraphicsBody",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::leaderGraphicsCommand",
+        "IfccadLeaderGraphicCommand",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::multiLeaderBranches",
+        "leaderEmptyContainer",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::multiLeaderBranch",
+        "multiLeaderBranchBody",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::multiLeaderLine",
+        "IfccadMultiLeaderLine",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::multiLeaderContent",
+        "leaderEmptyContainer",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::multiLeaderText",
+        "IfccadMultiLeaderTextContent",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::multiLeaderBlock",
+        "IfccadMultiLeaderBlockContent",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::multiLeaderTolerance",
+        "IfccadMultiLeaderToleranceContent",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::multiLeaderBlockLabels",
+        "leaderEmptyContainer",
+        "IFCCAD-LEADER-JSON-001",
+    ),
+    (
+        "ifccad::multiLeaderBlockLabel",
+        "IfccadMultiLeaderBlockLabel",
+        "IFCCAD-LEADER-JSON-001",
+    ),
     (
         "ifccad::attributeDefinition",
         "attributeDefinition",
@@ -191,7 +267,7 @@ pub(super) fn validate_value(
     static VALIDATORS: OnceLock<BTreeMap<&str, jsonschema::Validator>> = OnceLock::new();
     let validators = VALIDATORS.get_or_init(|| {
         let base: Value = serde_json::from_str(include_str!(
-            "../../../../schemas/ifccad/supplemental-values-0.6.0.schema.json"
+            "../../../../schemas/ifccad/supplemental-values-0.7.0.schema.json"
         ))
         .expect("bundled IFCCAD supplements");
         ENTRIES

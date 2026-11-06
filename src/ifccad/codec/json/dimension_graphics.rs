@@ -184,6 +184,7 @@ impl Reader<'_> {
                 self.blocks,
                 self.styles,
                 self.patterns,
+                None,
             )?
             .try_into()?;
             let layer_id = p

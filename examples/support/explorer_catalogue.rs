@@ -4,6 +4,8 @@ use serde_json::json;
 use std::f64::consts::{FRAC_PI_2, PI};
 #[path = "explorer_annotations.rs"]
 mod annotations;
+#[path = "explorer_leaders.rs"]
+mod leaders;
 
 pub struct Sample {
     pub title: &'static str,
@@ -239,6 +241,16 @@ pub const SAMPLES: &[Sample] = &[
                 d.entity(MODEL,1,json!({"ifccad::geom::placement":plane(x,y),"ifccad::geom::trace":{"corners":corners}}));
             }
         },
+    },
+    Sample {
+        title: "Leader and tolerance",
+        note: "Two ordinary leaders / one FCF target",
+        draw: |_, _, _| {},
+    },
+    Sample {
+        title: "Multileader",
+        note: "Owned text / two lines / saved graphics",
+        draw: |_, _, _| {},
     },
 ];
 
@@ -543,6 +555,7 @@ fn dimension_section(d: &mut Drawing) -> Result<()> {
 pub fn build_with_samples(samples: &[Sample]) -> Result<Vec<u8>> {
     let mut d = Drawing::new("explorer-entity-catalogue");
     let mut annotation_samples = Vec::new();
+    let mut leader_samples = Vec::new();
     d.layer("Samples", Some([40, 140, 185]), 0.3);
     d.layer("Dimensions", None, 0.13);
     d.layer("Green accent", Some([55, 175, 120]), 0.5);
@@ -584,6 +597,9 @@ pub fn build_with_samples(samples: &[Sample]) -> Result<Vec<u8>> {
         d.text(MODEL, 0, x + 5., y + 54., 2.6, sample.note);
         let start = d.nodes.len();
         (sample.draw)(&mut d, x + 5., y + 5.);
+        if matches!(sample.title, "Leader and tolerance" | "Multileader") {
+            leader_samples.push((sample.title, x + 5., y + 5.));
+        }
         if matches!(
             sample.title,
             "Text"
@@ -628,5 +644,9 @@ pub fn build_with_samples(samples: &[Sample]) -> Result<Vec<u8>> {
     );
     d.model_view([194., total_height / 2. + 15.], total_height + 190.);
     annotations::attach(&mut d.nodes, &annotation_samples);
-    d.finish("explorer-entity-catalogue")
+    let bytes = d.finish("explorer-entity-catalogue")?;
+    let mut document = ifccad::load_ifccad_bytes(&bytes, Default::default())?.into_document();
+    leaders::append(&mut document, &leader_samples)?;
+    let encoded = ifccad::encode_ifccad_document(&document)?;
+    super::consistency::normalize(&serde_json::from_slice(encoded.bytes())?)
 }

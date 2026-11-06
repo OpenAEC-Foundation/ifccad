@@ -1,8 +1,8 @@
 {
   "header": {
-    "id": "urn:example:ifccad:0.6.0",
+    "id": "urn:example:ifccad:0.7.0",
     "ifcxVersion": "ifcx_alpha",
-    "dataVersion": "0.6.0",
+    "dataVersion": "0.7.0",
     "author": "OpenAEC",
     "timestamp": "2026-09-29T00:00:00Z"
   },
@@ -166,6 +166,10 @@
             },
             "attributeVisibility": {
               "dataType": "String"
+            },
+            "nextMultiLeaderStyleId": {
+              "dataType": "Integer",
+              "optional": true
             }
           }
         }
@@ -18696,6 +18700,10 @@
             "annotative": {
               "dataType": "Boolean",
               "optional": true
+            },
+            "leaderArrow": {
+              "dataType": "Object",
+              "optional": true
             }
           }
         }
@@ -19272,6 +19280,86 @@
             }
           }
         }
+      }
+    },
+    "ifccad::leader": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::multiLeader": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::tolerance": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::multiLeaderStyle": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::multiLeaderPresentation": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::leaderGraphics": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::leaderGraphicsCommand": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::multiLeaderBranches": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::multiLeaderBranch": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::multiLeaderLine": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::multiLeaderContent": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::multiLeaderText": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::multiLeaderBlock": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::multiLeaderTolerance": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::multiLeaderBlockLabels": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::multiLeaderBlockLabel": {
+      "value": {
+        "dataType": "Object"
       }
     }
   },

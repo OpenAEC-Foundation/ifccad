@@ -682,5 +682,21 @@
   {
     "file": "invalid/attributes-field-cycle.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/leaders-family.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/leader-wrong-target-kind.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/multileader-missing-style.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid/leader-unowned-command.ifcx",
+    "valid": false
   }
 ]
