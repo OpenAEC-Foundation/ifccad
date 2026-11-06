@@ -44,8 +44,29 @@ for(const example of examples){
  assert.ok(opened.preview.viewerSelection.entities.length);
  const model=createInspection(opened,opened.nativeSourceText);
  assert.ok(model.valid);assert.ok(model.nodes.size>0);
- const labels=(example.name==='House floor plan'?['10000','6100','3900','12000']:['18','21.63','15','30','90','90','9','23.56','15']).sort();
+ const labels={
+  'House floor plan':['10000','6100','3900','12000'],
+  'Entity catalogue':['18','21.63','15','30','90','90','9','23.56','15'],
+  'Block attributes':[],
+ }[example.name].sort();
  assert.deepEqual(opened.presentation.dimensions.map(d=>d.geometry.label.primary).sort(),labels);
+ if(example.name==='Block attributes'){
+  const attributes=opened.presentation.blockAttributes;
+  assert.equal(attributes.definitions.length,9);
+  assert.equal(attributes.values.length,32);
+  assert.equal(attributes.evaluation,'notPerformed');
+  // The eight values in the nested block definition have no independent
+  // top-level host selection. Directly owned instance children do.
+  const selection=opened.preview.viewerSelection;
+  assert.equal(selection.attributeOwners.length,24);
+  for(const child of selection.attributeOwners){
+   const parent=selection.entities.find(row=>row.path===child.ownerPath);
+   assert.equal(child.handle,parent.handle);
+   assert.ok(attributes.values.some(row=>row.path===child.path&&row.ownerPath===child.ownerPath));
+  }
+  assert.ok(attributes.values.some(row=>row.value.mText));
+  assert.ok(attributes.values.some(row=>row.value.fields));
+ }
  if(example.name==='Entity catalogue')for(const type of ['point','lineSegment','circle','arc','ellipse','ellipseArc','planarPolyline','spatialPolyline','text','mText','hatch','dimension','blockInstance','viewport','solid','trace'])assert.ok([...model.nodes.values()].some(node=>node.type===type),type);
  for(const encoding of ['cbor','cbor-zstd']){
   const saved=checked(nativeExportRequest(source,opened,{format:'ifccad',encoding})).export.download;
@@ -56,6 +77,7 @@ for(const example of examples){
   assert.deepEqual(decoded.presentation.polylineWidths,opened.presentation.polylineWidths);
   assert.deepEqual(decoded.presentation.extrusions,opened.presentation.extrusions);
   assert.deepEqual(decoded.presentation.dimensions,opened.presentation.dimensions);
+  assert.deepEqual(decoded.presentation.blockAttributes,opened.presentation.blockAttributes);
   const same=checked(nativeExportRequest(binary,decoded,{format:'ifccad',encoding})).export.download;
   assert.deepEqual(bytesOf(same),bytesOf(saved),'same binary encoding retains validated source bytes');
   const projected=checked(nativeExportRequest(binary,decoded,{format:'ifccad'})).export.download;
