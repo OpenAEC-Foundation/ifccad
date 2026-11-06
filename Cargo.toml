@@ -14,15 +14,12 @@ categories = ["parser-implementations", "encoding"]
 include = ["/src/**", "/schemas/**", "/tests/**", "/conformance/next/**", "/examples/*.rs", "/examples/support/**", "/examples/ifccad/**", "/README.md", "/LICENSE", "/Cargo.toml", "/rust-toolchain.toml", "/release/manifest.json", "/docs/alpha-compatibility.md", "/docs/releases.md", "/docs/releases/**", "/docs/geometry/fixtures/solid-trace-profile/cases.json"]
 
 [workspace.package]
-version = "2026.45.1"
+version = "2026.45.2"
 
 # The shared Document converter and the browser use one IFCCAD model identity.
 [patch."https://github.com/OpenAEC-Foundation/ifccad.git"]
 ifccad = { path = "." }
 
-# Annotation development pair: 7e7940f6 plus the HatchView soft-pointer fix.
-[patch."https://github.com/HakanSeven12/acadrust.git"]
-acadrust = { git = "https://github.com/BjornFidder/opencadcodec.git", rev = "4018037daf8fd3e40aa1aa6455b80232849a2756" }
 
 [workspace]
 members = ["crates/viewer", "crates/browser"]

@@ -8,7 +8,7 @@ use std::{collections::BTreeMap, path::Path};
 const LIMITATIONS: &str = "Shared Studio mapping: numerical error bounds and rendered appearance are unassessed. Partial recovery, spline preservation and Reject policy are unavailable. Reported losses are not an exhaustive preservation audit.";
 
 pub fn document_capabilities() -> Value {
-    json!({"ifccad":{"backend":"opencaddocument","revision":"47031369d9d2bf8b192c508e31e772b41bb2b990","revisionKind":"gitRevision","profileVersion":"0.5.0","cborMappingRevision":5,"developmentPatch":"font-symbol-sources","partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
+    json!({"ifccad":{"backend":"opencaddocument","revision":"e7b79f163e1a4e847f3f98109021a5671683b342","revisionKind":"gitRevision","profileVersion":"0.6.0","cborMappingRevision":6,"developmentPatch":"block-attributes","partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
 }
 
 fn parse_options(
@@ -121,6 +121,7 @@ fn unperformed_options(name: &str, format: &str, code: &str, message: impl ToStr
 
 fn selection(drawing: &IfccadDocument, imported: &IfccadImportOutcome) -> Value {
     let mut entities = Vec::new();
+    let mut attribute_owners = Vec::new();
     for (layout, members) in std::iter::once(("Model", &drawing.model.entities)).chain(
         drawing
             .paper_layouts
@@ -131,11 +132,20 @@ fn selection(drawing: &IfccadDocument, imported: &IfccadImportOutcome) -> Value 
             if let Some(handle) = imported.entity_handles.get(&entity.id()) {
                 if imported.document.get_entity(*handle).is_some() {
                     entities.push(json!({"path":format!("/cad/d{}/e{}",drawing.drawing_id,entity.id()),"handle":format!("{:X}",handle.value()),"layout":layout}));
+                    if let Some(ifccad::IfccadNativeEntity {
+                        kind: ifccad::IfccadEntityKind::BlockInstance { attributes, .. },
+                        ..
+                    }) = entity.as_native()
+                    {
+                        for a in attributes {
+                            attribute_owners.push(json!({"path":format!("/cad/d{}/e{}",drawing.drawing_id,a.id),"ownerPath":format!("/cad/d{}/e{}",drawing.drawing_id,entity.id()),"handle":format!("{:X}",handle.value()),"layout":layout}));
+                        }
+                    }
                 }
             }
         }
     }
-    json!({"format":"ifccad","qualification":"pinnedStudioIfcxImport","entities":entities})
+    json!({"format":"ifccad","qualification":"pinnedStudioIfcxImport","entities":entities,"attributeOwners":attribute_owners})
 }
 
 fn preview(output: &mut Value, drawing: &IfccadDocument) {

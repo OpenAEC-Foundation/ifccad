@@ -32,7 +32,7 @@ export function createCadPreviewController({openSession,onUpdate=()=>{},onCadSel
   const version=selectionVersion,key=state.selectionKey,requestedLayout=state.selectionLayout,signature=JSON.stringify([current,version,key,requestedLayout]);if(signature===appliedSelection)return Promise.resolve();
   const task=selectionQueue.then(async()=>{
    if(current!==generation||version!==selectionVersion)return;
-   const map=state.opening?.preview?.viewerSelection,target=map?.format===drawingFormat(state.source)?map.entities?.find(entity=>entity.path===key):undefined;
+   const map=state.opening?.preview?.viewerSelection,target=map?.format===drawingFormat(state.source)?(map.entities?.find(entity=>entity.path===key)||map.attributeOwners?.find(entity=>entity.path===key)):undefined;
    try{
     if(typeof active.selectGenerated!=='function')throw Error('CAD selection is unavailable in this viewer');
     await active.selectGenerated(target?[target.handle]:[],target?.layout??requestedLayout??undefined);

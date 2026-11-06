@@ -1,0 +1,5588 @@
+{
+  "header": {
+    "id": "block-attributes-gallery",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "0.1.0",
+    "author": "OpenCAD",
+    "timestamp": "2026-11-04T14:46:27Z"
+  },
+  "imports": [
+    {
+      "uri": "urn:example:ifccad:0.6.0"
+    }
+  ],
+  "schemas": {},
+  "data": [
+    {
+      "path": "/cad/d1",
+      "children": {
+        "annotationScale1": "/cad/d1/annotationScale/1",
+        "annotationScale2": "/cad/d1/annotationScale/2",
+        "block1": "/cad/d1/block/1",
+        "block2": "/cad/d1/block/2",
+        "dimensionStyle1": "/cad/d1/dimensionStyle/1",
+        "layer1": "/cad/d1/layer/1",
+        "linePattern0": "/cad/d1/linePattern/0",
+        "model": "/cad/d1/layout/1",
+        "paper2": "/cad/d1/layout/2",
+        "paper3": "/cad/d1/layout/3",
+        "textStyle1": "/cad/d1/textStyle/1",
+        "window1": "/cad/d1/modelWindow/1"
+      },
+      "attributes": {
+        "ifccad::drawing": {
+          "attributeVisibility": "Normal",
+          "lengthUnit": "unitless",
+          "modelWindows": [
+            "/cad/d1/modelWindow/1"
+          ],
+          "nextAnnotationScaleId": 3,
+          "nextBlockId": 3,
+          "nextDimensionStyleId": 2,
+          "nextEntityId": 62,
+          "nextLayerId": 2,
+          "nextLayoutId": 4,
+          "nextLinePatternId": 1,
+          "nextModelWindowId": 2,
+          "nextSymbolSourceId": 1,
+          "nextTextStyleId": 2,
+          "nextUcsId": 1,
+          "pointDisplay": {
+            "form": {
+              "circle": false,
+              "glyph": "dot",
+              "square": false
+            },
+            "size": {
+              "kind": "defaultFivePercent"
+            }
+          },
+          "profileVersion": "0.6.0"
+        },
+        "ifccad::drawingWorkspace": {
+          "activeLayout": "/cad/d1/layout/1",
+          "currentLayer": "/cad/d1/layer/1"
+        },
+        "ifccad::modelViewState": {
+          "activeModelWindow": "/cad/d1/modelWindow/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/1",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 1.0,
+          "name": "1:1 review",
+          "paperUnits": 1.0,
+          "unitScale": true
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/2",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 2.0,
+          "name": "1:2 embedded",
+          "paperUnits": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/textStyle/1",
+      "attributes": {
+        "ifccad::textStyle": {
+          "font": {
+            "cadFontName": "txt"
+          },
+          "lastUsedHeight": 2.5,
+          "name": "Standard"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/dimensionStyle/1",
+      "attributes": {
+        "ifccad::dimensionStyle": {
+          "name": "Standard",
+          "settings": {
+            "arrows": {
+              "centerMark": {
+                "kind": "mark",
+                "size": 0.09
+              },
+              "first": {
+                "kind": "closedFilled"
+              },
+              "flipFirst": false,
+              "flipSecond": false,
+              "second": {
+                "kind": "closedFilled"
+              },
+              "size": 0.18,
+              "tickSize": 0.0
+            },
+            "dimensionLine": {
+              "appearance": {
+                "color": {
+                  "mode": "inheritEntity"
+                },
+                "linePattern": {
+                  "mode": "inheritEntity"
+                },
+                "lineWeight": {
+                  "mode": "inheritEntity"
+                },
+                "opacity": {
+                  "mode": "inheritEntity"
+                }
+              },
+              "extension": 0.0,
+              "suppressFirst": false,
+              "suppressSecond": false
+            },
+            "extensionLines": {
+              "first": {
+                "appearance": {
+                  "color": {
+                    "mode": "inheritEntity"
+                  },
+                  "linePattern": {
+                    "mode": "inheritEntity"
+                  },
+                  "lineWeight": {
+                    "mode": "inheritEntity"
+                  },
+                  "opacity": {
+                    "mode": "inheritEntity"
+                  }
+                },
+                "extension": 1.25,
+                "length": {
+                  "kind": "automatic"
+                },
+                "offset": 0.625,
+                "suppressed": false
+              },
+              "second": {
+                "appearance": {
+                  "color": {
+                    "mode": "inheritEntity"
+                  },
+                  "linePattern": {
+                    "mode": "inheritEntity"
+                  },
+                  "lineWeight": {
+                    "mode": "inheritEntity"
+                  },
+                  "opacity": {
+                    "mode": "inheritEntity"
+                  }
+                },
+                "extension": 1.25,
+                "length": {
+                  "kind": "automatic"
+                },
+                "offset": 0.625,
+                "suppressed": false
+              }
+            },
+            "fit": {
+              "forceTextInside": false,
+              "keepDimensionLineOutside": false,
+              "preferredPlacement": "bestFit"
+            },
+            "numbers": {
+              "primary": {
+                "angleFormat": "decimalDegrees",
+                "application": "allOwners",
+                "arcSymbol": "before",
+                "decimalSeparator": ".",
+                "format": "decimal",
+                "fractionLayout": "horizontal",
+                "fractionScale": 1.0,
+                "measurementFactor": 1.0,
+                "precision": 2,
+                "prefix": "",
+                "roundingIncrement": 0.0,
+                "suffix": "",
+                "zeroSuppression": {
+                  "leading": false,
+                  "trailing": true,
+                  "zeroFeet": true,
+                  "zeroInches": true
+                }
+              },
+              "tolerance": {
+                "kind": "none"
+              }
+            },
+            "presentationScale": {
+              "factor": 1.0,
+              "kind": "fixed"
+            },
+            "text": {
+              "appearance": {
+                "color": {
+                  "mode": "inheritEntity"
+                },
+                "linePattern": {
+                  "mode": "inheritEntity"
+                },
+                "lineWeight": {
+                  "mode": "inheritEntity"
+                },
+                "opacity": {
+                  "mode": "inheritEntity"
+                }
+              },
+              "attachment": "bottomCenter",
+              "background": {
+                "kind": "none"
+              },
+              "gap": 0.625,
+              "height": 0.18,
+              "insideOrientation": "aligned",
+              "lineSpacing": {
+                "factor": 1.0,
+                "kind": "atLeast"
+              },
+              "movement": "moveDimensionLine",
+              "outsideOrientation": "aligned",
+              "style": "/cad/d1/textStyle/1"
+            }
+          },
+          "typeOverrides": {}
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/modelWindow/1",
+      "attributes": {
+        "ifccad::modelWindow": {
+          "aspectRatio": 1.0,
+          "grid": {
+            "adaptive": true,
+            "beyondLimits": false,
+            "enabled": false,
+            "followsWorkplane": false,
+            "majorLineFrequency": 5,
+            "spacing": [
+              10.0,
+              10.0
+            ],
+            "style": "Lines",
+            "subdivision": false
+          },
+          "rectangle": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "renderMode": "TwoDimensional",
+          "snap": {
+            "angle": 0.0,
+            "base": [
+              0.0,
+              0.0
+            ],
+            "enabled": false,
+            "isometricPlane": "Left",
+            "spacing": [
+              0.5,
+              0.5
+            ],
+            "style": "Rectangular"
+          },
+          "storedUcs": {
+            "kind": "World"
+          },
+          "useStoredUcs": true,
+          "view": {
+            "backClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "center": [
+              0.0,
+              0.0
+            ],
+            "direction": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "frontClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "height": 10.0,
+            "lensLengthMm": 50.0,
+            "projection": "Orthographic",
+            "target": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "twist": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/1",
+      "children": {
+        "0": "/cad/d1/e18",
+        "1": "/cad/d1/e27",
+        "2": "/cad/d1/e28",
+        "3": "/cad/d1/e29",
+        "4": "/cad/d1/e30",
+        "5": "/cad/d1/e31",
+        "6": "/cad/d1/e32",
+        "7": "/cad/d1/e61"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Model",
+          "tabIndex": 0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/2",
+      "children": {},
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Paper",
+          "name": "Layout1",
+          "paperSpaceLinetypeScaling": false,
+          "tabIndex": 1
+        },
+        "ifccad::paperCanvas": {
+          "frame": {
+            "center": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "height": 210.0,
+            "width": 297.0
+          },
+          "grid": {
+            "adaptive": false,
+            "beyondLimits": false,
+            "enabled": false,
+            "followsWorkplane": false,
+            "majorLineFrequency": 5,
+            "spacing": [
+              10.0,
+              10.0
+            ],
+            "style": "Lines",
+            "subdivision": false
+          },
+          "snap": {
+            "angle": 0.0,
+            "base": [
+              0.0,
+              0.0
+            ],
+            "enabled": false,
+            "isometricPlane": "Left",
+            "spacing": [
+              10.0,
+              10.0
+            ],
+            "style": "Rectangular"
+          },
+          "storedUcs": {
+            "kind": "World"
+          },
+          "useStoredUcs": false,
+          "view": {
+            "backClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "center": [
+              0.0,
+              0.0
+            ],
+            "direction": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "frontClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "height": 210.0,
+            "lensLengthMm": 50.0,
+            "projection": "Orthographic",
+            "target": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "twist": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/3",
+      "children": {
+        "0": "/cad/d1/e42",
+        "1": "/cad/d1/e51",
+        "10": "/cad/d1/e60",
+        "2": "/cad/d1/e52",
+        "3": "/cad/d1/e53",
+        "4": "/cad/d1/e54",
+        "5": "/cad/d1/e55",
+        "6": "/cad/d1/e56",
+        "7": "/cad/d1/e57",
+        "8": "/cad/d1/e58",
+        "9": "/cad/d1/e59"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Paper",
+          "limits": {
+            "maxX": 297.0,
+            "maxY": 210.0,
+            "minX": 0.0,
+            "minY": 0.0
+          },
+          "media": {
+            "height": 210.0,
+            "unit": "mm",
+            "width": 297.0
+          },
+          "name": "Attribute titleblock",
+          "plotSettings": {
+            "area": {
+              "mode": "Layout"
+            },
+            "mapping": {
+              "placement": {
+                "mode": "Offset",
+                "reference": "PrintableArea",
+                "x": 0.0,
+                "y": 0.0
+              },
+              "scale": {
+                "mode": "Fixed",
+                "outputLength": 1.0,
+                "scopeLength": 1.0
+              }
+            },
+            "options": {
+              "hidePaperSpaceObjects": false,
+              "plotLineWeights": true,
+              "plotPaperSpaceLast": false,
+              "plotTransparency": false,
+              "plotViewportBorders": false,
+              "scaleLineWeights": false
+            },
+            "output": {
+              "applyPlotStyles": false,
+              "shadedPlot": {
+                "mode": "AsDisplayed",
+                "quality": {
+                  "mode": "Normal"
+                }
+              }
+            },
+            "page": {
+              "printableArea": {
+                "maxX": 297.0,
+                "maxY": 210.0,
+                "minX": 0.0,
+                "minY": 0.0
+              },
+              "rotation": "none"
+            },
+            "plotUnit": "mm"
+          },
+          "tabIndex": 2
+        },
+        "ifccad::paperCanvas": {
+          "activeContext": {
+            "kind": "Canvas"
+          },
+          "frame": {
+            "center": [
+              148.5,
+              105.0,
+              0.0
+            ],
+            "height": 210.0,
+            "width": 297.0
+          },
+          "grid": {
+            "adaptive": false,
+            "beyondLimits": false,
+            "enabled": false,
+            "followsWorkplane": false,
+            "majorLineFrequency": 5,
+            "spacing": [
+              10.0,
+              10.0
+            ],
+            "style": "Lines",
+            "subdivision": false
+          },
+          "snap": {
+            "angle": 0.0,
+            "base": [
+              0.0,
+              0.0
+            ],
+            "enabled": false,
+            "isometricPlane": "Left",
+            "spacing": [
+              10.0,
+              10.0
+            ],
+            "style": "Rectangular"
+          },
+          "storedUcs": {
+            "kind": "World"
+          },
+          "useStoredUcs": false,
+          "view": {
+            "backClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "center": [
+              148.5,
+              105.0
+            ],
+            "direction": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "frontClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "height": 230.0,
+            "lensLengthMm": 50.0,
+            "projection": "Orthographic",
+            "target": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "twist": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/0",
+      "attributes": {
+        "ifccad::linePattern": {
+          "description": "Solid line",
+          "name": "Continuous",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/1",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "kind": "Foreground"
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25
+          },
+          "name": "0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/block/1",
+      "children": {
+        "0": "/cad/d1/e1",
+        "1": "/cad/d1/e2",
+        "2": "/cad/d1/e3",
+        "3": "/cad/d1/e4",
+        "4": "/cad/d1/e5",
+        "5": "/cad/d1/e6",
+        "6": "/cad/d1/e7",
+        "7": "/cad/d1/e8",
+        "8": "/cad/d1/e9"
+      },
+      "attributes": {
+        "ifccad::blockDefinition": {
+          "basePoint": [
+            7.0,
+            9.0,
+            0.0
+          ],
+          "insertionUnit": "unitless",
+          "name": "ATTR_REVIEW_DOOR"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/block/2",
+      "children": {
+        "0": "/cad/d1/e33"
+      },
+      "attributes": {
+        "ifccad::blockDefinition": {
+          "basePoint": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insertionUnit": "unitless",
+          "name": "NESTED_ATTRIBUTE_REVIEW"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e10",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e1",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "CODE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "D-101",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e11",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "annotation": {
+            "contexts": [
+              {
+                "key": {
+                  "scaleId": "/cad/d1/annotationScale/1"
+                },
+                "presentation": {
+                  "embedded": {
+                    "isDefault": true,
+                    "presentation": {
+                      "attachment": "topLeft",
+                      "insertion": [
+                        0.0,
+                        -18.0,
+                        0.0
+                      ],
+                      "rectangleHeight": 15.0,
+                      "rectangleWidth": 80.0,
+                      "xDirection": [
+                        1.0,
+                        0.0,
+                        0.0
+                      ]
+                    },
+                    "scaleId": "/cad/d1/annotationScale/2"
+                  },
+                  "kind": "MText",
+                  "mTextEnabled": true,
+                  "text": {
+                    "alignment": [
+                      0.0,
+                      -18.0
+                    ],
+                    "horizontal": "left",
+                    "insertion": [
+                      0.0,
+                      -18.0
+                    ],
+                    "rotation": 0.0
+                  }
+                }
+              }
+            ],
+            "mode": "enabled",
+            "reference": {
+              "scaleId": "/cad/d1/annotationScale/1"
+            }
+          },
+          "definition": "/cad/d1/e2",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                0.0,
+                -18.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Room 1"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                },
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {
+                        "color": {
+                          "color": {
+                            "indexedColor": {
+                              "index": 1,
+                              "system": "ACI"
+                            },
+                            "rgb": [
+                              255,
+                              0,
+                              0
+                            ]
+                          },
+                          "kind": "explicit"
+                        }
+                      },
+                      "kind": "run",
+                      "text": "Red detail"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 2.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/1",
+              "wrapWidth": 80.0
+            },
+            "visible": true
+          },
+          "tag": "ROOM",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Room 1",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -18.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e12",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e4",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": true,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "HIDDEN",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Value HIDDEN",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -54.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e13",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e5",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": true,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "PRESET",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Value PRESET",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -72.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e14",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e6",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": true
+          },
+          "lockPosition": true,
+          "tag": "VERIFY",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Value VERIFY",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -90.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e15",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e7",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                0.0,
+                -108.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 2.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/1",
+              "wrapWidth": 80.0
+            },
+            "visible": true
+          },
+          "tag": "EMPTY_MTEXT",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "STALE OUTER FALLBACK",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -108.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e16",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e8",
+          "fieldLength": 16,
+          "fields": {
+            "nextId": 2,
+            "records": [
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Integer",
+                        "value": 1
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_ATTDEF"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Real",
+                        "value": 29179.0
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_CHECKSUM"
+                  }
+                ],
+                "cache": {
+                  "display": "",
+                  "flags": 3,
+                  "format": "",
+                  "formatted_value": "",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Empty"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "File: "
+                  },
+                  {
+                    "kind": "Child",
+                    "value": 1
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "TextTemplate",
+                "filingOptions": 0,
+                "format": "",
+                "id": 0,
+                "sourceEvaluator": "_text",
+                "state": 9
+              },
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Text",
+                        "value": "Filename"
+                      }
+                    },
+                    "key": "Variable"
+                  }
+                ],
+                "cache": {
+                  "display": "Review gallery.dwg",
+                  "flags": 4,
+                  "format": "%fn6",
+                  "formatted_value": "Review gallery.dwg",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Text",
+                    "value": "Review gallery.dwg"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "\\AcVar Filename \\f \"%fn6\""
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "DrawingVariable",
+                "filingOptions": 0,
+                "format": "%fn6",
+                "id": 1,
+                "sourceEvaluator": "AcVar",
+                "state": 59
+              }
+            ],
+            "root": 0
+          },
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "FILENAME",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Review gallery.dwg",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -126.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e17",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e9",
+          "fieldLength": 16,
+          "fields": {
+            "nextId": 2,
+            "records": [
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Integer",
+                        "value": 1
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_ATTDEF"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Real",
+                        "value": 5593.0
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_CHECKSUM"
+                  }
+                ],
+                "cache": {
+                  "display": "",
+                  "flags": 3,
+                  "format": "",
+                  "formatted_value": "",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Empty"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "Length: "
+                  },
+                  {
+                    "kind": "Child",
+                    "value": 1
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "TextTemplate",
+                "filingOptions": 0,
+                "format": "",
+                "id": 0,
+                "sourceEvaluator": "_text",
+                "state": 9
+              },
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Object",
+                        "value": "/cad/d1/e28"
+                      }
+                    },
+                    "key": "ObjectPropertyId"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Text",
+                        "value": "Length"
+                      }
+                    },
+                    "key": "ObjectPropertyName"
+                  }
+                ],
+                "cache": {
+                  "display": "12.50",
+                  "flags": 4,
+                  "format": "%lu2%pr2",
+                  "formatted_value": "12.50",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Text",
+                    "value": "12.50"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "\\AcObjProp Object("
+                  },
+                  {
+                    "kind": "Object",
+                    "value": "/cad/d1/e28"
+                  },
+                  {
+                    "kind": "Literal",
+                    "value": ").Length \\f \"%lu2%pr2\""
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "ObjectProperty",
+                "filingOptions": 0,
+                "format": "%lu2%pr2",
+                "id": 1,
+                "sourceEvaluator": "AcObjProp",
+                "state": 59
+              }
+            ],
+            "root": 0
+          },
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "LINE_LENGTH",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "12.50",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -144.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e18",
+      "children": {
+        "0": "/cad/d1/e10",
+        "1": "/cad/d1/e11",
+        "2": "/cad/d1/e12",
+        "3": "/cad/d1/e13",
+        "4": "/cad/d1/e14",
+        "5": "/cad/d1/e15",
+        "6": "/cad/d1/e16",
+        "7": "/cad/d1/e17"
+      },
+      "attributes": {
+        "ifccad::blockInstance": {
+          "definition": "/cad/d1/block/1",
+          "transform": {
+            "placement": {
+              "origin": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            }
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e19",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e1",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "RENAMED_CODE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "D-102",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            130.0,
+            0.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e20",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "annotation": {
+            "contexts": [
+              {
+                "key": {
+                  "scaleId": "/cad/d1/annotationScale/1"
+                },
+                "presentation": {
+                  "embedded": {
+                    "isDefault": true,
+                    "presentation": {
+                      "attachment": "topLeft",
+                      "insertion": [
+                        130.0,
+                        -18.0,
+                        0.0
+                      ],
+                      "rectangleHeight": 15.0,
+                      "rectangleWidth": 80.0,
+                      "xDirection": [
+                        1.0,
+                        0.0,
+                        0.0
+                      ]
+                    },
+                    "scaleId": "/cad/d1/annotationScale/2"
+                  },
+                  "kind": "MText",
+                  "mTextEnabled": true,
+                  "text": {
+                    "alignment": [
+                      130.0,
+                      -18.0
+                    ],
+                    "horizontal": "left",
+                    "insertion": [
+                      130.0,
+                      -18.0
+                    ],
+                    "rotation": 0.0
+                  }
+                }
+              }
+            ],
+            "mode": "enabled",
+            "reference": {
+              "scaleId": "/cad/d1/annotationScale/1"
+            }
+          },
+          "definition": "/cad/d1/e2",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                130.0,
+                -18.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Room 2"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                },
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {
+                        "color": {
+                          "color": {
+                            "indexedColor": {
+                              "index": 1,
+                              "system": "ACI"
+                            },
+                            "rgb": [
+                              255,
+                              0,
+                              0
+                            ]
+                          },
+                          "kind": "explicit"
+                        }
+                      },
+                      "kind": "run",
+                      "text": "Red detail"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 2.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/1",
+              "wrapWidth": 80.0
+            },
+            "visible": true
+          },
+          "tag": "ROOM",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Room 2",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            130.0,
+            -18.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e21",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e4",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": true,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "HIDDEN",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Value HIDDEN",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            130.0,
+            -54.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e22",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e5",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": true,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "PRESET",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Value PRESET",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            130.0,
+            -72.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e23",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e6",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": true
+          },
+          "lockPosition": true,
+          "tag": "VERIFY",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Value VERIFY",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            130.0,
+            -90.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e24",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e7",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                130.0,
+                -108.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 2.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/1",
+              "wrapWidth": 80.0
+            },
+            "visible": true
+          },
+          "tag": "EMPTY_MTEXT",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "STALE OUTER FALLBACK",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            130.0,
+            -108.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e25",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e8",
+          "fieldLength": 16,
+          "fields": {
+            "nextId": 2,
+            "records": [
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Integer",
+                        "value": 1
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_ATTDEF"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Real",
+                        "value": 29179.0
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_CHECKSUM"
+                  }
+                ],
+                "cache": {
+                  "display": "",
+                  "flags": 3,
+                  "format": "",
+                  "formatted_value": "",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Empty"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "File: "
+                  },
+                  {
+                    "kind": "Child",
+                    "value": 1
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "TextTemplate",
+                "filingOptions": 0,
+                "format": "",
+                "id": 0,
+                "sourceEvaluator": "_text",
+                "state": 9
+              },
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Text",
+                        "value": "Filename"
+                      }
+                    },
+                    "key": "Variable"
+                  }
+                ],
+                "cache": {
+                  "display": "Review gallery.dwg",
+                  "flags": 4,
+                  "format": "%fn6",
+                  "formatted_value": "Review gallery.dwg",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Text",
+                    "value": "Review gallery.dwg"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "\\AcVar Filename \\f \"%fn6\""
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "DrawingVariable",
+                "filingOptions": 0,
+                "format": "%fn6",
+                "id": 1,
+                "sourceEvaluator": "AcVar",
+                "state": 59
+              }
+            ],
+            "root": 0
+          },
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "FILENAME",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Review gallery.dwg",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            130.0,
+            -126.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e26",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e9",
+          "fieldLength": 16,
+          "fields": {
+            "nextId": 2,
+            "records": [
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Integer",
+                        "value": 1
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_ATTDEF"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Real",
+                        "value": 5593.0
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_CHECKSUM"
+                  }
+                ],
+                "cache": {
+                  "display": "",
+                  "flags": 3,
+                  "format": "",
+                  "formatted_value": "",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Empty"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "Length: "
+                  },
+                  {
+                    "kind": "Child",
+                    "value": 1
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "TextTemplate",
+                "filingOptions": 0,
+                "format": "",
+                "id": 0,
+                "sourceEvaluator": "_text",
+                "state": 9
+              },
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Object",
+                        "value": "/cad/d1/e28"
+                      }
+                    },
+                    "key": "ObjectPropertyId"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Text",
+                        "value": "Length"
+                      }
+                    },
+                    "key": "ObjectPropertyName"
+                  }
+                ],
+                "cache": {
+                  "display": "12.50",
+                  "flags": 4,
+                  "format": "%lu2%pr2",
+                  "formatted_value": "12.50",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Text",
+                    "value": "12.50"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "\\AcObjProp Object("
+                  },
+                  {
+                    "kind": "Object",
+                    "value": "/cad/d1/e28"
+                  },
+                  {
+                    "kind": "Literal",
+                    "value": ").Length \\f \"%lu2%pr2\""
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "ObjectProperty",
+                "filingOptions": 0,
+                "format": "%lu2%pr2",
+                "id": 1,
+                "sourceEvaluator": "AcObjProp",
+                "state": 59
+              }
+            ],
+            "root": 0
+          },
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "LINE_LENGTH",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "12.50",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            130.0,
+            -144.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e27",
+      "children": {
+        "0": "/cad/d1/e19",
+        "1": "/cad/d1/e20",
+        "2": "/cad/d1/e21",
+        "3": "/cad/d1/e22",
+        "4": "/cad/d1/e23",
+        "5": "/cad/d1/e24",
+        "6": "/cad/d1/e25",
+        "7": "/cad/d1/e26"
+      },
+      "attributes": {
+        "ifccad::blockInstance": {
+          "definition": "/cad/d1/block/1",
+          "transform": {
+            "placement": {
+              "origin": [
+                130.0,
+                0.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "rotation": 0.15,
+            "scale": [
+              -1.2,
+              1.1,
+              1.0
+            ]
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e28",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            12.5,
+            -175.0
+          ],
+          "start": [
+            0.0,
+            -175.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e29",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            15.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "BLOCK ATTRIBUTES / normal",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e30",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            130.0,
+            15.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "renamed tag / mirrored nonuniform INSERT",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e31",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -190.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "Constant default has no ATTRIB. Hidden row is intentionally invisible.",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e32",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -205.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "Empty active MText keeps an old outer fallback in native storage.",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e61",
+      "children": {},
+      "attributes": {
+        "ifccad::blockInstance": {
+          "definition": "/cad/d1/block/2",
+          "transform": {
+            "placement": {
+              "origin": [
+                270.0,
+                0.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            }
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e43",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e1",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "CODE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "D-101",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            40.0,
+            180.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e44",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e2",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                40.0,
+                162.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Room 1"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                },
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {
+                        "color": {
+                          "color": {
+                            "indexedColor": {
+                              "index": 1,
+                              "system": "ACI"
+                            },
+                            "rgb": [
+                              255,
+                              0,
+                              0
+                            ]
+                          },
+                          "kind": "explicit"
+                        }
+                      },
+                      "kind": "run",
+                      "text": "Red detail"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 2.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/1",
+              "wrapWidth": 80.0
+            },
+            "visible": true
+          },
+          "tag": "ROOM",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Room 1",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            40.0,
+            162.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e45",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e4",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": true,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "HIDDEN",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Value HIDDEN",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            40.0,
+            126.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e46",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e5",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": true,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "PRESET",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Value PRESET",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            40.0,
+            108.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e47",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e6",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": true
+          },
+          "lockPosition": true,
+          "tag": "VERIFY",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Value VERIFY",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            40.0,
+            90.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e48",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e7",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                40.0,
+                72.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 2.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/1",
+              "wrapWidth": 80.0
+            },
+            "visible": true
+          },
+          "tag": "EMPTY_MTEXT",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "STALE OUTER FALLBACK",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            40.0,
+            72.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e49",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e8",
+          "fieldLength": 16,
+          "fields": {
+            "nextId": 2,
+            "records": [
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Integer",
+                        "value": 1
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_ATTDEF"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Real",
+                        "value": 29179.0
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_CHECKSUM"
+                  }
+                ],
+                "cache": {
+                  "display": "",
+                  "flags": 3,
+                  "format": "",
+                  "formatted_value": "",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Empty"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "File: "
+                  },
+                  {
+                    "kind": "Child",
+                    "value": 1
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "TextTemplate",
+                "filingOptions": 0,
+                "format": "",
+                "id": 0,
+                "sourceEvaluator": "_text",
+                "state": 9
+              },
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Text",
+                        "value": "Filename"
+                      }
+                    },
+                    "key": "Variable"
+                  }
+                ],
+                "cache": {
+                  "display": "Review gallery.dwg",
+                  "flags": 4,
+                  "format": "%fn6",
+                  "formatted_value": "Review gallery.dwg",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Text",
+                    "value": "Review gallery.dwg"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "\\AcVar Filename \\f \"%fn6\""
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "DrawingVariable",
+                "filingOptions": 0,
+                "format": "%fn6",
+                "id": 1,
+                "sourceEvaluator": "AcVar",
+                "state": 59
+              }
+            ],
+            "root": 0
+          },
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "FILENAME",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Review gallery.dwg",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            40.0,
+            54.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e50",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e9",
+          "fieldLength": 16,
+          "fields": {
+            "nextId": 2,
+            "records": [
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Integer",
+                        "value": 1
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_ATTDEF"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Real",
+                        "value": 5593.0
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_CHECKSUM"
+                  }
+                ],
+                "cache": {
+                  "display": "",
+                  "flags": 3,
+                  "format": "",
+                  "formatted_value": "",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Empty"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "Length: "
+                  },
+                  {
+                    "kind": "Child",
+                    "value": 1
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "TextTemplate",
+                "filingOptions": 0,
+                "format": "",
+                "id": 0,
+                "sourceEvaluator": "_text",
+                "state": 9
+              },
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Object",
+                        "value": "/cad/d1/e28"
+                      }
+                    },
+                    "key": "ObjectPropertyId"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Text",
+                        "value": "Length"
+                      }
+                    },
+                    "key": "ObjectPropertyName"
+                  }
+                ],
+                "cache": {
+                  "display": "12.50",
+                  "flags": 4,
+                  "format": "%lu2%pr2",
+                  "formatted_value": "12.50",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Text",
+                    "value": "12.50"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "\\AcObjProp Object("
+                  },
+                  {
+                    "kind": "Object",
+                    "value": "/cad/d1/e28"
+                  },
+                  {
+                    "kind": "Literal",
+                    "value": ").Length \\f \"%lu2%pr2\""
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "ObjectProperty",
+                "filingOptions": 0,
+                "format": "%lu2%pr2",
+                "id": 1,
+                "sourceEvaluator": "AcObjProp",
+                "state": 59
+              }
+            ],
+            "root": 0
+          },
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "LINE_LENGTH",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "12.50",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            40.0,
+            36.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e42",
+      "children": {
+        "0": "/cad/d1/e43",
+        "1": "/cad/d1/e44",
+        "2": "/cad/d1/e45",
+        "3": "/cad/d1/e46",
+        "4": "/cad/d1/e47",
+        "5": "/cad/d1/e48",
+        "6": "/cad/d1/e49",
+        "7": "/cad/d1/e50"
+      },
+      "attributes": {
+        "ifccad::blockInstance": {
+          "definition": "/cad/d1/block/1",
+          "transform": {
+            "placement": {
+              "origin": [
+                40.0,
+                180.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            }
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e51",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            40.0,
+            198.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "ATTRIBUTE TITLEBLOCK / PAPER ONLY",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e52",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            160.0,
+            180.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "CODE: D-101",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e53",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            160.0,
+            162.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "ROOM: two lines, red detail",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e54",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            160.0,
+            144.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "CONSTANT: definition default",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e55",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            160.0,
+            126.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "HIDDEN: intentionally invisible",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e56",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            160.0,
+            108.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "PRESET",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e57",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            160.0,
+            90.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "VERIFY: position locked",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e58",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            160.0,
+            72.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "EMPTY_MTEXT: intentionally empty",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e59",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            160.0,
+            54.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "FILENAME: stored field",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e60",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            160.0,
+            36.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::text": {
+          "content": [
+            {
+              "overline": false,
+              "strikeThrough": false,
+              "text": "LINE_LENGTH: cached 12.50",
+              "underline": false
+            }
+          ],
+          "layout": {
+            "height": 2.5,
+            "horizontal": "left",
+            "kind": "anchored",
+            "vertical": "baseline",
+            "widthFactor": 1.0
+          },
+          "style": "/cad/d1/textStyle/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1",
+      "attributes": {
+        "ifccad::attributeDefinition": {
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "prompt": "Prompt CODE",
+          "tag": "CODE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Default CODE",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            7.0,
+            9.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e2",
+      "attributes": {
+        "ifccad::attributeDefinition": {
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                7.0,
+                -9.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Room name"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                },
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Second line"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 2.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/1",
+              "wrapWidth": 80.0
+            },
+            "visible": true
+          },
+          "prompt": "Prompt ROOM",
+          "tag": "ROOM",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Default ROOM",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            7.0,
+            -9.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e3",
+      "attributes": {
+        "ifccad::attributeDefinition": {
+          "fieldLength": 16,
+          "flags": {
+            "constant": true,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "prompt": "Prompt CONSTANT",
+          "tag": "CONSTANT",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Default CONSTANT",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            7.0,
+            -27.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e4",
+      "attributes": {
+        "ifccad::attributeDefinition": {
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": true,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "prompt": "Prompt HIDDEN",
+          "tag": "HIDDEN",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Default HIDDEN",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            7.0,
+            -45.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e5",
+      "attributes": {
+        "ifccad::attributeDefinition": {
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": true,
+            "verify": false
+          },
+          "lockPosition": false,
+          "prompt": "Prompt PRESET",
+          "tag": "PRESET",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Default PRESET",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            7.0,
+            -63.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e6",
+      "attributes": {
+        "ifccad::attributeDefinition": {
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": true
+          },
+          "lockPosition": true,
+          "prompt": "Prompt VERIFY",
+          "tag": "VERIFY",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Default VERIFY",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            7.0,
+            -81.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e7",
+      "attributes": {
+        "ifccad::attributeDefinition": {
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                7.0,
+                -99.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 2.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/1",
+              "wrapWidth": 80.0
+            },
+            "visible": true
+          },
+          "prompt": "Prompt EMPTY_MTEXT",
+          "tag": "EMPTY_MTEXT",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Default EMPTY_MTEXT",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            7.0,
+            -99.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e8",
+      "attributes": {
+        "ifccad::attributeDefinition": {
+          "fieldLength": 16,
+          "fields": {
+            "nextId": 2,
+            "records": [
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Integer",
+                        "value": 1
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_ATTDEF"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Real",
+                        "value": 29179.0
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_CHECKSUM"
+                  }
+                ],
+                "cache": {
+                  "display": "",
+                  "flags": 3,
+                  "format": "",
+                  "formatted_value": "",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Empty"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "File: "
+                  },
+                  {
+                    "kind": "Child",
+                    "value": 1
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "TextTemplate",
+                "filingOptions": 0,
+                "format": "",
+                "id": 0,
+                "sourceEvaluator": "_text",
+                "state": 9
+              },
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Text",
+                        "value": "Filename"
+                      }
+                    },
+                    "key": "Variable"
+                  }
+                ],
+                "cache": {
+                  "display": "Review gallery.dwg",
+                  "flags": 4,
+                  "format": "%fn6",
+                  "formatted_value": "Review gallery.dwg",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Text",
+                    "value": "Review gallery.dwg"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "\\AcVar Filename \\f \"%fn6\""
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "DrawingVariable",
+                "filingOptions": 0,
+                "format": "%fn6",
+                "id": 1,
+                "sourceEvaluator": "AcVar",
+                "state": 59
+              }
+            ],
+            "root": 0
+          },
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "prompt": "Prompt FILENAME",
+          "tag": "FILENAME",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "File: Review gallery.dwg",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            7.0,
+            -117.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e9",
+      "attributes": {
+        "ifccad::attributeDefinition": {
+          "fieldLength": 16,
+          "fields": {
+            "nextId": 2,
+            "records": [
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Integer",
+                        "value": 1
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_ATTDEF"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Real",
+                        "value": 5593.0
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_CHECKSUM"
+                  }
+                ],
+                "cache": {
+                  "display": "",
+                  "flags": 3,
+                  "format": "",
+                  "formatted_value": "",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Empty"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "Length: "
+                  },
+                  {
+                    "kind": "Child",
+                    "value": 1
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "TextTemplate",
+                "filingOptions": 0,
+                "format": "",
+                "id": 0,
+                "sourceEvaluator": "_text",
+                "state": 9
+              },
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Object",
+                        "value": "/cad/d1/e28"
+                      }
+                    },
+                    "key": "ObjectPropertyId"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Text",
+                        "value": "Length"
+                      }
+                    },
+                    "key": "ObjectPropertyName"
+                  }
+                ],
+                "cache": {
+                  "display": "12.50",
+                  "flags": 4,
+                  "format": "%lu2%pr2",
+                  "formatted_value": "12.50",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Text",
+                    "value": "12.50"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "\\AcObjProp Object("
+                  },
+                  {
+                    "kind": "Object",
+                    "value": "/cad/d1/e28"
+                  },
+                  {
+                    "kind": "Literal",
+                    "value": ").Length \\f \"%lu2%pr2\""
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "ObjectProperty",
+                "filingOptions": 0,
+                "format": "%lu2%pr2",
+                "id": 1,
+                "sourceEvaluator": "AcObjProp",
+                "state": 59
+              }
+            ],
+            "root": 0
+          },
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "prompt": "Prompt LINE_LENGTH",
+          "tag": "LINE_LENGTH",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Length: 12.50",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            7.0,
+            -135.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e34",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e1",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "CODE",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "D-101",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e35",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e2",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                0.0,
+                -18.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {},
+                      "kind": "run",
+                      "text": "Room 1"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                },
+                {
+                  "characterFormat": {},
+                  "inlines": [
+                    {
+                      "characterFormat": {
+                        "color": {
+                          "color": {
+                            "indexedColor": {
+                              "index": 1,
+                              "system": "ACI"
+                            },
+                            "rgb": [
+                              255,
+                              0,
+                              0
+                            ]
+                          },
+                          "kind": "explicit"
+                        }
+                      },
+                      "kind": "run",
+                      "text": "Red detail"
+                    }
+                  ],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 2.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/1",
+              "wrapWidth": 80.0
+            },
+            "visible": true
+          },
+          "tag": "ROOM",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Room 1",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -18.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e36",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e4",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": true,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "HIDDEN",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Value HIDDEN",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -54.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e37",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e5",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": true,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "PRESET",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Value PRESET",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -72.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e38",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e6",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": true
+          },
+          "lockPosition": true,
+          "tag": "VERIFY",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Value VERIFY",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -90.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e39",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e7",
+          "fieldLength": 16,
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "mText": {
+            "layer": "/cad/d1/layer/1",
+            "linePatternScale": 1.0,
+            "placement": {
+              "origin": [
+                0.0,
+                -108.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "text": {
+              "attachment": "topLeft",
+              "characterFormat": {},
+              "content": [
+                {
+                  "characterFormat": {},
+                  "inlines": [],
+                  "paragraphFormat": {}
+                }
+              ],
+              "flow": "horizontal",
+              "height": 2.5,
+              "paragraphFormat": {},
+              "style": "/cad/d1/textStyle/1",
+              "wrapWidth": 80.0
+            },
+            "visible": true
+          },
+          "tag": "EMPTY_MTEXT",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "STALE OUTER FALLBACK",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "top",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -108.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e40",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e8",
+          "fieldLength": 16,
+          "fields": {
+            "nextId": 2,
+            "records": [
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Integer",
+                        "value": 1
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_ATTDEF"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Real",
+                        "value": 29179.0
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_CHECKSUM"
+                  }
+                ],
+                "cache": {
+                  "display": "",
+                  "flags": 3,
+                  "format": "",
+                  "formatted_value": "",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Empty"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "File: "
+                  },
+                  {
+                    "kind": "Child",
+                    "value": 1
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "TextTemplate",
+                "filingOptions": 0,
+                "format": "",
+                "id": 0,
+                "sourceEvaluator": "_text",
+                "state": 9
+              },
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Text",
+                        "value": "Filename"
+                      }
+                    },
+                    "key": "Variable"
+                  }
+                ],
+                "cache": {
+                  "display": "Review gallery.dwg",
+                  "flags": 4,
+                  "format": "%fn6",
+                  "formatted_value": "Review gallery.dwg",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Text",
+                    "value": "Review gallery.dwg"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "\\AcVar Filename \\f \"%fn6\""
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "DrawingVariable",
+                "filingOptions": 0,
+                "format": "%fn6",
+                "id": 1,
+                "sourceEvaluator": "AcVar",
+                "state": 59
+              }
+            ],
+            "root": 0
+          },
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "FILENAME",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "Review gallery.dwg",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -126.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e41",
+      "attributes": {
+        "ifccad::blockAttribute": {
+          "definition": "/cad/d1/e9",
+          "fieldLength": 16,
+          "fields": {
+            "nextId": 2,
+            "records": [
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Integer",
+                        "value": 1
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_ATTDEF"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Real",
+                        "value": 5593.0
+                      }
+                    },
+                    "key": "ACFD_FIELDTEXT_CHECKSUM"
+                  }
+                ],
+                "cache": {
+                  "display": "",
+                  "flags": 3,
+                  "format": "",
+                  "formatted_value": "",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Empty"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "Length: "
+                  },
+                  {
+                    "kind": "Child",
+                    "value": 1
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "TextTemplate",
+                "filingOptions": 0,
+                "format": "",
+                "id": 0,
+                "sourceEvaluator": "_text",
+                "state": 9
+              },
+              {
+                "auxiliaryValues": [
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Object",
+                        "value": "/cad/d1/e28"
+                      }
+                    },
+                    "key": "ObjectPropertyId"
+                  },
+                  {
+                    "cache": {
+                      "display": "",
+                      "flags": 2,
+                      "format": "",
+                      "formatted_value": "",
+                      "unit_type": 0,
+                      "value": {
+                        "kind": "Text",
+                        "value": "Length"
+                      }
+                    },
+                    "key": "ObjectPropertyName"
+                  }
+                ],
+                "cache": {
+                  "display": "12.50",
+                  "flags": 4,
+                  "format": "%lu2%pr2",
+                  "formatted_value": "12.50",
+                  "unit_type": 0,
+                  "value": {
+                    "kind": "Text",
+                    "value": "12.50"
+                  }
+                },
+                "code": [
+                  {
+                    "kind": "Literal",
+                    "value": "\\AcObjProp Object("
+                  },
+                  {
+                    "kind": "Object",
+                    "value": "/cad/d1/e28"
+                  },
+                  {
+                    "kind": "Literal",
+                    "value": ").Length \\f \"%lu2%pr2\""
+                  }
+                ],
+                "errorCode": 0,
+                "errorMessage": "",
+                "evaluationOptions": 63,
+                "evaluationStatus": 2,
+                "evaluator": "ObjectProperty",
+                "filingOptions": 0,
+                "format": "%lu2%pr2",
+                "id": 1,
+                "sourceEvaluator": "AcObjProp",
+                "state": 59
+              }
+            ],
+            "root": 0
+          },
+          "flags": {
+            "constant": false,
+            "invisible": false,
+            "preset": false,
+            "verify": false
+          },
+          "lockPosition": false,
+          "tag": "LINE_LENGTH",
+          "text": {
+            "content": [
+              {
+                "overline": false,
+                "strikeThrough": false,
+                "text": "12.50",
+                "underline": false
+              }
+            ],
+            "layout": {
+              "height": 2.5,
+              "horizontal": "left",
+              "kind": "anchored",
+              "vertical": "baseline",
+              "widthFactor": 1.0
+            },
+            "style": "/cad/d1/textStyle/1"
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            -144.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e33",
+      "children": {
+        "0": "/cad/d1/e34",
+        "1": "/cad/d1/e35",
+        "2": "/cad/d1/e36",
+        "3": "/cad/d1/e37",
+        "4": "/cad/d1/e38",
+        "5": "/cad/d1/e39",
+        "6": "/cad/d1/e40",
+        "7": "/cad/d1/e41"
+      },
+      "attributes": {
+        "ifccad::blockInstance": {
+          "definition": "/cad/d1/block/1",
+          "transform": {
+            "placement": {
+              "origin": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            }
+          }
+        },
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        }
+      }
+    }
+  ]
+}

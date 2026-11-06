@@ -14,15 +14,15 @@ export function createInspection(result,sourceText=''){
   const graph=p.graph||{},all=graph.data||[];
   for(const item of all){const a=item.attributes||{},role=Object.keys(a).find(k=>k==='ifccad::entity')||Object.keys(a).find(k=>k.startsWith('ifccad::'));
    const payload=role?a[role]:{},geometry=Object.keys(a).find(k=>k.startsWith('ifccad::geom::')&&k!=='ifccad::geom::placement');
-   const type=a['ifccad::opaqueEntity']?'opaque':a['ifccad::dimension']?'dimension':a['ifccad::hatch']?'hatch':a['ifccad::text']?'text':a['ifccad::mText']?'mText':a['ifccad::blockInstance']?'blockInstance':a['ifccad::viewport']?'viewport':geometry?geometry.split('::').at(-1):role?.split('::').at(-1)||'node';
-   const title=payload?.name||payload?.fileName||payload?.kind||item.path.split('/').at(-1),n=put(item.path,title,a,type);n.raw=item;
+   const type=a['ifccad::attributeDefinition']?'attributeDefinition':a['ifccad::blockAttribute']?'blockAttribute':a['ifccad::opaqueEntity']?'opaque':a['ifccad::dimension']?'dimension':a['ifccad::hatch']?'hatch':a['ifccad::text']?'text':a['ifccad::mText']?'mText':a['ifccad::blockInstance']?'blockInstance':a['ifccad::viewport']?'viewport':geometry?geometry.split('::').at(-1):role?.split('::').at(-1)||'node';
+   const title=a['ifccad::blockAttribute']?.tag||a['ifccad::attributeDefinition']?.tag||payload?.name||payload?.fileName||payload?.kind||item.path.split('/').at(-1),n=put(item.path,title,a,type);n.raw=item;
    nodeRoots.push(n.key);
   }
   for(const [i,fragment] of (source?.data||[]).entries())nodes.get(fragment.path)?.fragments.push({index:i,value:fragment});
   for(const dimension of p.dimensions||[]){const n=nodes.get(dimension.path);if(n)n.derived=dimension.geometry||dimension;}
   for(const assessment of p.boundsCompleteness||[]){const n=nodes.get(assessment.scopePath);if(n)n.values={...n.values,boundsAssessment:assessment};}
   for(const item of all){const a=item.attributes||{},key=item.path,ordered=Object.entries(item.children||{}).sort(([x],[y])=>numeric(x,y));
-   for(const [name,target]of ordered){link(key,target,'children.'+name,'child');if(/^\d+$/.test(name)&&(a['ifccad::layout']||a['ifccad::blockDefinition']))nodes.get(key).children.push(target);}
+   for(const [name,target]of ordered){link(key,target,'children.'+name,'child');if(/^\d+$/.test(name)&&(a['ifccad::layout']||a['ifccad::blockDefinition']||a['ifccad::blockInstance']))nodes.get(key).children.push(target);}
    for(const [name,target]of Object.entries(item.inherits||{}))if(typeof target==='string')link(key,target,'inherits.'+name,'inherits');
    if(a['ifccad::entity']){link(key,a['ifccad::entity'].layer,'ifccad::entity.layer','layer');const pattern=a['ifccad::entity'].appearance?.linePattern;if(pattern?.mode==='Explicit')link(key,pattern.value,'ifccad::entity.appearance.linePattern.value','pattern');}
    const part=a['ifccad::dimensionGraphicsPart'];if(part){link(key,part.layer,'ifccad::dimensionGraphicsPart.layer','layer');const pattern=part.appearance?.linePattern;if(pattern?.mode==='Explicit')link(key,pattern.value,'ifccad::dimensionGraphicsPart.appearance.linePattern.value','pattern');}
@@ -34,6 +34,7 @@ export function createInspection(result,sourceText=''){
    link(key,a['ifccad::layer']?.appearance?.linePattern,'ifccad::layer.appearance.linePattern','pattern');
    link(key,a['ifccad::blockInstance']?.definition,'ifccad::blockInstance.definition','definition');
    for(const [i,loop]of(a['ifccad::hatch']?.loops||[]).entries())for(const [j,source]of(loop.sources||[]).entries())link(key,source,'ifccad::hatch.loops.'+i+'.sources.'+j,'hatchSource');
+   for(const role of ['ifccad::attributeDefinition','ifccad::blockAttribute']){const value=a[role];if(!value)continue;link(key,value.definition,role+'.definition','attributeDefinition');for(const [i,p]of(value.secondaryAttributes||[]).entries())link(key,p,role+'.secondaryAttributes.'+i,'secondaryAttribute');link(key,value.text?.style,role+'.text.style','style');link(key,value.mText?.text?.style,role+'.mText.text.style','style');link(key,value.mText?.layer,role+'.mText.layer','layer');const visit=(v,path)=>{if(!v||typeof v!=='object')return;if(v.kind==='Object')link(key,v.value,path+'.value','fieldObject');for(const [k,c]of Object.entries(v))visit(c,path+'.'+k);};visit(value.fields,role+'.fields');const annotation=value.annotation;link(key,annotation?.reference?.scale,role+'.annotation.reference.scale','annotationScale');for(const [i,c]of(annotation?.contexts||[]).entries()){link(key,c.key?.scale,role+'.annotation.contexts.'+i+'.key.scale','annotationScale');link(key,c.presentation?.embedded?.scaleId,role+'.annotation.contexts.'+i+'.presentation.embedded.scaleId','annotationScale');}}
    for(const kind of ['text','mText'])link(key,a['ifccad::'+kind]?.style,'ifccad::'+kind+'.style','style');
    const annotation=a['ifccad::annotation'];
    if(annotation){link(key,annotation.reference?.scaleId,'ifccad::annotation.reference.scaleId','annotationScale');for(const [i,c]of(annotation.contexts||[]).entries())link(key,c.key?.scaleId,`ifccad::annotation.contexts.${i}.key.scaleId`,'annotationScale');}
@@ -43,7 +44,7 @@ export function createInspection(result,sourceText=''){
    const dimensionStyle=a['ifccad::dimensionStyle'];if(dimensionStyle){dimensionRefs(key,dimensionStyle.settings,'ifccad::dimensionStyle.settings',true);for(const [kind,v]of Object.entries(dimensionStyle.typeOverrides||{}))dimensionRefs(key,v,'ifccad::dimensionStyle.typeOverrides.'+kind,true);}
    for(const [i,element] of (a['ifccad::linePattern']?.pattern||[]).entries()) {const m=element?.marker;if(m?.kind==='text')link(key,m.textStyle,'ifccad::linePattern.pattern.'+i+'.marker.textStyle','textStyle');if(m?.kind==='symbol')link(key,m.symbolSource,'ifccad::linePattern.pattern.'+i+'.marker.symbolSource','symbolSource');}
    const v=a['ifccad::viewport'];if(v){link(key,v.model,'ifccad::viewport.model','model');link(key,v.paperClip?.boundary,'ifccad::viewport.paperClip.boundary','clip');for(const [i,row]of(v.layerOverrides||[]).entries()){link(key,row.layer,'ifccad::viewport.layerOverrides.'+i+'.layer','layer');link(key,row.linePattern,'ifccad::viewport.layerOverrides.'+i+'.linePattern','pattern');}}
-   if(a['ifccad::layout']||a['ifccad::blockDefinition'])nodes.get(key).children=Object.entries(item.children||{}).filter(([key])=>/^\d+$/.test(key)).sort(([x],[y])=>numeric(x,y)).map(([,target])=>target);
+   if(a['ifccad::layout']||a['ifccad::blockDefinition']||a['ifccad::blockInstance'])nodes.get(key).children=Object.entries(item.children||{}).filter(([key])=>/^\d+$/.test(key)).sort(([x],[y])=>numeric(x,y)).map(([,target])=>target);
   }
   const role=r=>all.filter(n=>n.attributes?.['ifccad::'+r]).map(n=>n.path);
   const drawing=role('drawing');roots.push(...drawing);
@@ -71,7 +72,7 @@ export function createInspection(result,sourceText=''){
 
  }
 
- for(const n of nodes.values())if(['layout','blockDefinition','blockDefinitions'].includes(n.type)){
+ for(const n of nodes.values())if(['layout','blockDefinition','blockDefinitions','blockInstance'].includes(n.type)){
   const layout=n.values['ifccad::layout']||n.values;
   n.unit=n.type==='layout'&&String(layout.kind).toLowerCase()==='paper'?null:drawingUnit;
   const kinds=new Map();n.children.forEach((key,index)=>{const child=nodes.get(key);if(!child)return;child.owner=n.key;child.drawPosition=index;child.unit=n.unit;const kind=child.type;kinds.set(kind,[...(kinds.get(kind)||[]),key]);});
@@ -89,6 +90,8 @@ export function createInspection(result,sourceText=''){
   const n=nodes.get(drawingPrefix+'/e'+source.entityId),owner=drawingPrefix+(source.owner?.kind==='BlockDefinition'?'/block/':'/layout/')+source.owner?.id;
   if(n&&['solid','trace'].includes(n.type)&&n.owner===owner)n.filledEvidence=evidence;
  }
+ for(const n of nodes.values())if(n.type==='blockInstance')n.unit=nodes.get(n.owner)?.unit;
+ for(const n of nodes.values())if(n.type==='blockAttribute')n.unit=nodes.get(n.owner)?.unit;
  for(const n of nodes.values())if(n.type==='dimensionGraphics'){n.unit=nodes.get(n.owner)?.unit;for(const key of n.children)nodes.get(key).unit=n.unit;}
  for(const n of nodes.values())if(n.type==='dimension'){
   n.sourceValues=n.values;

@@ -1,6 +1,6 @@
 # Block attributes — development contract
 
-Unpublished development profile 0.6.0 / CBOR6. Focused native and paired conversion checks pass. Review files precede OCS, ATTSYNC and final qualification. Published 2026.45.1 remains profile 0.5.0 / CBOR5.
+Release 2026.45.2 uses profile 0.6.0 / CBOR6. Native and paired conversion checks, accepted roundtrip review, local Explorer integration and bounded OCS editing/ATTSYNC qualification cover this slice. Previous release 2026.45.1 remains profile 0.5.0 / CBOR5.
 
 ## Native development contract
 
@@ -295,7 +295,7 @@ geschreven; het plan benoemt hiervoor een afzonderlijk controleerbaar contractta
 
 ## Implemented transport boundary
 
-The development pair uses official Document base `6ebe581ef85e38f4d287319259b68006014f932c` and codec base `beec5a5692eddde2d71282839c49d9d25e37f6f1` plus explicit local patches. Codec changes preserve signed ATTDEF/ATTRIB extrusion thickness. The archived converter is not used.
+The integration uses official Document merge `e7b79f163e1a4e847f3f98109021a5671683b342` and explicit codec support revision `0f20af02a1d6be744272e64dd505e8c8933c8772` in the BjornFidder fork, based on canonical codec `185e8cbe`. The thickness fix is not merged upstream. The archived converter is not used.
 
 Legacy ACAD_MLATT secondary pointers encode the split lines of one multiline attribute. A focused AC1027 DXF regression verifies folding to one logical attribute without duplicated geometry. Generic native secondary links currently diagnose unsupported CAD transport; they are distinct from strong ATTDEF binding.
 
@@ -305,7 +305,7 @@ Field caches retain scalar flags, unit_type, format, formatted_value, selected a
 
 The grouped gallery covers two values, renamed tags, constant defaults without ATTRIB, invisible/preset/verify/lock flags, empty active MText, mirrored/nonuniform insertion, nonzero base, nesting, Paper titleblock, independent embedded annotation scale and selected Filename/Line-Length fields on definitions and values. sample_AC1032 retains five definitions and four values through DWG and ASCII DXF. Other unsupported sample entities remain listed in diagnostics; no whole-file fidelity claim is made.
 
-Review files have been visually accepted. Native conformance and Explorer attribute inspection are implemented. On 2026-11-05 the native full gate and the paired Document/codec test gates passed on the explicit local development pair. Bounded OCS tests cover Text/MText edits, committed grips, undo/redo, strict same-name save/reopen and existing ATTSYNC on two instances with distinct values. Matching final web-bundle and frontend checks pass; actual browser IFCX opening, child-to-owner selection and AC1032 DWG export/readback were exercised. This does not qualify general editor behavior or deployment. Reachable upstream dependency revisions and publication remain separate integration requirements.
+Review files have been visually accepted. Native conformance and Explorer attribute inspection are implemented. On 2026-11-05 the native full gate and the paired Document/codec test gates passed on the explicit local development pair. Bounded OCS tests cover Text/MText edits, committed grips, undo/redo, strict same-name save/reopen and existing ATTSYNC on two instances with distinct values. Matching final web-bundle and frontend checks pass; actual browser IFCX opening, child-to-owner selection and AC1032 DWG export/readback were exercised. This does not qualify general editor behavior or deployment. The final integration uses reachable exact Git revisions and a frozen host patch with portable lockfiles; publication and deployed Explorer status are recorded separately.
 
 The Entity catalogue retains its three existing Catalogue marker INSERTs (normal, rotated and mirrored), with separate CODE Text and NOTE MText children and two ATTDEFs in the same definition. Child rows are inspectable and select their owning INSERT in OCS; they do not acquire an independent top-level selection handle. The dedicated attribute gallery remains a separate example for flags, fields, contexts and Paper review.
 

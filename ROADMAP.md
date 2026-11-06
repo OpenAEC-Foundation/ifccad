@@ -145,11 +145,11 @@ than adopting a universal resource framework. A bounded PAT/NLCS importer can be
 a narrow independent contribution where existing semantics suffice.
 
 The selected block-attribute slice implements native Text/MText and paired Document
-conversion under unpublished profile 0.6.0 / CBOR6. The gallery and sample_AC1032
+conversion in release 2026.45.2, profile 0.6.0 / CBOR6. The gallery and sample_AC1032
 roundtrips have user acceptance. Native conformance/inspection, full native and
 paired gates, local Explorer integration and bounded OCS editing/ATTSYNC checks
-pass on the explicit development pair. Upstream dependency publication and release
-remain pending. Necessary field/context relations are
+pass on the explicit pair. Official Document PR #12 is merged; the thickness
+codec support revision remains explicitly pinned in the user fork. Necessary field/context relations are
 included; MINSERT and dynamic blocks are deferred. See [attributes](docs/block-attributes.md).
 
 Then select multileaders before tables or dynamic-block

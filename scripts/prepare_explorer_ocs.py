@@ -13,22 +13,73 @@ INPUTS = ROOT / "format-explorer/ocs-inputs"
 
 def prepare_codec_patch(text, pins):
     repository = pins.get("codecRepository")
-    if not repository:
+    if not repository or repository == "https://github.com/hakanaktt/acadrust.git" or "acadrust" in pins.get("developmentOverrides", {}):
         return text
-    patch = ('[patch."https://github.com/HakanSeven12/acadrust.git"]\n'
-             f'acadrust = {{ git = "{repository}", rev = "{pins["codecCommit"]}" }}\n')
-    pattern = r'(?m)^\[patch\."https://github\.com/HakanSeven12/acadrust\.git"\]\n[^\[]*'
-    if re.search(pattern, text):
-        return re.sub(pattern, lambda _: patch + "\n", text)
-    return text.rstrip() + "\n\n" + patch + "\n"
+    # Kernel still requests the former URL. Both sources must resolve to the
+    # same exact codec as Document, rather than create distinct Rust models.
+    for source in ("https://github.com/hakanaktt/acadrust.git",
+                   "https://github.com/HakanSeven12/acadrust.git"):
+        patch = (f'[patch."{source}"]\n'
+                 f'acadrust = {{ git = "{repository}", rev = "{pins["codecCommit"]}" }}\n')
+        pattern = r'(?m)^\[patch\."' + re.escape(source) + r'"\]\n[^\[]*'
+        text = re.sub(pattern, lambda _: patch + "\n", text) if re.search(pattern, text) else text.rstrip() + "\n\n" + patch + "\n"
+    return text
+
+
+def apply_host_patch(checkout, patch):
+    """Apply a frozen patch once; refuse a different, partially applied source."""
+    def check(*flags):
+        return subprocess.run(['git', 'apply', '--check', *flags, str(patch)],
+                              cwd=checkout, capture_output=True).returncode == 0
+    if check('--reverse'):
+        return
+    if not check():
+        raise SystemExit('Host source differs from the selected patch')
+    subprocess.run(['git', 'apply', str(patch)], cwd=checkout, check=True)
+
+
+def host_source_identity(checkout):
+    digest = hashlib.sha256()
+    files = subprocess.check_output([
+        "git", "-C", str(checkout), "ls-files", "--cached", "--others",
+        "--exclude-standard", "-z"
+    ]).decode("utf-8").split("\0")
+    for relative in sorted(set(files + [".cargo/config.toml"])):
+        path = checkout / relative
+        if relative and path.is_file() and path.suffix in {
+            ".rs", ".toml", ".lock", ".js", ".html", ".ftl", ".wgsl", ".ifcx",
+            ".sh", ".ps1", ".py", ".json", ".css", ".svg", ".png", ".ttf", ".woff", ".woff2"
+        }:
+            digest.update(relative.encode("utf-8") + b"\0")
+            digest.update(hashlib.sha256(path.read_bytes()).digest())
+    return digest.hexdigest()
+
+
+def development_identity(pins):
+    rows = []
+    for name, override in sorted(pins.get("developmentOverrides", {}).items()):
+        source = (ROOT / override["path"]).resolve()
+        files = subprocess.check_output(["git", "-C", str(source), "ls-files", "--cached", "--others", "--exclude-standard", "-z"]).decode("utf-8").split("\0")
+        digest = hashlib.sha256()
+        for relative in sorted(set(files + [".cargo/config.toml"])):
+            path = source / relative
+            if not relative or not path.is_file() or not (path.suffix in {".rs", ".toml", ".lock", ".json", ".ifcx"}):
+                continue
+            digest.update(relative.encode("utf-8") + b"\0")
+            digest.update(hashlib.sha256(path.read_bytes()).digest())
+        rows.append({"package": name, "baseCommit": override["baseCommit"], "contentSha256": digest.hexdigest()})
+    return rows
 
 
 def identity():
-    paths = [ROOT / "format-explorer/ocs-source.json", Path(__file__), INPUTS / "Cargo.lock", ROOT / ".github/workflows/format-explorer.yml", ROOT / "rust-toolchain.toml"]
+    paths = [ROOT / "format-explorer/ocs-source.json", Path(__file__), ROOT / ".github/workflows/format-explorer.yml", ROOT / "rust-toolchain.toml"]
+    paths += sorted(p for p in INPUTS.rglob('*') if p.is_file())
     digest = hashlib.sha256()
     for path in paths:
         digest.update(str(path.relative_to(ROOT)).encode())
         digest.update(path.read_bytes())
+    pins = json.loads(paths[0].read_text(encoding="utf-8"))
+    digest.update(json.dumps(development_identity(pins), sort_keys=True).encode("utf-8"))
     return digest.hexdigest()
 
 
@@ -41,6 +92,12 @@ def validate_packages(packages, pins):
                      ("opencadkernel-constraints", pins["kernelCommit"])]
     for name, revision in expected:
         matches = [p for p in packages if p["name"] == name]
+        override = pins.get("developmentOverrides", {}).get(name)
+        if override:
+            expected_path = (ROOT / override["path"] / "Cargo.toml").resolve()
+            if len(matches) != 1 or matches[0].get("source") is not None or Path(matches[0].get("manifest_path", "")).resolve() != expected_path:
+                raise SystemExit(f"Unexpected resolved {name} development dependency")
+            continue
         if len(matches) != 1 or not (matches[0]["source"] or "").endswith("#" + revision):
             raise SystemExit(f"Unexpected resolved {name} dependency")
         if name == "acadrust" and pins.get("codecRepository"):
@@ -61,6 +118,17 @@ def main():
     head = subprocess.check_output(["git", "-C", str(checkout), "rev-parse", "HEAD"], text=True).strip()
     if head != pins["commit"]:
         raise SystemExit("Studio checkout differs from ocs-source.json")
+    if pins.get('hostPatch'):
+        if Path(pins['hostPatch']).name != pins['hostPatch']:
+            raise SystemExit('Host patch must be a file in ocs-inputs')
+        apply_host_patch(checkout, INPUTS / pins['hostPatch'])
+        for source, target in [('block_attributes_smoke.rs', 'src/app/block_attributes_smoke.rs'),
+                               ('block-attributes.ifcx', 'tests/fixtures/ifccad-block-attributes.ifcx')]:
+            (checkout / target).write_bytes((INPUTS / source).read_bytes())
+        module = checkout / 'src/app/mod.rs'
+        text = module.read_text(encoding='utf-8')
+        if 'mod block_attributes_smoke;' not in text:
+            module.write_text(text + '\n#[cfg(test)]\nmod block_attributes_smoke;\n', encoding='utf-8')
     manifests = ["Cargo.toml", "crates/ocs_save/Cargo.toml", "crates/ocs_web_worker/Cargo.toml", "crates/ocs_plugin_api/Cargo.toml"]
     for name in manifests:
         path = checkout / name
@@ -73,6 +141,20 @@ def main():
         path.write_text(text)
     path = checkout / "Cargo.toml"
     path.write_text(prepare_codec_patch(path.read_text(), pins))
+    # Explicit local development pairs do not masquerade as unmodified Git revisions.
+    config_path = checkout / ".cargo/config.toml"
+    config = config_path.read_text(encoding="utf-8")
+    repositories = {"ifccad":"https://github.com/OpenAEC-Foundation/ifccad.git", "opencaddocument":"https://github.com/HakanSeven12/opencaddocument.git", "acadrust":"https://github.com/hakanaktt/acadrust.git"}
+    for package, override in pins.get("developmentOverrides", {}).items():
+        source = (ROOT / override["path"]).resolve()
+        actual = subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True).strip()
+        if actual != override["baseCommit"]:
+            raise SystemExit(f"Unexpected {package} development base")
+        repository = repositories[package]
+        patch = f'[patch."{repository}"]\n{package} = {{ path = "{source.as_posix()}" }}\n'
+        pattern = r'(?m)^\[patch\."' + re.escape(repository) + r'"\]\n[^\[]*'
+        config = re.sub(pattern, lambda _: patch + "\n", config) if re.search(pattern, config) else config.rstrip() + "\n\n" + patch
+    config_path.write_text(config, encoding="utf-8")
     worker = checkout / "scripts/build-web-worker.sh"
     text = worker.read_text()
     old_worker_path = "  target/wasm32-unknown-unknown/release/ocs_web_worker.wasm"
@@ -110,7 +192,7 @@ def main():
             raise SystemExit("Missing parser worker WASM")
         if not any(p.parent == bundle and p.suffix == ".wasm" for p in files):
             raise SystemExit("Missing main WASM")
-        record = {"inputIdentity": identity(), "pins": pins, "files": {p.relative_to(bundle).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
+        record = {"inputIdentity": identity(), "hostSourceIdentity": host_source_identity(checkout), "pins": pins, "files": {p.relative_to(bundle).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
         if args.record_build:
             record["toolchain"] = subprocess.check_output(["rustc", "-Vv"], text=True).strip()
             record_path.write_text(json.dumps(record, indent=2) + "\n")

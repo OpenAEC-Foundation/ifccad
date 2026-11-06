@@ -83,6 +83,15 @@ pub(crate) fn authored(graph: &Value) -> Vec<Value> {
                 &format!("{path}#/attributes/ifccad::mText"),
             );
         }
+        for role in ["ifccad::attributeDefinition", "ifccad::blockAttribute"] {
+            if let Some(m) = attrs.get(role).and_then(|a| a.get("mText")) {
+                mtext(
+                    &mut rows,
+                    &m["text"],
+                    &format!("{path}#/attributes/{role}/mText/text"),
+                );
+            }
+        }
         for (context_index, context) in attrs["ifccad::annotation"]["contexts"]
             .as_array()
             .into_iter()

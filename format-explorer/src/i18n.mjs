@@ -1,4 +1,6 @@
 const copy={
+ blockAttribute:['Block attribute','Blokattribuut'],attributeDefinition:['Attribute definition','Attribuutdefinitie'],
+ 'plural.attributeDefinition':['Attribute definitions','Attribuutdefinities'],'plural.blockAttribute':['Block attributes','Blokattributen'],
  annotationScales:['Annotation scales','Annotatieschalen'],annotationViews:['Saved annotation views','Opgeslagen annotatieviews'],
  'annotation.title':['Annotation contexts','Annotatieve contexten'],'annotation.mode':['Mode','Modus'],
  'annotation.contextCount':['Saved scale contexts','Opgeslagen schaalcontexten'],'annotation.reference':['Default context','Standaardcontext'],

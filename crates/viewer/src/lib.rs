@@ -3,6 +3,7 @@ mod binary_download;
 mod document_route;
 mod download;
 mod ifccad_input;
+mod inspection_attributes;
 mod inspection_dimension_label;
 mod inspection_extrusion;
 mod inspection_font_symbols;

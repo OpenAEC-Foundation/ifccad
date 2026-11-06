@@ -6,6 +6,14 @@ import sys
 
 
 def development_codec(pins):
+    if (pins.get('localDevelopment') == 'block-attributes'
+            and pins.get('explorerCodecRepository') == 'https://github.com/BjornFidder/opencadcodec.git'
+            and pins.get('explorerCodecCommit') == '0f20af02a1d6be744272e64dd505e8c8933c8772'):
+        return pins['explorerCodecRepository'] + '?rev=' + pins['explorerCodecCommit'] + '#'
+    override = pins.get('developmentOverrides', {}).get('acadrust')
+    if pins.get('localDevelopment') == 'block-attributes' and override and override.get('baseCommit') == pins.get('explorerCodecCommit') and pins.get('explorerCodecRepository') == 'https://github.com/hakanaktt/acadrust.git':
+        return (Path(__file__).resolve().parents[1] / override['path']).resolve().as_posix()
+
     if (pins.get('localDevelopment') in {'annotation-contexts', 'font-symbol-sources'}
             and pins.get('explorerCodecRepository') == 'https://github.com/BjornFidder/opencadcodec.git'
             and pins.get('explorerCodecCommit') == '4018037daf8fd3e40aa1aa6455b80232849a2756'):
@@ -30,7 +38,7 @@ def main():
     forbidden = [line for line in packages if line.startswith('ifccad-convert ')
                  or 'github.com/HakanSeven12/opencadcodec.git' in line
                  or (line.startswith('acadrust ') and
-                     'github.com/HakanSeven12/acadrust.git' not in line and not (allowed_codec and allowed_codec in line))]
+                     'github.com/hakanaktt/acadrust.git' not in line and not (allowed_codec and allowed_codec in line.replace("\\", "/")))]
     if forbidden:
         print('Explorer depends on the retired reference conversion route:\n' +
               '\n'.join(sorted(set(forbidden))), file=sys.stderr)

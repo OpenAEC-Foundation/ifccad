@@ -268,24 +268,17 @@ text style and update displayed text. This bounded host smoke does not certify
 all annotation editing or glyph fidelity. The combined native release and matching Explorer update use their respective
 package, browser/host and production-deployment checks.
 
-## Unpublished block-attribute pair
+## Block-attribute integration (2026.45.2)
 
 Profile 0.6.0 / CBOR6 adds ATTDEF and ordered INSERT-owned ATTRIB, separate outer
-Text and embedded MText, selected field graphs and independent contexts. See
-[the contract](../block-attributes.md). This development pair is not connected to
-the published Explorer. File review is accepted. Local integration uses Studio
-`81bbb05e` and kernel `fc20d605` with explicit development patches. On 2026-11-05
-the native/paired full gates and matching browser/host checks passed. Actual IFCX
-opening, child-to-owner selection and AC1032 DWG export/readback were exercised in
-the local browser. The selected two-INSERT ATTSYNC case passed separately from
-ordinary storage roundtrips. This does not deploy the development pair.
-
-The 2026-11-05 PR candidate uses Document base `7b2a494e` and canonical codec
-`hakanaktt/acadrust` base `affa0ca4`, with the explicit attribute/thickness patches.
-Document's dependency migration does not itself add native semantics for Map3D
-object-data classes or ACIS solids. The codec's deferred solid reference-point
-option retains its eager default; the native solid boundary is unchanged.
-The pinned kernel still names the former codec repository, so the local host
-aliases both Git source names to one selected codec checkout. Dependency
-preflight rejects duplicate models. This is a local integration patch; deployment
-requires reachable compatible dependency revisions and a portable lockfile.
+Text and embedded MText, annotation contexts and bounded stored fields. Official
+Document PR #12 merged at e7b79f16, the qualified head. Document and the host use
+codec support revision 0f20af02 in the BjornFidder fork, based on canonical codec
+185e8cbe. The thickness fix is not merged upstream. The host pins Studio81bbb05e,
+kernel fc20d605 and compatible native model21660ce1. Frozen production changes
+and smoke sources live in format-explorer/ocs-inputs. Preparation applies that
+patch explicitly, aliases the former and current kernel codec URLs to the exact
+same Git model, and checks the resolved dependency graph. No local path override
+is used. Byte-hashed patch, source pins, lockfile and build provenance qualify
+the host main/worker pair. Existing accepted sample/gallery evidence and bounded
+editing/ATTSYNC checks do not imply general editor or whole-file fidelity.

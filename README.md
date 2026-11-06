@@ -13,7 +13,7 @@ During alpha, later releases may be unable to open earlier IFCCAD files;
 backward compatibility and migration are not guaranteed. See the
 [alpha compatibility policy](docs/alpha-compatibility.md) and
 [release/version policy](docs/releases.md). The current native source alpha is
-[2026.45.1](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.45.1).
+[2026.45.2](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.45.2).
 Its attached artifacts contain only the native core. Explorer and CAD conversion
 are delivered separately from the native artifacts.
 See the [vision](docs/vision.md) for the long-term direction and the
@@ -47,10 +47,10 @@ The core owns construction, shared validation, encoding and file IO and has no C
 runtime dependency. JSON/IFCX and experimental base-CBOR use the same logical
 model. The first alpha publishes profile 0.1.0, CBOR mapping revision 1 and
 optional native Zstd transport revision 1. Those tagged contracts are fixed.
-The current 2026.45.1 alpha combines annotation contexts and exact font/SHX
-source requests in profile 0.5.0 and CBOR mapping 5. Zstd transport 1 remains
-unchanged. The unpublished intermediate annotation draft 0.4 is not released
-separately. Subsequent normative changes follow the release policy.
+The current 2026.45.2 alpha adds Text/MText block attributes and stored attribute
+fields in profile 0.6.0 and CBOR mapping 6. Annotation contexts and exact font/SHX
+requests remain supported. Zstd transport 1 remains unchanged. Subsequent
+normative changes follow the release policy.
 The `ifccad-cbor-zstd` core feature is optional. The browser enables it for explicit
 experimental CBOR + Zstd downloads; ordinary IFCX download remains the default choice.
 
@@ -239,10 +239,10 @@ sample_AC1032 completed user review. The existing Explorer examples keep their
 scope. Resolution, portable locators, embedding and complete rendering remain
 later work under issue 15.
 
-The selected block-attribute slice is locally qualified: native Text/MText, paired
-Document mapping and bounded fields use unpublished profile 0.6.0 / CBOR6.
+Release 2026.45.2 adds the block-attribute slice: native Text/MText, paired
+Document mapping and bounded fields use profile 0.6.0 / CBOR6.
 Gallery and sample_AC1032 review is accepted; native/paired gates, local Explorer
-integration and bounded OCS editing/ATTSYNC checks pass. Reachable upstream
-dependency revisions and publication remain pending. MINSERT and dynamic blocks
+integration and bounded OCS editing/ATTSYNC checks pass. Official Document PR #12
+is merged; the codec thickness fix stays explicitly pinned in the user fork. MINSERT and dynamic blocks
 remain later work. See
 [attributes](docs/block-attributes.md) and [roadmap](ROADMAP.md).

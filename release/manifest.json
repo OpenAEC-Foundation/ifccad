@@ -1,10 +1,10 @@
 {
-  "softwareVersion": "2026.45.1",
+  "softwareVersion": "2026.45.2",
   "channel": "alpha",
-  "profileVersion": "0.5.0",
-  "profileImport": "urn:example:ifccad:0.5.0",
+  "profileVersion": "0.6.0",
+  "profileImport": "urn:example:ifccad:0.6.0",
   "ifcxVersion": "ifcx_alpha",
-  "cborMappingRevision": 5,
+  "cborMappingRevision": 6,
   "zstdTransportRevision": 1,
   "candidateFiles": [
     "Cargo.lock",
@@ -16,7 +16,8 @@
     "scripts/prepare_release.py",
     "scripts/tests/test_prepare_release.py",
     "docs/releases/2026.45.0.md",
-    "docs/releases/2026.45.1.md"
+    "docs/releases/2026.45.1.md",
+    "docs/releases/2026.45.2.md"
   ],
   "scope": "native ifccad core only"
 }
