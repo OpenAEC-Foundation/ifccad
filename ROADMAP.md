@@ -187,7 +187,7 @@ tests in named readers/hosts, including physical output where claimed.
 
 Develop selective preservation in `opencaddocument` alongside the sequential
 native IFCCAD contributions. The upstream
-[direction in acadrust #91](https://github.com/HakanSeven12/acadrust/issues/91#issuecomment-6400723031)
+[direction copied from former fork issue #91 into acadrust #307](https://github.com/hakanaktt/acadrust/issues/307)
 places typed capture/selection and reconstruction on Document. Reassess the earlier
 codec storage and PR3/PR4 proposals against the current Document model before
 preparing small PR contributions; those older plans do not define an implemented

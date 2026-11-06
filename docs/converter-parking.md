@@ -23,6 +23,37 @@ dependency selection remain coherent. Current main never supplies its core to
 the archived converter. Maintaining compilation against future profiles or restoring
 the old Explorer integration is outside ordinary development.
 
+## Codec repository location after 4 November 2026
+
+The former `HakanSeven12/opencadcodec` repository, later named
+`HakanSeven12/acadrust`, was merged into
+[hakanaktt/acadrust](https://github.com/hakanaktt/acadrust) and the fork is being
+removed; see [IFCCAD #30](https://github.com/OpenAEC-Foundation/ifccad/issues/30).
+The recorded codec commits are available there with the same hashes, including
+the [reference-converter base](https://github.com/hakanaktt/acadrust/commit/bd10efc2c54dfe1e6288c5f10486dce9be0d7f32)
+and the [OCDraw base](https://github.com/hakanaktt/acadrust/commit/325fa98d2b881f48e106a830d5cf161624f63131).
+
+Frozen manifests, locks, configurations, source snapshots and measurement
+provenance retain their original URLs and pins. For an explicitly requested
+historical reconstruction, the new repository is an alternate location for the
+same source revision, not a dependency upgrade. No archived build has been
+requalified after the move, and keeping either converter buildable is outside
+ordinary maintenance.
+
+Historical commit and comparison links can use the new repository with unchanged
+hashes. Issue and PR numbers do not transfer that way: open fork issues were
+copied under new numbers, while closed issue/PR links may no longer resolve.
+The current field-classification request is
+[acadrust #305](https://github.com/hakanaktt/acadrust/issues/305), formerly #50;
+the preservation discussion is retained in
+[acadrust #307](https://github.com/hakanaktt/acadrust/issues/307), formerly #91.
+Historical reports and frozen references retain their original identities.
+
+Active dependency adoption remains a separate, audited change. This relocation
+does not change the viewer/browser pins, the annotation development patch or its
+source key. Review that key against the selected Document dependency when next
+updating the pair; the current lock resolves the codec from `BjornFidder/opencadcodec`.
+
 ## Coverage and tools
 
 The [active mapping coverage](architecture/explorer-document-route.md) is the

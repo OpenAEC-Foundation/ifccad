@@ -17,6 +17,19 @@ is not a build entry point. Relative paths and source documentation are interpre
 in the restored checkpoint. Shared native helpers, core, schemas, examples and
 fixtures come from that complete checkpoint, never the evolving active core.
 
+## Codec source location
+
+The recorded codec repository has moved to
+[hakanaktt/acadrust](https://github.com/hakanaktt/acadrust); the frozen base
+[`bd10efc2c54dfe1e6288c5f10486dce9be0d7f32`](https://github.com/hakanaktt/acadrust/commit/bd10efc2c54dfe1e6288c5f10486dce9be0d7f32)
+is available there unchanged. The historical clone command below retains its
+original URL. If reconstructing this checkpoint, use the new repository as the
+clone source and keep the destination, revision and patch unchanged. Frozen
+source, manifests, lock/config snapshots and hashes are not updated for this move.
+This records source availability only: the archived build has not been rerun or
+requalified, and ongoing build maintenance is outside the active development
+scope. See the [repository relocation note](../../docs/converter-parking.md#codec-repository-location-after-4-november-2026).
+
 ## Reconstruct and test
 
 From a current checkout with Python 3.12+ and Git, select a **new** destination:
