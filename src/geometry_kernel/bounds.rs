@@ -16,6 +16,11 @@ pub fn geometry_centerline_bounds(g: GeometryRef<'_>) -> Result<Bounds3d, Error>
         }
     };
     match g {
+        GeometryRef::Spline { control, .. } => {
+            for &point in &control.points {
+                union(point, point);
+            }
+        }
         GeometryRef::FilledQuadrilateral {
             placement,
             corners,

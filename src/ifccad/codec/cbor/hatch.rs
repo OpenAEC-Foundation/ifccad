@@ -443,10 +443,37 @@ record!(HatchLineFamily;
 impl CborValue for HatchEdge2 {
     #[cfg(test)]
     fn registered_codes() -> &'static [(u64, &'static str)] {
-        &[(0, "Line"), (1, "CircularArc"), (2, "EllipticArc")]
+        &[
+            (0, "Line"),
+            (1, "CircularArc"),
+            (2, "EllipticArc"),
+            (3, "Spline"),
+        ]
     }
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
         match self {
+            Self::Spline {
+                control,
+                fit,
+                periodic,
+            } => {
+                w.map(2)?;
+                w.u64(0)?;
+                w.u64(3)?;
+                w.u64(1)?;
+                w.map(1 + u64::from(fit.is_some()) + u64::from(*periodic))?;
+                w.u64(0)?;
+                control.encode(w)?;
+                if let Some(fit) = fit {
+                    w.u64(1)?;
+                    fit.encode(w)?;
+                }
+                if *periodic {
+                    w.u64(2)?;
+                    periodic.encode(w)?;
+                }
+                Ok(())
+            }
             Self::Line { start, end } => {
                 w.map(2)?;
                 w.u64(0)?;
@@ -732,6 +759,20 @@ impl CborValue for HatchEdge2 {
                     sweep_parameter,
                 }
             }
+            3 => {
+                let body = f.span(1)?;
+                let mut b =
+                    RecordFields::new(&body, &[(0, "control"), (1, "fit"), (2, "periodic")])?;
+                let control = b.take(0, None)?;
+                let fit = b.take(1, Some(None))?;
+                let periodic = b.take(2, Some(false))?;
+                b.finish()?;
+                Self::Spline {
+                    control,
+                    fit,
+                    periodic,
+                }
+            }
             _ => return Err(r.error("unknown variant code")),
         };
         f.finish()?;
@@ -746,6 +787,18 @@ impl CborValue for HatchEdge2 {
                     end: end_other,
                 },
             ) => start.exact(start_other) && end.exact(end_other),
+            (
+                Self::Spline {
+                    control,
+                    fit,
+                    periodic,
+                },
+                Self::Spline {
+                    control: other,
+                    fit: other_fit,
+                    periodic: other_periodic,
+                },
+            ) => control.exact(other) && fit.exact(other_fit) && periodic == other_periodic,
             (
                 Self::CircularArc {
                     center,

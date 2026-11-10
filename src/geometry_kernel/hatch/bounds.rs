@@ -59,6 +59,11 @@ pub fn hatch_bounds<'a>(
             HatchBoundary2::Edges(edges) => {
                 for (i, e) in edges.iter().enumerate() {
                     match e {
+                        HatchEdge2::Spline { control, .. } => {
+                            for &point in &control.points {
+                                add(straight(plane, point, point), Some(i))?;
+                            }
+                        }
                         HatchEdge2::Line { start, end } => {
                             add(straight(plane, *start, *end), Some(i))?
                         }

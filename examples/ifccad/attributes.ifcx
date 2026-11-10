@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.7.0"
+      "uri": "urn:example:ifccad:0.8.0"
     }
   ],
   "schemas": {},
@@ -57,7 +57,7 @@
               "kind": "defaultFivePercent"
             }
           },
-          "profileVersion": "0.7.0"
+          "profileVersion": "0.8.0"
         },
         "ifccad::drawingWorkspace": {
           "activeLayout": "/cad/d1/layout/1",

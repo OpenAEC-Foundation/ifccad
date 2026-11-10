@@ -1,6 +1,6 @@
 //! Contract checks for explicit revision-1 mapping declarations.
 #[cfg(test)]
-pub(super) const MAPPING: &str = include_str!("../../../../schemas/ifccad/cbor-mapping-7.json");
+pub(super) const MAPPING: &str = include_str!("../../../../schemas/ifccad/cbor-mapping-8.json");
 #[cfg(test)]
 mod tests {
     use super::super::*;

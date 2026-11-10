@@ -1,3 +1,4 @@
+use super::spline::{WireBasis, WireFit};
 use crate::geometry_kernel::hatch::{HatchBoundary2 as B, HatchEdge2 as E};
 use serde::{Deserialize, Serialize};
 
@@ -29,6 +30,13 @@ pub(super) enum BoundaryValue {
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub(super) enum EdgeValue {
+    Spline {
+        control: WireBasis<[f64; 2]>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        fit: Option<WireFit<[f64; 2], [f64; 2]>>,
+        #[serde(default)]
+        periodic: bool,
+    },
     Line {
         start: [f64; 2],
         end: [f64; 2],
@@ -106,6 +114,15 @@ impl From<BoundaryValue> for B {
 impl From<E> for EdgeValue {
     fn from(e: E) -> Self {
         match e {
+            E::Spline {
+                control,
+                fit,
+                periodic,
+            } => Self::Spline {
+                control: control.into(),
+                fit: fit.map(Into::into),
+                periodic,
+            },
             E::Line { start, end } => Self::Line { start, end },
             E::CircularArc {
                 center,
@@ -139,6 +156,15 @@ impl From<E> for EdgeValue {
 impl From<EdgeValue> for E {
     fn from(e: EdgeValue) -> Self {
         match e {
+            EdgeValue::Spline {
+                control,
+                fit,
+                periodic,
+            } => Self::Spline {
+                control: control.into(),
+                fit: fit.map(Into::into),
+                periodic,
+            },
             EdgeValue::Line { start, end } => Self::Line { start, end },
             EdgeValue::CircularArc {
                 center,

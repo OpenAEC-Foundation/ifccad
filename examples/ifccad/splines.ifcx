@@ -1,0 +1,1191 @@
+{
+  "header": {
+    "id": "native-splines-review",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "0.1.0",
+    "author": "OpenAEC",
+    "timestamp": "2026-10-13T00:00:00Z"
+  },
+  "imports": [
+    {
+      "uri": "urn:example:ifccad:0.8.0"
+    }
+  ],
+  "schemas": {},
+  "data": [
+    {
+      "path": "/cad/d1",
+      "children": {
+        "dimensionStyle0": "/cad/d1/dimensionStyle/0",
+        "layer0": "/cad/d1/layer/0",
+        "layer1": "/cad/d1/layer/1",
+        "layer2": "/cad/d1/layer/2",
+        "layer3": "/cad/d1/layer/3",
+        "linePattern0": "/cad/d1/linePattern/0",
+        "model": "/cad/d1/layout/1",
+        "multiLeaderStyle41": "/cad/d1/multiLeaderStyle/41",
+        "paper2": "/cad/d1/layout/2",
+        "textStyle0": "/cad/d1/textStyle/0"
+      },
+      "attributes": {
+        "ifccad::drawing": {
+          "attributeVisibility": "Normal",
+          "lengthUnit": "cm",
+          "nextAnnotationScaleId": 1,
+          "nextBlockId": 1,
+          "nextDimensionStyleId": 1,
+          "nextEntityId": 12,
+          "nextLayerId": 4,
+          "nextLayoutId": 3,
+          "nextLinePatternId": 1,
+          "nextModelWindowId": 1,
+          "nextMultiLeaderStyleId": 42,
+          "nextSymbolSourceId": 1,
+          "nextTextStyleId": 1,
+          "nextUcsId": 1,
+          "profileVersion": "0.8.0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/textStyle/0",
+      "attributes": {
+        "ifccad::textStyle": {
+          "font": {
+            "cadFontName": "txt.shx"
+          },
+          "lastUsedHeight": 2.5,
+          "name": "Dimension text"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/dimensionStyle/0",
+      "attributes": {
+        "ifccad::dimensionStyle": {
+          "name": "Building",
+          "settings": {
+            "arrows": {
+              "centerMark": {
+                "kind": "none"
+              },
+              "first": {
+                "kind": "closedFilled"
+              },
+              "flipFirst": false,
+              "flipSecond": false,
+              "second": {
+                "kind": "closedFilled"
+              },
+              "size": 2.5,
+              "tickSize": 0.0
+            },
+            "dimensionLine": {
+              "appearance": {
+                "color": {
+                  "mode": "inheritEntity"
+                },
+                "linePattern": {
+                  "mode": "inheritEntity"
+                },
+                "lineWeight": {
+                  "mode": "inheritEntity"
+                },
+                "opacity": {
+                  "mode": "inheritEntity"
+                }
+              },
+              "extension": 0.0,
+              "suppressFirst": false,
+              "suppressSecond": false
+            },
+            "extensionLines": {
+              "first": {
+                "appearance": {
+                  "color": {
+                    "mode": "inheritEntity"
+                  },
+                  "linePattern": {
+                    "mode": "inheritEntity"
+                  },
+                  "lineWeight": {
+                    "mode": "inheritEntity"
+                  },
+                  "opacity": {
+                    "mode": "inheritEntity"
+                  }
+                },
+                "extension": 1.25,
+                "length": {
+                  "kind": "automatic"
+                },
+                "offset": 0.625,
+                "suppressed": false
+              },
+              "second": {
+                "appearance": {
+                  "color": {
+                    "mode": "inheritEntity"
+                  },
+                  "linePattern": {
+                    "mode": "inheritEntity"
+                  },
+                  "lineWeight": {
+                    "mode": "inheritEntity"
+                  },
+                  "opacity": {
+                    "mode": "inheritEntity"
+                  }
+                },
+                "extension": 1.25,
+                "length": {
+                  "kind": "automatic"
+                },
+                "offset": 0.625,
+                "suppressed": false
+              }
+            },
+            "fit": {
+              "forceTextInside": false,
+              "keepDimensionLineOutside": true,
+              "preferredPlacement": "bestFit"
+            },
+            "numbers": {
+              "primary": {
+                "angleFormat": "decimalDegrees",
+                "application": "allOwners",
+                "arcSymbol": "before",
+                "decimalSeparator": ".",
+                "format": "decimal",
+                "fractionLayout": "inline",
+                "fractionScale": 1.0,
+                "measurementFactor": 1.0,
+                "precision": 2,
+                "prefix": "",
+                "roundingIncrement": 0.0,
+                "suffix": " mm",
+                "zeroSuppression": {
+                  "leading": false,
+                  "trailing": false,
+                  "zeroFeet": false,
+                  "zeroInches": false
+                }
+              },
+              "tolerance": {
+                "kind": "none"
+              }
+            },
+            "presentationScale": {
+              "factor": 1.0,
+              "kind": "fixed"
+            },
+            "text": {
+              "appearance": {
+                "color": {
+                  "mode": "inheritEntity"
+                },
+                "linePattern": {
+                  "mode": "inheritEntity"
+                },
+                "lineWeight": {
+                  "mode": "inheritEntity"
+                },
+                "opacity": {
+                  "mode": "inheritEntity"
+                }
+              },
+              "attachment": "middleCenter",
+              "background": {
+                "kind": "none"
+              },
+              "gap": 0.625,
+              "height": 2.5,
+              "insideOrientation": "aligned",
+              "lineSpacing": {
+                "factor": 1.0,
+                "kind": "atLeast"
+              },
+              "movement": "addLeader",
+              "outsideOrientation": "horizontal",
+              "style": "/cad/d1/textStyle/0"
+            }
+          },
+          "typeOverrides": {}
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/multiLeaderStyle/41",
+      "attributes": {
+        "ifccad::multiLeaderStyle": {
+          "alignSpace": 0.0,
+          "annotative": false,
+          "blockRotationEnabled": true,
+          "blockScaleEnabled": true,
+          "breakGapSize": 0.0,
+          "common": {
+            "block": {
+              "color": {
+                "mode": "ByBlock"
+              },
+              "connection": "extents",
+              "rotation": 0.0,
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "contentKind": "none",
+            "doglegEnabled": true,
+            "doglegLength": 5.0,
+            "landingEnabled": true,
+            "line": {
+              "arrow": {
+                "kind": "defaultClosedFilled"
+              },
+              "arrowSize": 2.5,
+              "color": {
+                "mode": "ByBlock"
+              },
+              "linePattern": {
+                "mode": "ByLayer"
+              },
+              "lineWeight": {
+                "kind": "byLayer"
+              },
+              "pathKind": "straightSegments"
+            },
+            "scaleFactor": 1.0,
+            "text": {
+              "alignment": "left",
+              "angle": "horizontal",
+              "attachmentDirection": "horizontal",
+              "attachments": {
+                "bottom": "centerOfText",
+                "left": "middleOfText",
+                "right": "middleOfText",
+                "top": "centerOfText"
+              },
+              "color": {
+                "mode": "ByBlock"
+              },
+              "frame": false,
+              "height": 2.5
+            }
+          },
+          "contentDrawOrder": "contentFirst",
+          "defaultMText": {
+            "characterFormat": {},
+            "content": [
+              {
+                "characterFormat": {},
+                "inlines": [],
+                "paragraphFormat": {}
+              }
+            ],
+            "paragraphFormat": {}
+          },
+          "description": "",
+          "firstSegmentAngle": 0.0,
+          "landingGap": 0.625,
+          "leaderDrawOrder": "headFirst",
+          "maxLeaderPoints": 0,
+          "name": "leader conformance",
+          "secondSegmentAngle": 0.0,
+          "textAlwaysLeft": false
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/1",
+      "children": {
+        "0": "/cad/d1/e1",
+        "1": "/cad/d1/e2",
+        "2": "/cad/d1/e3",
+        "3": "/cad/d1/e4",
+        "4": "/cad/d1/e5",
+        "5": "/cad/d1/e6",
+        "6": "/cad/d1/e7",
+        "7": "/cad/d1/e8"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Model",
+          "tabIndex": 0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/2",
+      "children": {
+        "0": "/cad/d1/e9",
+        "1": "/cad/d1/e10",
+        "2": "/cad/d1/e11"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Paper",
+          "name": "Sheet",
+          "tabIndex": 1
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/0",
+      "attributes": {
+        "ifccad::linePattern": {
+          "name": "Continuous",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/0",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "kind": "Foreground"
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.1
+          },
+          "name": "0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/1",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "rgb": [
+                0,
+                255,
+                0
+              ]
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25,
+            "opacity": 0.8
+          },
+          "name": "Construction"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/2",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "rgb": [
+                255,
+                0,
+                0
+              ]
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.35
+          },
+          "name": "Symbols"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/3",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "rgb": [
+                255,
+                255,
+                255
+              ]
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25
+          },
+          "name": "Notes"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/1"
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            4000.0,
+            0.0
+          ],
+          "start": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e2",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::tolerance": {
+          "dimensionStyle": "/cad/d1/dimensionStyle/0",
+          "notation": {
+            "kind": "cadFeatureControlTextV1",
+            "value": {
+              "code": "{\\Fgdt;p}%%v0.1%%vA"
+            }
+          },
+          "overrides": {
+            "arrows": {},
+            "dimensionLine": {
+              "appearance": {}
+            },
+            "extensionLines": {
+              "first": {
+                "appearance": {}
+              },
+              "second": {
+                "appearance": {}
+              }
+            },
+            "fit": {},
+            "numbers": {
+              "primary": {}
+            },
+            "text": {
+              "appearance": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e3",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::leader": {
+          "annotationEntity": "/cad/d1/e2",
+          "annotationKind": "tolerance",
+          "annotationOffset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "arrowEnabled": true,
+          "blockOffset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "dimensionStyle": "/cad/d1/dimensionStyle/0",
+          "hookDirection": "alongHorizontal",
+          "hookEnabled": false,
+          "horizontalDirection": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "overrides": {
+            "arrows": {},
+            "dimensionLine": {
+              "appearance": {}
+            },
+            "extensionLines": {
+              "first": {
+                "appearance": {}
+              },
+              "second": {
+                "appearance": {}
+              }
+            },
+            "fit": {},
+            "numbers": {
+              "primary": {}
+            },
+            "text": {
+              "appearance": {}
+            }
+          },
+          "path": {
+            "kind": "splineThroughVertices",
+            "value": {
+              "vertices": [
+                [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  2.0,
+                  1.0,
+                  0.0
+                ],
+                [
+                  5.0,
+                  5.0,
+                  0.0
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e4/leaders/r4/l9",
+      "attributes": {
+        "ifccad::multiLeaderLine": {
+          "breaks": [
+            {
+              "intervals": [
+                {
+                  "end": [
+                    3.0,
+                    3.0,
+                    0.0
+                  ],
+                  "start": [
+                    2.0,
+                    2.0,
+                    0.0
+                  ]
+                }
+              ],
+              "segmentIndex": 0
+            }
+          ],
+          "connection": "groupConnection",
+          "key": 9,
+          "overriddenProperties": [
+            "pathKind"
+          ],
+          "settings": {
+            "arrow": {
+              "kind": "defaultClosedFilled"
+            },
+            "arrowSize": 2.5,
+            "color": {
+              "mode": "ByBlock"
+            },
+            "linePattern": {
+              "mode": "ByLayer"
+            },
+            "lineWeight": {
+              "kind": "byLayer"
+            },
+            "pathKind": "splineThroughVertices"
+          },
+          "sourceIndex": 900,
+          "vertices": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              3.0,
+              0.0
+            ],
+            [
+              4.0,
+              4.0,
+              0.0
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e4/leaders/r4",
+      "children": {
+        "0": "/cad/d1/e4/leaders/r4/l9"
+      },
+      "attributes": {
+        "ifccad::multiLeaderBranch": {
+          "breaks": [],
+          "connectionPoint": [
+            5.0,
+            5.0,
+            0.0
+          ],
+          "doglegDirection": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "doglegLength": 0.0,
+          "hasConnectionPoint": true,
+          "hasDoglegDirection": false,
+          "key": 4,
+          "sourceIndex": 900,
+          "textAttachmentDirection": "horizontal"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e4/leaders",
+      "children": {
+        "0": "/cad/d1/e4/leaders/r4"
+      },
+      "attributes": {
+        "ifccad::multiLeaderBranches": {}
+      }
+    },
+    {
+      "path": "/cad/d1/e4/graphics/op0",
+      "attributes": {
+        "ifccad::leaderGraphicsCommand": {
+          "kind": "cadCompatibility51Zero"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e4/graphics",
+      "children": {
+        "0": "/cad/d1/e4/graphics/op0"
+      },
+      "attributes": {
+        "ifccad::leaderGraphics": {
+          "origin": "sourceSnapshot",
+          "placement": {
+            "origin": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "xAxis": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "yAxis": [
+              0.0,
+              1.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e4",
+      "children": {
+        "graphics": "/cad/d1/e4/graphics",
+        "leaders": "/cad/d1/e4/leaders"
+      },
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::multiLeader": {
+          "legacyArrowOverrides": [],
+          "nextLabelId": 4,
+          "overriddenProperties": [
+            "arrowSize"
+          ],
+          "presentation": {
+            "arrowSize": 2.5,
+            "contentBasePoint": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "landingGap": 0.625,
+            "nextPartId": 10,
+            "normalReversed": false,
+            "plane": {
+              "origin": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "xAxis": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "yAxis": [
+                0.0,
+                1.0,
+                0.0
+              ]
+            },
+            "scaleFactor": 1.0,
+            "textHeight": 2.5
+          },
+          "settings": {
+            "common": {
+              "block": {
+                "color": {
+                  "mode": "ByBlock"
+                },
+                "connection": "extents",
+                "rotation": 0.0,
+                "scale": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "contentKind": "none",
+              "doglegEnabled": true,
+              "doglegLength": 5.0,
+              "landingEnabled": true,
+              "line": {
+                "arrow": {
+                  "kind": "defaultClosedFilled"
+                },
+                "arrowSize": 2.5,
+                "color": {
+                  "mode": "ByBlock"
+                },
+                "linePattern": {
+                  "mode": "ByLayer"
+                },
+                "lineWeight": {
+                  "kind": "byLayer"
+                },
+                "pathKind": "straightSegments"
+              },
+              "scaleFactor": 1.0,
+              "text": {
+                "alignment": "left",
+                "angle": "horizontal",
+                "attachmentDirection": "horizontal",
+                "attachments": {
+                  "bottom": "centerOfText",
+                  "left": "middleOfText",
+                  "right": "middleOfText",
+                  "top": "centerOfText"
+                },
+                "color": {
+                  "mode": "ByBlock"
+                },
+                "frame": false,
+                "height": 2.5
+              }
+            },
+            "extendLeaderToText": false,
+            "textAttachmentPoint": "center",
+            "textDirectionNegative": false
+          },
+          "style": "/cad/d1/multiLeaderStyle/41"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e5",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/3"
+        },
+        "ifccad::geom::spline": {
+          "definition": {
+            "degree": 3,
+            "fit": {
+              "points": [
+                [
+                  0.0,
+                  40.0
+                ],
+                [
+                  6.0,
+                  44.0
+                ],
+                [
+                  12.0,
+                  40.0
+                ]
+              ]
+            },
+            "kind": "fitOnly"
+          },
+          "topology": "open"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e6",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/3"
+        },
+        "ifccad::geom::spline": {
+          "definition": {
+            "basis": {
+              "degree": 2,
+              "knotKind": "full",
+              "knots": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                1.0,
+                1.0
+              ],
+              "points": [
+                [
+                  2.0,
+                  32.0
+                ],
+                [
+                  8.0,
+                  41.0,
+                  1.0
+                ],
+                [
+                  15.0,
+                  33.0
+                ]
+              ],
+              "weights": [
+                1.0,
+                0.75,
+                1.0
+              ]
+            },
+            "fit": {
+              "points": [
+                [
+                  2.0,
+                  32.0
+                ],
+                [
+                  15.0,
+                  33.0
+                ]
+              ]
+            },
+            "kind": "control"
+          },
+          "topology": "open"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e7",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/3"
+        },
+        "ifccad::geom::spline": {
+          "definition": {
+            "basis": {
+              "degree": 3,
+              "knotKind": "periodicCycle",
+              "knots": [
+                2.0,
+                2.5,
+                4.0,
+                7.0,
+                9.0
+              ],
+              "points": [
+                [
+                  25.0,
+                  30.0
+                ],
+                [
+                  30.0,
+                  36.0
+                ],
+                [
+                  35.0,
+                  30.0
+                ],
+                [
+                  29.0,
+                  25.0
+                ]
+              ],
+              "weights": [
+                1.0,
+                2.0,
+                0.75,
+                1.25
+              ]
+            },
+            "kind": "control"
+          },
+          "topology": "periodic"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e8",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/3"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "xAxis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "yAxis": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "ifccad::hatch": {
+          "areaRule": "normal",
+          "associationEnabled": true,
+          "fill": {
+            "kind": "solid"
+          },
+          "joinTolerance": 1e-9,
+          "loops": [
+            {
+              "boundary": {
+                "edges": [
+                  {
+                    "control": {
+                      "degree": 2,
+                      "knotKind": "full",
+                      "knots": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0
+                      ],
+                      "points": [
+                        [
+                          0.0,
+                          40.0
+                        ],
+                        [
+                          6.0,
+                          48.0
+                        ],
+                        [
+                          12.0,
+                          40.0
+                        ]
+                      ],
+                      "weights": [
+                        1.0,
+                        0.75,
+                        1.0
+                      ]
+                    },
+                    "kind": "spline",
+                    "periodic": false
+                  },
+                  {
+                    "end": [
+                      0.0,
+                      40.0
+                    ],
+                    "kind": "line",
+                    "start": [
+                      12.0,
+                      40.0
+                    ]
+                  }
+                ],
+                "kind": "edges"
+              },
+              "sources": [
+                "/cad/d1/e5"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e9",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            1.0,
+            0.0
+          ],
+          "start": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e10",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::viewport": {
+          "frame": {
+            "center": [
+              100.0,
+              75.0
+            ],
+            "height": 100.0,
+            "width": 160.0
+          },
+          "layerOverrides": [
+            {
+              "frozen": true,
+              "layer": "/cad/d1/layer/3"
+            }
+          ],
+          "model": "/cad/d1/layout/1",
+          "paperClip": {
+            "boundary": "/cad/d1/e11",
+            "enabled": true
+          },
+          "renderMode": "Wireframe",
+          "view": {
+            "backClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "center": [
+              0.0,
+              0.0
+            ],
+            "direction": [
+              0.0,
+              0.0,
+              100.0
+            ],
+            "frontClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "height": 200.0,
+            "lensLengthMm": 50.0,
+            "projection": "Perspective",
+            "target": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "twist": 0.0
+          },
+          "viewEnabled": true,
+          "viewLocked": true
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e11",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::spline": {
+          "definition": {
+            "basis": {
+              "degree": 2,
+              "knotKind": "full",
+              "knots": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                1.0,
+                1.0,
+                2.0,
+                2.0,
+                2.0
+              ],
+              "points": [
+                [
+                  80.0,
+                  75.0
+                ],
+                [
+                  100.0,
+                  120.0
+                ],
+                [
+                  120.0,
+                  75.0
+                ],
+                [
+                  120.0,
+                  75.0
+                ],
+                [
+                  100.0,
+                  30.0
+                ],
+                [
+                  80.0,
+                  75.0
+                ]
+              ]
+            },
+            "kind": "control"
+          },
+          "topology": "closed"
+        }
+      }
+    }
+  ]
+}

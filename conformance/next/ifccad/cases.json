@@ -698,5 +698,9 @@
   {
     "file": "invalid/leader-unowned-command.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid/spline-mixed.ifcx",
+    "valid": true
   }
 ]

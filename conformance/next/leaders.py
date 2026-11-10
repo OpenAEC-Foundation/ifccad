@@ -1,4 +1,4 @@
-"""Independent literal Leader/MultiLeader/Tolerance cases for profile0.7/CBOR7.
+"""Independent literal Leader/MultiLeader/Tolerance cases for profile0.8/CBOR8.
 
 Pins ordinary targets, local branch keys, style registry, labels and bounded
 saved commands. It does not qualify any physical CAD ToleranceContent payload.
@@ -101,9 +101,9 @@ emit_json('leader-unowned-command',bad,False)
 (JSON_ROOT/'cases.json').write_text(json.dumps(json_cases,indent=2)+'\n',encoding='utf-8')
 
 binary=decode((BINARY_ROOT/'valid/dimension-radius.ifccad.cbor').read_bytes())
-assert binary[1]==7
+assert binary[1]==8
 doc=binary[2];layer_id=doc[6][0][0];dim_id=doc[13][0][0];start=max(900,doc[2][0])
-register=json.loads((ROOT.parent.parent/'schemas/ifccad/cbor-mapping-7.json').read_text(encoding='utf-8'))['types']
+register=json.loads((ROOT.parent.parent/'schemas/ifccad/cbor-mapping-8.json').read_text(encoding='utf-8'))['types']
 def required_empty_record(name):
     """The existing Dimension override groups remain required empty records.
 
@@ -131,7 +131,7 @@ def emit_binary(name,data,valid,error=None):
     file=f'{"valid" if valid else "invalid"}/{name}.ifccad.cbor'
     (BINARY_ROOT/file).write_bytes(encode(data))
     diagnostic=file+'.diag'
-    (BINARY_ROOT/diagnostic).write_text('Independent literal profile0.7/CBOR7 leader-family map.\n'+repr(data)+'\n',encoding='utf-8')
+    (BINARY_ROOT/diagnostic).write_text('Independent literal profile0.8/CBOR8 leader-family map.\n'+repr(data)+'\n',encoding='utf-8')
     manifest['cases'][:]=[case for case in manifest['cases'] if case['file']!=file]
     row={'file':file,'valid':valid,'diagnostic':diagnostic}
     if error:row['errorClass']=error

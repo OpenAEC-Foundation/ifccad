@@ -48,6 +48,10 @@ impl PlanarVertices<'_> {
 /// A borrowed primitive geometry view, without identity, appearance or ownership.
 #[derive(Clone, Copy, Debug)]
 pub enum GeometryRef<'a> {
+    Spline {
+        control: &'a super::SplineControl<3>,
+        closed: bool,
+    },
     FilledQuadrilateral {
         placement: CoordinateFrame3,
         corners: &'a [[f64; 2]; 4],

@@ -35,7 +35,7 @@ macro_rules! unsigned {
         fn exact(&self, other: &Self) -> bool { self == other }
     })+};
 }
-unsigned!(u16, u32, u64);
+unsigned!(u16, u32, u64, usize);
 impl CborValue for u8 {
     const BYTE: bool = true;
     fn byte(&self) -> u8 {

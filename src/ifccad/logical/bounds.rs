@@ -719,6 +719,16 @@ impl<'a> Evaluation<'a> {
                 unavailable: true,
                 ..Default::default()
             },
+            IfccadEntityKind::Spline(value)
+                if value
+                    .control_basis()
+                    .is_none_or(|basis| basis.prepare().is_err()) =>
+            {
+                Extents {
+                    unavailable: true,
+                    ..Default::default()
+                }
+            }
             IfccadEntityKind::Dimension(dimension) => {
                 let mut local = Extents {
                     unavailable: dimension.graphics.is_none(),

@@ -36,6 +36,8 @@ pub use dimension::*;
 mod bounds;
 mod document_validation;
 mod geometry;
+mod spline;
+pub use spline::*;
 mod hatch;
 pub(crate) mod line_pattern_bounds;
 pub use hatch::{

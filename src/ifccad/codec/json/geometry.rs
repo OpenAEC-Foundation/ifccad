@@ -14,6 +14,7 @@ pub(super) const PAYLOADS: &[&str] = &[
     "ifccad::geom::ellipseArc",
     "ifccad::geom::planarPolyline",
     "ifccad::geom::spatialPolyline",
+    "ifccad::geom::spline",
 ];
 
 #[derive(Deserialize)]
@@ -42,12 +43,12 @@ struct LineValue {
 }
 #[derive(Deserialize)]
 #[serde(untagged)]
-enum LinePointValue {
+pub(super) enum LinePointValue {
     Xy([f64; 2]),
     Xyz([f64; 3]),
 }
 impl LinePointValue {
-    fn xyz(self) -> [f64; 3] {
+    pub(super) fn xyz(self) -> [f64; 3] {
         match self {
             Self::Xy([x, y]) => [x, y, 0.0],
             Self::Xyz(point) => point,
@@ -153,7 +154,7 @@ pub(super) fn decode_kind(
     };
     if matches!(
         key,
-        "ifccad::geom::lineSegment" | "ifccad::geom::spatialPolyline"
+        "ifccad::geom::lineSegment" | "ifccad::geom::spatialPolyline" | "ifccad::geom::spline"
     ) && attrs.contains_key("ifccad::geom::placement")
     {
         return Err(crate::ifccad::diagnostics::failure(
@@ -163,6 +164,9 @@ pub(super) fn decode_kind(
         ));
     }
     Ok(match key {
+        "ifccad::geom::spline" => {
+            IfccadEntityKind::Spline(Box::new(super::spline::decode(v, path)?))
+        }
         "ifccad::geom::solid" | "ifccad::geom::trace" => {
             let v: FilledValue = decode(v, path)?;
             let q = IfccadFilledQuadrilateral {
@@ -281,6 +285,9 @@ pub(super) fn decode_kind(
 }
 pub(super) fn encode_kind(kind: &IfccadEntityKind, attrs: &mut Map<String, Value>) -> bool {
     let (key, payload, placement) = match kind {
+        IfccadEntityKind::Spline(value) => {
+            ("ifccad::geom::spline", super::spline::encode(value), None)
+        }
         IfccadEntityKind::Solid(v) | IfccadEntityKind::Trace(v) => {
             let mut payload = json!({"corners":v.corners});
             if v.thickness.to_bits() != 0 {
@@ -412,7 +419,7 @@ pub(super) fn encode_kind(kind: &IfccadEntityKind, attrs: &mut Map<String, Value
     }
     true
 }
-fn encode_line_point(point: &[f64; 3]) -> Value {
+pub(super) fn encode_line_point(point: &[f64; 3]) -> Value {
     if super::defaults::is_positive_zero(point[2]) {
         json!(&point[..2])
     } else {

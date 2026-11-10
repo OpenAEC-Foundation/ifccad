@@ -38,6 +38,7 @@ impl CborValue for IfccadEntityKind {
             (17, "Leader"),
             (18, "MultiLeader"),
             (19, "Tolerance"),
+            (20, "Spline"),
         ]
     }
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
@@ -219,6 +220,7 @@ impl CborValue for IfccadEntityKind {
             (Self::Leader(a), Self::Leader(b)) => a.exact(b),
             (Self::MultiLeader(a), Self::MultiLeader(b)) => a.exact(b),
             (Self::Tolerance(a), Self::Tolerance(b)) => a.exact(b),
+            (Self::Spline(a), Self::Spline(b)) => a.exact(b),
             (
                 Self::BlockInstance {
                     definition_id,
@@ -268,6 +270,7 @@ impl IfccadEntityKind {
             Self::Leader(_) => 17,
             Self::MultiLeader(_) => 18,
             Self::Tolerance(_) => 19,
+            Self::Spline(_) => 20,
             Self::BlockInstance { .. } => 8,
             Self::Viewport(..) => 9,
             Self::Text(..) => 10,
@@ -283,6 +286,7 @@ impl IfccadEntityKind {
             Self::Leader(value) => encode_boxed_body(value, w),
             Self::MultiLeader(value) => encode_boxed_body(value, w),
             Self::Tolerance(value) => encode_boxed_body(value, w),
+            Self::Spline(value) => encode_boxed_body(value, w),
             Self::AttributeDefinition(v) => {
                 w.map(1)?;
                 w.u64(0)?;
@@ -855,6 +859,7 @@ impl IfccadEntityKind {
             17 => Ok(Self::Leader(decode_boxed_body(r)?)),
             18 => Ok(Self::MultiLeader(decode_boxed_body(r)?)),
             19 => Ok(Self::Tolerance(decode_boxed_body(r)?)),
+            20 => Ok(Self::Spline(decode_boxed_body(r)?)),
             _ => Err(r.error("unknown entity kind")),
         }
     }

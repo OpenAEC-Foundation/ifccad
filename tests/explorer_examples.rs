@@ -157,6 +157,7 @@ fn family(kind: &ifccad::IfccadEntityKind) -> &'static str {
         Leader(_) => "leader",
         MultiLeader(_) => "multiLeader",
         Tolerance(_) => "tolerance",
+        Spline(_) => "spline",
         Solid(_) => "solid",
         Trace(_) => "trace",
         Dimension(_) => "dimension",

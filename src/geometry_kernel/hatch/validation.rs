@@ -60,6 +60,14 @@ fn primitive(g: GeometryRef<'_>) -> Result<(), Reason> {
     })
 }
 
+pub(super) fn spline_reason(error: GeometryValidationError) -> Reason {
+    match error {
+        GeometryValidationError::BoundaryProofIncomplete => Reason::JoinProofIncomplete,
+        GeometryValidationError::EnclosureOutOfRange => Reason::EnclosureOutOfRange,
+        _ => Reason::InvalidParameters,
+    }
+}
+
 pub(super) fn parameters(boundary: &HatchBoundary2, index: usize) -> Result<(), Error> {
     let result = match boundary {
         HatchBoundary2::Circle { center, radius } => {
@@ -127,6 +135,25 @@ pub(super) fn parameters(boundary: &HatchBoundary2, index: usize) -> Result<(), 
             } else {
                 for (edge_index, edge) in edges.iter().enumerate() {
                     let value = match edge {
+                        HatchEdge2::Spline {
+                            control,
+                            fit,
+                            periodic,
+                        } => {
+                            if fit.as_ref().is_some_and(|f| !f.valid())
+                                || (!periodic
+                                    && matches!(
+                                        control.knots,
+                                        crate::geometry_kernel::SplineKnots::PeriodicCycle(_)
+                                    ))
+                            {
+                                Err(Reason::InvalidParameters)
+                            } else {
+                                crate::geometry_kernel::spline_exact::continuous_endpoints(control)
+                                    .map(|_| ())
+                                    .map_err(spline_reason)
+                            }
+                        }
                         HatchEdge2::Line { start, end } => primitive(GeometryRef::Line {
                             start: [start[0], start[1], 0.0],
                             end: [end[0], end[1], 0.0],

@@ -112,6 +112,17 @@ fn endpoint(edge: &HatchEdge2, end: bool) -> Result<Endpoint, Reason> {
             key: EndpointKey::Point(p),
             point: p.map(Range::point),
         })
+    } else if let HatchEdge2::Spline { control, .. } = edge {
+        let points = crate::geometry_kernel::spline_exact::continuous_endpoints(control)
+            .map_err(super::validation::spline_reason)?;
+        let p = &points[usize::from(end)];
+        Ok(Endpoint {
+            key: EndpointKey::ExactPoint(p.clone()),
+            point: p.each_ref().map(|v| Range {
+                lo: v.clone(),
+                hi: v.clone(),
+            }),
+        })
     } else {
         curve_endpoint(edge.curve().expect("arc"), end)
     }

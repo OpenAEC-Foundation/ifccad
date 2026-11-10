@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:example:ifccad:supplemental-values:0.7.0",
+  "$id": "urn:example:ifccad:supplemental-values:0.8.0",
   "title": "IFCCAD supplemental local value constraints",
   "$defs": {
     "mTextBackground": {
@@ -2956,6 +2956,28 @@
                       },
                       "sweepParameter": {
                         "type": "number"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "kind",
+                      "control"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "const": "spline"
+                      },
+                      "control": {
+                        "$ref": "#/$defs/splineBasis2"
+                      },
+                      "fit": {
+                        "$ref": "#/$defs/splineFit2"
+                      },
+                      "periodic": {
+                        "type": "boolean"
                       }
                     }
                   }
@@ -11658,6 +11680,296 @@
         "graph"
       ],
       "additionalProperties": false
+    },
+    "splineBasis2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "degree",
+        "knotKind",
+        "knots",
+        "points"
+      ],
+      "properties": {
+        "degree": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "knotKind": {
+          "enum": [
+            "full",
+            "periodicCycle"
+          ]
+        },
+        "knots": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        "points": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "weights": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    },
+    "splineFit2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "points"
+      ],
+      "properties": {
+        "points": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "startTangent": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        "endTangent": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        "tolerance": {
+          "type": "number",
+          "minimum": 0
+        },
+        "parameterization": {
+          "enum": [
+            "chord",
+            "centripetal",
+            "uniform",
+            "custom"
+          ]
+        }
+      }
+    },
+    "splineBasis3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "degree",
+        "knotKind",
+        "knots",
+        "points"
+      ],
+      "properties": {
+        "degree": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "knotKind": {
+          "enum": [
+            "full",
+            "periodicCycle"
+          ]
+        },
+        "knots": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        "points": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 3,
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "weights": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    },
+    "splineFit3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "points"
+      ],
+      "properties": {
+        "points": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 3,
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "startTangent": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "number"
+          }
+        },
+        "endTangent": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "number"
+          }
+        },
+        "tolerance": {
+          "type": "number",
+          "minimum": 0
+        },
+        "parameterization": {
+          "enum": [
+            "chord",
+            "centripetal",
+            "uniform",
+            "custom"
+          ]
+        }
+      }
+    },
+    "geometrySpline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "topology",
+        "definition"
+      ],
+      "properties": {
+        "topology": {
+          "enum": [
+            "open",
+            "closed",
+            "periodic"
+          ]
+        },
+        "definition": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "basis"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "control"
+                },
+                "basis": {
+                  "$ref": "#/$defs/splineBasis3"
+                },
+                "fit": {
+                  "$ref": "#/$defs/splineFit3"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "fit"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "fitOnly"
+                },
+                "degree": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "fit": {
+                  "$ref": "#/$defs/splineFit3"
+                }
+              }
+            }
+          ]
+        },
+        "normal": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "number"
+          }
+        },
+        "planar": {
+          "type": "boolean"
+        },
+        "linear": {
+          "type": "boolean"
+        },
+        "rational": {
+          "type": "boolean"
+        },
+        "knotTolerance": {
+          "type": "number",
+          "minimum": 0
+        },
+        "controlTolerance": {
+          "type": "number",
+          "minimum": 0
+        },
+        "authoringMode": {
+          "enum": [
+            "control",
+            "fit"
+          ]
+        },
+        "controlFrameVisible": {
+          "type": "boolean"
+        }
+      }
     }
   },
   "$comment": "Mandatory IFCCAD local supplements. Ordinary IFCX shapes, typed decoding and profile-rules graph/domain algorithms also apply. This is not a whole drawing schema or IFCX core syntax."

@@ -16,11 +16,17 @@ mod placement;
 mod polyline_width;
 mod polyline_width_bounds;
 mod primitive;
+mod spline;
+mod spline_exact;
 pub use polyline_width::{
     PlanarPolylineWidths, PolylineVertexWidthOverride, PolylineWidthValidationError,
 };
 pub use polyline_width_bounds::{
     polyline_width_display_bounds, PolylineWidthBoundsReason, PolylineWidthDisplayBounds,
+};
+pub use spline::{
+    PreparedSpline, SplineControl, SplineError, SplineFitData, SplineKnots, SplineLimit,
+    SplineParameterization,
 };
 mod trig;
 mod units;

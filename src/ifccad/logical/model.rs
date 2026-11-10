@@ -231,6 +231,7 @@ pub enum IfccadEntityKind {
     Leader(Box<super::IfccadLeader>),
     MultiLeader(Box<super::IfccadMultiLeader>),
     Tolerance(Box<super::IfccadTolerance>),
+    Spline(Box<super::IfccadSpline>),
     AttributeDefinition(Box<super::IfccadAttributeDefinition>),
     Solid(IfccadFilledQuadrilateral),
     Trace(IfccadFilledQuadrilateral),
@@ -307,6 +308,7 @@ impl IfccadEntityKind {
                 | Self::EllipseArc { .. }
                 | Self::PlanarPolyline { .. }
                 | Self::SpatialPolyline { .. }
+                | Self::Spline(_)
                 | Self::Text(_)
                 | Self::MText(_)
                 | Self::BlockInstance { .. }

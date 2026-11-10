@@ -18,6 +18,7 @@ mod hatch_pattern;
 mod hatch_values;
 mod line_pattern_values;
 mod presentation;
+mod spline;
 mod supplemental;
 mod text;
 mod text_layout;

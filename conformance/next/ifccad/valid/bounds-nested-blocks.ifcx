@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.7.0"
+      "uri": "urn:example:ifccad:0.8.0"
     }
   ],
   "schemas": {},
@@ -27,7 +27,7 @@
       "attributes": {
         "ifccad::drawing": {
           "lengthUnit": "cm",
-          "profileVersion": "0.7.0",
+          "profileVersion": "0.8.0",
           "nextEntityId": 109,
           "nextLayerId": 3,
           "nextLayoutId": 2,

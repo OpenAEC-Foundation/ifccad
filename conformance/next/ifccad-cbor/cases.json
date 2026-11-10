@@ -1,5 +1,5 @@
 {
-  "mappingRevision": 7,
+  "mappingRevision": 8,
   "cases": [
     {
       "file": "valid/empty.ifccad.cbor",
@@ -746,6 +746,11 @@
       "valid": false,
       "diagnostic": "invalid/leader-command-unit-body.ifccad.cbor.diag",
       "errorClass": "Malformed"
+    },
+    {
+      "file": "valid/spline-mixed.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/spline-mixed.ifccad.cbor.diag"
     }
   ]
 }

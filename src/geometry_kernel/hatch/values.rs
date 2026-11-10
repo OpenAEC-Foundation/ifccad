@@ -116,6 +116,11 @@ pub enum HatchBoundary2 {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum HatchEdge2 {
+    Spline {
+        control: crate::geometry_kernel::SplineControl<2>,
+        fit: Option<crate::geometry_kernel::SplineFitData<2>>,
+        periodic: bool,
+    },
     Line {
         start: [f64; 2],
         end: [f64; 2],
@@ -185,7 +190,7 @@ pub(super) struct Curve {
 impl HatchEdge2 {
     pub(super) fn curve(&self) -> Option<Curve> {
         match *self {
-            Self::Line { .. } => None,
+            Self::Line { .. } | Self::Spline { .. } => None,
             Self::CircularArc {
                 center,
                 radius,
@@ -221,6 +226,7 @@ impl HatchEdge2 {
 #[derive(Clone, Debug, PartialEq)]
 pub(super) enum EndpointKey {
     Point([f64; 2]),
+    ExactPoint([BigRational; 2]),
     Curve {
         center: [f64; 2],
         x_axis: [f64; 2],

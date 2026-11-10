@@ -181,7 +181,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         path: prefix.clone(),
         children: Some(drawing_children),
         attributes: attrs(json!({"ifccad::drawing":{
-            "profileVersion":"0.7.0","lengthUnit":document.length_unit,"attributeVisibility":document.attribute_visibility,
+            "profileVersion":"0.8.0","lengthUnit":document.length_unit,"attributeVisibility":document.attribute_visibility,
             "linePatternScale":document.line_pattern_scale,
 
             "nextEntityId":document.id_counters.next_entity_id,

@@ -1,6 +1,6 @@
 {
   "format": "IFCCAD-CBOR",
-  "mappingRevision": 7,
+  "mappingRevision": 8,
   "rootType": "IfccadDocument",
   "types": {
     "IfccadDocument": {
@@ -3745,6 +3745,19 @@
               "presence": "required"
             }
           ]
+        },
+        {
+          "code": 20,
+          "name": "Spline",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Box<IfccadSpline>",
+              "presence": "required"
+            }
+          ]
         }
       ],
       "dependencies": [
@@ -3771,7 +3784,8 @@
         "Box<IfccadAttributeDefinition>",
         "Box<IfccadLeader>",
         "Box<IfccadMultiLeader>",
-        "Box<IfccadTolerance>"
+        "Box<IfccadTolerance>",
+        "Box<IfccadSpline>"
       ]
     },
     "IfccadEntityAppearance": {
@@ -9938,11 +9952,40 @@
               "presence": "required"
             }
           ]
+        },
+        {
+          "code": 3,
+          "name": "Spline",
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "control",
+              "type": "SplineControl<2>",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "fit",
+              "type": "Option<IfccadSplineFitData<2>>",
+              "presence": "optional"
+            },
+            {
+              "code": 2,
+              "name": "periodic",
+              "type": "bool",
+              "presence": "defaulted",
+              "default": false
+            }
+          ]
         }
       ],
       "dependencies": [
         "[f64;2]",
-        "f64"
+        "f64",
+        "SplineControl<2>",
+        "Option<IfccadSplineFitData<2>>",
+        "bool"
       ]
     },
     "Vec<HatchDash>": {
@@ -17353,6 +17396,440 @@
       ],
       "dependencies": [
         "IfccadAnnotation<IfccadToleranceAnnotationContext>"
+      ]
+    },
+    "IfccadSplineTopology": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Open",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "Closed",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 2,
+          "name": "Periodic",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadSplineParameterization": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Chord",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "Centripetal",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 2,
+          "name": "Uniform",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 3,
+          "name": "Custom",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadSplineAuthoringMode": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Control",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "Fit",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "Vec<LinePoint>": {
+      "kind": "list",
+      "items": [
+        "LinePoint"
+      ],
+      "dependencies": [
+        "LinePoint"
+      ]
+    },
+    "SplineKnots": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "kind",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "knots",
+          "type": "Vec<f64>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "Vec<f64>"
+      ]
+    },
+    "Option<Vec<f64>>": {
+      "kind": "optional",
+      "items": [
+        "Vec<f64>"
+      ],
+      "dependencies": [
+        "Vec<f64>"
+      ]
+    },
+    "SplineControl<2>": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "degree",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "knots",
+          "type": "SplineKnots",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "points",
+          "type": "Vec<[f64;2]>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "weights",
+          "type": "Option<Vec<f64>>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "SplineKnots",
+        "Vec<[f64;2]>",
+        "Option<Vec<f64>>"
+      ]
+    },
+    "Option<IfccadSplineParameterization>": {
+      "kind": "optional",
+      "items": [
+        "IfccadSplineParameterization"
+      ],
+      "dependencies": [
+        "IfccadSplineParameterization"
+      ]
+    },
+    "IfccadSplineFitData<2>": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "points",
+          "type": "Vec<[f64;2]>",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "start_tangent",
+          "type": "Option<[f64;2]>",
+          "presence": "optional"
+        },
+        {
+          "code": 2,
+          "name": "end_tangent",
+          "type": "Option<[f64;2]>",
+          "presence": "optional"
+        },
+        {
+          "code": 3,
+          "name": "tolerance",
+          "type": "Option<f64>",
+          "presence": "optional"
+        },
+        {
+          "code": 4,
+          "name": "parameterization",
+          "type": "Option<IfccadSplineParameterization>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "Vec<[f64;2]>",
+        "Option<[f64;2]>",
+        "Option<f64>",
+        "Option<IfccadSplineParameterization>"
+      ]
+    },
+    "SplineControl<3>": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "degree",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "knots",
+          "type": "SplineKnots",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "points",
+          "type": "Vec<LinePoint>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "weights",
+          "type": "Option<Vec<f64>>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "SplineKnots",
+        "Vec<LinePoint>",
+        "Option<Vec<f64>>"
+      ]
+    },
+    "IfccadSplineFitData<3>": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "points",
+          "type": "Vec<LinePoint>",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "start_tangent",
+          "type": "Option<[f64;3]>",
+          "presence": "optional"
+        },
+        {
+          "code": 2,
+          "name": "end_tangent",
+          "type": "Option<[f64;3]>",
+          "presence": "optional"
+        },
+        {
+          "code": 3,
+          "name": "tolerance",
+          "type": "Option<f64>",
+          "presence": "optional"
+        },
+        {
+          "code": 4,
+          "name": "parameterization",
+          "type": "Option<IfccadSplineParameterization>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "Vec<LinePoint>",
+        "Option<[f64;3]>",
+        "Option<f64>",
+        "Option<IfccadSplineParameterization>"
+      ]
+    },
+    "IfccadSplineDefinition": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Control",
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "basis",
+              "type": "SplineControl<3>",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "fit",
+              "type": "Option<IfccadSplineFitData<3>>",
+              "presence": "optional"
+            }
+          ]
+        },
+        {
+          "code": 1,
+          "name": "FitOnly",
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "degree",
+              "type": "Option<u32>",
+              "presence": "optional"
+            },
+            {
+              "code": 1,
+              "name": "fit",
+              "type": "IfccadSplineFitData<3>",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "SplineControl<3>",
+        "Option<IfccadSplineFitData<3>>",
+        "Option<u32>",
+        "IfccadSplineFitData<3>"
+      ]
+    },
+    "Option<IfccadSplineFitData<3>>": {
+      "kind": "optional",
+      "items": [
+        "IfccadSplineFitData<3>"
+      ],
+      "dependencies": [
+        "IfccadSplineFitData<3>"
+      ]
+    },
+    "Option<IfccadSplineAuthoringMode>": {
+      "kind": "optional",
+      "items": [
+        "IfccadSplineAuthoringMode"
+      ],
+      "dependencies": [
+        "IfccadSplineAuthoringMode"
+      ]
+    },
+    "IfccadSpline": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "definition",
+          "type": "IfccadSplineDefinition",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "topology",
+          "type": "IfccadSplineTopology",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "normal",
+          "type": "Option<[f64;3]>",
+          "presence": "optional"
+        },
+        {
+          "code": 3,
+          "name": "planar",
+          "type": "Option<bool>",
+          "presence": "optional"
+        },
+        {
+          "code": 4,
+          "name": "linear",
+          "type": "Option<bool>",
+          "presence": "optional"
+        },
+        {
+          "code": 5,
+          "name": "rational",
+          "type": "Option<bool>",
+          "presence": "optional"
+        },
+        {
+          "code": 6,
+          "name": "knot_tolerance",
+          "type": "Option<f64>",
+          "presence": "optional"
+        },
+        {
+          "code": 7,
+          "name": "control_tolerance",
+          "type": "Option<f64>",
+          "presence": "optional"
+        },
+        {
+          "code": 8,
+          "name": "authoring_mode",
+          "type": "Option<IfccadSplineAuthoringMode>",
+          "presence": "optional"
+        },
+        {
+          "code": 9,
+          "name": "control_frame_visible",
+          "type": "Option<bool>",
+          "presence": "optional"
+        }
+      ],
+      "dependencies": [
+        "IfccadSplineDefinition",
+        "IfccadSplineTopology",
+        "Option<[f64;3]>",
+        "Option<bool>",
+        "Option<f64>",
+        "Option<IfccadSplineAuthoringMode>"
+      ]
+    },
+    "Box<IfccadSpline>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadSpline"
+      ],
+      "dependencies": [
+        "IfccadSpline"
+      ]
+    },
+    "Option<IfccadSplineFitData<2>>": {
+      "kind": "optional",
+      "items": [
+        "IfccadSplineFitData<2>"
+      ],
+      "dependencies": [
+        "IfccadSplineFitData<2>"
       ]
     }
   }

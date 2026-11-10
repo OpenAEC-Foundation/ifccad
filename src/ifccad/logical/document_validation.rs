@@ -221,6 +221,7 @@ fn validate_document_inner(
             })?;
         }
         match &entity.kind {
+            IfccadEntityKind::Spline(value) => value.validate_at(&path)?,
             IfccadEntityKind::AttributeDefinition(_) => {}
             IfccadEntityKind::Dimension(_) => {}
             IfccadEntityKind::Leader(_)

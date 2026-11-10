@@ -25,6 +25,15 @@ impl IfccadEntityKind {
     /// Borrows primitive geometry without copying entity identity or file fields.
     pub fn as_shared_geometry(&self) -> Result<Option<G<'_>>, IfccadReport> {
         Ok(Some(match self {
+            Self::Spline(value) => {
+                let Some(control) = value.control_basis() else {
+                    return Ok(None);
+                };
+                G::Spline {
+                    control,
+                    closed: value.topology != IfccadSplineTopology::Open,
+                }
+            }
             Self::Solid(v) | Self::Trace(v) => G::FilledQuadrilateral {
                 placement: v.placement.coordinate_frame().map_err(|e| {
                     crate::ifccad::diagnostics::failure(

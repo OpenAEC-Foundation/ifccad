@@ -198,6 +198,11 @@ const ENTRIES: &[(&str, &str, &str)] = &[
         "geometrySpatialExtras",
         "IFCCAD-GEOMETRY-003",
     ),
+    (
+        "ifccad::geom::spline",
+        "geometrySpline",
+        "IFCCAD-SPLINE-001",
+    ),
     ("ifccad::viewport", "viewportExtras", "IFCCAD-VIEWPORT-002"),
     ("ifccad::textStyle", "textStyle", "IFCCAD-TEXT-001"),
     ("ifccad::text", "text", "IFCCAD-TEXT-002"),
@@ -267,7 +272,7 @@ pub(super) fn validate_value(
     static VALIDATORS: OnceLock<BTreeMap<&str, jsonschema::Validator>> = OnceLock::new();
     let validators = VALIDATORS.get_or_init(|| {
         let base: Value = serde_json::from_str(include_str!(
-            "../../../../schemas/ifccad/supplemental-values-0.7.0.schema.json"
+            "../../../../schemas/ifccad/supplemental-values-0.8.0.schema.json"
         ))
         .expect("bundled IFCCAD supplements");
         ENTRIES

@@ -1,8 +1,8 @@
 {
   "header": {
-    "id": "urn:example:ifccad:0.7.0",
+    "id": "urn:example:ifccad:0.8.0",
     "ifcxVersion": "ifcx_alpha",
-    "dataVersion": "0.7.0",
+    "dataVersion": "0.8.0",
     "author": "OpenAEC",
     "timestamp": "2026-09-29T00:00:00Z"
   },
@@ -1535,6 +1535,11 @@
             }
           }
         }
+      }
+    },
+    "ifccad::geom::spline": {
+      "value": {
+        "dataType": "Object"
       }
     },
     "ifccad::geom::spatialPolyline": {

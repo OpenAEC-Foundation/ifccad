@@ -13,11 +13,14 @@ pub enum GeometryValidationError {
     UnsupportedBoundary,
     #[error("entire boundary must lie in Paper Z=0 inside the frame")]
     BoundaryOutsideFrame,
+    #[error("boundary containment could not be certified")]
+    BoundaryProofIncomplete,
 }
 
 pub(crate) fn validate_parameters(g: GeometryRef<'_>) -> Result<(), GeometryValidationError> {
     super::extrusion::validate(g)?;
     let good = match g {
+        GeometryRef::Spline { control, .. } => control.prepare().is_ok(),
         GeometryRef::FilledQuadrilateral {
             corners, thickness, ..
         } => return super::filled::validate(corners, thickness),
@@ -59,7 +62,13 @@ pub fn validate_paper_boundary(
     f: PaperFrame,
     g: GeometryRef<'_>,
 ) -> Result<(), GeometryValidationError> {
-    paper_frame_bounds(f)?;
+    let frame_bounds = paper_frame_bounds(f)?;
+    if let GeometryRef::Spline { control, closed } = g {
+        if !closed {
+            return Err(GeometryValidationError::UnsupportedBoundary);
+        }
+        return super::spline_exact::validate_clip(control, frame_bounds);
+    }
     let eligible = match g {
         GeometryRef::Circle { .. } | GeometryRef::Ellipse { arc: None, .. } => true,
         GeometryRef::PlanarPolyline {
