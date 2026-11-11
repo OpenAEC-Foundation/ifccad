@@ -62,6 +62,18 @@ index 666dfaace..c5c0ceb49 100644
      crate::io::set_drawing_variable(&mut scene.document, "CANNOSCALE", &name);
  }
  
+diff --git a/src/entities/table.rs b/src/entities/table.rs
+index 7573828a2..cf5a3f74d 100644
+--- a/src/entities/table.rs
++++ b/src/entities/table.rs
+@@ -4722,6 +4722,7 @@ mod tests {
+             text.aabb[2]
+         );
+         assert!(text.aabb[0] >= 0.0, "text starts at {}", text.aabb[0]);
++    }
+ 
+     /// A file keeps where each cell's text sat when it was saved. That
+     /// placement holds only while the table is as the file left it: once
 diff --git a/src/io/mod.rs b/src/io/mod.rs
 index 6cd985857..253342dd9 100644
 --- a/src/io/mod.rs
