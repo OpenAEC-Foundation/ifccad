@@ -13,7 +13,7 @@ During alpha, later releases may be unable to open earlier IFCCAD files;
 backward compatibility and migration are not guaranteed. See the
 [alpha compatibility policy](docs/alpha-compatibility.md) and
 [release/version policy](docs/releases.md). The current native source alpha is
-[2026.45.2](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.45.2).
+[2026.46.0](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.46.0).
 Its attached artifacts contain only the native core. Explorer and CAD conversion
 are delivered separately from the native artifacts.
 See the [vision](docs/vision.md) for the long-term direction and the
@@ -47,17 +47,11 @@ The core owns construction, shared validation, encoding and file IO and has no C
 runtime dependency. JSON/IFCX and experimental base-CBOR use the same logical
 model. The first alpha publishes profile 0.1.0, CBOR mapping revision 1 and
 optional native Zstd transport revision 1. Those tagged contracts are fixed.
-The current 2026.45.2 alpha adds Text/MText block attributes and stored attribute
-fields in profile 0.6.0 and CBOR mapping 6. Annotation contexts and exact font/SHX
-requests remain supported. Zstd transport 1 remains unchanged. Subsequent
-normative changes follow the release policy.
-The active development slice adds the [Leader family](docs/leaders.md) in
-profile 0.7.0 / CBOR7: classic Leader, owned MultiLeader parts and supporting
-Tolerance, with paired Document conversion and saved graphics. Physical owned
-MLeader tolerance content remains explicitly unqualified. This is not a new
-published release or a complete editing/rendering qualification.
-The `ifccad-cbor-zstd` core feature is optional. The browser enables it for explicit
-experimental CBOR + Zstd downloads; ordinary IFCX download remains the default choice.
+Release 2026.46.0 adds the [Leader family](docs/leaders.md) and native splines
+in profile 0.8.0 and CBOR mapping 8. Leaders retain owned parts and supplied
+graphics. Splines cover standalone geometry, Hatch edges and Paper viewport
+clips. Block attributes, annotation contexts and exact font/SHX requests remain
+supported. Optional Zstd uses transport revision 1.
 
 Neutral geometry, color, text, dimension, line-pattern, plot and workspace kernels
 remain in the core. Active DWG/DXF exchange belongs to the shared

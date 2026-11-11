@@ -7,6 +7,8 @@ pub(crate) struct ConversionOptions {
     pub partial_open: bool,
     #[serde(default, rename = "lossPolicy")]
     pub loss_policy: ExportLossPolicy,
+    #[serde(default, rename = "splineLossPolicy")]
+    pub spline_loss_policy: ExportLossPolicy,
     #[serde(default, rename = "preserveSplines")]
     pub preserve_splines: bool,
     #[serde(default)]
@@ -83,7 +85,11 @@ impl ConversionOptions {
                 value
             }
         };
-        json!({"partialOpen":self.partial_open,"preserveSplines":self.preserve_splines,"tolerance":tolerance,"lossPolicy":self.loss_policy})
+        let mut value = json!({"partialOpen":self.partial_open,"preserveSplines":self.preserve_splines,"tolerance":tolerance,"lossPolicy":self.loss_policy});
+        if self.spline_loss_policy != ExportLossPolicy::Allow {
+            value["splineLossPolicy"] = json!(self.spline_loss_policy);
+        }
+        value
     }
 }
 

@@ -133,6 +133,7 @@ def main():
         if Path(pins['hostPatch']).name != pins['hostPatch']:
             raise SystemExit('Host patch must be a file in ocs-inputs')
         apply_host_patch(checkout, INPUTS / pins['hostPatch'])
+    if pins.get('hostPatch') == 'block-attributes.patch':
         for source, target in [('block_attributes_smoke.rs', 'src/app/block_attributes_smoke.rs'),
                                ('block-attributes.ifcx', 'tests/fixtures/ifccad-block-attributes.ifcx')]:
             (checkout / target).write_bytes((INPUTS / source).read_bytes())
@@ -146,11 +147,11 @@ def main():
             text = module.read_text(encoding='utf-8')
             if 'mod leaders_smoke;' not in text:
                 module.write_text(text + '\n#[cfg(test)]\nmod leaders_smoke;\n', encoding='utf-8')
-    manifests = ["Cargo.toml", "crates/ocs_save/Cargo.toml", "crates/ocs_web_worker/Cargo.toml", "crates/ocs_plugin_api/Cargo.toml"]
+    manifests = ["Cargo.toml", "crates/ocs_save/Cargo.toml", "crates/ocs_web_worker/Cargo.toml", "crates/ocs_plugin_api/Cargo.toml", "crates/ocs_acis/Cargo.toml"]
     for name in manifests:
         path = checkout / name
         text = path.read_text()
-        pattern = r'(codec\s*=\s*\{[^\n]*package\s*=\s*"opencaddocument"[^\n]*git\s*=\s*")[^"]+("[^\n]*rev\s*=\s*")[^"]+("[^\n]*\})'
+        pattern = r'((?:codec|document)\s*=\s*\{[^\n]*package\s*=\s*"opencaddocument"[^\n]*git\s*=\s*")[^"]+("[^\n]*rev\s*=\s*")[^"]+("[^\n]*\})'
         text, count = re.subn(pattern, lambda m: m[1] + pins["documentRepository"] + m[2] + pins["documentCommit"] + m[3], text)
         expected = 2 if name == "crates/ocs_plugin_api/Cargo.toml" else 1
         if count != expected:
@@ -184,13 +185,14 @@ def main():
     elif '"${worker_target_dir}/wasm32-unknown-unknown/release/ocs_web_worker.wasm"' not in text:
         raise SystemExit("Unexpected parser-worker artifact path")
     if "kernelCommit" in pins:
-        path = checkout / "Cargo.toml"
-        text, count = re.subn(
-            r'(kernel(?:-constraints)?\s*=\s*\{[^\n]*rev\s*=\s*")[^"]+("[^\n]*\})',
-            lambda m: m[1] + pins["kernelCommit"] + m[2], path.read_text())
-        if count != 2:
-            raise SystemExit("Expected both kernel dependencies in Studio root")
-        path.write_text(text)
+        for name, expected in [("Cargo.toml", 2), ("crates/ocs_acis/Cargo.toml", 1)]:
+            path = checkout / name
+            text, count = re.subn(
+                r'(kernel(?:-constraints)?\s*=\s*\{[^\n]*rev\s*=\s*")[^"]+("[^\n]*\})',
+                lambda m: m[1] + pins["kernelCommit"] + m[2], path.read_text())
+            if count != expected:
+                raise SystemExit(f"Expected {expected} kernel dependencies in {name}")
+            path.write_text(text)
     lock = INPUTS / "Cargo.lock"
     if args.record_lock:
         INPUTS.mkdir(exist_ok=True)

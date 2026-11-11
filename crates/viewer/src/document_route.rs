@@ -1,14 +1,15 @@
 //! Explorer's shared Studio mapping. The reference converter is not a fallback.
 use crate::{fail, ifccad_input, options, result};
 use ifccad::IfccadDocument;
+use opencaddocument::SplineExchangeTarget;
 use opencaddocument::{Document, Dwg, Dxf, DxfVersion, Format, IfccadImportOutcome, Ifcx, Loss};
 use serde_json::{json, Value};
 use std::{collections::BTreeMap, path::Path};
 
-const LIMITATIONS: &str = "Shared Studio mapping: numerical error bounds and rendered appearance are unassessed. Partial recovery, spline preservation and Reject policy are unavailable. Reported losses are not an exhaustive preservation audit.";
+const LIMITATIONS: &str = "Shared Studio mapping: numerical error bounds and rendered appearance are unassessed. Partial recovery, opaque spline preservation and drawing-wide Reject policy are unavailable. Spline export has its own loss policy.";
 
 pub fn document_capabilities() -> Value {
-    json!({"ifccad":{"backend":"opencaddocument","revision":"e7b79f163e1a4e847f3f98109021a5671683b342","revisionKind":"gitRevisionWithLocalPatch","profileVersion":"0.7.0","cborMappingRevision":7,"developmentPatch":"leader-slice","partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
+    json!({"ifccad":{"backend":"opencaddocument","revision":"b7f02ad6baa54ce52086aedd2169bfaa2e54dee1","revisionKind":"gitRevision","profileVersion":"0.8.0","cborMappingRevision":8,"partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"nativeSplines":true,"splineLossRejection":true,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
 }
 
 fn parse_options(
@@ -302,6 +303,24 @@ pub fn document_export_ifccad(
             .map_err(|e| e.to_string())?;
         let codec = format(cad_format)?;
         imported.document.version = target;
+        let spline_target = if cad_format == "dwg" {
+            SplineExchangeTarget::Dwg
+        } else {
+            SplineExchangeTarget::Dxf
+        };
+        if let Err(losses) = imported.prepare_spline_exchange(
+            spline_target,
+            options.spline_loss_policy == options::ExportLossPolicy::Reject,
+        ) {
+            output["conversion"] = json!({
+                "backend":"opencaddocument",
+                "diagnostics":diagnostics(&[imported.losses, losses].concat()),
+                "geometryAssessment":{"status":"unassessed"}
+            });
+            return Err(
+                "Spline exchange cannot satisfy the requested CAD target and loss policy".into(),
+            );
+        }
         output["conversion"] = json!({"backend":"opencaddocument","diagnostics":diagnostics(&imported.losses),"geometryAssessment":{"status":"unassessed"}});
         crate::progress("writing");
         let (written, mut losses) = codec.write(&imported.document).map_err(|e| e.to_string())?;

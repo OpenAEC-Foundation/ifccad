@@ -61,6 +61,7 @@ for(const example of examples){
   'House floor plan':['10000','6100','3900','12000'],
   'Entity catalogue':['18','21.63','15','30','90','90','9','23.56','15'],
   'Block attributes':[],
+  'Native splines':[],
  }[example.name].sort();
  assert.deepEqual(opened.presentation.dimensions.map(d=>d.geometry.label.primary).sort(),labels);
  if(example.name==='Block attributes'){
@@ -81,6 +82,13 @@ for(const example of examples){
   assert.ok(attributes.values.some(row=>row.value.fields));
  }
  if(example.name==='Entity catalogue')for(const type of ['point','lineSegment','circle','arc','ellipse','ellipseArc','planarPolyline','spatialPolyline','text','mText','hatch','dimension','blockInstance','viewport','solid','trace'])assert.ok([...model.nodes.values()].some(node=>node.type===type),type);
+ if(example.name==='Native splines'){
+  assert.equal(opened.presentation.graph.data.filter(node=>node.attributes?.['ifccad::geom::spline']).length,4);
+  const strict={...source,exportConversionOptions:{splineLossPolicy:'reject'}};
+  const blocked=processBrowserRequest(nativeExportRequest(strict,opened,{format:'dwg',version:'AC1032'}),wasm);
+  assert.equal(Boolean(blocked.export?.download),false);
+  assert.ok(blocked.conversion.diagnostics.some(row=>row.message.includes('omits the fit data')));
+ }
  for(const encoding of ['cbor','cbor-zstd']){
   const saved=checked(nativeExportRequest(source,opened,{format:'ifccad',encoding})).export.download;
   const binary=request(saved.fileName,bytesOf(saved)),decoded=checked(binary);
@@ -116,6 +124,10 @@ for(const example of examples){
     const index=remaining.findIndex(row=>returnedModel.nodes.get(row.path).type===type&&row.thickness===sweep.thickness&&row.direction.every((v,i)=>Math.abs(v-sweep.direction[i])<1e-9));
     assert.notEqual(index,-1,'missing signed sweep '+type+' '+sweep.thickness);remaining.splice(index,1);
    }
+  }
+  if(example.name==='Native splines'){
+   assert.equal(returned.presentation.graph.data.filter(node=>node.attributes?.['ifccad::geom::spline']).length,4);
+   assert.equal(exported.conversion.diagnostics.some(row=>row.message.includes('omits the fit data')),format==='dwg');
   }
   assert.equal(returned.conversion.backend,'opencaddocument');
   assert.ok(returned.conversion.diagnostics.some(row=>row.code==='DOCUMENT_MIGRATION_LIMITS'));
@@ -168,8 +180,9 @@ for(const options of [{tolerance:{mode:'exact'}},{tolerance:{mode:'custom',value
 }
 const spline=await readFile(new URL('../../crates/viewer/tests/fixtures/open-cubic.dxf',import.meta.url));
 const splineOpened=checked(request('spline.dxf',spline,'cad'));
-assert.ok(splineOpened.conversion.diagnostics.some(row=>row.code==='DOCUMENT_CONVERSION_LOSS'));
-assert.equal(splineOpened.presentation.opaqueEntityCount,0,'no opaque preservation is claimed');
+assert.ok(!splineOpened.conversion.diagnostics.some(row=>row.code==='DOCUMENT_CONVERSION_LOSS'));
+assert.ok(splineOpened.presentation.graph.data.some(node=>node.attributes?.['ifccad::geom::spline']));
+assert.equal(splineOpened.presentation.opaqueEntityCount,0,'the spline is stored as native geometry');
 assert.throws(()=>processBrowserRequest({...request('spline.dxf',spline,'cad'),preserveSplines:true},wasm),/preservation|unavailable/i);
 console.log('Shared-route limits, exact native downloads and native inspection verified; numerical/visual fidelity remains unassessed.');
 

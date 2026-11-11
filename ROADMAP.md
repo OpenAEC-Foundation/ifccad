@@ -152,23 +152,13 @@ pass on the explicit pair. Official Document PR #12 is merged; the thickness
 codec support revision remains explicitly pinned in the user fork. Necessary field/context relations are
 included; MINSERT and dynamic blocks are deferred. See [attributes](docs/block-attributes.md).
 
-The active next slice is the [Leader family](docs/leaders.md): separate ordinary
-Leader, MultiLeader and supporting Tolerance, owned branches/content/labels,
-independent scale presentations and typed saved graphics, paired with Document
-and the codec. Its development contract is profile 0.7.0 / CBOR7. Focused native,
-mapping and physical readback evidence is recorded; final gates and host
-qualification remain pending. Owned MLeader tolerance content is native, but its
-physical payload remains an explicit open qualification point. An H1 self-writer
-experiment does not close it. Tables and dynamic-block authoring stay later,
+Release 2026.46.0 integrates the [Leader family](docs/leaders.md) and native
+splines under [#4](https://github.com/OpenAEC-Foundation/ifccad/issues/4) in
+profile 0.8.0 / CBOR8. Explorer uses the merged Document and Studio route with
+an official codec revision. Owned MLeader tolerance content is native. Its
+physical payload remains an open qualification point. Layer states, groups and
+filters still need their own contract. Tables and dynamic-block authoring remain
 separate slices under [#2](https://github.com/OpenAEC-Foundation/ifccad/issues/2).
-Native splines need their own profile under
-[#4](https://github.com/OpenAEC-Foundation/ifccad/issues/4). They are largely
-independent of resource resolution, but are not selected ahead of the resource
-foundation without a concrete use case justifying that priority. Neither generic
-preservation nor a complete font system is a prerequisite for native splines.
-The historical opaque spline pilot is not a native evaluable spline model or a
-general preservation protocol. Layer states/groups/filters also need a bounded
-contract rather than an unqualified extension of layer flags.
 
 **Exit criteria per slice:** logical meaning and dependencies agreed; shared
 validation, native mappings, source-detail/loss rules and production-reader/CAD

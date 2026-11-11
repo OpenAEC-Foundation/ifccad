@@ -9,13 +9,38 @@ use serde_json::Value;
 #[test]
 fn capabilities_identify_the_selected_native_contract() {
     let caps = viewer::document_capabilities();
-    assert_eq!(caps["ifccad"]["profileVersion"], "0.7.0");
-    assert_eq!(caps["ifccad"]["cborMappingRevision"], 7);
+    assert_eq!(caps["ifccad"]["profileVersion"], "0.8.0");
+    assert_eq!(caps["ifccad"]["cborMappingRevision"], 8);
     let pins: Value =
         serde_json::from_str(include_str!("../../../format-explorer/ocs-source.json")).unwrap();
     let revision = pins["explorerDocumentCommit"].as_str().unwrap();
     assert_eq!(caps["ifccad"]["revision"], revision);
     assert!(include_str!("../Cargo.toml").contains(&format!("rev = \"{revision}\"")));
+}
+
+#[test]
+fn strict_spline_export_stops_before_creating_a_dwg_download() {
+    let bytes = include_bytes!("../../../conformance/next/ifccad/valid/spline-mixed.ifcx");
+    let ordinary = viewer::document_export_ifccad("spline.ifcx", bytes, "dwg", "AC1032", "{}");
+    assert!(ordinary["export"]["download"]["base64"].is_string());
+    let strict = viewer::document_export_ifccad(
+        "spline.ifcx",
+        bytes,
+        "dwg",
+        "AC1032",
+        r#"{"splineLossPolicy":"reject"}"#,
+    );
+    assert!(strict["export"]["download"].is_null());
+    assert!(strict["conversion"]["diagnostics"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|row| {
+            row["handle"].is_string()
+                && row["message"]
+                    .as_str()
+                    .is_some_and(|s| s.contains("omits the fit data"))
+        }));
 }
 
 fn line() -> Vec<u8> {

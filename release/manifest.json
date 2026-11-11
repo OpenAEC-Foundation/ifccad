@@ -1,5 +1,5 @@
 {
-  "softwareVersion": "2026.45.2",
+  "softwareVersion": "2026.46.0",
   "channel": "alpha",
   "profileVersion": "0.8.0",
   "profileImport": "urn:example:ifccad:0.8.0",
@@ -17,7 +17,8 @@
     "scripts/tests/test_prepare_release.py",
     "docs/releases/2026.45.0.md",
     "docs/releases/2026.45.1.md",
-    "docs/releases/2026.45.2.md"
+    "docs/releases/2026.45.2.md",
+    "docs/releases/2026.46.0.md"
   ],
   "scope": "native ifccad core only"
 }

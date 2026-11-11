@@ -17,9 +17,9 @@ on `ifccad-convert` or its reference codec.
 | Located losses | Original messages/optional handles retained | Most upstream losses are aggregated and unlocated |
 | Reader recovery | Backend-default read and notifications | No reference dictionary audit or entity-local recovery qualification |
 | Numerical accuracy | No automatic parameter quantization; runtime error bounds unassessed | No old tolerance intervals, hard-error bounds or numeric guarantees |
-| Spline preservation | Unavailable | Source splines may be reported/omitted, no opaque capture guarantee |
+| Native spline exchange | Official pins, profile 0.8.0 / CBOR 8 | Standalone control and fit definitions, Hatch edges and Paper spline clip references use typed conversion. Coverage depends on the physical target. |
 | Partial opening | Unavailable | Explicit requests rejected |
-| Reject policy | Unavailable | Explicit requests rejected; loss detection is incomplete |
+| Reject policy | Spline export preflight only | The separate spline policy refuses detected spline losses before CAD write. Drawing-wide rejection remains unavailable. |
 | Physical CAD readback | Real reader/version check + strict native projection | Entity kinds/counts only; complete semantic fidelity unassessed |
 | IFCX host selection | Explicit typed import maps, exact owner/layout and current session checks | No physical serialization/readback needed; excludes shared block contents |
 | Host rendering | Unassessed | Known foundation dimension-text observation remains unresolved |
@@ -46,6 +46,19 @@ polyline width dependencies, Hatch file restrictions or physical setter checks.
 Those old contracts remain reference contracts, never implicit new-route claims.
 The new route suppresses reference export preflights instead of attributing their
 codec qualification to another codec. Actual upstream notices/losses are shown.
+
+For standalone splines with both definitions the DWG route prepares the
+control-point record and reports omitted fit data. DXF can carry both
+definitions. The compact periodic mapping expands to an exact full binary64
+basis only when each derived knot is representable. An already clamped basis
+retains its points and knots. Hatch edge fit data is version-dependent.
+Active viewport clips retain the boundary reference and require proof over
+the whole spline.
+
+Stored fit data describes the current definition. The editor owns changes to
+that data, feedback and Undo. A picture supplied by Document, including one
+stored by Studio, is carried as independent presentation data. Leader source
+points remain separate from supplied pictures and from curve reconstruction.
 
 Preview consumes the exact validated snapshot supplied by opening. IFCX download
 uses that snapshot too. Downloads do not reconvert the original CAD; output-only
@@ -283,9 +296,9 @@ is used. Byte-hashed patch, source pins, lockfile and build provenance qualify
 the host main/worker pair. Existing accepted sample/gallery evidence and bounded
 editing/ATTSYNC checks do not imply general editor or whole-file fidelity.
 
-## Leader slice (development candidate)
+## Leader and spline release
 
-The untagged profile 0.7.0 / CBOR7 candidate adds separate Leader, MultiLeader
+The 2026.46.0 alpha uses profile 0.8.0 / CBOR8 and adds separate Leader, MultiLeader
 and Tolerance kinds. MultiLeader presentations own their branches, content,
 direct block labels and saved graphics; those parts are IFCX children without
 ordinary CAD entity identities. Classic Leader annotation targets remain
@@ -293,16 +306,12 @@ ordinary same-owner entities, including shared Tolerance targets. DIMLDRBLK,
 MLeader styles, typed override presence and scale presentations are independent.
 See [the leader contract](../leaders.md).
 
-The active development pair explicitly patches Document e7b79f16 and codec
-0f20af02 with the local leader slice. These are qualified local sources, not
-unmodified upstream revisions. Strict production readback covers native
-IFCX/CBOR and physical AC1032 DWG, ASCII DXF and binary DXF. One grouped gallery
-and sample_AC1032 exercise this route; review evidence and final gate status
-remain in the local task record. The bounded host lifecycle passes from both
-IFCX and DWG: MLeader text editing, a committed grip, undo/redo, saved-picture
-invalidation/restoration and strict native save/reopen retain shared ordinary
-Leader targets. A no-op keeps the picture. This qualifies those exercised
-operations only; final browser/main-worker qualification remains separate.
+The release uses Document `b7f02ad6`, codec `acad0df2` and Studio `668ae67b`.
+The Studio build also applies the pinned host patch for saved-picture
+invalidation, scale references, headless IFCX opening and the worker protocol.
+Strict production readback covers IFCX/CBOR and physical AC1032 DWG and DXF.
+The grouped examples and sample_AC1032 record the specific exchange cases
+exercised. Full appearance and complete CAD fidelity remain unassessed.
 
 Owned MLeader tolerance content is preserved natively. Its physical CAD payload
 is explicitly open: the provisional type3/text-context experiment proves codec
