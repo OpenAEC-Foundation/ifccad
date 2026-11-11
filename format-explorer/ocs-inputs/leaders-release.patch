@@ -14,6 +14,40 @@ index e9da73d4b..eb02aaaea 100644
  
  /// Serialize a document to an in-memory byte buffer, format chosen by `ext`
  /// (`dxf` → DXF, a listed converter's extension → that converter, anything
+diff --git a/src/app/update/command.rs b/src/app/update/command.rs
+index 7752a1ac7..28cdc4285 100644
+--- a/src/app/update/command.rs
++++ b/src/app/update/command.rs
+@@ -6208,7 +6208,10 @@ pub(crate) fn attr_row_from_entity(
+     AttrRow {
+         tag: a.tag.clone(),
+         prompt,
+-        value: a.get_value().to_string(),
++        value: a
++            .embedded_mtext
++            .as_ref()
++            .map_or_else(|| a.get_value().to_string(), |m| m.value.clone()),
+         text_style: a.text_style.clone(),
+         height: fmt(a.height),
+         rotation: fmt(a.rotation.to_degrees()),
+@@ -6231,8 +6234,16 @@ pub(crate) fn attr_row_from_entity(
+ /// field is left as-is. Constant attributes ignore edits to their value.
+ pub(crate) fn apply_attr_row(a: &mut document::entities::AttributeEntity, row: &AttrRow) -> bool {
+     let mut ch = false;
+-    if !row.is_constant && a.get_value() != row.value {
++    let active_value = a
++        .embedded_mtext
++        .as_ref()
++        .map_or(a.get_value(), |m| m.value.as_str());
++    if !row.is_constant && active_value != row.value {
++        // An explicit edit updates both forms. An unchanged row preserves its fallback.
+         a.set_value(row.value.clone());
++        if let Some(m) = a.embedded_mtext.as_mut() {
++            m.value = row.value.clone();
++        }
+         ch = true;
+     }
+     if a.text_style != row.text_style {
 diff --git a/src/app/update/util.rs b/src/app/update/util.rs
 index 666dfaace..c5c0ceb49 100644
 --- a/src/app/update/util.rs
