@@ -219,7 +219,8 @@ fn catalogue_covers_every_native_family_and_all_nine_dimension_kinds() {
             "blockInstance",
             "solid",
             "trace",
-            "attributeDefinition"
+            "attributeDefinition",
+            "spline"
         ])
     );
     let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();

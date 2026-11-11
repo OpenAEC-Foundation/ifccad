@@ -46,10 +46,25 @@ function catalogueLeaders(result){
  assert.ok(selection.ownedPartOwners.some(v=>v.ownerPath===multi.path&&v.handle===owner.handle));
 }
 
-for(const example of examples){
+function catalogueSymbolPattern(result){
+ const nodes=result.presentation.graph.data;
+ const pattern=nodes.find(node=>node.attributes?.['ifccad::linePattern']?.name==='BOX');
+ assert.ok(pattern,'catalogue contains the BOX line pattern');
+ const marker=pattern.attributes['ifccad::linePattern'].pattern.find(element=>element.marker?.kind==='symbol')?.marker;
+ assert.equal(marker?.shapeNumber,132);
+ assert.equal(nodes.find(node=>node.path===marker.symbolSource)?.attributes?.['ifccad::symbolSource']?.fileName.toLowerCase(),'ltypeshp.shx');
+ assert.ok(nodes.some(node=>node.attributes?.['ifccad::geom::lineSegment']&&
+  node.attributes?.['ifccad::entity']?.appearance?.linePattern?.value===pattern.path));
+}
+
+const regressionDrawings=[
+ {name:'Block attributes',path:'examples/ifccad/attributes.ifcx'},
+ {name:'Native splines',path:'format-explorer/tests/fixtures/splines.ifcx'},
+];
+for(const example of [...examples,...regressionDrawings]){
  const name=example.path.split('/').at(-1),bytes=await readFile(new URL('../../'+example.path,import.meta.url)),source=request(name,bytes);
  const opened=checked(source);
- if(example.name==='Entity catalogue'){catalogueAutomaticText(opened);catalogueLeaders(opened);}
+ if(example.name==='Entity catalogue'){catalogueAutomaticText(opened);catalogueLeaders(opened);catalogueSymbolPattern(opened);}
  assert.deepEqual(Buffer.from(opened.nativeFile.base64,'base64'),bytes,'preview retains actual source bytes');
  assert.ok(opened.nativeFile.fileName.endsWith('.ifcx'));
  assert.equal(opened.preview.rendering,'unassessed');
@@ -115,6 +130,15 @@ for(const example of examples){
   if(example.name==='Entity catalogue'){
    catalogueAutomaticText(returned);
    catalogueLeaders(returned);
+   catalogueSymbolPattern(returned);
+   const splineBodies=result=>result.presentation.graph.data.flatMap(node=>{
+    const spline=node.attributes?.['ifccad::geom::spline'];
+    if(!spline)return [];
+    const {degree,knotKind,knots,points}=spline.definition.basis;
+    return {topology:spline.topology,degree,knotKind,knots,points:points.map(([x,y,z=0])=>[x,y,z])};
+   });
+   assert.equal(splineBodies(opened).length,1);
+   assert.deepEqual(splineBodies(returned),splineBodies(opened),'catalogue spline survives physical CAD readback');
    const expected=opened.presentation.extrusions.filter(row=>row.thickness===15);
    const returnedModel=createInspection(returned),remaining=returned.presentation.extrusions.filter(row=>row.thickness!==0);
    assert.equal(expected.length,7,'the five existing primitive samples include both arcs and both planar polylines');

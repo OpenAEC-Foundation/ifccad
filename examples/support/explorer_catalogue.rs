@@ -188,15 +188,15 @@ pub const SAMPLES: &[Sample] = &[
     },
     Sample {
         title: "Line patterns",
-        note: "Continuous, dashed and text",
+        note: "Continuous, dashed, text and BOX symbol",
         draw: |d, x, y| {
-            d.line(MODEL, 1, [x + 5., y + 34.], [x + 77., y + 34.]);
-            d.line(MODEL, 1, [x + 5., y + 21.], [x + 77., y + 21.]);
-            d.nodes.last_mut().unwrap()["attributes"]["ifccad::entity"]["appearance"]
-                ["linePattern"] = json!({"mode":"Explicit","value":"/cad/d1/linePattern/1"});
-            d.line(MODEL, 1, [x + 5., y + 8.], [x + 77., y + 8.]);
-            d.nodes.last_mut().unwrap()["attributes"]["ifccad::entity"]["appearance"]
-                ["linePattern"] = json!({"mode":"Explicit","value":"/cad/d1/linePattern/2"});
+            d.line(MODEL, 1, [x + 5., y + 39.], [x + 77., y + 39.]);
+            for (pattern, row) in [(1, 28.), (2, 17.), (3, 6.)] {
+                d.line(MODEL, 1, [x + 5., y + row], [x + 77., y + row]);
+                d.nodes.last_mut().unwrap()["attributes"]["ifccad::entity"]["appearance"]
+                    ["linePattern"] =
+                    json!({"mode":"Explicit","value":format!("/cad/d1/linePattern/{pattern}")});
+            }
         },
     },
     Sample {
@@ -251,6 +251,29 @@ pub const SAMPLES: &[Sample] = &[
         title: "Multileader",
         note: "Owned text / two lines / saved graphics",
         draw: |_, _, _| {},
+    },
+    Sample {
+        title: "Spline",
+        note: "One open cubic with four control points",
+        draw: |d, x, y| {
+            d.entity(
+                MODEL,
+                1,
+                json!({"ifccad::geom::spline": {
+                    "topology": "open",
+                    "definition": {
+                        "kind": "control",
+                        "basis": {
+                            "degree": 3,
+                            "knotKind": "full",
+                            "knots": [0., 0., 0., 0., 1., 1., 1., 1.],
+                            "points": [[x + 7., y + 9.], [x + 18., y + 46.],
+                                       [x + 55., y + 1.], [x + 75., y + 30.]],
+                        },
+                    },
+                }}),
+            );
+        },
     },
 ];
 
@@ -561,9 +584,29 @@ pub fn build_with_samples(samples: &[Sample]) -> Result<Vec<u8>> {
     d.layer("Green accent", Some([55, 175, 120]), 0.5);
     d.layer("Orange accent", Some([220, 145, 55]), 0.7);
     d.pattern();
-    d.nodes[0]["children"]["gas"] = json!("/cad/d1/linePattern/2");
-    d.nodes[0]["attributes"]["ifccad::drawing"]["nextLinePatternId"] = json!(3);
+    let root = &mut d.nodes[0];
+    root["children"]["gas"] = json!("/cad/d1/linePattern/2");
+    root["children"]["boxPattern"] = json!("/cad/d1/linePattern/3");
+    root["children"]["linePatternShapes"] = json!("/cad/d1/symbolSource/1");
+    root["attributes"]["ifccad::drawing"]["nextLinePatternId"] = json!(4);
+    root["attributes"]["ifccad::drawing"]["nextSymbolSourceId"] = json!(2);
     d.nodes.push(json!({"path":"/cad/d1/linePattern/2","attributes":{"ifccad::linePattern":{"name":"GAS","pattern":[10.,{"length":0.,"marker":{"kind":"text","text":"GAS","textStyle":"/cad/d1/textStyle/0","scale":2.,"offset":[0.,0.],"rotation":{"mode":"relative","angle":0.}}},-7.]}}}));
+    d.nodes.push(json!({
+        "path": "/cad/d1/linePattern/3",
+        "attributes": {"ifccad::linePattern": {
+            "name": "BOX",
+            "pattern": [10., {"length": 0., "marker": {
+                "kind": "symbol",
+                "symbolSource": "/cad/d1/symbolSource/1",
+                "shapeNumber": 132,
+                "scale": 2.,
+            }}, -5.],
+        }},
+    }));
+    d.nodes.push(json!({
+        "path": "/cad/d1/symbolSource/1",
+        "attributes": {"ifccad::symbolSource": {"kind": "shx", "fileName": "ltypeshp.shx"}},
+    }));
     let rows = samples.len().div_ceil(4);
     let total_height = rows as f64 * 78. + 296.;
     d.text(
@@ -580,7 +623,7 @@ pub fn build_with_samples(samples: &[Sample]) -> Result<Vec<u8>> {
         0.,
         total_height + 18.,
         3.7,
-        "Select a sample to inspect its native properties.",
+        "Selected examples. Select an entity to inspect its native properties.",
     );
     for (i, sample) in samples.iter().enumerate() {
         let x = (i % 4) as f64 * 98.;

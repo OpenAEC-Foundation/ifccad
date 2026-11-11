@@ -1,11 +1,10 @@
 # IFCCAD examples
 
-The Explorer offers two curated drawings and a focused attribute review gallery:
+The Explorer offers an entity catalogue and a floor plan:
 
 | File | Purpose |
 | --- | --- |
-| `ifccad/entities.ifcx` | A numbered catalogue: all 17 native entity families, three Hatch fills, all nine Dimension kinds in one shared section, layers, simple/text line patterns, block transforms with Text/MText attributes and an A3 Paper viewport. |
-| `ifccad/attributes.ifcx` | Focused Text/MText attributes, flags, fields, contexts, nested/Model/Paper cases; A4 titleblock with explicit millimetre 1:1 plot mapping. |
+| `ifccad/entities.ifcx` | Selected examples of the native entity families, including Leader, MultiLeader, Tolerance and an open cubic spline. It includes three Hatch fills, all nine Dimension kinds, layers, text and SHX symbol line patterns, blocks with attributes and an A3 Paper viewport. |
 | `ifccad/house.ifcx` | A fictitious 10000 x 12000 mm ground floor with wall hatching, actual openings, repeated door/window/furniture blocks, room labels, dimensions, north arrow and an A3 sheet at 1:100. |
 
 Both open with an authored Model view. Their Paper tabs contain locked orthographic
