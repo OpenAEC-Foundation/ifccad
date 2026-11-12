@@ -98,10 +98,76 @@ test('first property layer opens by default while an explicit collapse survives 
 
 
 
-test('workspace choices show unspecified and the construction coordinate space',()=>{
- const model=createInspection({validation:{strictAvailable:true},presentation:{format:'ifccad',unit:'m',graph:{data:[{path:'canvas:7',attributes:{'ifccad::paperCanvas':{storedUcs:{kind:'World'},useStoredUcs:false}}},{path:'workspace:9007199254740993',attributes:{'ifccad::viewportWorkspace':{storedUcs:{kind:'World'},useStoredUcs:false}}}]}}});
+test('workspace properties show the current UCS once, with the stored settings',()=>{
+ const ucs='/cad/d1/ucs/1';
+ const model=createInspection({validation:{strictAvailable:true},presentation:{format:'ifccad',unit:'m',graph:{data:[
+  {path:'/cad/d1',attributes:{'ifccad::drawing':{},'ifccad::modelViewState':{currentModelUcs:{kind:'Named',ucs}}}},
+  {path:ucs,attributes:{'ifccad::ucsDefinition':{name:'Reference plane'}}},
+  {path:'canvas:7',attributes:{'ifccad::paperCanvas':{storedUcs:{kind:'World'},useStoredUcs:false}}},
+  {path:'workspace:9007199254740993',attributes:{'ifccad::viewportWorkspace':{storedUcs:{kind:'World'},useStoredUcs:false}}},
+ ]}}});
  const state={language:'en',view:'drawing',field:[],expanded:new Set(),inspector:'properties'};
- const canvas=renderInspection(model,{...state,selection:'canvas:7'});assert.match(canvas.details,/Unspecified/);assert.match(canvas.details,/Coordinate space/);assert.match(canvas.details,/Paper/);
+ const drawing=renderInspection(model,{...state,selection:'/cad/d1'});
+ assert.equal((drawing.details.match(/>Current UCS</g)||[]).length,1);
+ assert.match(drawing.details,/Stored values[^]*?Model view settings[^]*?>Current UCS<[^]*?data-select="\/cad\/d1\/ucs\/1"/);
+ const canvas=renderInspection(model,{...state,selection:'canvas:7'});
+ assert.match(canvas.details,/Stored values[^]*?>Current UCS<\/span><span class="field-content">Unspecified</);
+ assert.match(canvas.details,/Stored values[^]*?Paper canvas[^]*?>Active Paper context<\/span><span class="field-content">Unspecified</);
+ assert.match(canvas.details,/Coordinate space/);assert.match(canvas.details,/Paper/);
  const viewport=renderInspection(model,{...state,selection:'workspace:9007199254740993'});assert.match(viewport.details,/Model/);assert.match(viewport.details,/Unit: m/);
  assert.equal(model.nodes.get('canvas:7').values.currentUcs,undefined);
+});
+
+test('a paper layout shows its active viewport once among the stored settings',()=>{
+ const key='/cad/d1/layout/2',viewport='/cad/d1/e20';
+ const model=createInspection({presentation:{graph:{data:[
+  {path:key,attributes:{'ifccad::layout':{kind:'Paper'},'ifccad::paperCanvas':{activeContext:{kind:'Viewport',viewport}}}},
+  {path:viewport,attributes:{'ifccad::entity':{},'ifccad::viewport':{}}},
+ ]}}});
+ const state={language:'nl',selection:key,expanded:new Set(),inspector:'properties'};
+ const {details}=renderInspection(model,state);
+ assert.equal((details.match(/>Actieve papiercontext</g)||[]).length,1);
+ assert.match(details,/Opgeslagen waarden[^]*?Papiercanvas[^]*?>Actieve papiercontext<[^]*?data-select="\/cad\/d1\/e20"/);
+});
+
+test('the active model window is shown once and can be opened from its stored setting',()=>{
+ const key='/cad/d1',window='/cad/d1/modelWindow/1';
+ for(const active of [true,false]){
+  const model=createInspection({presentation:{graph:{data:[
+   {path:key,attributes:{'ifccad::drawing':{modelWindows:[window]},'ifccad::modelViewState':active?{activeModelWindow:window}:{}}},
+   {path:window,attributes:{'ifccad::modelWindow':{}}},
+  ]}}});
+  const {details}=renderInspection(model,{language:'nl',selection:key,expanded:new Set(),inspector:'properties'});
+  assert.equal((details.match(/>Actief modelvenster</g)||[]).length,1);
+  if(active)assert.match(details,/Instellingen van modelweergave[^]*?>Actief modelvenster<[^]*?data-select="\/cad\/d1\/modelWindow\/1"/);
+  else assert.match(details,/Opgeslagen waarden[^]*?Instellingen van modelweergave[^]*?>Actief modelvenster<\/span><span class="field-content">Niet vastgelegd</);
+ }
+});
+
+test('drawing counters are grouped and the source keeps the original field names',()=>{
+ const key='/cad/d1';
+ const model=createInspection({presentation:{graph:{data:[{path:key,attributes:{
+  'ifccad::drawing':{profileVersion:'0.6.0',nextEntityId:142,nextLayerId:5},
+ }}]}}});
+ const state={language:'nl',selection:key,expanded:new Set()};
+ const {details}=renderInspection(model,{...state,inspector:'properties'});
+ assert.match(details,/Profielversie/);
+ assert.match(details,/<details class="inspector-field" data-field-id="[^"]+"><summary>[^]*?ID-tellers[^]*?Volgende entiteit-ID[^]*?142[^]*?Volgende laag-ID/);
+ assert.doesNotMatch(details,/class="property-label">nextEntityId/);
+ assert.match(renderInspection(model,{...state,inspector:'source'}).details,/nextEntityId/);
+});
+
+test('extrusion shares its geometry group and the stored thickness has a single display row',()=>{
+ const key='/cad/d1/e3';
+ const model=createInspection({presentation:{
+  graph:{data:[{path:key,attributes:{
+   'ifccad::entity':{},'ifccad::geom::placement':{origin:[0,0,0]},
+   'ifccad::geom::planarPolyline':{thickness:15,closed:true},
+  }}]},
+  extrusions:[{path:key,thickness:15,unit:'mm',direction:[0,0,1]}],
+ }});
+ const {details}=renderInspection(model,{language:'nl',selection:key,expanded:new Set(),inspector:'properties'});
+ assert.match(details,/Opgeslagen waarden[^]*?Planaire polylijn[^]*?Extrusiedikte[^]*?15 mm[^]*?Richting in het eigen coördinatenstelsel/);
+ assert.equal((details.match(/Extrusiedikte/g)||[]).length,1);
+ assert.doesNotMatch(details,/class="property-label">thickness/);
 });

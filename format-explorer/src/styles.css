@@ -125,7 +125,7 @@
 .content-toolbar{position:relative;padding-right:52px}
 #application[data-workspace=overview] .content-toolbar{padding-right:52px}
 #contents-expand,#contents-restore{position:absolute;right:12px;top:10px}
-#export{margin-right:auto}
+#file-json-open{margin-right:auto}
 #cad-controls{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
 #cad-controls label{flex:1 1 85px}
 #application[data-workspace=overview] #cad-controls{flex-wrap:nowrap}
@@ -234,3 +234,253 @@
 #hatch-export-note{white-space:pre-line}
 
 #conversion-info{position:fixed;inset:auto 16px 40px auto;margin:0;width:min(380px,calc(100vw - 32px));padding:14px 16px;border:1px solid var(--theme-border);border-radius:8px;background:var(--theme-surface);color:var(--theme-text);box-shadow:0 8px 24px #0003;font-size:12px;line-height:1.5}#conversion-info p{margin:0}#conversion-info-open{width:auto}
+
+#file-json-dialog {
+  box-sizing: border-box;
+  width: min(960px, calc(100vw - 32px));
+}
+#file-json-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#file-json-dialog .dialog-heading { flex-shrink: 0; }
+#file-json-name { overflow-wrap: anywhere; }
+#file-json-dialog .json-scroll {
+  min-height: 0;
+  margin: 0;
+  background: var(--theme-soft);
+}
+
+.navigation-toolbar {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--theme-border);
+}
+.navigation-toolbar .view-switch {
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+.grouping-switch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.grouping-switch input {
+  position: absolute;
+  width: 30px;
+  height: 16px;
+  margin: 0;
+  opacity: 0;
+}
+.switch-track {
+  display: flex;
+  align-items: center;
+  flex: 0 0 30px;
+  height: 16px;
+  padding: 2px;
+  border: 1px solid var(--theme-secondary);
+  border-radius: 999px;
+}
+.switch-track::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--theme-secondary);
+}
+.grouping-switch input:checked + .switch-track {
+  justify-content: flex-end;
+  border-color: var(--theme-accent);
+  background: var(--theme-highlight);
+}
+.grouping-switch input:checked + .switch-track::before {
+  background: var(--theme-accent);
+}
+.grouping-switch input:focus-visible + .switch-track {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+@media (forced-colors: active) {
+  .grouping-switch input { position: static; opacity: 1; }
+  .switch-track { display: none; }
+}
+.graph-navigation {
+  display: flex;
+  gap: 2px;
+  margin-inline-start: auto;
+  padding: 2px;
+  border: 1px solid var(--theme-border);
+  border-radius: 9px;
+  background: var(--theme-soft);
+}
+.graph-nav-button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+}
+.graph-nav-button svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.graph-nav-button:hover:not(:disabled) {
+  border-color: var(--theme-accent);
+  background: var(--theme-highlight);
+}
+.graph-nav-button:disabled { opacity: .4; }
+.graph-selection {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 300px) 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.graph-selection > .graph-nav-button {
+  width: 32px;
+  height: 32px;
+  border-color: var(--theme-border);
+  border-radius: 50%;
+  background: var(--theme-surface);
+}
+
+/* The relationship graph shares the tree's navigation pane. */
+.graph-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-inline: clamp(10px, 3%, 24px);
+  background: var(--theme-soft);
+  scrollbar-gutter: stable both-edges;
+}
+.graph-track {
+  position: relative;
+  max-width: 520px;
+  margin-inline: auto;
+}
+.graph-side {
+  display: flex;
+  flex-direction: column;
+  min-block-size: var(--graph-center-space, 0px);
+}
+.graph-incoming { justify-content: flex-end; }
+.graph-groups {
+  display: grid;
+  gap: 6px;
+}
+.graph-incoming .graph-groups { padding-block-start: 12px; }
+.graph-outgoing .graph-groups { padding-block-end: 12px; }
+.graph-connector {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  color: var(--theme-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.graph-arrow {
+  grid-column: 2;
+  color: var(--theme-accent);
+  font-size: 20px;
+  line-height: 1;
+}
+.graph-connector-label {
+  grid-column: 3;
+  overflow-wrap: anywhere;
+}
+.graph-focus, .graph-node {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 7px;
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  text-align: left;
+}
+.graph-focus {
+  padding: 11px 14px;
+  border-color: var(--theme-accent);
+  background: var(--theme-highlight);
+}
+.graph-focus strong { overflow-wrap: anywhere; }
+#graph-sequence-status {
+  margin-block-start: 4px;
+  color: var(--theme-secondary);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.graph-focus small, .graph-node small {
+  overflow: hidden;
+  color: var(--theme-secondary);
+  font: 11px/1.4 'JetBrains Mono', monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.graph-group {
+  border: 1px solid var(--theme-border);
+  border-radius: 7px;
+  background: var(--theme-soft);
+}
+.graph-group-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  padding: 7px 9px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+summary.graph-group-heading { cursor: pointer; }
+summary.graph-group-heading::before { content: '▸'; }
+details[open] > summary.graph-group-heading::before { content: '▾'; }
+.graph-group-heading > span:first-of-type { flex: 1; }
+.graph-count { color: var(--theme-secondary); font-variant-numeric: tabular-nums; }
+.graph-items {
+  margin: 0 5px 5px;
+  padding: 0;
+  list-style: none;
+}
+.graph-items-scroll {
+  max-height: 216px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.graph-items-scroll .graph-items { margin-bottom: 0; }
+.graph-row { height: 54px; padding: 0 0 4px; }
+.graph-node {
+  align-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 4px 8px;
+}
+button.graph-node:hover { background: var(--theme-highlight); }
+.graph-node strong {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.graph-empty { text-align: center; }

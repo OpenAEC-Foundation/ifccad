@@ -20,6 +20,30 @@ remain available. The two curated examples are documented in
 [examples](../examples/README.md). Dutch/English, pane navigation, bounded lists,
 search, layer filters and settings remain local application state.
 
+**Relationship tree** is the default view and shares the document selection
+with **File tree**. The switch above both views groups drawing elements by type.
+Turn it off to follow authored draw order within each owning scope and show a
+layer's entities in one group. The relationship tree centers the selected object
+in a scrollable graph. Incoming links sit above it and outgoing links below it.
+Links retain their original field paths. The drawing's child links
+use the file tree collections. Workspace links identify the active layout,
+active model window and current layer. Groups start collapsed and large groups
+scroll internally.
+The relationship toolbar can revisit selections in the current drawing and
+return to the drawing node. The chevrons beside the selected object step
+through the originating layer, layout or relationship group. Layer and layout
+sequences follow draw order.
+The inspector shows **Properties** and **Object source** for the current
+selection. Properties groups drawing ID counters, shows extrusion with its
+geometry, and displays the bounds assessment separately from stored values.
+The active model window, current UCS and active paper context appear with their
+stored settings. References to an object are clickable.
+Attribute field labels are translated in Properties, with original names
+available in Object source.
+**View file JSON** beside the download button opens a document preview
+and labels generated or decoded IFCX. The preview shows up to the first 2 million
+characters.
+
 Selection uses explicit native-ID → CAD-handle mappings from the pinned IFCX
 import, verified against that imported Document. This is **not** a physical-CAD
 readback qualification. Both directions require the current generated document

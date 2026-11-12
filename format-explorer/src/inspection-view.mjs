@@ -16,35 +16,85 @@ export function renderInspection(model,state){
  const displayChildren=n=>navigation.children.get(n.key)||[];
  const forced=new Set(navigation.path(selection));
  const collection=state.collection?navigation.collection(state.collection):navigation.forSelection(selection);
+ function propertyGroup(label,path,owner,children,openByDefault=false){
+  const fieldId=JSON.stringify([owner,path]);
+  const open=!state.fieldCollapsed?.has(fieldId)&&(openByDefault||state.fieldExpanded?.has(fieldId));
+  return '<details class="inspector-field" data-field-id="'+e(fieldId)+'"'+(open?' open':'')+
+   '><summary>'+chevron+'<span class="property-label">'+e(label)+'</span></summary><div class="field-children">'+children+'</div></details>';
+ }
+ function propertyRow(label,content){
+  return '<div class="inspector-field field-value"><span class="property-label">'+e(label)+'</span><span class="field-content">'+content+'</span></div>';
+ }
  function fields(value,path=[],depth=0,owner=''){
   if(value===null||typeof value!=='object'||depth>16)return '';
   const entries=Object.entries(value),ownerNode=navigation.nodes.get(owner);
-  return entries.slice(0,100).map(([key,v])=>{
-   const next=[...path,key],fieldId=JSON.stringify([owner,next]),label=e(keyLabel(key,owner));
-   if(key==='widths'&&path.at(-1)==='ifccad::geom::planarPolyline')return '<details class="inspector-field" data-field-id="'+e(fieldId)+'"'+(!state.fieldCollapsed?.has(fieldId)?' open':'')+'><summary>'+chevron+'<span class="property-label">'+e(t('width.title'))+'</span></summary><div class="field-children">'+widthPresentation(v,language)+'</div></details>';
+  const sweep=path.length===1&&path[0].startsWith('ifccad::geom::')&&path[0]!=='ifccad::geom::placement'
+   ?ownerNode?.extrusion:undefined;
+  function renderField([key,v]){
+   const next=[...path,key];
+   const attributeField=next[1]==='fields'&&['ifccad::attributeDefinition','ifccad::blockAttribute'].includes(next[0]);
+   const labelKey='attributeField.'+key,attributeLabel=attributeField?t(labelKey):labelKey;
+   const label=attributeLabel!==labelKey?attributeLabel:key==='ifccad::layout'?t('layoutProperties'):keyLabel(key,owner);
+   if(key==='widths'&&path.at(-1)==='ifccad::geom::planarPolyline')return propertyGroup(t('width.title'),next,owner,widthPresentation(v,language),true);
+   const fieldTarget=()=>model.nodes.get(ownerNode?.outgoing.find(link=>link.field===next.join('.'))?.target);
+   if(path.length===1&&((path[0]==='ifccad::modelViewState'&&key==='currentModelUcs')||(path[0]==='ifccad::paperCanvas'&&key==='currentUcs'))){
+    if(v==null)return propertyRow(label,e(t('unspecified')));
+    if(v.kind==='World')return propertyRow(label,e(t('ucsWorld')));
+    const target=v.kind==='Named'&&fieldTarget();
+    if(target)return propertyRow(label,jump(target.key,target.title));
+   }
+   if(path.length===1&&path[0]==='ifccad::paperCanvas'&&key==='activeContext'){
+    if(v==null)return propertyRow(label,e(t('unspecified')));
+    if(v.kind==='Canvas')return propertyRow(label,e(t('paperCanvas')));
+    const viewport=v.kind==='Viewport'&&fieldTarget();
+    if(viewport)return propertyRow(label,jump(viewport.key,itemTitle(viewport,language)));
+   }
+   if(path.length===1&&path[0]==='ifccad::modelViewState'&&key==='activeModelWindow'&&v==null){
+    return propertyRow(label,e(t('unspecified')));
+   }
    const linkedArray=Array.isArray(v)&&ownerNode?.outgoing.some(link=>link.field.startsWith(next.join('.')+'.'));
    const composite=v!==null&&typeof v==='object'&&(linkedArray||!(Array.isArray(v)&&v.length<=4&&v.every(item=>item===null||typeof item!=='object')));
-   if(composite)return '<details class="inspector-field" data-field-id="'+e(fieldId)+'"'+(!state.fieldCollapsed?.has(fieldId)&&(depth===0||state.fieldExpanded?.has(fieldId))?' open':'')+'><summary>'+chevron+'<span class="property-label">'+label+'</span></summary><div class="field-children">'+fields(v,next,depth+1,owner)+'</div></details>';
-   const edge=ownerNode?.outgoing.find(link=>link.field===next.join('.'));
-   return '<div class="inspector-field field-value"><span class="property-label">'+label+'</span><span class="field-content">'+(edge&&model.nodes.has(edge.target)?jump(edge.target,itemTitle(model.nodes.get(edge.target),language)):summary(v,key,owner))+'</span></div>';
-  }).join('')+(entries.length>100?'<div class="secondary">'+e(t('items',{count:entries.length}))+' · JSON</div>':'');
+   if(composite){
+    let children=fields(v,next,depth+1,owner);
+    if(key==='ifccad::annotation')children+='<p class="secondary">'+e(t('annotation.savedHelp'))+'</p>';
+    return propertyGroup(label,next,owner,children,depth===0);
+   }
+   const target=fieldTarget();
+   if(target)return propertyRow(label,jump(target.key,itemTitle(target,language)));
+   if(path[0]==='ifccad::annotation'&&key==='mode'&&typeof v==='string'){
+    const modeKey='annotation.'+v,mode=t(modeKey);
+    return propertyRow(label,e(mode===modeKey?v:mode));
+   }
+   return propertyRow(label,summary(v,key,owner));
+  }
+  const visible=entries.slice(0,100);
+  let html;
+  if(path.length===1&&path[0]==='ifccad::drawing'){
+   const counters=visible.filter(([key])=>/^next[A-Z][A-Za-z]*Id$/.test(key));
+   const counterNames=new Set(counters.map(([key])=>key));
+   html=visible.filter(([key])=>!counterNames.has(key)).map(renderField).join('');
+   if(counters.length)html+=propertyGroup(t('idCounters'),[...path,'idCounters'],owner,counters.map(renderField).join(''));
+  }else{
+   html=visible.filter(([key])=>!sweep||key!=='thickness').map(renderField).join('');
+  }
+  if(sweep){
+   const num=value=>Object.is(value,-0)?'-0':String(value);
+   html+=propertyRow(t('extrusion.title'),e(num(sweep.thickness)+' '+(sweep.unit??t('extrusion.paperUnits'))));
+   html+=propertyRow(t('extrusion.direction'),e('['+sweep.direction.map(num).join(', ')+']'));
+   html+='<p class="secondary">'+e(t('extrusion.help'))+'</p>';
+  }
+  return html+(entries.length>100?'<div class="secondary">'+e(t('items',{count:entries.length}))+' · JSON</div>':'');
  }
  function tree(keys,seen=new Set()){return keys.map(key=>{const n=navigation.nodes.get(key);if(!n)return '';const children=displayChildren(n).length,open=expanded.has(key),cycle=seen.has(key);return '<div><div class="tree-row'+(key===selection?' selected':'')+'">'+(children&&!cycle?'<button class="tree-expand" data-toggle="'+e(key)+'" aria-expanded="'+open+'" aria-label="'+e(itemTitle(n,language))+'">'+chevron+'</button>':'<span class="tree-expand"></span>')+'<button class="tree-item" data-select="'+e(key)+'"'+(key===selection?' aria-current="true"':'')+'><span>'+e(itemTitle(n,language))+'</span>'+(n.type==='group'?'<span class="group-count">'+n.children.length+'</span>':'')+'</button></div>'+(open&&!cycle?'<div class="tree-children">'+tree(navigation.isLarge(key)?displayChildren(n).filter(child=>forced.has(child)):displayChildren(n),new Set([...seen,key]))+'</div>':'')+'</div>';}).join('');}
  const treeHtml=tree(roots),node=navigation.nodes.get(selection);if(!node)return {tree:treeHtml,details:'<p class="secondary">'+e(t('noSelection'))+'</p>',more:false,collection};
  const value=node.values,heading='<h2>'+e(itemTitle(node,language))+'</h2><div class="identity">'+e(node.key)+'</div>';
  let details=heading;
  if(node.drawPosition!=null)details+='<p class="secondary">'+e(t('drawPosition'))+': '+(node.drawPosition+1)+'</p>';
- if(inspector==='relations'){
-  for(const [title,edges]of [['outgoing',node.outgoing],['incoming',node.incoming]])details+='<h3>'+e(t(title))+'</h3><dl class="properties-list">'+(edges.length?edges.map(link=>{const key=title==='outgoing'?link.target:link.source;return '<div><dt>'+e(link.field)+'</dt><dd>'+(model.nodes.has(key)?jump(key,itemTitle(model.nodes.get(key),language)):e(key)+' · '+e(t('unresolved')))+'</dd></div>';}).join(''):'<p class="secondary">'+e(t('noRelations'))+'</p>')+'</dl>';
- }else if(inspector==='source'){
+ if(inspector==='source'){
   if(model.format==='ifccad'&&node.raw){details+='<p class="secondary">'+e(t(model.binary?'decodedNodeHelp':'compositionHelp'))+'</p><details open><summary>'+e(t(model.binary?'decodedNode':'effectiveNode'))+'</summary><pre>'+e(ifcxNodeJson(node.raw))+'</pre></details>';if(!model.binary)for(const f of node.fragments)details+='<details><summary>'+e(t('fragment',{index:f.index}))+' · data['+f.index+']</summary><pre>'+e(JSON.stringify(f.value,null,2))+'</pre></details>';}
   else details+='<h3>'+e(t(['stream','table'].includes(node.type)?'storageJson':'inspectionJson'))+'</h3><pre>'+e(JSON.stringify(node.sourceValues||value,null,2))+'</pre>';
  }else{
  if(node.workspace)details+='<p class="secondary">'+e(t('coordinateDomain'))+': '+e(t(node.workspace.coordinateDomain))+(node.workspace.unit?' · '+e(t('unitLabel',{unit:node.workspace.unit})): '')+'</p>';
- if(node.workspaceChoices){
-  const current=value=>value==null?t('unspecified'):value.kind==='World'?t('ucsWorld'):value.kind==='Named'?(model.nodes.get(model.format==='ifccad'?value.ucs:'ucs:'+String(value.ucsId))?.title||t('unspecified')):value.kind||String(value);
-  details+='<dl class="properties-list workspace-choices">'+Object.entries(node.workspaceChoices).map(([key,value])=>'<div><dt>'+e(t(key))+'</dt><dd>'+e(key==='currentUcs'?current(value):value==null?t('unspecified'):typeof value==='string'?(model.nodes.get(value)?.title||value):value.kind)+'</dd></div>').join('')+'</dl>';
- }
  const hatch=hatchValues(node);if(hatch)details+='<p class="secondary">'+e(hatchSummary(hatch,language))+'</p>';
  if(['solid','trace'].includes(node.type)){
   if(node.filledEvidence){details+='<p class="secondary">'+e(t('filled.positions'))+'</p><p class="secondary">'+e(t(node.filledEvidence.surfaceCoverage==='Proven'?'filled.surfaceProven':'filled.surfaceUnassessed'))+'</p>';}
@@ -57,17 +107,22 @@ export function renderInspection(model,state){
   for(const request of fontRequests)details+='<section class="font-symbol-request"><h4>'+e(t('fontSymbol.role.'+request.fontRole))+'</h4><dl class="properties-list"><div><dt>'+e(t('fontSymbol.requested'))+'</dt><dd>'+e(request.requestedName)+'</dd></div><div><dt>'+e(t('fontSymbol.status'))+'</dt><dd>'+e(t('fontSymbol.'+request.status))+'</dd></div>'+(request.usedName?'<div><dt>'+e(t('fontSymbol.used'))+'</dt><dd>'+e(request.usedName)+'</dd></div>':'')+'</dl>'+(request.reason?'<p class="secondary">'+e(request.reason)+'</p>':'')+'</section>';
   details+='<p class="secondary">'+e(t('fontSymbol.help'))+'</p>';
  }
- if(node.extrusion){
-  const sweep=node.extrusion,num=v=>Object.is(v,-0)?'-0':String(v);
-  details+='<dl class="properties-list"><div><dt>'+e(t('extrusion.title'))+'</dt><dd>'+e(num(sweep.thickness)+' '+(sweep.unit??t('extrusion.paperUnits')))+'</dd></div><div><dt>'+e(t('extrusion.direction'))+'</dt><dd>'+e('['+sweep.direction.map(num).join(', ')+']')+'</dd></div></dl><p class="secondary">'+e(t('extrusion.help'))+'</p>';
- }
-  const annotation=node.values['ifccad::annotation'];
-  if(annotation){const scale=model.nodes.get(annotation.reference?.scaleId)?.title??t('unspecified');details+='<h3>'+e(t('annotation.title'))+'</h3><dl class="properties-list"><div><dt>'+e(t('annotation.mode'))+'</dt><dd>'+e(t('annotation.'+annotation.mode))+'</dd></div><div><dt>'+e(t('annotation.contextCount'))+'</dt><dd>'+e(annotation.contexts?.length??0)+'</dd></div><div><dt>'+e(t('annotation.reference'))+'</dt><dd>'+e(scale)+'</dd></div></dl><p class="secondary">'+e(t('annotation.savedHelp'))+'</p>';}
-  const assessment=node.values.boundsAssessment;if(assessment)details+='<p class="secondary">'+e(t('boundsSummary',{quality:t(assessment.quality||'empty'),proof:t(assessment.enclosureVerified?'enclosureChecked':'enclosureNotChecked')}))+'</p>';
-  if(assessment?.polylineWidthReasons?.length)details+='<p class="secondary">'+e(t('width.partial'))+'</p>';
-  for(const reason of new Set(assessment?.linePatternReasons||[]))details+='<p class="secondary">'+e(t('linePatternReason.'+reason))+'</p>';
+  const {boundsAssessment:assessment,...stored}=node.values;
+  if(node.workspaceChoices){
+   if(stored['ifccad::paperCanvas']){
+    stored['ifccad::paperCanvas']={currentUcs:null,activeContext:null,...stored['ifccad::paperCanvas']};
+   }else{
+    stored['ifccad::modelViewState']={currentModelUcs:null,activeModelWindow:null,...stored['ifccad::modelViewState']};
+   }
+  }
   details+=node.type==='group'?'<p class="secondary">'+e(t('group'))+'</p>':'<h3>'+e(t('storedValues'))+'</h3>';
-  if(node.type!=='group')details+='<div class="inspector-fields" data-field-owner="'+e(node.key)+'">'+fields(node.values,[],0,node.key)+'</div>';
+  if(node.type!=='group')details+='<div class="inspector-fields" data-field-owner="'+e(node.key)+'">'+fields(stored,[],0,node.key)+'</div>';
+  if(assessment){
+   details+='<h3>'+e(t('boundsAssessment'))+'</h3><p class="secondary">'+e(t('boundsSummary',{quality:t(assessment.quality||'empty'),proof:t(assessment.enclosureVerified?'enclosureChecked':'enclosureNotChecked')}))+'</p>';
+   if(assessment.polylineWidthReasons?.length)details+='<p class="secondary">'+e(t('width.partial'))+'</p>';
+   for(const reason of new Set(assessment.linePatternReasons||[]))details+='<p class="secondary">'+e(t('linePatternReason.'+reason))+'</p>';
+   details+='<div class="inspector-fields">'+fields(assessment,['boundsAssessment'],1,node.key)+'</div>';
+  }
   details+=effectiveWidthPresentation(node.polylineWidths,language);
   const dimension=dimensionPresentation(node,model.format),computed=dimension?.derived;
   if(computed?.graphics)details+='<h3>'+e(t('dimension.field.graphics'))+'</h3><div class="inspector-fields">'+fields(computed.graphics,['derived','graphics'],0,node.key)+'</div>';
