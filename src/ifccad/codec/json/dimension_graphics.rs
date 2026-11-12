@@ -3,6 +3,10 @@ use super::*;
 use serde::Deserialize;
 use serde_json::{json, Map, Value};
 use std::collections::{BTreeMap, BTreeSet};
+
+const DIMENSION_ROLES: (&str, &str) =
+    ("ifccad::dimensionGraphics", "ifccad::dimensionGraphicsPart");
+pub(super) const TABLE_ROLES: (&str, &str) = ("ifccad::tableGraphics", "ifccad::tableGraphicsPart");
 fn fail(path: &str, m: impl ToString) -> IfccadReport {
     crate::ifccad::diagnostics::failure("IFCCAD-DIMENSION-GRAPHICS-003", path, m.to_string())
 }
@@ -10,6 +14,15 @@ pub(super) fn encode(
     g: &IfccadDimensionGraphics,
     path: &str,
     prefix: &str,
+) -> Vec<super::encode::NodeOut> {
+    encode_with_roles(g, path, prefix, DIMENSION_ROLES)
+}
+
+pub(super) fn encode_with_roles(
+    g: &IfccadDimensionGraphics,
+    path: &str,
+    prefix: &str,
+    (group_role, part_role): (&str, &str),
 ) -> Vec<super::encode::NodeOut> {
     let mut nodes = vec![super::encode::NodeOut {
         path: path.into(),
@@ -21,7 +34,7 @@ pub(super) fn encode(
                 .collect(),
         ),
         attributes: Map::from_iter([(
-            "ifccad::dimensionGraphics".into(),
+            group_role.into(),
             json!({"origin":match g.origin {IfccadDimensionGraphicsOrigin::SourceSnapshot=>"sourceSnapshot",IfccadDimensionGraphicsOrigin::Generated=>"generated"}}),
         )]),
     }];
@@ -42,7 +55,7 @@ pub(super) fn encode(
         if p.purpose == IfccadDimensionGraphicsPurpose::ReferencePoint {
             value["purpose"] = json!("referencePoint");
         }
-        let mut attrs = Map::from_iter([("ifccad::dimensionGraphicsPart".into(), value)]);
+        let mut attrs = Map::from_iter([(part_role.into(), value)]);
         super::encode::encode_payload(&p.kind.clone().into(), prefix, &mut attrs);
         nodes.push(super::encode::NodeOut {
             path: format!("{path}/p{i}"),
@@ -102,31 +115,40 @@ impl Reader<'_> {
         let Some(link) = node.get("children").and_then(|c| c.get("graphics")) else {
             return Ok(());
         };
-        let Some(IfccadNativeEntity {
-            kind: IfccadEntityKind::Dimension(v),
-            ..
-        }) = e.as_native_mut()
-        else {
-            return Err(fail(owner, "graphics child requires Dimension"));
-        };
         let path = format!("{owner}/graphics");
         if link.as_str() != Some(&path) {
             return Err(fail(owner, "noncanonical graphics link"));
         }
-        v.graphics = Some(self.read_graphics(&path)?);
+        match e.as_native_mut().map(|entity| &mut entity.kind) {
+            Some(IfccadEntityKind::Dimension(value)) => {
+                value.graphics = Some(self.read_graphics(&path)?);
+            }
+            Some(IfccadEntityKind::Table(value)) => {
+                value.graphics = Some(self.read_with_roles(&path, TABLE_ROLES)?);
+            }
+            _ => return Err(fail(owner, "graphics child requires Dimension or Table")),
+        }
         Ok(())
     }
     pub(super) fn read_graphics(
         &mut self,
         path: &str,
     ) -> Result<IfccadDimensionGraphics, IfccadReport> {
+        self.read_with_roles(path, DIMENSION_ROLES)
+    }
+
+    fn read_with_roles(
+        &mut self,
+        path: &str,
+        (group_role, part_role): (&str, &str),
+    ) -> Result<IfccadDimensionGraphics, IfccadReport> {
         let n = self
             .nodes
             .get(path)
             .ok_or_else(|| fail(path, "missing graphics group"))?;
-        self.role(n, "ifccad::dimensionGraphics", &[])?;
-        let raw = &n["attributes"]["ifccad::dimensionGraphics"];
-        super::supplemental::validate_value("ifccad::dimensionGraphics", raw, path)?;
+        self.role(n, group_role, &[])?;
+        let raw = &n["attributes"][group_role];
+        super::supplemental::validate_value(group_role, raw, path)?;
         let g: Group = serde_json::from_value(raw.clone()).map_err(|e| fail(path, e))?;
         let children = n
             .get("children")
@@ -164,14 +186,10 @@ impl Reader<'_> {
                     "ifccad::geom::placement",
                 ])
                 .collect::<Vec<_>>();
-            self.role(n, "ifccad::dimensionGraphicsPart", &extra)?;
-            super::supplemental::validate_value(
-                "ifccad::dimensionGraphicsPart",
-                &attrs["ifccad::dimensionGraphicsPart"],
-                &target,
-            )?;
-            let p: Part = serde_json::from_value(attrs["ifccad::dimensionGraphicsPart"].clone())
-                .map_err(|e| fail(&target, e))?;
+            self.role(n, part_role, &extra)?;
+            super::supplemental::validate_value(part_role, &attrs[part_role], &target)?;
+            let p: Part =
+                serde_json::from_value(attrs[part_role].clone()).map_err(|e| fail(&target, e))?;
             if attrs.contains_key("ifccad::blockInstance")
                 && attrs.contains_key("ifccad::geom::placement")
             {
@@ -238,8 +256,14 @@ impl Reader<'_> {
     pub fn finish(&self) -> Result<(), IfccadReport> {
         for (path, n) in self.nodes {
             let a = &n["attributes"];
-            let declared = a.get("ifccad::dimensionGraphics").is_some()
-                || a.get("ifccad::dimensionGraphicsPart").is_some();
+            let declared = [
+                DIMENSION_ROLES.0,
+                DIMENSION_ROLES.1,
+                TABLE_ROLES.0,
+                TABLE_ROLES.1,
+            ]
+            .into_iter()
+            .any(|role| a.get(role).is_some());
             if declared && !self.seen.contains(path) {
                 return Err(fail(path, "unowned graphics role"));
             }

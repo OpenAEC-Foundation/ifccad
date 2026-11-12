@@ -144,7 +144,8 @@ impl IfccadEntityKind {
             | Self::AttributeDefinition(_)
             | Self::Leader(_)
             | Self::MultiLeader(_)
-            | Self::Tolerance(_) => return Ok(None),
+            | Self::Tolerance(_)
+            | Self::Table(_) => return Ok(None),
         }))
     }
 }

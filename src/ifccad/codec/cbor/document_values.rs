@@ -26,6 +26,9 @@ record!(IfccadDocument;
 22 => annotation_settings:Option<IfccadDrawingAnnotationSettings>=Some(None),
 23 => attribute_visibility:IfccadAttributeVisibility=Some(IfccadAttributeVisibility::Normal),
 24 => multi_leader_styles:Vec<IfccadMultiLeaderStyle>=Some(Vec::new()),
+25 => table_styles: Vec<IfccadTableStyle> = Some(Vec::new()),
+26 => table_data_links: Vec<IfccadTableDataLink> = Some(Vec::new()),
+27 => data_tables: Vec<IfccadDataTable> = Some(Vec::new()),
 );
 record!(IfccadLayout;
 0 => bounds_quality: Option<IfccadBoundsQuality> = Some(None),

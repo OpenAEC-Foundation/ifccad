@@ -1,6 +1,6 @@
 {
   "format": "IFCCAD-CBOR",
-  "mappingRevision": 8,
+  "mappingRevision": 9,
   "rootType": "IfccadDocument",
   "types": {
     "IfccadDocument": {
@@ -181,6 +181,30 @@
           "presence": "default",
           "default": [],
           "omit": "exact"
+        },
+        {
+          "code": 25,
+          "name": "table_styles",
+          "type": "Vec<IfccadTableStyle>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
+        },
+        {
+          "code": 26,
+          "name": "table_data_links",
+          "type": "Vec<IfccadTableDataLink>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
+        },
+        {
+          "code": 27,
+          "name": "data_tables",
+          "type": "Vec<IfccadDataTable>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
         }
       ],
       "dependencies": [
@@ -208,7 +232,10 @@
         "Vec<IfccadAnnotationStoredView>",
         "Option<IfccadDrawingAnnotationSettings>",
         "IfccadAttributeVisibility",
-        "Vec<IfccadMultiLeaderStyle>"
+        "Vec<IfccadMultiLeaderStyle>",
+        "Vec<IfccadTableStyle>",
+        "Vec<IfccadTableDataLink>",
+        "Vec<IfccadDataTable>"
       ]
     },
     "IfccadHeader": {
@@ -337,6 +364,30 @@
         {
           "code": 13,
           "name": "next_multi_leader_style_id",
+          "type": "u64",
+          "presence": "default",
+          "default": 1,
+          "omit": "exact"
+        },
+        {
+          "code": 14,
+          "name": "next_table_style_id",
+          "type": "u64",
+          "presence": "default",
+          "default": 1,
+          "omit": "exact"
+        },
+        {
+          "code": 15,
+          "name": "next_table_data_link_id",
+          "type": "u64",
+          "presence": "default",
+          "default": 1,
+          "omit": "exact"
+        },
+        {
+          "code": 16,
+          "name": "next_data_table_id",
           "type": "u64",
           "presence": "default",
           "default": 1,
@@ -3758,6 +3809,19 @@
               "presence": "required"
             }
           ]
+        },
+        {
+          "code": 21,
+          "name": "Table",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Box<IfccadTable>",
+              "presence": "required"
+            }
+          ]
         }
       ],
       "dependencies": [
@@ -3785,7 +3849,8 @@
         "Box<IfccadLeader>",
         "Box<IfccadMultiLeader>",
         "Box<IfccadTolerance>",
-        "Box<IfccadSpline>"
+        "Box<IfccadSpline>",
+        "Box<IfccadTable>"
       ]
     },
     "IfccadEntityAppearance": {
@@ -17830,6 +17895,2869 @@
       ],
       "dependencies": [
         "IfccadSplineFitData<2>"
+      ]
+    },
+    "i16": {
+      "kind": "scalar",
+      "encoding": "integer",
+      "dependencies": []
+    },
+    "usize": {
+      "kind": "scalar",
+      "encoding": "integer",
+      "dependencies": []
+    },
+    "IfccadTableStyleId": {
+      "kind": "transparent",
+      "items": [
+        "u64"
+      ],
+      "dependencies": [
+        "u64"
+      ]
+    },
+    "IfccadTableDataLinkId": {
+      "kind": "transparent",
+      "items": [
+        "u64"
+      ],
+      "dependencies": [
+        "u64"
+      ]
+    },
+    "IfccadDataTableId": {
+      "kind": "transparent",
+      "items": [
+        "u64"
+      ],
+      "dependencies": [
+        "u64"
+      ]
+    },
+    "IfccadTableStyle": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "id",
+          "type": "IfccadTableStyleId",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "settings",
+          "type": "IfccadTableStyleSettings",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadTableStyleId",
+        "IfccadTableStyleSettings"
+      ]
+    },
+    "IfccadTableStyleSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "name",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "description",
+          "type": "Option<String>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 2,
+          "name": "flow_direction",
+          "type": "IfccadTableFlowDirection",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "margins",
+          "type": "Option<IfccadTableMargins>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 4,
+          "name": "title_suppressed",
+          "type": "Option<bool>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 5,
+          "name": "header_suppressed",
+          "type": "Option<bool>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 6,
+          "name": "cell_styles",
+          "type": "Vec<IfccadNamedTableCellStyle>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
+        },
+        {
+          "code": 7,
+          "name": "template",
+          "type": "Option<IfccadTableGrid>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 8,
+          "name": "base_style",
+          "type": "Option<IfccadNamedTableCellStyle>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 9,
+          "name": "annotative",
+          "type": "Option<bool>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "String",
+        "Option<String>",
+        "IfccadTableFlowDirection",
+        "Option<IfccadTableMargins>",
+        "Option<bool>",
+        "Vec<IfccadNamedTableCellStyle>",
+        "Option<IfccadTableGrid>",
+        "Option<IfccadNamedTableCellStyle>"
+      ]
+    },
+    "Option<IfccadTableMargins>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableMargins"
+      ],
+      "dependencies": [
+        "IfccadTableMargins"
+      ]
+    },
+    "Vec<IfccadNamedTableCellStyle>": {
+      "kind": "list",
+      "items": [
+        "IfccadNamedTableCellStyle"
+      ],
+      "dependencies": [
+        "IfccadNamedTableCellStyle"
+      ]
+    },
+    "Option<IfccadTableGrid>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableGrid"
+      ],
+      "dependencies": [
+        "IfccadTableGrid"
+      ]
+    },
+    "Option<IfccadNamedTableCellStyle>": {
+      "kind": "optional",
+      "items": [
+        "IfccadNamedTableCellStyle"
+      ],
+      "dependencies": [
+        "IfccadNamedTableCellStyle"
+      ]
+    },
+    "IfccadNamedTableCellStyle": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "id",
+          "type": "u32",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "name",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "role",
+          "type": "Option<IfccadTableCellStyleRole>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 3,
+          "name": "format",
+          "type": "IfccadTableCellFormat",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u32",
+        "String",
+        "Option<IfccadTableCellStyleRole>",
+        "IfccadTableCellFormat"
+      ]
+    },
+    "Option<IfccadTableCellStyleRole>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableCellStyleRole"
+      ],
+      "dependencies": [
+        "IfccadTableCellStyleRole"
+      ]
+    },
+    "IfccadTable": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "placement",
+          "type": "IfccadPlacement",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "grid",
+          "type": "IfccadTableGrid",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "graphics",
+          "type": "Option<IfccadDimensionGraphics>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "IfccadPlacement",
+        "IfccadTableGrid",
+        "Option<IfccadDimensionGraphics>"
+      ]
+    },
+    "IfccadTableDataLink": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "id",
+          "type": "IfccadTableDataLinkId",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "settings",
+          "type": "IfccadTableDataLinkSettings",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadTableDataLinkId",
+        "IfccadTableDataLinkSettings"
+      ]
+    },
+    "IfccadDataTable": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "id",
+          "type": "IfccadDataTableId",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "settings",
+          "type": "IfccadDataTableSettings",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadDataTableId",
+        "IfccadDataTableSettings"
+      ]
+    },
+    "IfccadTableDataLinkSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "name",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "adapter",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "source",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "source_selection",
+          "type": "Option<String>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 4,
+          "name": "description",
+          "type": "Option<String>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 5,
+          "name": "tooltip",
+          "type": "Option<String>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 6,
+          "name": "options",
+          "type": "i32",
+          "presence": "required"
+        },
+        {
+          "code": 7,
+          "name": "update_options",
+          "type": "i32",
+          "presence": "required"
+        },
+        {
+          "code": 8,
+          "name": "path_option",
+          "type": "i16",
+          "presence": "required"
+        },
+        {
+          "code": 9,
+          "name": "status_flags",
+          "type": "i32",
+          "presence": "required"
+        },
+        {
+          "code": 10,
+          "name": "flags",
+          "type": "i32",
+          "presence": "required"
+        },
+        {
+          "code": 11,
+          "name": "last_update",
+          "type": "Option<[i16;7]>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 12,
+          "name": "update_status",
+          "type": "Option<String>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 13,
+          "name": "custom_data",
+          "type": "Vec<IfccadTableCustomValue>",
+          "presence": "required"
+        },
+        {
+          "code": 14,
+          "name": "custom_targets",
+          "type": "Vec<IfccadTableDataLinkTarget>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "String",
+        "Option<String>",
+        "i32",
+        "i16",
+        "Option<[i16;7]>",
+        "Vec<IfccadTableCustomValue>",
+        "Vec<IfccadTableDataLinkTarget>"
+      ]
+    },
+    "Option<[i16;7]>": {
+      "kind": "optional",
+      "items": [
+        "[i16;7]"
+      ],
+      "dependencies": [
+        "[i16;7]"
+      ]
+    },
+    "[i16;7]": {
+      "kind": "tuple",
+      "itemType": "i16",
+      "length": 7,
+      "dependencies": [
+        "i16"
+      ]
+    },
+    "Vec<IfccadTableCustomValue>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableCustomValue"
+      ],
+      "dependencies": [
+        "IfccadTableCustomValue"
+      ]
+    },
+    "Vec<IfccadTableDataLinkTarget>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableDataLinkTarget"
+      ],
+      "dependencies": [
+        "IfccadTableDataLinkTarget"
+      ]
+    },
+    "IfccadTableDataLinkTarget": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "object_id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "value",
+          "type": "String",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "String"
+      ]
+    },
+    "IfccadTableDataLinkRange": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "link_id",
+          "type": "IfccadTableDataLinkId",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "range",
+          "type": "IfccadTableRange",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadTableDataLinkId",
+        "IfccadTableRange"
+      ]
+    },
+    "IfccadTableCustomValue": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "name",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "value",
+          "type": "IfccadTableValue",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "String",
+        "IfccadTableValue"
+      ]
+    },
+    "IfccadDataTableSettings": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "name",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "flags",
+          "type": "i16",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "row_count",
+          "type": "usize",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "columns",
+          "type": "Vec<IfccadDataTableColumn>",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "owner",
+          "type": "Option<IfccadDataTableOwner>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "String",
+        "i16",
+        "usize",
+        "Vec<IfccadDataTableColumn>",
+        "Option<IfccadDataTableOwner>"
+      ]
+    },
+    "Vec<IfccadDataTableColumn>": {
+      "kind": "list",
+      "items": [
+        "IfccadDataTableColumn"
+      ],
+      "dependencies": [
+        "IfccadDataTableColumn"
+      ]
+    },
+    "Option<IfccadDataTableOwner>": {
+      "kind": "optional",
+      "items": [
+        "IfccadDataTableOwner"
+      ],
+      "dependencies": [
+        "IfccadDataTableOwner"
+      ]
+    },
+    "IfccadDataTableOwner": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "entity_id",
+          "type": "Option<u64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 1,
+          "name": "dictionary_path",
+          "type": "Vec<String>",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "key",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "hard_owned",
+          "type": "bool",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "Option<u64>",
+        "Vec<String>",
+        "String",
+        "bool"
+      ]
+    },
+    "Vec<String>": {
+      "kind": "list",
+      "items": [
+        "String"
+      ],
+      "dependencies": [
+        "String"
+      ]
+    },
+    "IfccadDataTableColumn": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "name",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "value_type",
+          "type": "IfccadDataTableColumnType",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "values",
+          "type": "Vec<IfccadTableValue>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "String",
+        "IfccadDataTableColumnType",
+        "Vec<IfccadTableValue>"
+      ]
+    },
+    "Vec<IfccadTableValue>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableValue"
+      ],
+      "dependencies": [
+        "IfccadTableValue"
+      ]
+    },
+    "IfccadTableGrid": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "columns",
+          "type": "Vec<IfccadTableColumn>",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "rows",
+          "type": "Vec<IfccadTableRow>",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "merged_ranges",
+          "type": "Vec<IfccadTableRange>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
+        },
+        {
+          "code": 3,
+          "name": "format",
+          "type": "Option<IfccadTableCellFormat>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 4,
+          "name": "style_id",
+          "type": "Option<IfccadTableStyleId>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 5,
+          "name": "data_links",
+          "type": "Vec<IfccadTableDataLinkRange>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
+        },
+        {
+          "code": 6,
+          "name": "name",
+          "type": "Option<String>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 7,
+          "name": "description",
+          "type": "Option<String>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 8,
+          "name": "flow_direction",
+          "type": "Option<IfccadTableFlowDirection>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 9,
+          "name": "breaks",
+          "type": "Option<IfccadTableBreaks>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "Vec<IfccadTableColumn>",
+        "Vec<IfccadTableRow>",
+        "Vec<IfccadTableRange>",
+        "Option<IfccadTableCellFormat>",
+        "Option<IfccadTableStyleId>",
+        "Vec<IfccadTableDataLinkRange>",
+        "Option<String>",
+        "Option<IfccadTableFlowDirection>",
+        "Option<IfccadTableBreaks>"
+      ]
+    },
+    "Vec<IfccadTableColumn>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableColumn"
+      ],
+      "dependencies": [
+        "IfccadTableColumn"
+      ]
+    },
+    "Vec<IfccadTableRow>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableRow"
+      ],
+      "dependencies": [
+        "IfccadTableRow"
+      ]
+    },
+    "Vec<IfccadTableRange>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableRange"
+      ],
+      "dependencies": [
+        "IfccadTableRange"
+      ]
+    },
+    "Option<IfccadTableCellFormat>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableCellFormat"
+      ],
+      "dependencies": [
+        "IfccadTableCellFormat"
+      ]
+    },
+    "Option<IfccadTableStyleId>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableStyleId"
+      ],
+      "dependencies": [
+        "IfccadTableStyleId"
+      ]
+    },
+    "Vec<IfccadTableDataLinkRange>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableDataLinkRange"
+      ],
+      "dependencies": [
+        "IfccadTableDataLinkRange"
+      ]
+    },
+    "Option<IfccadTableFlowDirection>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableFlowDirection"
+      ],
+      "dependencies": [
+        "IfccadTableFlowDirection"
+      ]
+    },
+    "Option<IfccadTableBreaks>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableBreaks"
+      ],
+      "dependencies": [
+        "IfccadTableBreaks"
+      ]
+    },
+    "IfccadTableColumn": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "width",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "format",
+          "type": "Option<IfccadTableCellFormat>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 2,
+          "name": "style_id",
+          "type": "Option<u32>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 3,
+          "name": "name",
+          "type": "Option<String>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 4,
+          "name": "custom_value",
+          "type": "Option<i32>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 5,
+          "name": "custom_data",
+          "type": "Vec<IfccadTableCustomValue>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "f64",
+        "Option<IfccadTableCellFormat>",
+        "Option<u32>",
+        "Option<String>",
+        "Option<i32>",
+        "Vec<IfccadTableCustomValue>"
+      ]
+    },
+    "IfccadTableRow": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "height",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "cells",
+          "type": "Vec<IfccadTableCell>",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "format",
+          "type": "Option<IfccadTableCellFormat>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 3,
+          "name": "style_id",
+          "type": "Option<u32>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 4,
+          "name": "custom_value",
+          "type": "Option<i32>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 5,
+          "name": "custom_data",
+          "type": "Vec<IfccadTableCustomValue>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "f64",
+        "Vec<IfccadTableCell>",
+        "Option<IfccadTableCellFormat>",
+        "Option<u32>",
+        "Option<i32>",
+        "Vec<IfccadTableCustomValue>"
+      ]
+    },
+    "Vec<IfccadTableCell>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableCell"
+      ],
+      "dependencies": [
+        "IfccadTableCell"
+      ]
+    },
+    "IfccadTableCell": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "contents",
+          "type": "Vec<IfccadTableCellContent>",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "format",
+          "type": "Option<IfccadTableCellFormat>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 2,
+          "name": "style_id",
+          "type": "Option<u32>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 3,
+          "name": "tooltip",
+          "type": "Option<String>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 4,
+          "name": "state",
+          "type": "Vec<IfccadTableCellState>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
+        },
+        {
+          "code": 5,
+          "name": "custom_value",
+          "type": "Option<i32>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 6,
+          "name": "custom_data",
+          "type": "Vec<IfccadTableCustomValue>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
+        },
+        {
+          "code": 7,
+          "name": "layout",
+          "type": "Option<IfccadTableCellLayout>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "Vec<IfccadTableCellContent>",
+        "Option<IfccadTableCellFormat>",
+        "Option<u32>",
+        "Option<String>",
+        "Vec<IfccadTableCellState>",
+        "Option<i32>",
+        "Vec<IfccadTableCustomValue>",
+        "Option<IfccadTableCellLayout>"
+      ]
+    },
+    "Vec<IfccadTableCellContent>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableCellContent"
+      ],
+      "dependencies": [
+        "IfccadTableCellContent"
+      ]
+    },
+    "Vec<IfccadTableCellState>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableCellState"
+      ],
+      "dependencies": [
+        "IfccadTableCellState"
+      ]
+    },
+    "Option<IfccadTableCellLayout>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableCellLayout"
+      ],
+      "dependencies": [
+        "IfccadTableCellLayout"
+      ]
+    },
+    "IfccadTableCellLayout": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "scale",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "width_with_gap",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "height_with_gap",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "data_flags",
+          "type": "i32",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "flags",
+          "type": "i32",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "anchor",
+          "type": "Option<IfccadTableItemLayout>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 6,
+          "name": "items",
+          "type": "Vec<IfccadTableItemLayout>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "f64",
+        "i32",
+        "Option<IfccadTableItemLayout>",
+        "Vec<IfccadTableItemLayout>"
+      ]
+    },
+    "Option<IfccadTableItemLayout>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableItemLayout"
+      ],
+      "dependencies": [
+        "IfccadTableItemLayout"
+      ]
+    },
+    "Vec<IfccadTableItemLayout>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableItemLayout"
+      ],
+      "dependencies": [
+        "IfccadTableItemLayout"
+      ]
+    },
+    "IfccadTableItemLayout": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "distance_to_top_left",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "distance_to_center",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "width",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "height",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "outer_width",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "outer_height",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "flags",
+          "type": "i32",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "[f64;3]",
+        "f64",
+        "i32"
+      ]
+    },
+    "IfccadTableBreaks": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "direction",
+          "type": "IfccadTableBreakDirection",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "spacing",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "enabled",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "manual_positions",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "manual_heights",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "repeat_top_labels",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "repeat_bottom_labels",
+          "type": "bool",
+          "presence": "required"
+        },
+        {
+          "code": 7,
+          "name": "parts",
+          "type": "Vec<IfccadTableBreakPart>",
+          "presence": "required"
+        },
+        {
+          "code": 8,
+          "name": "ranges",
+          "type": "Vec<IfccadTableBreakRange>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadTableBreakDirection",
+        "f64",
+        "bool",
+        "Vec<IfccadTableBreakPart>",
+        "Vec<IfccadTableBreakRange>"
+      ]
+    },
+    "Vec<IfccadTableBreakPart>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableBreakPart"
+      ],
+      "dependencies": [
+        "IfccadTableBreakPart"
+      ]
+    },
+    "Vec<IfccadTableBreakRange>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableBreakRange"
+      ],
+      "dependencies": [
+        "IfccadTableBreakRange"
+      ]
+    },
+    "IfccadTableBreakPart": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "position",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "height",
+          "type": "f64",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "flags",
+          "type": "i32",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "[f64;3]",
+        "f64",
+        "i32"
+      ]
+    },
+    "IfccadTableBreakRange": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "position",
+          "type": "[f64;3]",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "start_row",
+          "type": "usize",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "end_row",
+          "type": "usize",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "[f64;3]",
+        "usize"
+      ]
+    },
+    "IfccadTableRange": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "top_row",
+          "type": "usize",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "left_column",
+          "type": "usize",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "bottom_row",
+          "type": "usize",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "right_column",
+          "type": "usize",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "usize"
+      ]
+    },
+    "IfccadTableBlockContent": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "definition_id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "attributes",
+          "type": "Vec<IfccadTableBlockAttribute>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "Vec<IfccadTableBlockAttribute>"
+      ]
+    },
+    "Vec<IfccadTableBlockAttribute>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableBlockAttribute"
+      ],
+      "dependencies": [
+        "IfccadTableBlockAttribute"
+      ]
+    },
+    "IfccadTableBlockAttribute": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "definition_id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "value",
+          "type": "String",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "String"
+      ]
+    },
+    "IfccadTableCellFormat": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "text_height",
+          "type": "Option<f64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 1,
+          "name": "text_style_id",
+          "type": "Option<u64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 2,
+          "name": "content_color",
+          "type": "Option<IfccadMode<IfccadColor>>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 3,
+          "name": "fill_color",
+          "type": "Option<IfccadMode<IfccadColor>>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 4,
+          "name": "fill_enabled",
+          "type": "Option<bool>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 5,
+          "name": "alignment",
+          "type": "Option<IfccadTableAlignment>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 6,
+          "name": "rotation",
+          "type": "Option<f64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 7,
+          "name": "block_scale",
+          "type": "Option<f64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 8,
+          "name": "auto_fit",
+          "type": "Option<bool>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 9,
+          "name": "value_format",
+          "type": "Option<String>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 10,
+          "name": "value_unit",
+          "type": "Option<IfccadTableUnit>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 11,
+          "name": "margins",
+          "type": "Option<IfccadTableMargins>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 12,
+          "name": "content_layout",
+          "type": "Option<IfccadTableContentLayout>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 13,
+          "name": "top_border",
+          "type": "Option<IfccadTableBorder>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 14,
+          "name": "right_border",
+          "type": "Option<IfccadTableBorder>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 15,
+          "name": "bottom_border",
+          "type": "Option<IfccadTableBorder>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 16,
+          "name": "left_border",
+          "type": "Option<IfccadTableBorder>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 17,
+          "name": "horizontal_inner_border",
+          "type": "Option<IfccadTableBorder>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 18,
+          "name": "vertical_inner_border",
+          "type": "Option<IfccadTableBorder>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 19,
+          "name": "merge_on_insert",
+          "type": "Option<bool>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 20,
+          "name": "value_type",
+          "type": "Option<IfccadTableValueKind>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "Option<f64>",
+        "Option<u64>",
+        "Option<IfccadMode<IfccadColor>>",
+        "Option<bool>",
+        "Option<IfccadTableAlignment>",
+        "Option<String>",
+        "Option<IfccadTableUnit>",
+        "Option<IfccadTableMargins>",
+        "Option<IfccadTableContentLayout>",
+        "Option<IfccadTableBorder>",
+        "Option<IfccadTableValueKind>"
+      ]
+    },
+    "Option<IfccadMode<IfccadColor>>": {
+      "kind": "optional",
+      "items": [
+        "IfccadMode<IfccadColor>"
+      ],
+      "dependencies": [
+        "IfccadMode<IfccadColor>"
+      ]
+    },
+    "Option<IfccadTableAlignment>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableAlignment"
+      ],
+      "dependencies": [
+        "IfccadTableAlignment"
+      ]
+    },
+    "Option<IfccadTableUnit>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableUnit"
+      ],
+      "dependencies": [
+        "IfccadTableUnit"
+      ]
+    },
+    "Option<IfccadTableContentLayout>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableContentLayout"
+      ],
+      "dependencies": [
+        "IfccadTableContentLayout"
+      ]
+    },
+    "Option<IfccadTableBorder>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableBorder"
+      ],
+      "dependencies": [
+        "IfccadTableBorder"
+      ]
+    },
+    "Option<IfccadTableValueKind>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableValueKind"
+      ],
+      "dependencies": [
+        "IfccadTableValueKind"
+      ]
+    },
+    "IfccadTableBorder": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "visible",
+          "type": "Option<bool>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 1,
+          "name": "color",
+          "type": "Option<IfccadMode<IfccadColor>>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 2,
+          "name": "line_weight",
+          "type": "Option<IfccadMode<f64>>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 3,
+          "name": "line_pattern",
+          "type": "Option<IfccadMode<IfccadLinePatternId>>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 4,
+          "name": "line_kind",
+          "type": "Option<IfccadTableBorderKind>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 5,
+          "name": "double_spacing",
+          "type": "Option<f64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "Option<bool>",
+        "Option<IfccadMode<IfccadColor>>",
+        "Option<IfccadMode<f64>>",
+        "Option<IfccadMode<IfccadLinePatternId>>",
+        "Option<IfccadTableBorderKind>",
+        "Option<f64>"
+      ]
+    },
+    "Option<IfccadMode<f64>>": {
+      "kind": "optional",
+      "items": [
+        "IfccadMode<f64>"
+      ],
+      "dependencies": [
+        "IfccadMode<f64>"
+      ]
+    },
+    "Option<IfccadMode<IfccadLinePatternId>>": {
+      "kind": "optional",
+      "items": [
+        "IfccadMode<IfccadLinePatternId>"
+      ],
+      "dependencies": [
+        "IfccadMode<IfccadLinePatternId>"
+      ]
+    },
+    "Option<IfccadTableBorderKind>": {
+      "kind": "optional",
+      "items": [
+        "IfccadTableBorderKind"
+      ],
+      "dependencies": [
+        "IfccadTableBorderKind"
+      ]
+    },
+    "IfccadTableMargins": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "top",
+          "type": "Option<f64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 1,
+          "name": "right",
+          "type": "Option<f64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 2,
+          "name": "bottom",
+          "type": "Option<f64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 3,
+          "name": "left",
+          "type": "Option<f64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 4,
+          "name": "horizontal_spacing",
+          "type": "Option<f64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 5,
+          "name": "vertical_spacing",
+          "type": "Option<f64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "Option<f64>"
+      ]
+    },
+    "IfccadTableFieldGraph": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "root",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "next_id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "records",
+          "type": "Vec<IfccadTableFieldRecord>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "Vec<IfccadTableFieldRecord>"
+      ]
+    },
+    "Vec<IfccadTableFieldRecord>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableFieldRecord"
+      ],
+      "dependencies": [
+        "IfccadTableFieldRecord"
+      ]
+    },
+    "IfccadTableFieldRecord": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "id",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "evaluator",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "code",
+          "type": "Vec<IfccadTableFieldCodePart>",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "children",
+          "type": "Vec<u64>",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "object_targets",
+          "type": "Vec<u64>",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "format",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 6,
+          "name": "evaluation_options",
+          "type": "i32",
+          "presence": "required"
+        },
+        {
+          "code": 7,
+          "name": "filing_options",
+          "type": "i32",
+          "presence": "required"
+        },
+        {
+          "code": 8,
+          "name": "state",
+          "type": "i32",
+          "presence": "required"
+        },
+        {
+          "code": 9,
+          "name": "evaluation_status",
+          "type": "i32",
+          "presence": "required"
+        },
+        {
+          "code": 10,
+          "name": "error_code",
+          "type": "i32",
+          "presence": "required"
+        },
+        {
+          "code": 11,
+          "name": "error_message",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 12,
+          "name": "cache",
+          "type": "IfccadTableFieldCache",
+          "presence": "required"
+        },
+        {
+          "code": 13,
+          "name": "auxiliary_values",
+          "type": "Vec<IfccadTableFieldAuxiliaryValue>",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "u64",
+        "String",
+        "Vec<IfccadTableFieldCodePart>",
+        "Vec<u64>",
+        "i32",
+        "IfccadTableFieldCache",
+        "Vec<IfccadTableFieldAuxiliaryValue>"
+      ]
+    },
+    "Vec<IfccadTableFieldCodePart>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableFieldCodePart"
+      ],
+      "dependencies": [
+        "IfccadTableFieldCodePart"
+      ]
+    },
+    "Vec<IfccadTableFieldAuxiliaryValue>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableFieldAuxiliaryValue"
+      ],
+      "dependencies": [
+        "IfccadTableFieldAuxiliaryValue"
+      ]
+    },
+    "IfccadTableFieldCache": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "value",
+          "type": "IfccadTableValue",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "display",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "unit",
+          "type": "Option<IfccadTableUnit>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 3,
+          "name": "value_format",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 4,
+          "name": "formatted_value",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 5,
+          "name": "flags",
+          "type": "i32",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadTableValue",
+        "String",
+        "Option<IfccadTableUnit>",
+        "i32"
+      ]
+    },
+    "IfccadTableFieldAuxiliaryValue": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "key",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "cache",
+          "type": "IfccadTableFieldCache",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "String",
+        "IfccadTableFieldCache"
+      ]
+    },
+    "IfccadTableCellReference": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "table_id",
+          "type": "Option<u64>",
+          "presence": "default",
+          "default": null,
+          "omit": "exact"
+        },
+        {
+          "code": 1,
+          "name": "range",
+          "type": "IfccadTableRange",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "Option<u64>",
+        "IfccadTableRange"
+      ]
+    },
+    "IfccadTableFlowDirection": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "TopToBottom",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "BottomToTop",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadTableCellStyleRole": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Title",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "Header",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 2,
+          "name": "Data",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadDataTableColumnType": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Integer",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "Real",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 2,
+          "name": "Text",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 3,
+          "name": "Point",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 4,
+          "name": "Object",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 5,
+          "name": "HardOwner",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 6,
+          "name": "SoftOwner",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 7,
+          "name": "HardPointer",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 8,
+          "name": "SoftPointer",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 9,
+          "name": "Boolean",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 10,
+          "name": "Vector",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadTableCellState": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "ContentLocked",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "ContentReadOnly",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 2,
+          "name": "Linked",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 3,
+          "name": "ContentModifiedAfterUpdate",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 4,
+          "name": "FormatLocked",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 5,
+          "name": "FormatReadOnly",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 6,
+          "name": "FormatModifiedAfterUpdate",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadTableBreakDirection": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Right",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "Down",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 2,
+          "name": "Left",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadTableAlignment": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "TopLeft",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "TopCenter",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 2,
+          "name": "TopRight",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 3,
+          "name": "MiddleLeft",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 4,
+          "name": "MiddleCenter",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 5,
+          "name": "MiddleRight",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 6,
+          "name": "BottomLeft",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 7,
+          "name": "BottomCenter",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 8,
+          "name": "BottomRight",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadTableUnit": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Unitless",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "Distance",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 2,
+          "name": "Angle",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 3,
+          "name": "Area",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 4,
+          "name": "Volume",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 5,
+          "name": "Currency",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 6,
+          "name": "Percentage",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadTableContentLayout": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Flow",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "Horizontal",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 2,
+          "name": "Vertical",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadTableBorderKind": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Single",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "Double",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadTableValueKind": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Text",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 1,
+          "name": "Integer",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 2,
+          "name": "Real",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 3,
+          "name": "Point2D",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 4,
+          "name": "Point3D",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 6,
+          "name": "Date",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 7,
+          "name": "Binary",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 8,
+          "name": "ResultBuffer",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 9,
+          "name": "General",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 10,
+          "name": "Object",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 11,
+          "name": "Boolean",
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "code": 12,
+          "name": "UnspecifiedNumber",
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
+    },
+    "Vec<IfccadTableStyle>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableStyle"
+      ],
+      "dependencies": [
+        "IfccadTableStyle"
+      ]
+    },
+    "Vec<IfccadTableDataLink>": {
+      "kind": "list",
+      "items": [
+        "IfccadTableDataLink"
+      ],
+      "dependencies": [
+        "IfccadTableDataLink"
+      ]
+    },
+    "Vec<IfccadDataTable>": {
+      "kind": "list",
+      "items": [
+        "IfccadDataTable"
+      ],
+      "dependencies": [
+        "IfccadDataTable"
+      ]
+    },
+    "Box<IfccadTable>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadTable"
+      ],
+      "dependencies": [
+        "IfccadTable"
+      ]
+    },
+    "IfccadTableValue": {
+      "kind": "enum",
+      "representation": "kindValueMap",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Text",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "String",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 1,
+          "name": "Integer",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "i64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 2,
+          "name": "Real",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "f64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 3,
+          "name": "Point2D",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "[f64;2]",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 4,
+          "name": "Point3D",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "[f64;3]",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 5,
+          "name": "Unset",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadTableValueKind",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 6,
+          "name": "Date",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Vec<u8>",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 7,
+          "name": "Binary",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Vec<u8>",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 8,
+          "name": "ResultBuffer",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "Vec<u8>",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 9,
+          "name": "General",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "String",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 10,
+          "name": "Object",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "u64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 11,
+          "name": "Boolean",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "bool",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 12,
+          "name": "UnspecifiedNumber",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "i32",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "String",
+        "i64",
+        "f64",
+        "[f64;2]",
+        "[f64;3]",
+        "IfccadTableValueKind",
+        "Vec<u8>",
+        "u64",
+        "bool",
+        "i32"
+      ]
+    },
+    "IfccadTableFieldCodePart": {
+      "kind": "enum",
+      "representation": "taggedPair",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Literal",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "String",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 1,
+          "name": "Child",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "u64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 2,
+          "name": "Object",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "u64",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "code": 3,
+          "name": "Cells",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadTableCellReference",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "String",
+        "u64",
+        "IfccadTableCellReference"
+      ]
+    },
+    "IfccadTableCellContent": {
+      "kind": "enum",
+      "representation": "kindValueMap",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Value",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 1,
+              "name": "value_0",
+              "type": "IfccadTableValue",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "display",
+              "type": "String",
+              "presence": "optional"
+            },
+            {
+              "code": 3,
+              "name": "unit",
+              "type": "IfccadTableUnit",
+              "presence": "optional"
+            },
+            {
+              "code": 4,
+              "name": "value_format",
+              "type": "String",
+              "presence": "optional"
+            },
+            {
+              "code": 5,
+              "name": "format",
+              "type": "Box<IfccadTableCellFormat>",
+              "presence": "optional"
+            }
+          ]
+        },
+        {
+          "code": 1,
+          "name": "Block",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 1,
+              "name": "value_0",
+              "type": "Box<IfccadTableBlockContent>",
+              "presence": "required"
+            },
+            {
+              "code": 5,
+              "name": "format",
+              "type": "Box<IfccadTableCellFormat>",
+              "presence": "optional"
+            }
+          ]
+        },
+        {
+          "code": 2,
+          "name": "Field",
+          "shape": "(",
+          "fields": [
+            {
+              "code": 1,
+              "name": "value_0",
+              "type": "Box<IfccadTableFieldGraph>",
+              "presence": "required"
+            },
+            {
+              "code": 2,
+              "name": "display",
+              "type": "String",
+              "presence": "optional"
+            },
+            {
+              "code": 5,
+              "name": "format",
+              "type": "Box<IfccadTableCellFormat>",
+              "presence": "optional"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "IfccadTableValue",
+        "String",
+        "IfccadTableUnit",
+        "Box<IfccadTableCellFormat>",
+        "Box<IfccadTableBlockContent>",
+        "Box<IfccadTableFieldGraph>"
+      ]
+    },
+    "Box<IfccadTableCellFormat>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadTableCellFormat"
+      ],
+      "dependencies": [
+        "IfccadTableCellFormat"
+      ]
+    },
+    "Box<IfccadTableBlockContent>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadTableBlockContent"
+      ],
+      "dependencies": [
+        "IfccadTableBlockContent"
+      ]
+    },
+    "Box<IfccadTableFieldGraph>": {
+      "kind": "transparent",
+      "items": [
+        "IfccadTableFieldGraph"
+      ],
+      "dependencies": [
+        "IfccadTableFieldGraph"
       ]
     }
   }

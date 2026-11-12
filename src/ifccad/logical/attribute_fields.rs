@@ -80,6 +80,12 @@ pub struct IfccadAttributeFieldAuxiliaryValue {
     pub cache: IfccadAttributeFieldCache,
 }
 
+pub(super) fn has_unbound_reference(code: &str) -> bool {
+    ["\\_ObjId", "\\_ObjIdx", "\\_FldIdx", "?BlockRefId"]
+        .iter()
+        .any(|key| code.contains(key))
+}
+
 impl IfccadAttributeFieldGraph {
     pub(super) fn validate(
         &self,
@@ -130,11 +136,7 @@ impl IfccadAttributeFieldGraph {
             }
             for part in &r.code {
                 match part {
-                    IfccadAttributeFieldCodePart::Literal(s)
-                        if ["\\_ObjId", "\\_ObjIdx", "\\_FldIdx", "?BlockRefId"]
-                            .iter()
-                            .any(|key| s.contains(key)) =>
-                    {
+                    IfccadAttributeFieldCodePart::Literal(s) if has_unbound_reference(s) => {
                         return Err(fail("field literal contains an unbound reference"))
                     }
                     IfccadAttributeFieldCodePart::Object(id) if !entities.contains(id) => {
@@ -156,32 +158,49 @@ impl IfccadAttributeFieldGraph {
                 }
             }
         }
-        let mut seen = BTreeSet::new();
-        let mut active = BTreeSet::new();
-        let mut pending = vec![(self.root, false)];
-        while let Some((id, exiting)) = pending.pop() {
-            if exiting {
-                active.remove(&id);
-                seen.insert(id);
-                continue;
-            }
-            if active.contains(&id) {
-                return Err(fail("attribute field cycle"));
-            }
-            if seen.contains(&id) {
-                continue;
-            }
-            active.insert(id);
-            pending.push((id, true));
-            for part in &records[&id].code {
-                if let IfccadAttributeFieldCodePart::Child(child) = part {
-                    pending.push((*child, false));
-                }
-            }
-        }
-        if seen.len() != records.len() {
-            return Err(fail("unreachable attribute field record"));
-        }
-        Ok(())
+        validate_owned_graph(
+            self.root,
+            &records,
+            |record| {
+                record.code.iter().filter_map(|part| match part {
+                    IfccadAttributeFieldCodePart::Child(child) => Some(*child),
+                    _ => None,
+                })
+            },
+            fail,
+        )
     }
+}
+
+pub(super) fn validate_owned_graph<'a, T, I: IntoIterator<Item = u64>>(
+    root: u64,
+    records: &BTreeMap<u64, &'a T>,
+    children: impl Fn(&'a T) -> I,
+    fail: impl Fn(&'static str) -> IfccadReport,
+) -> Result<(), IfccadReport> {
+    let mut seen = BTreeSet::new();
+    let mut active = BTreeSet::new();
+    let mut pending = vec![(root, false)];
+    while let Some((id, exiting)) = pending.pop() {
+        if exiting {
+            active.remove(&id);
+            seen.insert(id);
+            continue;
+        }
+        if active.contains(&id) {
+            return Err(fail("attribute field cycle"));
+        }
+        if seen.contains(&id) {
+            continue;
+        }
+        active.insert(id);
+        pending.push((id, true));
+        for child in children(records[&id]) {
+            pending.push((child, false));
+        }
+    }
+    if seen.len() != records.len() {
+        return Err(fail("unreachable attribute field record"));
+    }
+    Ok(())
 }

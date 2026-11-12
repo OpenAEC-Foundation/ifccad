@@ -6,9 +6,49 @@ use serde::Deserialize;
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 
+fn table_resource_nodes<T: serde::de::DeserializeOwned>(
+    nodes: &BTreeMap<String, &Value>,
+    prefix: &str,
+    kind: &str,
+    paths: &mut BTreeSet<String>,
+) -> Result<Vec<(u64, T)>, IfccadReport> {
+    let role = format!("ifccad::{kind}");
+    let path_prefix = format!("{prefix}/{kind}/");
+    let mut resources = Vec::new();
+    for (path, node) in nodes {
+        if let Some(value) = attr(node, &role) {
+            super::supplemental::validate_value(&role, value, path)?;
+            if node["attributes"]
+                .as_object()
+                .is_none_or(|attrs| attrs.len() != 1)
+                || node.get("children").is_some_and(|children| {
+                    !children.as_object().is_some_and(serde_json::Map::is_empty)
+                })
+            {
+                return Err(problem(format!(
+                    "{path} {kind} has incompatible role or children"
+                )));
+            }
+            let id = numbered(path, &path_prefix)?;
+            let settings = serde_json::from_value(value.clone())
+                .map_err(|error| problem(format!("{path} invalid {kind}: {error}")))?;
+            paths.insert(path.clone());
+            resources.push((id, settings));
+        }
+    }
+    resources.sort_by_key(|(id, _)| *id);
+    Ok(resources)
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DrawingValue {
+    #[serde(default = "initial_workspace_id")]
+    next_table_data_link_id: u64,
+    #[serde(default = "initial_workspace_id")]
+    next_data_table_id: u64,
+    #[serde(default = "initial_workspace_id")]
+    next_table_style_id: u64,
     #[serde(default = "initial_workspace_id")]
     next_multi_leader_style_id: u64,
     #[serde(default)]
@@ -391,7 +431,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .and_then(Value::as_object)
         .ok_or_else(|| problem("IFCX schemas must be an object"))?;
     let profile_module: Value = serde_json::from_str(include_str!(
-        "../../../../schemas/ifccad/ifccad-profile-0.8.0.ifcx"
+        "../../../../schemas/ifccad/ifccad-profile-0.9.0.ifcx"
     ))
     .map_err(|e| problem(format!("invalid built-in CAD schema module: {e}")))?;
     let known = profile_module["schemas"]
@@ -448,7 +488,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let drawing_id = numbered(drawing_path, "/cad/d")?;
     let prefix = drawing_prefix(drawing_id);
     let drawing: DrawingValue = required(drawing_node, "ifccad::drawing")?;
-    if drawing.profile_version != "0.8.0" {
+    if drawing.profile_version != "0.9.0" {
         return Err(crate::ifccad::diagnostics::failure(
             "IFCCAD-WIRE-001",
             &format!("{drawing_path}/ifccad::drawing/profileVersion"),
@@ -657,6 +697,31 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         }
     }
     multi_leader_styles.sort_by_key(|style| style.id);
+    let mut table_resource_paths = BTreeSet::new();
+    let table_styles =
+        table_resource_nodes(&nodes, &prefix, "tableStyle", &mut table_resource_paths)?
+            .into_iter()
+            .map(|(id, settings)| IfccadTableStyle {
+                id: IfccadTableStyleId(id),
+                settings,
+            })
+            .collect();
+    let table_data_links =
+        table_resource_nodes(&nodes, &prefix, "tableDataLink", &mut table_resource_paths)?
+            .into_iter()
+            .map(|(id, settings)| IfccadTableDataLink {
+                id: IfccadTableDataLinkId(id),
+                settings,
+            })
+            .collect();
+    let data_tables =
+        table_resource_nodes(&nodes, &prefix, "dataTable", &mut table_resource_paths)?
+            .into_iter()
+            .map(|(id, settings)| IfccadDataTable {
+                id: IfccadDataTableId(id),
+                settings,
+            })
+            .collect();
     let next_dimension_style_id = match drawing.next_dimension_style_id {
         Some(v) => v,
         None if dimension_styles.is_empty() => 1,
@@ -676,6 +741,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .chain(style_paths.keys())
         .chain(dimension_paths.keys())
         .chain(multi_leader_paths.keys())
+        .chain(table_resource_paths.iter())
         .chain(source_paths.keys())
         .chain(std::iter::once(&model_path))
         .chain(paper_paths.values().map(|(path, ..)| path))
@@ -955,6 +1021,9 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         _ => return Err(problem("preservation requires allocation watermark")),
     };
     let mut document = IfccadDocument {
+        table_data_links,
+        data_tables,
+        table_styles,
         multi_leader_styles,
         attribute_visibility: drawing.attribute_visibility,
         annotation_settings: drawing.annotation_settings,
@@ -976,6 +1045,9 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         header,
         drawing_id,
         id_counters: IfccadIdCounters {
+            next_table_data_link_id: drawing.next_table_data_link_id,
+            next_data_table_id: drawing.next_data_table_id,
+            next_table_style_id: drawing.next_table_style_id,
             next_multi_leader_style_id: drawing.next_multi_leader_style_id,
             next_annotation_view_id: drawing.next_annotation_view_id,
             next_annotation_scale_id: drawing.next_annotation_scale_id,
@@ -1034,6 +1106,7 @@ pub(super) fn decode_payload(
         "ifccad::leader",
         "ifccad::multiLeader",
         "ifccad::tolerance",
+        "ifccad::table",
     ]);
     let present: Vec<_> = payloads
         .iter()
@@ -1052,6 +1125,22 @@ pub(super) fn decode_payload(
         return Err(problem(format!("{path} unsupported CAD geometry")));
     }
     let mut kind = match *present[0] {
+        "ifccad::table" => {
+            let placement = super::geometry::decode(
+                attrs
+                    .get("ifccad::geom::placement")
+                    .ok_or_else(|| problem(format!("{path} missing table placement")))?,
+                path,
+            )?;
+            let value = &attrs["ifccad::table"];
+            super::supplemental::validate_value("ifccad::table", value, path)?;
+            let grid = super::geometry::decode(value, path)?;
+            IfccadEntityKind::Table(Box::new(IfccadTable {
+                placement,
+                grid,
+                graphics: None,
+            }))
+        }
         "ifccad::leader" => IfccadEntityKind::Leader(Box::new(
             leaders
                 .ok_or_else(|| problem("Leader requires owned graph reader"))?

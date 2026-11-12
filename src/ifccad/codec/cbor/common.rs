@@ -21,6 +21,9 @@ record!(IfccadIdCounters;
 11 => next_annotation_scale_id: u64 = None,
 12 => next_annotation_view_id:u64=Some(1_u64),
 13 => next_multi_leader_style_id:u64=Some(1_u64),
+14 => next_table_style_id: u64 = Some(1_u64),
+15 => next_table_data_link_id: u64 = Some(1_u64),
+16 => next_data_table_id: u64 = Some(1_u64),
 );
 record!(IfccadLayer;
 0 => id: u64 = None,

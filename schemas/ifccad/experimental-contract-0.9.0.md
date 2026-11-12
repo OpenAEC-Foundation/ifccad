@@ -1,4 +1,4 @@
-# Experimental IFCCAD profile 0.8.0
+# Experimental IFCCAD profile 0.9.0
 
 IFCCAD is an opt-in, standalone IFCX alpha experiment, independent of the OCDraw drawing contract. Generic IFCX content may coexist with these CAD nodes. A reader claiming this CAD profile must enforce the rules below after composing fragments for equal paths. Project-owned API and schema file names use IFCCAD. The underlying IFCX syntax, `.ifcx` serialization, `ifccad::` schema namespace and profile URI retain their meaning. Released historical conformance collections remain unchanged.
 
@@ -14,9 +14,9 @@ spatial-vertex requirements are unchanged. Existing fully expanded input remains
 valid; older experimental readers can reject new compact output.
 
 The ordinary IFCX module describes the available field shapes. The normative
-[profile rules](profile-rules-0.8.0.md) identify additional local-value, graph and
+[profile rules](profile-rules-0.9.0.md) identify additional local-value, graph and
 domain obligations for all current attribute families. The bundled offline reader
-uses [JSON Schema supplements](supplemental-values-0.8.0.schema.json) at consumed
+uses [JSON Schema supplements](supplemental-values-0.9.0.schema.json) at consumed
 CAD attribute boundaries together with typed projection and shared domain validation.
 No extra drawing import is required. Ordinary IFCX checks alone do not establish
 full IFCCAD validity. Native record closure and absence/null rules are enforced consistently across
@@ -25,14 +25,14 @@ Generated validation diagnostics identify a rule and source/component location.
 
 ## File and identity
 
-Profile 0.8.0 is the unpublished block-attribute successor to the fixed
+Profile 0.9.0 is the unpublished block-attribute successor to the fixed
 profile 0.5.0 / CBOR5 published in native source alpha 2026.45.1. It adds
 ATTDEF and ordered INSERT-owned attributes, independent Text/MText payloads,
 saved attribute contexts and selected typed field graphs. See
 [the attribute contract](../../docs/block-attributes.md). No release or host
 qualification is implied by this development contract.
 
-The file has IFCX `header`, `imports`, `schemas`, and `data`. `header.ifcxVersion` is `ifcx_alpha`. `header.dataVersion` belongs to the dataset. The drawing value's `profileVersion` is `0.8.0` and identifies this provisional CAD proof. This candidate uses a new identifier for its normative changes; alpha releases have no general compatibility guarantee. The recommended drawing imports `urn:example:ifccad:0.8.0`, whose schema-only IFCX document is `ifccad-profile-0.8.0.ifcx`, and leaves drawing-local `schemas` empty. The `example` URN namespace is registered for documentation and experimentation; this identifier is intentionally temporary and must be replaced by an organization-controlled published URI before production exchange. The 2026.44.0 tag fixes profile 0.1.0 under its own URI; this candidate URI identifies the development successor. The strict reader resolves this one experimental URI from its bundled profile, without network access. Alternatively, a drawing may inline exactly matching definitions from that module's `schemas`; a missing import and missing local definitions fail. This is a bounded offline resolver, not general IFCX import resolution. Conditional requirements and cross-node constraints in this document exceed IFCX's per-attribute descriptions.
+The file has IFCX `header`, `imports`, `schemas`, and `data`. `header.ifcxVersion` is `ifcx_alpha`. `header.dataVersion` belongs to the dataset. The drawing value's `profileVersion` is `0.9.0` and identifies this provisional CAD proof. This candidate uses a new identifier for its normative changes; alpha releases have no general compatibility guarantee. The recommended drawing imports `urn:example:ifccad:0.9.0`, whose schema-only IFCX document is `ifccad-profile-0.9.0.ifcx`, and leaves drawing-local `schemas` empty. The `example` URN namespace is registered for documentation and experimentation; this identifier is intentionally temporary and must be replaced by an organization-controlled published URI before production exchange. The 2026.44.0 tag fixes profile 0.1.0 under its own URI; this candidate URI identifies the development successor. The strict reader resolves this one experimental URI from its bundled profile, without network access. Alternatively, a drawing may inline exactly matching definitions from that module's `schemas`; a missing import and missing local definitions fail. This is a bounded offline resolver, not general IFCX import resolution. Conditional requirements and cross-node constraints in this document exceed IFCX's per-attribute descriptions.
 
 The complete path is a node identity. The profile uses `/cad/dN` for one drawing, `/cad/dN/layout/N` for Model and Paper layouts, `/cad/dN/layer/N` for layers, `/cad/dN/block/N` for block definitions, `/cad/dN/linePattern/N` for named pattern definitions, and `/cad/dN/eN` for drawable entities. Model and Paper layouts share one layout-ID domain. `N` is a canonical base-10 `uint64` with no sign or leading zero; entity IDs are unique within the drawing and are not repeated as attributes. USD-style angle brackets are not part of these paths. Path spelling is an experimental CAD convention, not a claim that IFCX requires UUIDs or these paths. References use the same complete path strings.
 
@@ -68,7 +68,7 @@ never lowered. Maintaining that history is an editor responsibility.
 Missing counters fail the current strict experimental reader; they are not
 inferred on load. Initializing an older file from current maxima cannot recover
 deleted-ID history and needs an explicit allocation baseline. The experimental
-URI/version 0.8.0 includes this state in its first published snapshot; earlier
+URI/version 0.9.0 includes this state in its first published snapshot; earlier
 unpublished allocation drafts have no compatibility promise.
 DWG/DXF import initializes fresh allocation state and retains source associations
 only through conversion mappings, without promising persistent native identity
@@ -77,6 +77,38 @@ through CAD serialization. See the [allocation design](../../docs/experiments/if
 By default, multiple `data` fragments with the same path compose in file order. Their `children`, `inherits`, and `attributes` objects merge by key; for a repeated key, the later value replaces the entire earlier value, including a geometry or appearance attribute object. Other repeated node fields are replaced as whole values. A `null` inheritance value removes that key during composition, while a `null` child or attribute value remains a marker in the composed node. This matches the observed upstream flattening behavior; deletion during expanded graph loading and attribute deletion are not defined by this CAD profile. The reader also exposes a diagnostic `RejectConflicts` policy: it accepts disjoint and identical fragments but rejects differing repeated values, including on foreign IFCX nodes. That stricter option is a development check, not a claim that IFCX forbids overwrites. Duplicate JSON object keys within one object are errors under either policy. The reader validates CAD roles, references, geometry, and draw order on the final composed nodes under either policy. Unknown IFCX nodes and unknown non-CAD attributes are retained under the same selected composition rule. The CAD profile does not use `inherits` for blocks or appearance. A foreign IFCX node may refer to a CAD entity without acquiring ownership.
 
 ## Scope and order
+
+### Tables
+
+An `ifccad::table` entity owns one rectangular grid at its ordinary entity
+placement. The attribute is a single composed value. Columns, rows and cell
+contents retain their order. A cell may store values, block references and
+field graphs. Values and display text have independent meaning.
+
+Merge ranges use inclusive zero-based coordinates. The top-left cell is the
+anchor. All underlying cells keep their values and explicit format. Merges
+must be in bounds, cover more than one cell and be disjoint.
+
+A drawing may own `ifccad::tableStyle`, `ifccad::tableDataLink` and
+`ifccad::dataTable` resources. Each resource uses a separate drawing-local
+allocation domain. A table style's template is an inline grid. Named cell
+style IDs are local to the selected table style. Sparse overrides remain
+present even when they match an inherited value. The Studio precedence for
+content properties is cell, column, row, table base, shared style. Border
+selection for each side uses cell, row, column, table base, shared style.
+Content item overrides apply at the item itself.
+
+Stored fields use owned records with typed child, object and cell-range
+references. A cell range with no table ID targets the containing table.
+Only field ownership must be acyclic. Stored expressions, cached values,
+display text and data link records survive storage without evaluation.
+
+The optional `children.graphics` link owns one `ifccad::tableGraphics`
+group. Its contiguous numbered children are `ifccad::tableGraphicsPart`
+nodes with typed geometry. They carry no independent entity identities or
+owner draw-order entries. Blocks referenced by a part use ordinary drawing
+block identities. Parts use display purpose. The editor controls when it
+regenerates or invalidates a saved picture.
 
 The drawing has named `children` referring to exactly one Model layout, zero or more Paper layouts, all layers, all line-pattern definitions (including unused ones), and all block definitions. Pattern membership is unordered; canonical typed collection order follows lexical paths, independently of element order. Layouts share the drawing's layers and block definitions. Layout child names identify membership, while required `tabIndex` values encode presentation order. Model has index 0; Paper indices are unique and contiguous from 1 through the number of Paper layouts. Reader and writer normalize Paper collections by tab index, independently of IDs. Reordering changes indices without changing identity or allocation watermarks. Paper names are nonblank and unique under Unicode 17 full case folding, including the implicit name `Model`, without trimming or normalization. Each layout and block definition uses `children` keys `"0"`, `"1"`, â€¦ as draw positions; keys must be canonical and contiguous from zero. Empty scopes are allowed. Values are paths to distinct drawable entities. Numeric order is authoritative independent of JSON member order. An entity is a numeric child of exactly one layout or block definition, and every `ifccad::entity` node has such an owner. Reordering changes child keys but not entity paths. Other named IFCX children may coexist but confer no CAD ownership. There is no separate draw-order or `scope` attribute. A block instance is one ordered entity in its owner's children; it references one definition by its `definition` field. All definition targets must resolve and the definition-reference graph must be acyclic, including unused definitions.
 
@@ -363,7 +395,7 @@ for known contributions remain hard with absent bounds and unavailable neighbour
 ## Text and MText
 
 The independent closed nested mapping is
-[`supplemental-values-0.8.0.schema.json`](supplemental-values-0.8.0.schema.json). Its required
+[`supplemental-values-0.9.0.schema.json`](supplemental-values-0.9.0.schema.json). Its required
 fields, enums, variant exclusivity, primitive types and unknown/null rejection
 supplement the bundled IFCX module and semantic constraints described in
 [`docs/text.md`](../../docs/text.md). No CAD formatting codes are interpreted by
@@ -639,7 +671,7 @@ text/symbol markers. All current drawing payloads now require
 `nextSymbolSourceId`, even without sources. Plain numeric elements keep their
 wire spelling; the Rust pattern vector now contains typed elements. Use
 `LinePatternElement::simple(length)` for plain entries. URI/digest/embedding remain deferred. Upright rotation is now a native exclusive
-mode with the same finite-angle validation as relative/absolute rotation. See profile-rules-0.8.0.md for the closed
+mode with the same finite-angle validation as relative/absolute rotation. See profile-rules-0.9.0.md for the closed
 physical alternatives and drawing-local reference contract.
 
 ## Hatch gradient settings
@@ -691,13 +723,13 @@ requires its ordinary hard position evidence independently of optional simple
 surface correspondence; absent surface evidence does not invalidate, omit or
 lose a finite descriptor. Viewer rendering remains unassessed.
 
-Dimension owns optional independent graphics, projected as canonical child groups/parts in IFCX. No identity allocation or freshness evaluation is introduced; see [profile rules](profile-rules-0.8.0.md#owned-dimension-graphics).
+Dimension owns optional independent graphics, projected as canonical child groups/parts in IFCX. No identity allocation or freshness evaluation is introduced; see [profile rules](profile-rules-0.9.0.md#owned-dimension-graphics).
 
 ## Independent Hatch editing state
 
 `ifccad::hatch.classicSettings` and `.boundaryConstruction` are optional closed
 non-null records with the defaults, authored presence and intrinsic validation
-in [IFCCAD-HATCH-006](profile-rules-0.8.0.md#hatch-editing-state). They do not
+in [IFCCAD-HATCH-006](profile-rules-0.9.0.md#hatch-editing-state). They do not
 alter active fill, stored contours, source references, placement or allocation.
 No automatic recipe synchronization, gap policy, source regeneration or precise
 selector is introduced. The active CBOR mapping stores the same logical contract.
@@ -734,7 +766,7 @@ conformance/next, including valid-extrusion and invalid direction/null records.
 The existing FontRequest fields remain authored selectors, not loaded fonts.
 SHX sources additionally accept optional `cadFileName` for the original CAD
 request, including path text; `fileName` remains its required exact lexical
-basename. See profile-rules-0.8.0.md for the platform-independent derivation and
+basename. See profile-rules-0.9.0.md for the platform-independent derivation and
 validation. No origin/base, URI resolution, content hash, embedding or persistent
 resolution status is implied. Applications report missing/substitute outcomes
 separately without overwriting the request or upgrading glyph bounds evidence.

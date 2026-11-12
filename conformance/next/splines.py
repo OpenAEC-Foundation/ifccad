@@ -1,4 +1,4 @@
-"""Independently author a mixed spline and literal CBOR revision 8 record."""
+"""Independently author a mixed spline and literal CBOR revision 9 record."""
 import json
 from pathlib import Path
 

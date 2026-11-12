@@ -73,6 +73,9 @@ fn ifccad_native_download_preserves_large_counter_bytes() {
         .clone();
     document.id_counters = IfccadIdCounters {
         next_multi_leader_style_id: 1,
+        next_table_style_id: 1,
+        next_table_data_link_id: 1,
+        next_data_table_id: 1,
         next_annotation_view_id: 1,
         next_annotation_scale_id: 1,
         next_dimension_style_id: 1,

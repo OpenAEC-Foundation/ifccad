@@ -34,6 +34,9 @@ fn graph() -> Value {
     }
     document.id_counters = IfccadIdCounters {
         next_multi_leader_style_id: 1,
+        next_table_style_id: 1,
+        next_table_data_link_id: 1,
+        next_data_table_id: 1,
         next_annotation_view_id: 1,
         next_annotation_scale_id: 1,
         next_dimension_style_id: 1,
@@ -376,6 +379,9 @@ fn wire_roundtrip_preserves_full_width_counters_and_rejects_maximum_ids() {
         let mut document = read(&graph()).unwrap().document().clone();
         document.id_counters = IfccadIdCounters {
             next_multi_leader_style_id: 1,
+            next_table_style_id: 1,
+            next_table_data_link_id: 1,
+            next_data_table_id: 1,
             next_annotation_view_id: 1,
             next_annotation_scale_id: 1,
             next_dimension_style_id: 1,

@@ -131,6 +131,12 @@ pub(super) fn referenced_blocks(kind: &IfccadEntityKind, document: &IfccadDocume
     let mut out = vec![];
     match kind {
         IfccadEntityKind::BlockInstance { definition_id, .. } => out.push(*definition_id),
+        IfccadEntityKind::Table(table) => {
+            out.extend(table.grid.referenced_blocks());
+            if let Some(graphics) = &table.graphics {
+                picture(graphics, &mut out);
+            }
+        }
         IfccadEntityKind::Leader(leader) => {
             if let Some(style) = document
                 .dimension_styles

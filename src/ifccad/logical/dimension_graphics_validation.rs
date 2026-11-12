@@ -86,13 +86,14 @@ pub(super) fn validate(d: &IfccadDocument) -> Result<(), IfccadReport> {
         .chain(d.blocks.iter().flat_map(|b| &b.entities))
         .filter_map(IfccadEntity::as_native)
     {
-        let IfccadEntityKind::Dimension(v) = &e.kind else {
-            continue;
+        let (graphics, annotation) = match &e.kind {
+            IfccadEntityKind::Dimension(value) => (&value.graphics, value.annotation.as_deref()),
+            IfccadEntityKind::Table(value) => (&value.graphics, None),
+            _ => continue,
         };
-        let base = v.graphics.as_ref().map(|g| ("graphics".to_string(), g));
-        let contexts = v
-            .annotation
-            .iter()
+        let base = graphics.as_ref().map(|g| ("graphics".to_string(), g));
+        let contexts = annotation
+            .into_iter()
             .flat_map(|a| &a.contexts)
             .filter_map(|c| {
                 c.presentation

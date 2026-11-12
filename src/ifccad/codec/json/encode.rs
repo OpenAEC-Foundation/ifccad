@@ -153,6 +153,24 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             json!(format!("{prefix}/multiLeaderStyle/{}", style.id.0)),
         );
     }
+    for style in &document.table_styles {
+        drawing_children.insert(
+            format!("tableStyle{}", style.id.0),
+            json!(format!("{prefix}/tableStyle/{}", style.id.0)),
+        );
+    }
+    for resource in &document.table_data_links {
+        drawing_children.insert(
+            format!("tableDataLink{}", resource.id.0),
+            json!(format!("{prefix}/tableDataLink/{}", resource.id.0)),
+        );
+    }
+    for resource in &document.data_tables {
+        drawing_children.insert(
+            format!("dataTable{}", resource.id.0),
+            json!(format!("{prefix}/dataTable/{}", resource.id.0)),
+        );
+    }
     for ucs in &document.ucs_definitions {
         drawing_children.insert(
             format!("ucs{}", ucs.id.0),
@@ -181,7 +199,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         path: prefix.clone(),
         children: Some(drawing_children),
         attributes: attrs(json!({"ifccad::drawing":{
-            "profileVersion":"0.8.0","lengthUnit":document.length_unit,"attributeVisibility":document.attribute_visibility,
+            "profileVersion":"0.9.0","lengthUnit":document.length_unit,"attributeVisibility":document.attribute_visibility,
             "linePatternScale":document.line_pattern_scale,
 
             "nextEntityId":document.id_counters.next_entity_id,
@@ -253,6 +271,39 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             attributes: attrs(
                 json!({"ifccad::multiLeaderStyle":super::leader_graph::style_value(style,&prefix)}),
             ),
+        });
+    }
+    if document.id_counters.next_table_style_id != 1 {
+        data[0].attributes["ifccad::drawing"]["nextTableStyleId"] =
+            json!(document.id_counters.next_table_style_id);
+    }
+    for style in &document.table_styles {
+        data.push(NodeOut {
+            path: format!("{prefix}/tableStyle/{}", style.id.0),
+            children: None,
+            attributes: attrs(json!({"ifccad::tableStyle": style.settings})),
+        });
+    }
+    if document.id_counters.next_table_data_link_id != 1 {
+        data[0].attributes["ifccad::drawing"]["nextTableDataLinkId"] =
+            json!(document.id_counters.next_table_data_link_id);
+    }
+    for resource in &document.table_data_links {
+        data.push(NodeOut {
+            path: format!("{prefix}/tableDataLink/{}", resource.id.0),
+            children: None,
+            attributes: attrs(json!({"ifccad::tableDataLink": resource.settings})),
+        });
+    }
+    if document.id_counters.next_data_table_id != 1 {
+        data[0].attributes["ifccad::drawing"]["nextDataTableId"] =
+            json!(document.id_counters.next_data_table_id);
+    }
+    for resource in &document.data_tables {
+        data.push(NodeOut {
+            path: format!("{prefix}/dataTable/{}", resource.id.0),
+            children: None,
+            attributes: attrs(json!({"ifccad::dataTable": resource.settings})),
         });
     }
     if document.plot_style_mode == IfccadPlotStyleMode::Named {
@@ -446,6 +497,18 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
                 data.extend(super::dimension_graphics::encode(g, &path, &prefix));
             }
         }
+        if let Some(IfccadEntityKind::Table(table)) = entity.as_native().map(|e| &e.kind) {
+            if let Some(graphics) = &table.graphics {
+                let path = format!("{}/graphics", node.path);
+                node.children = Some(Map::from_iter([("graphics".into(), json!(path))]));
+                data.extend(super::dimension_graphics::encode_with_roles(
+                    graphics,
+                    &path,
+                    &prefix,
+                    super::dimension_graphics::TABLE_ROLES,
+                ));
+            }
+        }
         if let Some(IfccadEntityKind::BlockInstance { attributes, .. }) =
             entity.as_native().map(|e| &e.kind)
         {
@@ -498,6 +561,10 @@ pub(super) fn encode_payload(
     attrs: &mut Map<String, Value>,
 ) {
     match kind {
+        IfccadEntityKind::Table(table) => {
+            attrs.insert("ifccad::geom::placement".into(), json!(table.placement));
+            attrs.insert("ifccad::table".into(), json!(table.grid));
+        }
         // Their root value and owned nodes are emitted together by leader_graph.
         IfccadEntityKind::Leader(_)
         | IfccadEntityKind::MultiLeader(_)

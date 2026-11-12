@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:example:ifccad:supplemental-values:0.8.0",
+  "$id": "urn:example:ifccad:supplemental-values:0.9.0",
   "title": "IFCCAD supplemental local value constraints",
   "$defs": {
     "mTextBackground": {
@@ -1125,6 +1125,21 @@
             "HideAll",
             "ShowAll"
           ]
+        },
+        "nextTableDataLinkId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "nextDataTableId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "nextTableStyleId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
         },
         "nextMultiLeaderStyleId": {
           "type": "integer",
@@ -11970,6 +11985,1733 @@
           "type": "boolean"
         }
       }
+    },
+    "IfccadDataTableColumn": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "valueType": {
+          "$ref": "#/$defs/IfccadDataTableColumnType"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableValue"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "valueType",
+        "values"
+      ]
+    },
+    "IfccadDataTableColumnType": {
+      "enum": [
+        "integer",
+        "real",
+        "text",
+        "point",
+        "object",
+        "hardOwner",
+        "softOwner",
+        "hardPointer",
+        "softPointer",
+        "boolean",
+        "vector"
+      ]
+    },
+    "IfccadDataTableOwner": {
+      "type": "object",
+      "properties": {
+        "entityId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "dictionaryPath": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "key": {
+          "type": "string"
+        },
+        "hardOwned": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "dictionaryPath",
+        "key",
+        "hardOwned"
+      ]
+    },
+    "IfccadDataTableSettings": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "flags": {
+          "type": "integer",
+          "minimum": -32768,
+          "maximum": 32767
+        },
+        "rowCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadDataTableColumn"
+          }
+        },
+        "owner": {
+          "$ref": "#/$defs/IfccadDataTableOwner"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "flags",
+        "rowCount",
+        "columns"
+      ]
+    },
+    "IfccadNamedTableCellStyle": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/IfccadTableCellStyleRole"
+        },
+        "format": {
+          "$ref": "#/$defs/IfccadTableCellFormat"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "format"
+      ]
+    },
+    "IfccadTableAlignment": {
+      "enum": [
+        "topLeft",
+        "topCenter",
+        "topRight",
+        "middleLeft",
+        "middleCenter",
+        "middleRight",
+        "bottomLeft",
+        "bottomCenter",
+        "bottomRight"
+      ]
+    },
+    "IfccadTableBlockAttribute": {
+      "type": "object",
+      "properties": {
+        "definitionId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "definitionId",
+        "value"
+      ]
+    },
+    "IfccadTableBlockContent": {
+      "type": "object",
+      "properties": {
+        "definitionId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableBlockAttribute"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "definitionId"
+      ]
+    },
+    "IfccadTableBorder": {
+      "type": "object",
+      "properties": {
+        "visible": {
+          "type": "boolean"
+        },
+        "color": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "$ref": "#/$defs/concreteColor"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "lineWeight": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "linePattern": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 18446744073709551615
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "lineKind": {
+          "$ref": "#/$defs/IfccadTableBorderKind"
+        },
+        "doubleSpacing": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "IfccadTableBorderKind": {
+      "enum": [
+        "single",
+        "double"
+      ]
+    },
+    "IfccadTableBreakDirection": {
+      "enum": [
+        "right",
+        "down",
+        "left"
+      ]
+    },
+    "IfccadTableBreakPart": {
+      "type": "object",
+      "properties": {
+        "position": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "height": {
+          "type": "number"
+        },
+        "flags": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "position",
+        "height",
+        "flags"
+      ]
+    },
+    "IfccadTableBreakRange": {
+      "type": "object",
+      "properties": {
+        "position": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "startRow": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "endRow": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "position",
+        "startRow",
+        "endRow"
+      ]
+    },
+    "IfccadTableBreaks": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "$ref": "#/$defs/IfccadTableBreakDirection"
+        },
+        "spacing": {
+          "type": "number"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "manualPositions": {
+          "type": "boolean"
+        },
+        "manualHeights": {
+          "type": "boolean"
+        },
+        "repeatTopLabels": {
+          "type": "boolean"
+        },
+        "repeatBottomLabels": {
+          "type": "boolean"
+        },
+        "parts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableBreakPart"
+          }
+        },
+        "ranges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableBreakRange"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "direction",
+        "spacing",
+        "enabled",
+        "manualPositions",
+        "manualHeights",
+        "repeatTopLabels",
+        "repeatBottomLabels",
+        "parts",
+        "ranges"
+      ]
+    },
+    "IfccadTableCell": {
+      "type": "object",
+      "properties": {
+        "contents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableCellContent"
+          }
+        },
+        "format": {
+          "$ref": "#/$defs/IfccadTableCellFormat"
+        },
+        "styleId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "tooltip": {
+          "type": "string"
+        },
+        "state": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableCellState"
+          }
+        },
+        "customValue": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "customData": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableCustomValue"
+          }
+        },
+        "layout": {
+          "$ref": "#/$defs/IfccadTableCellLayout"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "contents"
+      ]
+    },
+    "IfccadTableCellContent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "value"
+            },
+            "display": {
+              "type": "string"
+            },
+            "unit": {
+              "$ref": "#/$defs/IfccadTableUnit"
+            },
+            "valueFormat": {
+              "type": "string"
+            },
+            "format": {
+              "$ref": "#/$defs/IfccadTableCellFormat"
+            },
+            "value": {
+              "$ref": "#/$defs/IfccadTableValue"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "block"
+            },
+            "format": {
+              "$ref": "#/$defs/IfccadTableCellFormat"
+            },
+            "block": {
+              "$ref": "#/$defs/IfccadTableBlockContent"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "block"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "field"
+            },
+            "display": {
+              "type": "string"
+            },
+            "format": {
+              "$ref": "#/$defs/IfccadTableCellFormat"
+            },
+            "field": {
+              "$ref": "#/$defs/IfccadTableFieldGraph"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "field"
+          ]
+        }
+      ]
+    },
+    "IfccadTableCellFormat": {
+      "type": "object",
+      "properties": {
+        "textHeight": {
+          "type": "number"
+        },
+        "textStyleId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "contentColor": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "$ref": "#/$defs/concreteColor"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "fillColor": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByLayer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "ByBlock"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "Explicit"
+                },
+                "value": {
+                  "$ref": "#/$defs/concreteColor"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "value"
+              ]
+            }
+          ]
+        },
+        "fillEnabled": {
+          "type": "boolean"
+        },
+        "alignment": {
+          "$ref": "#/$defs/IfccadTableAlignment"
+        },
+        "rotation": {
+          "type": "number"
+        },
+        "blockScale": {
+          "type": "number"
+        },
+        "autoFit": {
+          "type": "boolean"
+        },
+        "valueFormat": {
+          "type": "string"
+        },
+        "valueUnit": {
+          "$ref": "#/$defs/IfccadTableUnit"
+        },
+        "margins": {
+          "$ref": "#/$defs/IfccadTableMargins"
+        },
+        "contentLayout": {
+          "$ref": "#/$defs/IfccadTableContentLayout"
+        },
+        "topBorder": {
+          "$ref": "#/$defs/IfccadTableBorder"
+        },
+        "rightBorder": {
+          "$ref": "#/$defs/IfccadTableBorder"
+        },
+        "bottomBorder": {
+          "$ref": "#/$defs/IfccadTableBorder"
+        },
+        "leftBorder": {
+          "$ref": "#/$defs/IfccadTableBorder"
+        },
+        "horizontalInnerBorder": {
+          "$ref": "#/$defs/IfccadTableBorder"
+        },
+        "verticalInnerBorder": {
+          "$ref": "#/$defs/IfccadTableBorder"
+        },
+        "mergeOnInsert": {
+          "type": "boolean"
+        },
+        "valueType": {
+          "$ref": "#/$defs/IfccadTableValueKind"
+        }
+      },
+      "additionalProperties": false
+    },
+    "IfccadTableCellReference": {
+      "type": "object",
+      "properties": {
+        "tableId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "range": {
+          "$ref": "#/$defs/IfccadTableRange"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "range"
+      ]
+    },
+    "IfccadTableCellState": {
+      "enum": [
+        "contentLocked",
+        "contentReadOnly",
+        "linked",
+        "contentModifiedAfterUpdate",
+        "formatLocked",
+        "formatReadOnly",
+        "formatModifiedAfterUpdate"
+      ]
+    },
+    "IfccadTableCellStyleRole": {
+      "enum": [
+        "title",
+        "header",
+        "data"
+      ]
+    },
+    "IfccadTableColumn": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "number"
+        },
+        "format": {
+          "$ref": "#/$defs/IfccadTableCellFormat"
+        },
+        "styleId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "name": {
+          "type": "string"
+        },
+        "customValue": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "customData": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableCustomValue"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "width"
+      ]
+    },
+    "IfccadTableContentLayout": {
+      "enum": [
+        "flow",
+        "horizontal",
+        "vertical"
+      ]
+    },
+    "IfccadTableCustomValue": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/IfccadTableValue"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "value"
+      ]
+    },
+    "IfccadTableDataLinkRange": {
+      "type": "object",
+      "properties": {
+        "linkId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "range": {
+          "$ref": "#/$defs/IfccadTableRange"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "linkId",
+        "range"
+      ]
+    },
+    "IfccadTableDataLinkSettings": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "adapter": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "sourceSelection": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "tooltip": {
+          "type": "string"
+        },
+        "options": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "updateOptions": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "pathOption": {
+          "type": "integer",
+          "minimum": -32768,
+          "maximum": 32767
+        },
+        "statusFlags": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "flags": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "lastUpdate": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": -32768,
+            "maximum": 32767
+          },
+          "minItems": 7,
+          "maxItems": 7
+        },
+        "updateStatus": {
+          "type": "string"
+        },
+        "customData": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableCustomValue"
+          }
+        },
+        "customTargets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableDataLinkTarget"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "adapter",
+        "source",
+        "options",
+        "updateOptions",
+        "pathOption",
+        "statusFlags",
+        "flags",
+        "customData",
+        "customTargets"
+      ]
+    },
+    "IfccadTableDataLinkTarget": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "objectId",
+        "value"
+      ]
+    },
+    "IfccadTableFieldAuxiliaryValue": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "cache": {
+          "$ref": "#/$defs/IfccadTableFieldCache"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "cache"
+      ]
+    },
+    "IfccadTableFieldCache": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/IfccadTableValue"
+        },
+        "display": {
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/$defs/IfccadTableUnit"
+        },
+        "valueFormat": {
+          "type": "string"
+        },
+        "formattedValue": {
+          "type": "string"
+        },
+        "flags": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "display",
+        "valueFormat",
+        "formattedValue",
+        "flags"
+      ]
+    },
+    "IfccadTableFieldCodePart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "literal"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "child"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "object"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "cells"
+            },
+            "value": {
+              "$ref": "#/$defs/IfccadTableCellReference"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        }
+      ]
+    },
+    "IfccadTableFieldGraph": {
+      "type": "object",
+      "properties": {
+        "root": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "nextId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableFieldRecord"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "root",
+        "nextId",
+        "records"
+      ]
+    },
+    "IfccadTableFieldRecord": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "evaluator": {
+          "type": "string"
+        },
+        "code": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableFieldCodePart"
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 18446744073709551615
+          }
+        },
+        "objectTargets": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 18446744073709551615
+          }
+        },
+        "format": {
+          "type": "string"
+        },
+        "evaluationOptions": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "filingOptions": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "state": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "evaluationStatus": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "errorCode": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "errorMessage": {
+          "type": "string"
+        },
+        "cache": {
+          "$ref": "#/$defs/IfccadTableFieldCache"
+        },
+        "auxiliaryValues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableFieldAuxiliaryValue"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "evaluator",
+        "code",
+        "children",
+        "objectTargets",
+        "format",
+        "evaluationOptions",
+        "filingOptions",
+        "state",
+        "evaluationStatus",
+        "errorCode",
+        "errorMessage",
+        "cache",
+        "auxiliaryValues"
+      ]
+    },
+    "IfccadTableFlowDirection": {
+      "enum": [
+        "topToBottom",
+        "bottomToTop"
+      ]
+    },
+    "IfccadTableGrid": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableColumn"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableRow"
+          }
+        },
+        "mergedRanges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableRange"
+          }
+        },
+        "format": {
+          "$ref": "#/$defs/IfccadTableCellFormat"
+        },
+        "styleId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "dataLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableDataLinkRange"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "flowDirection": {
+          "$ref": "#/$defs/IfccadTableFlowDirection"
+        },
+        "breaks": {
+          "$ref": "#/$defs/IfccadTableBreaks"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "columns",
+        "rows"
+      ]
+    },
+    "IfccadTableMargins": {
+      "type": "object",
+      "properties": {
+        "top": {
+          "type": "number"
+        },
+        "right": {
+          "type": "number"
+        },
+        "bottom": {
+          "type": "number"
+        },
+        "left": {
+          "type": "number"
+        },
+        "horizontalSpacing": {
+          "type": "number"
+        },
+        "verticalSpacing": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "IfccadTableRange": {
+      "type": "object",
+      "properties": {
+        "topRow": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "leftColumn": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "bottomRow": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "rightColumn": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "topRow",
+        "leftColumn",
+        "bottomRow",
+        "rightColumn"
+      ]
+    },
+    "IfccadTableRow": {
+      "type": "object",
+      "properties": {
+        "height": {
+          "type": "number"
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableCell"
+          }
+        },
+        "format": {
+          "$ref": "#/$defs/IfccadTableCellFormat"
+        },
+        "styleId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "customValue": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "customData": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableCustomValue"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "height",
+        "cells"
+      ]
+    },
+    "IfccadTableStyleSettings": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "flowDirection": {
+          "$ref": "#/$defs/IfccadTableFlowDirection"
+        },
+        "margins": {
+          "$ref": "#/$defs/IfccadTableMargins"
+        },
+        "titleSuppressed": {
+          "type": "boolean"
+        },
+        "headerSuppressed": {
+          "type": "boolean"
+        },
+        "cellStyles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadNamedTableCellStyle"
+          }
+        },
+        "template": {
+          "$ref": "#/$defs/IfccadTableGrid"
+        },
+        "baseStyle": {
+          "$ref": "#/$defs/IfccadNamedTableCellStyle"
+        },
+        "annotative": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "flowDirection"
+      ]
+    },
+    "IfccadTableUnit": {
+      "enum": [
+        "unitless",
+        "distance",
+        "angle",
+        "area",
+        "volume",
+        "currency",
+        "percentage"
+      ]
+    },
+    "IfccadTableValue": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "text"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "integer"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": -9223372036854775808,
+              "maximum": 9223372036854775807
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "real"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "point2d"
+            },
+            "value": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "point3d"
+            },
+            "value": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "unset"
+            },
+            "value": {
+              "$ref": "#/$defs/IfccadTableValueKind"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "date"
+            },
+            "value": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "binary"
+            },
+            "value": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "resultBuffer"
+            },
+            "value": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "general"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "object"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "boolean"
+            },
+            "value": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "unspecifiedNumber"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ]
+        }
+      ]
+    },
+    "IfccadTableValueKind": {
+      "enum": [
+        "text",
+        "integer",
+        "real",
+        "point2d",
+        "point3d",
+        "date",
+        "binary",
+        "resultBuffer",
+        "general",
+        "object",
+        "boolean",
+        "unspecifiedNumber"
+      ]
+    },
+    "IfccadTableCellLayout": {
+      "type": "object",
+      "properties": {
+        "scale": {
+          "type": "number"
+        },
+        "widthWithGap": {
+          "type": "number"
+        },
+        "heightWithGap": {
+          "type": "number"
+        },
+        "dataFlags": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "flags": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "anchor": {
+          "$ref": "#/$defs/IfccadTableItemLayout"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IfccadTableItemLayout"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "scale",
+        "widthWithGap",
+        "heightWithGap",
+        "dataFlags",
+        "flags",
+        "items"
+      ]
+    },
+    "IfccadTableItemLayout": {
+      "type": "object",
+      "properties": {
+        "distanceToTopLeft": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "distanceToCenter": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "outerWidth": {
+          "type": "number"
+        },
+        "outerHeight": {
+          "type": "number"
+        },
+        "flags": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "distanceToTopLeft",
+        "distanceToCenter",
+        "width",
+        "height",
+        "outerWidth",
+        "outerHeight",
+        "flags"
+      ]
     }
   },
   "$comment": "Mandatory IFCCAD local supplements. Ordinary IFCX shapes, typed decoding and profile-rules graph/domain algorithms also apply. This is not a whole drawing schema or IFCX core syntax."

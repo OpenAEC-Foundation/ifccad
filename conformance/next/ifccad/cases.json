@@ -702,5 +702,13 @@
   {
     "file": "valid/spline-mixed.ifcx",
     "valid": true
+  },
+  {
+    "file": "valid/table-grid.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid/table-merge-outside-grid.ifcx",
+    "valid": false
   }
 ]

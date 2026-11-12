@@ -1,8 +1,8 @@
 {
   "header": {
-    "id": "urn:example:ifccad:0.8.0",
+    "id": "urn:example:ifccad:0.9.0",
     "ifcxVersion": "ifcx_alpha",
-    "dataVersion": "0.8.0",
+    "dataVersion": "0.9.0",
     "author": "OpenAEC",
     "timestamp": "2026-09-29T00:00:00Z"
   },
@@ -166,6 +166,18 @@
             },
             "attributeVisibility": {
               "dataType": "String"
+            },
+            "nextTableDataLinkId": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "nextDataTableId": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "nextTableStyleId": {
+              "type": "integer",
+              "minimum": 1
             },
             "nextMultiLeaderStyleId": {
               "dataType": "Integer",
@@ -19308,6 +19320,36 @@
       }
     },
     "ifccad::multiLeaderPresentation": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::tableDataLink": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::dataTable": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::tableStyle": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::table": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::tableGraphics": {
+      "value": {
+        "dataType": "Object"
+      }
+    },
+    "ifccad::tableGraphicsPart": {
       "value": {
         "dataType": "Object"
       }

@@ -222,6 +222,7 @@ fn validate_document_inner(
         }
         match &entity.kind {
             IfccadEntityKind::Spline(value) => value.validate_at(&path)?,
+            IfccadEntityKind::Table(value) => value.validate_at(document, &path)?,
             IfccadEntityKind::AttributeDefinition(_) => {}
             IfccadEntityKind::Dimension(_) => {}
             IfccadEntityKind::Leader(_)
@@ -310,6 +311,8 @@ fn validate_document_inner(
         }
     }
     super::attributes::validate(document)?;
+    super::table::validate_styles(document)?;
+    super::table_resources::validate_resources(document)?;
     super::dimension_graphics_validation::validate(document)?;
     super::preservation_validation::validate_preservation(document)?;
     super::viewports::validate_references(document)?;

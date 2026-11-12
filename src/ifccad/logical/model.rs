@@ -17,6 +17,9 @@ pub struct IfccadHeader {
 /// This document does not contain foreign nodes or original IFCX fragments.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadDocument {
+    pub table_data_links: Vec<super::IfccadTableDataLink>,
+    pub data_tables: Vec<super::IfccadDataTable>,
+    pub table_styles: Vec<super::IfccadTableStyle>,
     pub multi_leader_styles: Vec<super::IfccadMultiLeaderStyle>,
     pub attribute_visibility: super::IfccadAttributeVisibility,
     pub annotation_settings: Option<super::IfccadDrawingAnnotationSettings>,
@@ -231,6 +234,7 @@ pub enum IfccadEntityKind {
     Leader(Box<super::IfccadLeader>),
     MultiLeader(Box<super::IfccadMultiLeader>),
     Tolerance(Box<super::IfccadTolerance>),
+    Table(Box<super::IfccadTable>),
     Spline(Box<super::IfccadSpline>),
     AttributeDefinition(Box<super::IfccadAttributeDefinition>),
     Solid(IfccadFilledQuadrilateral),

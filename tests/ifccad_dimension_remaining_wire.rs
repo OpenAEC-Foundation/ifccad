@@ -20,7 +20,7 @@ fn new_profile_writer_uses_candidate_identifiers_and_strict_readback() {
         .as_array()
         .unwrap()
         .iter()
-        .any(|x| x["uri"] == "urn:example:ifccad:0.8.0"));
+        .any(|x| x["uri"] == "urn:example:ifccad:0.9.0"));
     let loaded = load_ifccad_bytes(encoded.bytes(), Default::default()).unwrap();
     validate_ifccad_document(loaded.document()).unwrap();
     let IfccadEntityKind::Dimension(returned) = &loaded.document().model.entities[0]

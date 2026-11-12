@@ -3,6 +3,9 @@ use super::{IfccadLinePatternId, IfccadTextStyleId};
 /// Drawing-local domains with independent allocation watermarks.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum IfccadIdDomain {
+    TableDataLink,
+    DataTable,
+    TableStyle,
     MultiLeaderStyle,
     Entity,
     Layer,
@@ -41,6 +44,9 @@ pub struct IfccadIdAllocationError {
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct IfccadIdCounters {
+    pub next_table_data_link_id: u64,
+    pub next_data_table_id: u64,
+    pub next_table_style_id: u64,
     pub next_multi_leader_style_id: u64,
     pub next_annotation_view_id: u64,
     pub next_annotation_scale_id: u64,
@@ -60,6 +66,9 @@ pub struct IfccadIdCounters {
 impl Default for IfccadIdCounters {
     fn default() -> Self {
         Self {
+            next_table_style_id: 1,
+            next_table_data_link_id: 1,
+            next_data_table_id: 1,
             next_multi_leader_style_id: 1,
             next_annotation_view_id: 1,
             next_annotation_scale_id: 1,
@@ -87,6 +96,27 @@ fn allocate(next: &mut u64, domain: IfccadIdDomain) -> Result<u64, IfccadIdAlloc
 }
 
 impl IfccadIdCounters {
+    pub fn allocate_table_data_link_id(
+        &mut self,
+    ) -> Result<super::IfccadTableDataLinkId, IfccadIdAllocationError> {
+        allocate(
+            &mut self.next_table_data_link_id,
+            IfccadIdDomain::TableDataLink,
+        )
+        .map(super::IfccadTableDataLinkId)
+    }
+    pub fn allocate_data_table_id(
+        &mut self,
+    ) -> Result<super::IfccadDataTableId, IfccadIdAllocationError> {
+        allocate(&mut self.next_data_table_id, IfccadIdDomain::DataTable)
+            .map(super::IfccadDataTableId)
+    }
+    pub fn allocate_table_style_id(
+        &mut self,
+    ) -> Result<super::IfccadTableStyleId, IfccadIdAllocationError> {
+        allocate(&mut self.next_table_style_id, IfccadIdDomain::TableStyle)
+            .map(super::IfccadTableStyleId)
+    }
     pub fn allocate_multi_leader_style_id(
         &mut self,
     ) -> Result<super::IfccadMultiLeaderStyleId, IfccadIdAllocationError> {
@@ -203,6 +233,25 @@ pub(super) fn validate(document: &super::IfccadDocument) -> Result<(), super::If
         .max();
     for (field, next, maximum) in [
         (
+            "nextTableDataLinkId",
+            ids.next_table_data_link_id,
+            document
+                .table_data_links
+                .iter()
+                .map(|object| object.id.0)
+                .max(),
+        ),
+        (
+            "nextDataTableId",
+            ids.next_data_table_id,
+            document.data_tables.iter().map(|object| object.id.0).max(),
+        ),
+        (
+            "nextTableStyleId",
+            ids.next_table_style_id,
+            document.table_styles.iter().map(|style| style.id.0).max(),
+        ),
+        (
             "nextMultiLeaderStyleId",
             ids.next_multi_leader_style_id,
             document
@@ -312,6 +361,9 @@ mod tests {
             ids,
             IfccadIdCounters {
                 next_multi_leader_style_id: 1,
+                next_table_style_id: 1,
+                next_table_data_link_id: 1,
+                next_data_table_id: 1,
                 next_annotation_view_id: 1,
                 next_annotation_scale_id: 1,
                 next_dimension_style_id: 1,
@@ -401,6 +453,9 @@ mod tests {
                 IfccadIdDomain::LinePattern => ids.allocate_line_pattern_id().map(|id| id.0),
                 IfccadIdDomain::TextStyle => ids.allocate_text_style_id().map(|id| id.0),
                 IfccadIdDomain::DimensionStyle => ids.allocate_dimension_style_id().map(|id| id.0),
+                IfccadIdDomain::TableStyle => ids.allocate_table_style_id().map(|id| id.0),
+                IfccadIdDomain::TableDataLink => ids.allocate_table_data_link_id().map(|id| id.0),
+                IfccadIdDomain::DataTable => ids.allocate_data_table_id().map(|id| id.0),
                 IfccadIdDomain::SymbolSource => ids.allocate_symbol_source_id().map(|id| id.0),
                 IfccadIdDomain::Ucs => ids.allocate_ucs_id().map(|id| id.0),
                 IfccadIdDomain::ModelWindow => ids.allocate_model_window_id().map(|id| id.0),

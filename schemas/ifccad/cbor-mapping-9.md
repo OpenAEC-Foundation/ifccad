@@ -1,11 +1,24 @@
-# Experimental IFCCAD CBOR mapping, revision 8 (development)
+# Experimental IFCCAD CBOR mapping, revision 9 (development)
+
+Revision 9 adds native tables at entity kind code 21. The table body stores
+placement, grid and optional saved graphics at keys 0–2. Cell content maps
+have a kind tag at key 0 and a typed value, block or field payload at key 1.
+Key 2 can contain display text, keys 3–4 can contain the value unit and
+format, and key 5 can contain item format. A table field code part is a
+two-item array with a code and its typed payload.
+
+Drawing keys 25–27 hold table styles, table data links and standalone
+data tables. Allocation record keys 14–16 hold the corresponding persistent
+watermarks. The machine-readable registry specifies the nested fields and
+their omission defaults. IFCX and CBOR enforce the same table ownership,
+reference and raster rules.
 
 This is a standalone encoding of `IfccadDocument`, not a general IFCX binary
 serialization. It retains the complete supported CAD projection, including
 opaque CAD preservation, but no original IFCX fragments, imports or foreign
 nodes. JSON/IFCX remains a separate mapping through the same typed document.
 
-The normative field/type inventory is [cbor-mapping-8.json](cbor-mapping-8.json).
+The normative field/type inventory is [cbor-mapping-9.json](cbor-mapping-9.json).
 It enumerates concrete records and generic instantiations reachable from the
 document. Names in that registry are explanatory, not transmitted type names.
 Record field codes are local to their record type. Codes and enum variants are
@@ -14,7 +27,7 @@ values and never inferred from field codes, vector indices or content.
 
 ## Envelope and revision
 
-Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 6, 2: Document}`.
+Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 9, 2: Document}`.
 All three fields are required. Other revisions are rejected; no migration,
 forward-compatible skipping, feature negotiation or historical decoder is
 provided. Revision 6 and profile 0.6.0 are the unpublished block-attribute development candidate.
@@ -199,7 +212,7 @@ Descriptor fields are 0 mode (0 Disabled, 1 Enabled, 2 ByDefinition), 1 optional
 reference key, 2 required context list. Each context has 0 key and 1 optional
 presentation; each key has 0 scale ID. Optional values omit their field; a
 present null is malformed. Family records and exact enum codes are declared in
-[cbor-mapping-8.json](cbor-mapping-8.json). Shared profile rules govern semantic
+[cbor-mapping-9.json](cbor-mapping-9.json). Shared profile rules govern semantic
 validity in both encodings. Floating-point payloads retain their exact bits;
 no record field calculates a scale quotient or normalizes a direction.
 

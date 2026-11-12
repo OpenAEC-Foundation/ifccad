@@ -44,6 +44,12 @@ pub use hatch::{
     resolve_ifccad_hatch_join_tolerance, IfccadHatch, IfccadHatchGradient, IfccadHatchLoop,
 };
 mod model;
+mod table;
+pub use table::*;
+mod table_field;
+pub use table_field::*;
+mod table_resources;
+pub use table_resources::*;
 mod symbol_source;
 pub use symbol_source::*;
 mod presentation;

@@ -101,6 +101,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let block_entities = vec![entity(text)?, entity(mtext)?];
     let mut d = IfccadDocument {
         multi_leader_styles: Vec::new(),
+        table_styles: Vec::new(),
+        table_data_links: Vec::new(),
+        data_tables: Vec::new(),
         attribute_visibility: Default::default(),
         annotation_settings: None,
         dimension_styles: Vec::new(),

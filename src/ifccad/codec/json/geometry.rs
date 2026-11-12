@@ -121,7 +121,10 @@ struct SpatialValue {
     #[serde(default)]
     line_pattern_generation: IfccadLinePatternGeneration,
 }
-fn decode<T: for<'a> Deserialize<'a>>(value: &Value, path: &str) -> Result<T, IfccadReport> {
+pub(super) fn decode<T: for<'a> Deserialize<'a>>(
+    value: &Value,
+    path: &str,
+) -> Result<T, IfccadReport> {
     serde_json::from_value(value.clone()).map_err(|e| {
         crate::ifccad::diagnostics::failure(
             "IFCCAD-GEOMETRY-001",

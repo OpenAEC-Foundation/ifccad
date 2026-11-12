@@ -4,6 +4,32 @@ use serde_json::{json, Value};
 use std::{collections::BTreeMap, sync::OnceLock};
 
 const ENTRIES: &[(&str, &str, &str)] = &[
+    ("ifccad::table", "IfccadTableGrid", "IFCCAD-TABLE-002"),
+    (
+        "ifccad::tableStyle",
+        "IfccadTableStyleSettings",
+        "IFCCAD-TABLE-002",
+    ),
+    (
+        "ifccad::tableDataLink",
+        "IfccadTableDataLinkSettings",
+        "IFCCAD-TABLE-002",
+    ),
+    (
+        "ifccad::dataTable",
+        "IfccadDataTableSettings",
+        "IFCCAD-TABLE-002",
+    ),
+    (
+        "ifccad::tableGraphics",
+        "dimensionGraphics",
+        "IFCCAD-TABLE-002",
+    ),
+    (
+        "ifccad::tableGraphicsPart",
+        "dimensionGraphicsPart",
+        "IFCCAD-TABLE-002",
+    ),
     ("ifccad::leader", "leaderBody", "IFCCAD-LEADER-JSON-001"),
     (
         "ifccad::multiLeader",
@@ -272,7 +298,7 @@ pub(super) fn validate_value(
     static VALIDATORS: OnceLock<BTreeMap<&str, jsonschema::Validator>> = OnceLock::new();
     let validators = VALIDATORS.get_or_init(|| {
         let base: Value = serde_json::from_str(include_str!(
-            "../../../../schemas/ifccad/supplemental-values-0.8.0.schema.json"
+            "../../../../schemas/ifccad/supplemental-values-0.9.0.schema.json"
         ))
         .expect("bundled IFCCAD supplements");
         ENTRIES

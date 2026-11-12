@@ -11,7 +11,7 @@
           "nextLayoutId": 43,
           "nextLinePatternId": 1,
           "nextSymbolSourceId": 1,
-          "profileVersion": "0.8.0",
+          "profileVersion": "0.9.0",
           "nextUcsId": 1,
           "nextModelWindowId": 1,
           "nextAnnotationScaleId": 1
@@ -265,7 +265,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.8.0"
+      "uri": "urn:example:ifccad:0.9.0"
     }
   ],
   "schemas": {}

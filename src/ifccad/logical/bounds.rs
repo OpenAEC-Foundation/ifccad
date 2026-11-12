@@ -715,7 +715,8 @@ impl<'a> Evaluation<'a> {
             }
             IfccadEntityKind::Leader(_)
             | IfccadEntityKind::MultiLeader(_)
-            | IfccadEntityKind::Tolerance(_) => Extents {
+            | IfccadEntityKind::Tolerance(_)
+            | IfccadEntityKind::Table(_) => Extents {
                 unavailable: true,
                 ..Default::default()
             },

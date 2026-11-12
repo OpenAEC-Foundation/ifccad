@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 
 fn registry() -> Value {
     let path =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("schemas/ifccad/cbor-mapping-8.json");
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("schemas/ifccad/cbor-mapping-9.json");
     serde_json::from_slice(&std::fs::read(path).expect("CBOR register must exist")).unwrap()
 }
 
@@ -11,11 +11,11 @@ fn registry() -> Value {
 fn registry_pins_root_document_and_current_families() {
     let r = registry();
     assert_eq!(r["format"], "IFCCAD-CBOR");
-    assert_eq!(r["mappingRevision"], 8);
+    assert_eq!(r["mappingRevision"], 9);
     let types = r["types"].as_object().unwrap();
     assert_eq!(
         types["IfccadDocument"]["fields"].as_array().unwrap().len(),
-        25
+        28
     );
     for (name, code) in [
         ("annotation_scales", 20),
@@ -35,10 +35,10 @@ fn registry_pins_root_document_and_current_families() {
             .as_array()
             .unwrap()
             .len(),
-        14
+        17
     );
     let kinds = types["IfccadEntityKind"]["variants"].as_array().unwrap();
-    assert_eq!(kinds.len(), 21);
+    assert_eq!(kinds.len(), 22);
     assert_eq!(
         kinds.iter().find(|v| v["name"] == "Dimension").unwrap()["code"],
         13

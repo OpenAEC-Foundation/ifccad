@@ -29,6 +29,7 @@ mod presentation;
 mod preservation;
 mod record;
 mod spline;
+mod table;
 mod text;
 mod text_columns;
 mod text_format;
@@ -51,7 +52,7 @@ pub(crate) fn encode_bytes(
     w.u64(0)?;
     w.str("IFCCAD-CBOR")?;
     w.u64(1)?;
-    w.u64(8)?;
+    w.u64(9)?;
     w.u64(2)?;
     document.encode(&mut w)?;
     w.finish()
@@ -71,10 +72,10 @@ pub(crate) fn decode_bytes(
         return Err(r.error("incorrect format identifier"));
     }
     let revision: u32 = fields.take(1, None)?;
-    if revision != 8 {
+    if revision != 9 {
         return Err(IfccadCborReadError::UnsupportedRevision {
             found: revision,
-            supported: 8,
+            supported: 9,
         });
     }
     let document = fields.take(2, None)?;
