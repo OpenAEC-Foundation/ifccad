@@ -337,5 +337,13 @@ linetype cannot inherit a saved IFCCAD ID. Browser WBLOCK retains the blocked
 root in a whole-drawing IFCX export and allows a visible subset to be exported
 as DXF. The local embedded Explorer run opened the same IFCX, reported the
 blocked root and exported CBOR with strict readback.
-This evidence uses the paired development dependencies. The released Explorer
-host pin still identifies the previous bundle.
+This evidence uses the paired development dependencies.
+
+## Explorer integration for native tables
+
+Explorer selects official Document `a9fe25ea`, acadrust `d8ee0876` and Studio
+`3f8c63bf`. The shared dependencies include native table exchange from Document
+#18 and acadrust #417, the Studio table commands from #2914, and the IFCCAD
+profile 0.10.0 / CBOR 10 contract. The frozen host patch carries forward IFCX
+opening, attribute editing, scale and leader picture fixes. The entity catalogue
+includes one compact parts-list table with a merged title and integer quantities.

@@ -11,6 +11,15 @@ function openFixture(path) {
   return createInspection({ presentation: { graph: JSON.parse(text) } }, text);
 }
 
+test('the catalogue contains one native table in the model layout', () => {
+  const model = openFixture('../../examples/ifccad/entities.ifcx');
+  const tables = [...model.nodes.values()].filter(node => node.type === 'table');
+  assert.equal(tables.length, 1);
+  assert.equal(tables[0].title, 'Parts list');
+  assert.ok(model.nodes.get('/cad/d1/layout/1').children.includes(tables[0].key));
+  assert.equal(tables[0].values['ifccad::table'].rows.length, 4);
+});
+
 test('opaque roots link to one shared preservation package', () => {
   const model = openFixture('../../conformance/next/ifccad/valid/preservation-shared.ifcx');
   const backing = '/cad/d1/preservation/r3';

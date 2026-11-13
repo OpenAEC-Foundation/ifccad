@@ -93,17 +93,11 @@ Native core validation, composed source inspection and binary codecs remain acti
 
 ## Development and verification
 
-Explorer and its embedded Studio host pin the resource contribution in
-Document `47031369d9d2bf8b192c508e31e772b41bb2b990` and codec
-`4018037daf8fd3e40aa1aa6455b80232849a2756`. Studio uses native resource core
-`0e8f5e6175c236f0bbef6466da7dd1aff5834045`; the browser uses the identical
-workspace core model. Document PRs #10/#11 are merged; the selected official PR#11 merge has the same
-source tree as the accepted resource head. Codec4018037d remains explicitly
-qualified through its existing fork URL for one kernel/Document model. No local source
-overrides are required. Host source `3d2c1bf4` uses kernel `b2656bd` and the
-explicit codec patch recorded in `ocs-source.json` and the frozen lockfile.
-Both native-open routes use profile 0.5.0 / CBOR5. Software release and file
-identifiers remain independent.
+Explorer and its embedded Studio host use IFCCAD profile 0.10.0 and CBOR
+revision 10. Both use the official Document and acadrust revisions recorded in
+`ocs-source.json`. The entity catalogue includes a parts-list table with a
+merged title, text cells and integer quantities. Studio uses the frozen host
+patch recorded with those pins.
 
 The inspector lists authored family/CAD/Big Font/SHX names separately from
 application availability. Without a supplied outcome it shows Not checked; no
@@ -146,7 +140,8 @@ The workflow builds Studio independently at the pin and public URL.
 Before completing Rust changes, run the repository full gate in AGENTS.md.
 Frontend, WASM and packaged checks remain additional requirements. A development
 server or startup smoke is not a completed migration or visual-fidelity claim.
-Pushing main starts the verified production deployment workflow.
+Pushing main starts CI. Production deployment runs from compatible main through
+manual workflow dispatch. A native release follows its own workflow.
 
 ## Optional feedback
 

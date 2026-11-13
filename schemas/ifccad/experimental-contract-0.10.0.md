@@ -446,7 +446,7 @@ Foreign IFCX context and original fragments remain in the immutable source graph
 ## Opaque source preservation
 
 A drawing may have a child `preservation` pointing to `/cad/dN/preservation`, with
-an `ifccad::preservation` object containing envelope `version: 1` and a required
+an `ifccad::preservation` object containing envelope `version: 2` and a required
 `sources` array. Source context IDs are unique nonempty strings; provider/revision
 are nonempty, origin is cadDocument/dwg/dxf and optional sourceVersion is omitted
 when unavailable. Collection children `rN` point to `/cad/dN/preservation/rN`.
@@ -460,7 +460,10 @@ watermark. Its imported or inline schema must still match the current module.
 A record has sourceId/sourceKey, category (entity/object/table/drawing/layout/shared),
 role (complete/supplement/shared), representation (codecTyped/codecOpaque), optional
 subject, dependencyCoverage (qualified/conservative/unknown), required bindings
-and conditions arrays, and payload {schema,version,kind,bytes}. Bindings contain
+and conditions arrays, and exactly one of an inline payload
+{schema,version,kind,bytes} or a `storageBacking` record path. A backed record
+has a live opaque subject. Its backing is a subject-free Shared record in the
+same drawing and source, with an inline payload. Bindings contain
 slot/sourceKey/target; conditions contain target/predicate/version/baseline.
 Targets contain only role/path. Roles drawing/entity/layer/linePattern/layout/
 blockDefinition/record must match a canonical same-drawing complete path in that

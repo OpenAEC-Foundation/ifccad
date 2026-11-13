@@ -4,7 +4,7 @@ The Explorer offers an entity catalogue and a floor plan:
 
 | File | Purpose |
 | --- | --- |
-| `ifccad/entities.ifcx` | Selected examples of the native entity families, including Leader, MultiLeader, Tolerance and an open cubic spline. It includes three Hatch fills, all nine Dimension kinds, layers, text and SHX symbol line patterns, blocks with attributes and an A3 Paper viewport. |
+| `ifccad/entities.ifcx` | Selected examples of the native entity families, including Leader, MultiLeader, Tolerance, an open cubic spline and a compact parts-list table with a merged title. It includes three Hatch fills, all nine Dimension kinds, layers, text and SHX symbol line patterns, blocks with attributes and an A3 Paper viewport. |
 | `ifccad/house.ifcx` | A fictitious 10000 x 12000 mm ground floor with wall hatching, actual openings, repeated door/window/furniture blocks, room labels, dimensions, north arrow and an A3 sheet at 1:100. |
 
 Both open with an authored Model view. Their Paper tabs contain locked orthographic

@@ -154,11 +154,11 @@ fn adding_catalogue_samples_grows_the_grid_and_saved_views() {
 fn catalogue_family(kind: &ifccad::IfccadEntityKind) -> Option<&'static str> {
     use ifccad::IfccadEntityKind::*;
     Some(match kind {
-        Table(_) => return None, // Added with the compatible Explorer pins.
         Leader(_) => "leader",
         MultiLeader(_) => "multiLeader",
         Tolerance(_) => "tolerance",
         Spline(_) => "spline",
+        Table(_) => "table",
         Solid(_) => "solid",
         Trace(_) => "trace",
         Dimension(_) => "dimension",
@@ -224,7 +224,8 @@ fn catalogue_covers_published_families_and_all_nine_dimension_kinds() {
             "solid",
             "trace",
             "attributeDefinition",
-            "spline"
+            "spline",
+            "table"
         ])
     );
     let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();

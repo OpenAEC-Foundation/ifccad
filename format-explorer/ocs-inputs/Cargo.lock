@@ -18,6 +18,7 @@ dependencies = [
  "console_error_panic_hook",
  "cosmic-text 0.15.0",
  "dwg-thumbnailer",
+ "encoding_rs",
  "env_logger",
  "flate2",
  "fluent-syntax",
@@ -101,7 +102,7 @@ checksum = "366ffbaa4442f4684d91e2cd7c5ea7c4ed8add41959a31447066e279e432b618"
 [[package]]
 name = "acadrust"
 version = "0.6.8"
-source = "git+https://github.com/hakanaktt/acadrust.git?rev=acad0df#acad0df2bc491d6ac909dc7491c508bb8e6ebed8"
+source = "git+https://github.com/hakanaktt/acadrust.git?rev=d8ee087#d8ee087603d530387e793083fb817f70f17497a0"
 dependencies = [
  "anyhow",
  "bitflags 2.13.1",
@@ -2942,8 +2943,8 @@ dependencies = [
 
 [[package]]
 name = "ifccad"
-version = "2026.45.2"
-source = "git+https://github.com/OpenAEC-Foundation/ifccad.git?rev=71106c80efbae4c5ea5e1326a3983f3e2b25f1d7#71106c80efbae4c5ea5e1326a3983f3e2b25f1d7"
+version = "2026.46.0"
+source = "git+https://github.com/OpenAEC-Foundation/ifccad.git?rev=a09aeb27c5964f39c2b94ac99ac49255339cb3ff#a09aeb27c5964f39c2b94ac99ac49255339cb3ff"
 dependencies = [
  "base64",
  "fpmath",
@@ -4450,10 +4451,11 @@ dependencies = [
 [[package]]
 name = "opencaddocument"
 version = "0.1.0"
-source = "git+https://github.com/HakanSeven12/opencaddocument.git?rev=b7f02ad6baa54ce52086aedd2169bfaa2e54dee1#b7f02ad6baa54ce52086aedd2169bfaa2e54dee1"
+source = "git+https://github.com/HakanSeven12/opencaddocument.git?rev=a9fe25eafd21da0bff5cc803dd004785fd3b12e1#a9fe25eafd21da0bff5cc803dd004785fd3b12e1"
 dependencies = [
  "acadrust",
  "ifccad",
+ "rmp-serde",
  "serde",
  "web-time",
 ]
@@ -4469,7 +4471,7 @@ dependencies = [
 [[package]]
 name = "opencadkernel"
 version = "0.1.0"
-source = "git+https://github.com/HakanSeven12/opencadkernel.git?rev=802f75134a5606d34bd34dac0d3508565537b067#802f75134a5606d34bd34dac0d3508565537b067"
+source = "git+https://github.com/HakanSeven12/opencadkernel.git?rev=353ffb25c55a7fce4f09a22862fb1df4ca587a47#353ffb25c55a7fce4f09a22862fb1df4ca587a47"
 dependencies = [
  "cavalier_contours",
  "opencadkernel-ssi",
@@ -4480,7 +4482,7 @@ dependencies = [
 [[package]]
 name = "opencadkernel-constraints"
 version = "0.1.0"
-source = "git+https://github.com/HakanSeven12/opencadkernel.git?rev=802f75134a5606d34bd34dac0d3508565537b067#802f75134a5606d34bd34dac0d3508565537b067"
+source = "git+https://github.com/HakanSeven12/opencadkernel.git?rev=353ffb25c55a7fce4f09a22862fb1df4ca587a47#353ffb25c55a7fce4f09a22862fb1df4ca587a47"
 dependencies = [
  "nalgebra",
 ]
@@ -4488,7 +4490,7 @@ dependencies = [
 [[package]]
 name = "opencadkernel-ssi"
 version = "0.1.0"
-source = "git+https://github.com/HakanSeven12/opencadkernel.git?rev=802f75134a5606d34bd34dac0d3508565537b067#802f75134a5606d34bd34dac0d3508565537b067"
+source = "git+https://github.com/HakanSeven12/opencadkernel.git?rev=353ffb25c55a7fce4f09a22862fb1df4ca587a47#353ffb25c55a7fce4f09a22862fb1df4ca587a47"
 
 [[package]]
 name = "openssl-probe"
@@ -5515,6 +5517,26 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "rmp"
+version = "0.8.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ba8be72d372b2c9b35542551678538b562e7cf86c3315773cae48dfbfe7790c"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
+name = "rmp-serde"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52e599a477cf9840e92f2cde9a7189e67b42c57532749bf90aea6ec10facd4db"
+dependencies = [
+ "byteorder",
+ "rmp",
+ "serde",
 ]
 
 [[package]]

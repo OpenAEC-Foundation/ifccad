@@ -32,6 +32,18 @@ function catalogueAutomaticText(result){
   assert.ok(a['ifccad::annotation'].contexts.every(c=>c.presentation==null),'membership-only contexts must not acquire artificial text positions');
  }
 }
+function catalogueTable(result){
+ const tables=result.presentation.graph.data.filter(n=>n.attributes?.['ifccad::table']);
+ assert.equal(tables.length,1);
+ const node=tables[0],table=node.attributes['ifccad::table'];
+ assert.equal(table.rows.length,4);
+ assert.equal(table.columns.length,2);
+ assert.deepEqual(table.mergedRanges,[{topRow:0,leftColumn:0,bottomRow:0,rightColumn:1}]);
+ assert.deepEqual(table.rows.slice(2).map(row=>row.cells[1].contents[0].value),[
+  {kind:'integer',value:4},{kind:'integer',value:12},
+ ]);
+ assert.equal(createInspection(result).nodes.get(node.path).type,'table');
+}
 function catalogueLeaders(result){
  const leaders=result.presentation.leaders;
  assert.deepEqual(leaders.map(v=>v.kind).sort(),['Leader','Leader','MultiLeader','Tolerance']);
@@ -64,7 +76,7 @@ const regressionDrawings=[
 for(const example of [...examples,...regressionDrawings]){
  const name=example.path.split('/').at(-1),bytes=await readFile(new URL('../../'+example.path,import.meta.url)),source=request(name,bytes);
  const opened=checked(source);
- if(example.name==='Entity catalogue'){catalogueAutomaticText(opened);catalogueLeaders(opened);catalogueSymbolPattern(opened);}
+ if(example.name==='Entity catalogue'){catalogueAutomaticText(opened);catalogueLeaders(opened);catalogueSymbolPattern(opened);catalogueTable(opened);}
  assert.deepEqual(Buffer.from(opened.nativeFile.base64,'base64'),bytes,'preview retains actual source bytes');
  assert.ok(opened.nativeFile.fileName.endsWith('.ifcx'));
  assert.equal(opened.preview.rendering,'unassessed');
@@ -107,7 +119,7 @@ for(const example of [...examples,...regressionDrawings]){
  for(const encoding of ['cbor','cbor-zstd']){
   const saved=checked(nativeExportRequest(source,opened,{format:'ifccad',encoding})).export.download;
   const binary=request(saved.fileName,bytesOf(saved)),decoded=checked(binary);
-  if(example.name==='Entity catalogue')catalogueAutomaticText(decoded);
+  if(example.name==='Entity catalogue'){catalogueAutomaticText(decoded);catalogueTable(decoded);}
   assert.equal(decoded.source.representation,'decoded');assert.equal(decoded.nativeFile.representation,'decoded');
   assert.equal(decoded.presentation.entities.length,opened.presentation.entities.length);
   assert.deepEqual(decoded.presentation.polylineWidths,opened.presentation.polylineWidths);
@@ -131,6 +143,7 @@ for(const example of [...examples,...regressionDrawings]){
    catalogueAutomaticText(returned);
    catalogueLeaders(returned);
    catalogueSymbolPattern(returned);
+   catalogueTable(returned);
    const splineBodies=result=>result.presentation.graph.data.flatMap(node=>{
     const spline=node.attributes?.['ifccad::geom::spline'];
     if(!spline)return [];

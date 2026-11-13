@@ -1,8 +1,10 @@
 # Embedded host inputs
 
-`ocs-source.json` selects Studio81bbb05e and the exact public Document, codec,
-native and kernel revisions. `Cargo.lock` freezes that portable dependency graph.
-The thickness codec fix remains in the explicitly named user fork.
+`ocs-source.json` selects the official Studio, Document, acadrust, IFCCAD and
+kernel revisions. `Cargo.lock` freezes the resolved graph. `native-tables.patch`
+retains the Explorer host's IFCX opening, MText editing, annotation scale and
+leader picture fixes. It pairs worker protocol 10 with the corresponding
+worker asset URLs.
 
 `block-attributes.patch` applies the bounded IFCX opening, active MText edit,
 Map3D enum compatibility and main/worker protocol6 changes. The preparation tool

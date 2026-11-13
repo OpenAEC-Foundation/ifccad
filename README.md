@@ -13,7 +13,7 @@ During alpha, later releases may be unable to open earlier IFCCAD files;
 backward compatibility and migration are not guaranteed. See the
 [alpha compatibility policy](docs/alpha-compatibility.md) and
 [release/version policy](docs/releases.md). The current native source alpha is
-[2026.46.0](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.46.0).
+[2026.46.1](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.46.1).
 Its attached artifacts contain only the native core. Explorer and CAD conversion
 are delivered separately from the native artifacts.
 See the [vision](docs/vision.md) for the long-term direction and the
@@ -31,7 +31,7 @@ Drawing files are processed locally in your browser.
 
 | Example | What it shows |
 | --- | --- |
-| [Entity catalogue](examples/ifccad/entities.ifcx) | A numbered overview of all 16 current native entity families, Hatch fills, dimensions, blocks and drawing styles. |
+| [Entity catalogue](examples/ifccad/entities.ifcx) | A numbered overview of native entities, including a parts-list table, Hatch fills, dimensions, blocks and drawing styles. |
 | [House floor plan](examples/ifccad/house.ifcx) | A fictitious house with rooms, openings, reusable blocks, dimensions and an A3 sheet at 1:100. |
 
 The catalogue is generated from an extensible sample registry. See
@@ -47,6 +47,8 @@ The core owns construction, shared validation, encoding and file IO and has no C
 runtime dependency. JSON/IFCX and experimental base-CBOR use the same logical
 model. The first alpha publishes profile 0.1.0, CBOR mapping revision 1 and
 optional native Zstd transport revision 1. Those tagged contracts are fixed.
+Release 2026.46.1 adds native tables and shared MLINE preservation in profile
+0.10.0 and CBOR mapping 10. See the [release notes](docs/releases/2026.46.1.md).
 Release 2026.46.0 adds the [Leader family](docs/leaders.md) and native splines
 in profile 0.8.0 and CBOR mapping 8. Leaders retain owned parts and supplied
 graphics. Splines cover standalone geometry, Hatch edges and Paper viewport

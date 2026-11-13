@@ -1,5 +1,5 @@
 {
-  "softwareVersion": "2026.46.0",
+  "softwareVersion": "2026.46.1",
   "channel": "alpha",
   "profileVersion": "0.10.0",
   "profileImport": "urn:example:ifccad:0.10.0",
@@ -18,7 +18,8 @@
     "docs/releases/2026.45.0.md",
     "docs/releases/2026.45.1.md",
     "docs/releases/2026.45.2.md",
-    "docs/releases/2026.46.0.md"
+    "docs/releases/2026.46.0.md",
+    "docs/releases/2026.46.1.md"
   ],
   "scope": "native ifccad core only"
 }

@@ -275,6 +275,35 @@ pub const SAMPLES: &[Sample] = &[
             );
         },
     },
+    Sample {
+        title: "Table",
+        note: "Merged title / text and integer cells",
+        draw: |d, x, y| {
+            let cell = |kind, value| {
+                json!({
+                    "contents": [{"kind": "value", "value": {"kind": kind, "value": value}}]
+                })
+            };
+            d.entity(
+                MODEL,
+                1,
+                json!({
+                    "ifccad::geom::placement": plane(x + 6., y + 39.),
+                    "ifccad::table": {
+                        "name": "Parts list",
+                        "columns": [{"width": 44.}, {"width": 26.}],
+                        "rows": [
+                            {"height": 10., "cells": [cell("text", json!("Parts list")), {"contents": []}]},
+                            {"height": 8., "cells": [cell("text", json!("Part")), cell("text", json!("Qty"))]},
+                            {"height": 8., "cells": [cell("text", json!("Bracket")), cell("integer", json!(4))]},
+                            {"height": 8., "cells": [cell("text", json!("Fastener")), cell("integer", json!(12))]}
+                        ],
+                        "mergedRanges": [{"topRow": 0, "leftColumn": 0, "bottomRow": 0, "rightColumn": 1}]
+                    }
+                }),
+            );
+        },
+    },
 ];
 
 pub fn build() -> Result<Vec<u8>> {

@@ -19,7 +19,7 @@ IFCCAD development now has two cooperating implementation boundaries:
 
 | Area | Implemented status | Remaining boundary |
 | --- | --- | --- |
-| Native source alpha | `2026.45.0`; profile `0.3.0`, CBOR mapping `3`, Zstd transport `1` | Release contains the native core only; the annotation candidate is unpublished profile `0.4.0` / CBOR `4`; published contracts remain immutable |
+| Native source alpha | `2026.46.1`; profile `0.10.0`, CBOR mapping `10`, Zstd transport `1` | The native core includes tables and shared MLINE preservation; Explorer is deployed separately |
 | Drawing foundations | Primitive/path geometry, shared/nested blocks, Model/Paper layouts, presentation, Text/MText, line patterns, workspace and viewport data | Native storage does not establish complete CAD mapping or rendering |
 | Hatch | Solid, line-pattern and gradient fills; source/association state; classic editing and boundary-construction records | Fill evaluation, automatic updates and shared-route coverage remain separate |
 | SOLID/TRACE | Native kinds, planar corner state and extrusion thickness | Surface and display evidence remain distinct from stored coordinates |
@@ -157,8 +157,9 @@ splines under [#4](https://github.com/OpenAEC-Foundation/ifccad/issues/4) in
 profile 0.8.0 / CBOR8. Explorer uses the merged Document and Studio route with
 an official codec revision. Owned MLeader tolerance content is native. Its
 physical payload remains an open qualification point. Layer states, groups and
-filters still need their own contract. Tables and dynamic-block authoring remain
-separate slices under [#2](https://github.com/OpenAEC-Foundation/ifccad/issues/2).
+filters still need their own contract. Release 2026.46.1 integrates native tables
+and their Document/Studio mapping. Dynamic-block authoring remains a separate
+slice under [#2](https://github.com/OpenAEC-Foundation/ifccad/issues/2).
 
 **Exit criteria per slice:** logical meaning and dependencies agreed; shared
 validation, native mappings, source-detail/loss rules and production-reader/CAD
