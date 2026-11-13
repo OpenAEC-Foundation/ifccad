@@ -46,7 +46,7 @@ fn unused_scales_and_allocation_history_survive_json_and_cbor() {
     }
     assert_eq!(
         cbor.bytes()[15],
-        8,
+        9,
         "mapping revision advances with the contract"
     );
     let wire: serde_json::Value = serde_json::from_slice(json.bytes()).unwrap();
