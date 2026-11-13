@@ -142,7 +142,7 @@ mod tests {
     #[test]
     fn registry_remains_explicit() {
         let registry: serde_json::Value = serde_json::from_str(codes::MAPPING).unwrap();
-        assert_eq!(registry["mappingRevision"], 8);
+        assert_eq!(registry["mappingRevision"], 9);
     }
     #[test]
     fn unregistered_dimension_definitions_are_rejected() {

@@ -67,6 +67,21 @@ not the working tree. For development after a published contract:
 - Several unpublished edits can share one next draft revision. Before publishing,
   compare it with the last published contract and list all known breaks.
 
+### Staging a native contract before Explorer
+
+A verified native contract may land on `main` before its paired Document and
+Studio changes. Downstream PRs can pin the exact core commit on `main`. Keep
+the draft profile, CBOR mapping, and `conformance/next` in sync while addressing
+review feedback, then publish an immutable release when the contract is ready.
+
+CI always checks the native core. When the Explorer pins declare a different
+profile or CBOR revision, CI defers the Explorer and embedded Studio builds.
+Update both sets of pins together after the downstream changes are available.
+Once compatible, CI checks the full workspace and builds and smoke-tests
+Explorer again. Deploy a verified Explorer build by manually running the
+workflow on `main`. A push to `main` leaves the production site on the
+previously deployed build.
+
 Readers may reject unsupported identifiers; no fallback reader or migration is
 required. A software/API fix alone advances only the software number. A new
 feature can preserve existing files, but this creates no general compatibility

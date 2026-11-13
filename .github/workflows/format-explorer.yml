@@ -16,7 +16,36 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  compatibility:
+    runs-on: ubuntu-24.04
+    outputs:
+      explorer: ${{ steps.contract.outputs.explorer }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: contract
+        name: Compare the native and Explorer contracts
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+
+          with open("release/manifest.json") as file:
+              core = json.load(file)
+          with open("format-explorer/ocs-source.json") as file:
+              explorer = json.load(file)
+          compatible = (
+              core["profileVersion"] == explorer["profile"]
+              and core["cborMappingRevision"] == explorer["cborRevision"]
+          )
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              print("explorer=" + str(compatible).lower(), file=output)
+          if not compatible:
+              print("::notice::Explorer build deferred until its pins match the native contract.")
+          PY
+
   browser-wasm:
+    needs: [compatibility]
+    if: needs.compatibility.outputs.explorer == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -63,6 +92,8 @@ jobs:
           retention-days: 7
 
   ocs:
+    needs: [compatibility]
+    if: needs.compatibility.outputs.explorer == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 75
     steps:
@@ -131,6 +162,9 @@ jobs:
           retention-days: 7
 
   checks:
+    needs: [compatibility]
+    env:
+      EXPLORER_COMPATIBLE: ${{ needs.compatibility.outputs.explorer }}
     runs-on: ubuntu-24.04
     container: rust:bookworm
     timeout-minutes: 20
@@ -157,12 +191,17 @@ jobs:
         if: steps.rust-checks-cache.outputs.cache-hit != 'true'
         run: |
           cargo fetch --locked
-          python3 scripts/check_explorer_dependencies.py
           python3 scripts/check_active_workspace.py
           python3 -m unittest discover -s scripts/tests -p test_active_workspace.py
           cargo fmt --all -- --check
-          cargo clippy --workspace --all-targets -- -D warnings
-          cargo test --workspace
+          if [ "$EXPLORER_COMPATIBLE" = true ]; then
+            python3 scripts/check_explorer_dependencies.py
+            cargo clippy --workspace --all-targets -- -D warnings
+            cargo test --workspace
+          else
+            cargo clippy -p ifccad --all-targets -- -D warnings
+            cargo test -p ifccad
+          fi
           cargo clippy -p ifccad --all-targets --features ifccad-cbor-zstd -- -D warnings
           cargo test -p ifccad --features ifccad-cbor-zstd --test ifccad_cbor_zstd
       - name: Record passing Rust checks
@@ -233,7 +272,7 @@ jobs:
 
   ci:
     name: CAD Format Explorer checks
-    needs: [checks, build]
+    needs: [compatibility, checks, build]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -242,13 +281,18 @@ jobs:
         env:
           RUST_RESULT: ${{ needs.checks.result }}
           BUILD_RESULT: ${{ needs.build.result }}
+          EXPLORER_COMPATIBLE: ${{ needs.compatibility.outputs.explorer }}
         run: |
           test "$RUST_RESULT" = success
-          test "$BUILD_RESULT" = success
+          case "$EXPLORER_COMPATIBLE" in
+            true) test "$BUILD_RESULT" = success ;;
+            false) test "$BUILD_RESULT" = skipped ;;
+            *) exit 1 ;;
+          esac
 
   deploy:
-    needs: [ci]
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: [compatibility, ci]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && needs.compatibility.outputs.explorer == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment:

@@ -150,10 +150,11 @@ fn adding_catalogue_samples_grows_the_grid_and_saved_views() {
     assert_eq!(loaded.document().model_windows[0].view.height, 1032.);
 }
 
-// Exhaustive on purpose: a new native kind requires a catalogue coverage decision.
-fn family(kind: &ifccad::IfccadEntityKind) -> &'static str {
+// A new native kind requires an explicit catalogue coverage decision.
+fn catalogue_family(kind: &ifccad::IfccadEntityKind) -> Option<&'static str> {
     use ifccad::IfccadEntityKind::*;
-    match kind {
+    Some(match kind {
+        Table(_) => return None, // Added with the compatible Explorer pins.
         Leader(_) => "leader",
         MultiLeader(_) => "multiLeader",
         Tolerance(_) => "tolerance",
@@ -175,11 +176,11 @@ fn family(kind: &ifccad::IfccadEntityKind) -> &'static str {
         Circle { .. } => "circle",
         BlockInstance { .. } => "blockInstance",
         AttributeDefinition(_) => "attributeDefinition",
-    }
+    })
 }
 
 #[test]
-fn catalogue_covers_every_native_family_and_all_nine_dimension_kinds() {
+fn catalogue_covers_published_families_and_all_nine_dimension_kinds() {
     use std::collections::BTreeSet;
     let bytes = std::fs::read(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -196,7 +197,10 @@ fn catalogue_covers_every_native_family_and_all_nine_dimension_kinds() {
         .chain(d.blocks.iter().flat_map(|b| &b.entities))
         .filter_map(ifccad::IfccadEntity::as_native)
         .collect();
-    let actual: BTreeSet<_> = entities.iter().map(|e| family(&e.kind)).collect();
+    let actual: BTreeSet<_> = entities
+        .iter()
+        .filter_map(|e| catalogue_family(&e.kind))
+        .collect();
     assert_eq!(
         actual,
         BTreeSet::from([
@@ -438,7 +442,7 @@ fn house_is_in_millimetres_and_has_a_scaled_a3_sheet_and_reused_blocks() {
             .entities
             .iter()
             .filter_map(ifccad::IfccadEntity::as_native)
-            .filter(|e| family(&e.kind) == "blockInstance")
+            .filter(|e| catalogue_family(&e.kind) == Some("blockInstance"))
             .count()
             >= 8
     );
