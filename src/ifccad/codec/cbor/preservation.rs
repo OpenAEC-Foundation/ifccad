@@ -89,7 +89,8 @@ record!(IfccadPreservationRecord;
 7 => dependency_coverage: IfccadPreservationDependencyCoverage = None,
 8 => bindings: Vec<IfccadPreservationBinding> = None,
 9 => conditions: Vec<IfccadPreservationCondition> = None,
-10 => payload: IfccadPreservationPayload = None,
+10 => payload: Option<IfccadPreservationPayload> = Some(None),
+11 => storage_backing: Option<IfccadPreservationRecordId> = Some(None),
 );
 impl CborValue for IfccadPreservationRecordId {
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {

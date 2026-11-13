@@ -1,10 +1,10 @@
-# IFCCAD supplemental profile rules 0.9.0
+# IFCCAD supplemental profile rules 0.10.0
 
-This is a normative companion to the [experimental contract](experimental-contract-0.9.0.md),
-the ordinary [IFCX declarations](ifccad-profile-0.9.0.ifcx), and the
-[local-value supplement](supplemental-values-0.9.0.schema.json). All apply after
+This is a normative companion to the [experimental contract](experimental-contract-0.10.0.md),
+the ordinary [IFCX declarations](ifccad-profile-0.10.0.ifcx), and the
+[local-value supplement](supplemental-values-0.10.0.schema.json). All apply after
 fragment composition. It is not an IFCX schema extension or an independent drawing format.
-The existing `urn:example:ifccad:0.9.0` import remains the only drawing import needed
+The existing `urn:example:ifccad:0.10.0` import remains the only drawing import needed
 by the bundled offline reader. Full IFCCAD validation includes local values,
 graph relationships and domain algorithms, not just ordinary IFCX attribute shapes.
 
@@ -117,7 +117,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 
 | ID | Requirement and algorithm | Phase / gap | Positive and negative evidence |
 |---|---|---|---|
-| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.9.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
+| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.10.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
 | IFCCAD-WIRE-002 | Duplicate keys within one JSON object MUST fail. Same-path fragments merge children/inherits/attributes by key in file order; repeated values replace whole values, not nested arrays/overrides. Null inheritance removes its key; child/attribute null remains a marker. RejectConflicts MUST reject differing repeated values, including foreign nodes. | C; G3 | [composer](../../src/ifccad/source/composition.rs), [text wire](../../tests/ifccad_text_wire.rs) |
 | IFCCAD-WIRE-003 | CAD validation MUST run on the composed graph, retaining exact immutable original bytes and foreign context. Foreign children confer no CAD ownership. No supplement may validate all foreign objects or interpret provider bytes as CAD fields. | C/V/G; G3/G8 | [profile rules tests](../../tests/ifccad_profile_rules.rs), [native](../../tests/ifccad_native.rs) |
 | IFCCAD-WIRE-004 | Closed native value objects MUST reject unknown members and forbidden nulls as specified in the contract and local variant definitions. Unsupported CAD namespaces/payloads MUST fail at their existing role boundaries. No legacy unknown-field or null acceptance exception is provided. | V/G; G7 | [geometry](../../tests/ifccad_geometry.rs), [text codec](../../tests/ifccad_text_codec.rs), [workspace](../../tests/ifccad_workspace_state.rs) |
@@ -197,9 +197,10 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 
 | ID | Requirement and algorithm | Phase / gap | Evidence |
 |---|---|---|---|
-| IFCCAD-PRESERVATION-001 | Envelope MUST be version 1 with required sources; source IDs/providers/revisions MUST be nonempty, IDs unique, optional version absent or nonempty. Record sourceId/sourceKey pair MUST be unique and source resolve. Payload schema/predicate/slot/sourceKey MUST be nonempty; payload/condition versions positive. Core wrappers are closed; bytes MUST use canonical padded standard Base64. | V/D; G7/P | [preservation tests](../../tests/ifccad_preservation.rs), [wire](../../src/ifccad/codec/json/preservation.rs) |
+| IFCCAD-PRESERVATION-001 | Envelope MUST be version 2 with required sources; source IDs/providers/revisions MUST be nonempty, IDs unique, optional version absent or nonempty. Record sourceId/sourceKey pair MUST be unique and source resolve. Payload schema/predicate/slot/sourceKey MUST be nonempty; payload/condition versions positive. Core wrappers are closed; bytes MUST use canonical padded standard Base64. | V/D; G7/P | [preservation tests](../../tests/ifccad_preservation.rs), [wire](../../src/ifccad/codec/json/preservation.rs) |
 | IFCCAD-PRESERVATION-002 | Preservation targets MUST have canonical same-drawing path for stated role. Opaque entity MUST exclusively carry opaqueEntity among CAD roles and resolve complete entity record with exact matching live subject. Subjected records MUST match their opaque drawable. Detached archive MUST clear subject and have no draw-order/export obligation. Optional native appearance/layer obey ordinary constraints when present. | G/D; G4 | [preservation predicate](../../src/ifccad/logical/preservation_validation.rs), [preservation tests](../../tests/ifccad_preservation.rs) |
-| IFCCAD-PRESERVATION-003 | Binding slots MUST be unique within record. Bindings/conditions are soft targets: missing target and record cycles remain storage-valid. Unknown schema/predicate/opaque bytes MUST remain transportable; qualified coverage MUST NOT grant automatic restoration. Adapters separately qualify capture/restoration eligibility and loss. | D; P | [preservation tests](../../tests/ifccad_preservation.rs), [preservation contract](../../docs/preservation.md) |
+| IFCCAD-PRESERVATION-003 | Binding slots MUST be unique within record. Each numeric binding or condition target MUST be strictly below its drawing counter in the matching identity domain, including absent targets. Bindings/conditions are soft targets: missing target and record cycles remain storage-valid. Unknown schema/predicate/opaque bytes MUST remain transportable; qualified coverage MUST NOT grant automatic restoration. Adapters separately qualify capture/restoration eligibility and loss. | D; P | [preservation tests](../../tests/ifccad_preservation.rs), [preservation contract](../../docs/preservation.md) |
+| IFCCAD-PRESERVATION-004 | A record MUST carry exactly one of inline payload or storageBacking. Shared category and role MUST occur together on a subject-free inline record. A backed record MUST have a live opaque entity subject, and storageBacking MUST resolve to a Shared record of the same source in the same drawing. | G/D; P | [preservation tests](../../tests/ifccad_preservation.rs) |
 
 ## IFCCAD-WORKSPACE
 

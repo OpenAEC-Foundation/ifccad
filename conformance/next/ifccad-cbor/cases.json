@@ -1,5 +1,5 @@
 {
-  "mappingRevision": 9,
+  "mappingRevision": 10,
   "cases": [
     {
       "file": "valid/empty.ifccad.cbor",
@@ -761,6 +761,23 @@
       "file": "invalid/table-merge-outside-grid.ifccad.cbor",
       "valid": false,
       "diagnostic": "invalid/table-merge-outside-grid.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "valid/preservation-shared.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/preservation-shared.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/preservation-missing-backing.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/preservation-missing-backing.ifccad.cbor.diag",
+      "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "invalid/preservation-stale-target-floor.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/preservation-stale-target-floor.ifccad.cbor.diag",
       "errorClass": "InvalidDocument"
     }
   ]

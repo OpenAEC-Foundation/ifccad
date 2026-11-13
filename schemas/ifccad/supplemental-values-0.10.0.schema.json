@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:example:ifccad:supplemental-values:0.9.0",
+  "$id": "urn:example:ifccad:supplemental-values:0.10.0",
   "title": "IFCCAD supplemental local value constraints",
   "$defs": {
     "mTextBackground": {
@@ -2589,7 +2589,7 @@
       "type": "object",
       "properties": {
         "version": {
-          "const": 1
+          "const": 2
         },
         "sources": {
           "items": {
@@ -2678,6 +2678,9 @@
             },
             "additionalProperties": false
           }
+        },
+        "storageBacking": {
+          "type": "string"
         },
         "payload": {
           "type": "object",

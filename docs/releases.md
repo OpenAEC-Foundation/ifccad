@@ -69,10 +69,22 @@ not the working tree. For development after a published contract:
 
 ### Staging a native contract before Explorer
 
-A verified native contract may land on `main` before its paired Document and
-Studio changes. Downstream PRs can pin the exact core commit on `main`. Keep
-the draft profile, CBOR mapping, and `conformance/next` in sync while addressing
-review feedback, then publish an immutable release when the contract is ready.
+For a native contract that needs paired Document and Studio changes, stage
+the verified native contract on upstream IFCCAD `main` as an unpublished draft.
+Keep the profile, CBOR mapping and `conformance/next` in sync. The Document PR
+pins the exact commit reachable from IFCCAD `main` or an existing release tag.
+Prepare the Studio PR against the official Document merge. A draft Studio PR
+can link to the pending Document PR and pin its exact review commit for CI.
+Before merging Studio, switch its pin to the official Document revision and
+recheck the resolved dependency graph. Keep temporary Cargo path overrides
+local to development and verification.
+
+Wait for downstream review before creating the native release. If review
+changes the draft contract, update it on IFCCAD `main`, refresh affected pins
+and verify the resulting combination. Several accepted unpublished slices can
+ship in one native alpha. Record them and the changes from the last published
+contract in its release notes. Publication and Explorer deployment retain their
+separate authorization and verification steps.
 
 CI always checks the native core. When the Explorer pins declare a different
 profile or CBOR revision, CI defers the Explorer and embedded Studio builds.

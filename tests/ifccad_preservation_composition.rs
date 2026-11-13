@@ -18,6 +18,31 @@ fn read(v: &Value, policy: IfccadCompositionPolicy) -> Result<ValidatedIfccad, I
         },
     )
 }
+
+#[test]
+fn backing_resolves_across_composed_record_fragments() {
+    let drawing = support::with_shared_selection();
+    let encoded = encode_ifccad_document(&drawing).unwrap();
+    let mut wire: Value = serde_json::from_slice(encoded.bytes()).unwrap();
+    let data = wire["data"].as_array_mut().unwrap();
+    let backing = data
+        .iter_mut()
+        .find(|node| node["attributes"]["ifccad::preservationRecord"]["role"] == "shared")
+        .unwrap();
+    let attributes = backing
+        .as_object_mut()
+        .unwrap()
+        .remove("attributes")
+        .unwrap();
+    let fragment = json!({"path":backing["path"],"attributes":attributes});
+    data.push(fragment);
+    assert_eq!(
+        read(&wire, IfccadCompositionPolicy::RejectConflicts)
+            .unwrap()
+            .document(),
+        &drawing
+    );
+}
 #[test]
 fn record_replacement_is_atomic_and_source_graph_stays_immutable() {
     let mut v = wire();
@@ -37,7 +62,7 @@ fn record_replacement_is_atomic_and_source_graph_stays_immutable() {
         .push(json!({"path":original["path"],"attributes":{"ifccad::preservationRecord":record}}));
     let loaded = read(&v, IfccadCompositionPolicy::LaterWins).unwrap();
     let r = &loaded.document().preservation.as_ref().unwrap().records[0];
-    assert_eq!(r.payload.bytes, vec![1, 2, 3]);
+    assert_eq!(r.payload.as_ref().unwrap().bytes, vec![1, 2, 3]);
     assert_eq!(r.conditions[0].baseline, vec![4, 5]);
     assert!(read(&v, IfccadCompositionPolicy::RejectConflicts).is_err());
     let (graph, mut edited) = loaded.into_parts();

@@ -23,6 +23,28 @@ OCDraw and IFCCAD have separate models, schemas and conversion routes. Their cor
 
 Preservation is separate from native semantic expansion and external IFC associations. The retired IFCPR package resource is not revived.
 
+## Shared storage in preservation envelope 2
+
+A complete live opaque entity may select a provider root through its source
+key and a required storage backing. Its reciprocal record and the opaque
+entity retain their drawing identity, ownership and order. The backing is a
+subject-free Shared record in the same drawing and source, with the provider
+bytes stored once. Inline and backed storage are exclusive. Shared storage
+ends at inline bytes, so a backing cycle cannot be valid.
+
+Bindings and conditions remain soft. A missing dependency may block
+reconstruction while the drawing remains valid. The persistent allocation
+counter in each typed domain must exceed both existing IDs and the targets of
+retained bindings and conditions, including absent targets. Source handles
+inside opaque bytes do not enter native allocation.
+
+The Document adapter groups selected ModelSpace MLINEs into DocumentSelection
+V1, selects only live opaque roots and carries blocked roots with their
+original package through a context-aware save. An archived root in a package
+does not bring a deleted entity back. Applied roots are captured again from
+the current CAD drawing. The physical contracts are profile 0.10.0 and CBOR
+mapping 10.
+
 ## Selected design direction
 
 A drawing has one preservation collection with source contexts, independently identified records and an allocation watermark. Records distinguish complete source content, supplements to native content, and shared storage. Categories include entities, objects, tables, drawing/layout state and shared data; all use one envelope.

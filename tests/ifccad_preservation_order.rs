@@ -16,7 +16,7 @@ fn archived_records(ids: &[u64]) -> IfccadDocument {
             record.id = IfccadPreservationRecordId(id);
             record.subject = None;
             record.source_key = format!("source-{id}");
-            record.payload.bytes = id.to_le_bytes().to_vec();
+            record.payload.as_mut().unwrap().bytes = id.to_le_bytes().to_vec();
             record
         })
         .collect();

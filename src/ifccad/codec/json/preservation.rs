@@ -92,7 +92,12 @@ pub(super) fn encode_record(r: &IfccadPreservationRecord, prefix: &str) -> Value
         v["target"] = encode_target(c.target, prefix);
         v["baseline"] = json!(STANDARD.encode(&c.baseline));
     }
-    v["payload"]["bytes"] = json!(STANDARD.encode(&r.payload.bytes));
+    if let Some(payload) = &r.payload {
+        v["payload"]["bytes"] = json!(STANDARD.encode(&payload.bytes));
+    }
+    if let Some(id) = r.storage_backing {
+        v["storageBacking"] = json!(target_path(IfccadPreservationTarget::Record(id), prefix));
+    }
     v
 }
 pub(super) fn decode_record(
@@ -124,7 +129,17 @@ pub(super) fn decode_record(
         c["target"] = decode_target(&c["target"], prefix)?;
         c["baseline"] = decode_bytes(&c["baseline"])?;
     }
-    v["payload"]["bytes"] = decode_bytes(&v["payload"]["bytes"])?;
+    if let Some(payload) = v.get_mut("payload") {
+        let bytes = decode_bytes(&payload["bytes"])?;
+        *payload.get_mut("bytes").expect("validated payload bytes") = bytes;
+    }
+    if let Some(backing) = v.get_mut("storageBacking") {
+        let path = backing
+            .as_str()
+            .ok_or_else(|| problem("storageBacking must be a path"))?;
+        let id = super::validate::numbered(path, &format!("{prefix}/preservation/r"))?;
+        *backing = json!(id);
+    }
     serde_json::from_value(v).map_err(|e| problem(format!("invalid preservation record: {e}")))
 }
 pub(super) fn decode_opaque(

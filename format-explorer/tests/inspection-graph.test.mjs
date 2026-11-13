@@ -11,6 +11,16 @@ function openFixture(path) {
   return createInspection({ presentation: { graph: JSON.parse(text) } }, text);
 }
 
+test('opaque roots link to one shared preservation package', () => {
+  const model = openFixture('../../conformance/next/ifccad/valid/preservation-shared.ifcx');
+  const backing = '/cad/d1/preservation/r3';
+  const field = 'ifccad::preservationRecord.storageBacking';
+  const incoming = model.nodes.get(backing).incoming.filter(edge => edge.field === field);
+  assert.deepEqual(incoming.map(edge => edge.source).sort(), [
+    '/cad/d1/preservation/r1', '/cad/d1/preservation/r2',
+  ]);
+});
+
 test('an instance points to its owner, its layer and the shared block definition', () => {
   const model = openFixture('../../tests/fixtures/ifccad/hello-cad.ifcx');
   const instance = graphNeighborhood(model, '/cad/d1/e3');

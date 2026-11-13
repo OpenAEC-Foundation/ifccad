@@ -1,4 +1,4 @@
-# Experimental IFCCAD CBOR mapping, revision 9 (development)
+# Experimental IFCCAD CBOR mapping, revision 10 (development)
 
 Revision 9 adds native tables at entity kind code 21. The table body stores
 placement, grid and optional saved graphics at keys 0–2. Cell content maps
@@ -18,7 +18,7 @@ serialization. It retains the complete supported CAD projection, including
 opaque CAD preservation, but no original IFCX fragments, imports or foreign
 nodes. JSON/IFCX remains a separate mapping through the same typed document.
 
-The normative field/type inventory is [cbor-mapping-9.json](cbor-mapping-9.json).
+The normative field/type inventory is [cbor-mapping-10.json](cbor-mapping-10.json).
 It enumerates concrete records and generic instantiations reachable from the
 document. Names in that registry are explanatory, not transmitted type names.
 Record field codes are local to their record type. Codes and enum variants are
@@ -212,7 +212,7 @@ Descriptor fields are 0 mode (0 Disabled, 1 Enabled, 2 ByDefinition), 1 optional
 reference key, 2 required context list. Each context has 0 key and 1 optional
 presentation; each key has 0 scale ID. Optional values omit their field; a
 present null is malformed. Family records and exact enum codes are declared in
-[cbor-mapping-9.json](cbor-mapping-9.json). Shared profile rules govern semantic
+[cbor-mapping-10.json](cbor-mapping-10.json). Shared profile rules govern semantic
 validity in both encodings. Floating-point payloads retain their exact bits;
 no record field calculates a scale quotient or normalizes a direction.
 
@@ -293,3 +293,9 @@ Knot layout 0 stores the full vector and layout 1 stores one compact cycle.
 Spline points in XYZ scopes use the LinePoint tuple, including its explicit
 negative-zero rule. Hatch spline edge kind 3 uses XY points and a separate
 periodic flag. The JSON register lists all record fields and defaults.
+
+In preservation envelope 2, preservation record keys 10 (inline payload) and
+11 (storage backing record ID) are mutually exclusive. The absent key is
+omitted. Null is invalid for either key. The backing is a positive integer
+in the record identity domain. Shared semantic validation checks its target
+and the watermarks for typed preservation dependencies.

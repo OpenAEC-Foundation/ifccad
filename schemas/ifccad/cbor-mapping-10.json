@@ -1,6 +1,6 @@
 {
   "format": "IFCCAD-CBOR",
-  "mappingRevision": 9,
+  "mappingRevision": 10,
   "rootType": "IfccadDocument",
   "types": {
     "IfccadDocument": {
@@ -3098,14 +3098,23 @@
         {
           "code": 10,
           "name": "payload",
-          "type": "IfccadPreservationPayload",
-          "presence": "required"
+          "type": "Option<IfccadPreservationPayload>",
+          "presence": "optional",
+          "default": "None"
+        },
+        {
+          "code": 11,
+          "name": "storage_backing",
+          "type": "Option<IfccadPreservationRecordId>",
+          "presence": "optional",
+          "default": "None"
         }
       ],
       "dependencies": [
         "IfccadPreservationCategory",
         "IfccadPreservationDependencyCoverage",
-        "IfccadPreservationPayload",
+        "Option<IfccadPreservationPayload>",
+        "Option<IfccadPreservationRecordId>",
         "IfccadPreservationRecordId",
         "IfccadPreservationRepresentation",
         "IfccadPreservationRole",
@@ -4956,6 +4965,24 @@
         }
       ],
       "dependencies": []
+    },
+    "Option<IfccadPreservationPayload>": {
+      "kind": "optional",
+      "items": [
+        "IfccadPreservationPayload"
+      ],
+      "dependencies": [
+        "IfccadPreservationPayload"
+      ]
+    },
+    "Option<IfccadPreservationRecordId>": {
+      "kind": "optional",
+      "items": [
+        "IfccadPreservationRecordId"
+      ],
+      "dependencies": [
+        "IfccadPreservationRecordId"
+      ]
     },
     "Option<IfccadPreservationTarget>": {
       "kind": "optional",

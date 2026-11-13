@@ -1,8 +1,8 @@
 {
   "header": {
-    "id": "urn:example:ifccad:0.9.0",
+    "id": "urn:example:ifccad:0.10.0",
     "ifcxVersion": "ifcx_alpha",
-    "dataVersion": "0.9.0",
+    "dataVersion": "0.10.0",
     "author": "OpenAEC",
     "timestamp": "2026-09-29T00:00:00Z"
   },
@@ -1967,6 +1967,9 @@
                   }
                 }
               }
+            },
+            "storageBacking": {
+              "dataType": "String"
             },
             "payload": {
               "dataType": "Object",

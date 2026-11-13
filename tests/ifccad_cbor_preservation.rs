@@ -2,6 +2,22 @@ use ifccad::*;
 #[path = "support/ifccad_preservation.rs"]
 mod fixtures;
 
+#[test]
+fn shared_selection_cbor_roundtrip_preserves_one_provider_payload() {
+    let drawing = fixtures::with_shared_selection();
+    let bytes = encode_ifccad_cbor_document(&drawing).unwrap();
+    let loaded = load_ifccad_cbor_bytes(bytes.bytes(), Default::default()).unwrap();
+    assert_eq!(loaded.document(), &drawing);
+    assert_eq!(
+        bytes
+            .bytes()
+            .windows(4)
+            .filter(|b| *b == [0x43, 0xff, 0, 3])
+            .count(),
+        1
+    );
+}
+
 fn field(bytes: &[u8], key: u64) -> &[u8] {
     let mut d = minicbor::Decoder::new(bytes);
     for _ in 0..d.map().unwrap().unwrap() {
@@ -74,7 +90,11 @@ fn opaque_payload_and_absent_appearance_survive_exactly() {
         .into_document();
     assert_eq!(loaded, d);
     assert_eq!(
-        loaded.preservation.unwrap().records[0].payload.bytes,
+        loaded.preservation.unwrap().records[0]
+            .payload
+            .as_ref()
+            .unwrap()
+            .bytes,
         [0xff, 0, 3]
     );
     assert!(loaded
@@ -93,7 +113,7 @@ fn opaque_payload_and_absent_appearance_survive_exactly() {
 fn an_authored_empty_envelope_is_not_none() {
     let mut d = fixtures::base();
     d.preservation = Some(IfccadPreservation {
-        version: 1,
+        version: 2,
         sources: vec![],
         records: vec![],
     });

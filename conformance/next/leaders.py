@@ -103,7 +103,7 @@ emit_json('leader-unowned-command',bad,False)
 binary=decode((BINARY_ROOT/'valid/dimension-radius.ifccad.cbor').read_bytes())
 assert binary[1]==8
 doc=binary[2];layer_id=doc[6][0][0];dim_id=doc[13][0][0];start=max(900,doc[2][0])
-register=json.loads((ROOT.parent.parent/'schemas/ifccad/cbor-mapping-9.json').read_text(encoding='utf-8'))['types']
+register=json.loads((ROOT.parent.parent/'schemas/ifccad/cbor-mapping-10.json').read_text(encoding='utf-8'))['types']
 def required_empty_record(name):
     """The existing Dimension override groups remain required empty records.
 

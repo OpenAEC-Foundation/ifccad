@@ -4,7 +4,7 @@ The [IFCCAD candidate](ifccad/README.md) exercises the provisional JSON/IFCX
 profile through strict production native reading. The [base-CBOR candidate](ifccad-cbor/README.md)
 qualifies its separate mapping revision and production reader. [Optional native
 Zstd transport](ifccad-cbor-zstd/README.md) retains the same inner CBOR contract.
-Profile 0.9.0 and CBOR revision 9 include the mixed standalone spline fixture.
+Profile 0.10.0 and CBOR revision 10 include the mixed standalone spline fixture.
 Its IFCX and CBOR files are independently authored by `splines.py`.
 
 The unpublished OCDraw candidate and its case index are parked under

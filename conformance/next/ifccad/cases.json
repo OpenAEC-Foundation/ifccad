@@ -710,5 +710,8 @@
   {
     "file": "invalid/table-merge-outside-grid.ifcx",
     "valid": false
-  }
+  },
+  {"file": "valid/preservation-shared.ifcx", "valid": true},
+  {"file": "invalid/preservation-missing-backing.ifcx", "valid": false},
+  {"file": "invalid/preservation-stale-target-floor.ifcx", "valid": false}
 ]

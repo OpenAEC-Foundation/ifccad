@@ -217,6 +217,13 @@ follow-up work. Retain designs and plans still needed by active or upcoming work
 
 ## Staged delivery of native and CAD exchange extensions
 
+- Follow [native contract staging](docs/releases.md#staging-a-native-contract-before-explorer)
+  for downstream review. Stage the verified draft contract on IFCCAD `main`,
+  pin that exact commit in the Document PR, then use the official Document
+  merge for Studio integration. Wait for the applicable downstream reviews
+  before preparing the native alpha for publication. Keep development path
+  overrides local. Repository actions still require the authorization below.
+
 - Default to one bounded contribution with internal stages: implement the native
   IFCCAD contract and paired `opencaddocument` mapping first, deliver review files,
   connect the local Explorer, then prepare upstream integration and release.

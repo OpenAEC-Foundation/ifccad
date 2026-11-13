@@ -211,10 +211,83 @@ impl IfccadIdCounters {
         allocate(&mut self.next_line_pattern_id, IfccadIdDomain::LinePattern)
             .map(IfccadLinePatternId)
     }
+
+    /// Reserve every typed numeric dependency target, including missing ones.
+    /// A failed reservation leaves all watermarks unchanged.
+    pub fn protect_preservation_targets(
+        &mut self,
+        preservation: &super::IfccadPreservation,
+    ) -> Result<(), IfccadIdAllocationError> {
+        let mut candidate = *self;
+        for (domain, id) in preservation_targets(preservation) {
+            let minimum = id
+                .checked_add(1)
+                .ok_or(IfccadIdAllocationError { domain })?;
+            let (counter, _) = candidate.preservation_counter(domain);
+            *counter = (*counter).max(minimum);
+        }
+        *self = candidate;
+        Ok(())
+    }
+
+    fn preservation_counter(&mut self, domain: IfccadIdDomain) -> (&mut u64, &'static str) {
+        match domain {
+            IfccadIdDomain::Entity => (&mut self.next_entity_id, "nextEntityId"),
+            IfccadIdDomain::Layer => (&mut self.next_layer_id, "nextLayerId"),
+            IfccadIdDomain::LinePattern => (&mut self.next_line_pattern_id, "nextLinePatternId"),
+            IfccadIdDomain::Layout => (&mut self.next_layout_id, "nextLayoutId"),
+            IfccadIdDomain::Block => (&mut self.next_block_id, "nextBlockId"),
+            IfccadIdDomain::PreservationRecord => (
+                &mut self.next_preservation_record_id,
+                "nextPreservationRecordId",
+            ),
+            _ => unreachable!("not a preservation target domain"),
+        }
+    }
+}
+
+fn preservation_targets(
+    preservation: &super::IfccadPreservation,
+) -> impl Iterator<Item = (IfccadIdDomain, u64)> + '_ {
+    use super::IfccadPreservationTarget as Target;
+    use IfccadIdDomain as Domain;
+    preservation
+        .records
+        .iter()
+        .flat_map(|record| {
+            record
+                .bindings
+                .iter()
+                .map(|binding| binding.target)
+                .chain(record.conditions.iter().map(|condition| condition.target))
+        })
+        .filter_map(|target| {
+            Some(match target {
+                Target::Drawing => return None,
+                Target::Entity(id) => (Domain::Entity, id),
+                Target::Layer(id) => (Domain::Layer, id),
+                Target::LinePattern(id) => (Domain::LinePattern, id.0),
+                Target::Layout(id) => (Domain::Layout, id),
+                Target::BlockDefinition(id) => (Domain::Block, id),
+                Target::Record(id) => (Domain::PreservationRecord, id.0),
+            })
+        })
 }
 
 pub(super) fn validate(document: &super::IfccadDocument) -> Result<(), super::IfccadReport> {
-    let ids = document.id_counters;
+    let mut ids = document.id_counters;
+    if let Some(preservation) = &document.preservation {
+        for (domain, target) in preservation_targets(preservation) {
+            let (&mut next, field) = ids.preservation_counter(domain);
+            if next <= target {
+                return Err(crate::ifccad::diagnostics::failure(
+                    "IFCCAD-ID-002",
+                    &format!("/cad/d{}/ifccad::drawing/{field}", document.drawing_id),
+                    format!("{field} {next} must exceed preservation target ID {target}"),
+                ));
+            }
+        }
+    }
     let maximum_entity = document
         .model
         .entities

@@ -320,3 +320,22 @@ interpretation. Classic Leader-to-Tolerance exchange is independently covered.
 Saved graphics are captured atomically with real table bindings; unsupported
 commands or referenced resources fail rather than yielding a partial picture.
 Native bounds and visual evaluation of these kinds remain unavailable.
+
+
+## Shared MLINE preservation candidate
+
+The paired IFCCAD 0.10.0 and Document candidate stores one DocumentSelection V1
+per capture group. Each live opaque ModelSpace MLINE points to its own root
+record and a shared backing. The core validates storage integrity and ID floors
+without opening the provider bytes. The Explorer inspection graph exposes the
+backing edge. OCS retains blocked roots in its per-tab IFCX context. A blocked
+root cannot be emitted as ordinary CAD geometry and requires a preservation-aware
+save. Standalone CBOR exercises the same logical contract through the core.
+The local OCS desktop and browser runs exercised IFCX edit, undo/redo,
+save and reopen. Undo preserves the CAD handle allocation floor so an unrelated
+linetype cannot inherit a saved IFCCAD ID. Browser WBLOCK retains the blocked
+root in a whole-drawing IFCX export and allows a visible subset to be exported
+as DXF. The local embedded Explorer run opened the same IFCX, reported the
+blocked root and exported CBOR with strict readback.
+This evidence uses the paired development dependencies. The released Explorer
+host pin still identifies the previous bundle.

@@ -1,4 +1,4 @@
-"""Independently author a mixed spline and literal CBOR revision 9 record."""
+"""Independently author a mixed spline and literal CBOR revision 10 record."""
 import json
 from pathlib import Path
 
@@ -40,7 +40,7 @@ index(ifcx_root / "cases.json", {"file": ifcx_name, "valid": True})
 
 cbor_root = root / "ifccad-cbor"
 binary = decode((cbor_root / "valid/line-signed-zero.ifccad.cbor").read_bytes())
-assert binary[1] == 8
+assert binary[1] == 10
 binary[2][5][5][0][1][2] = 20
 binary[2][5][5][0][1][3] = {
     0: {0: {0: 0, 1: {0: {0: 1, 1: {0: 0, 1: knots}, 2: points},

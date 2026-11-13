@@ -135,5 +135,8 @@ pub struct IfccadPreservationRecord {
     pub dependency_coverage: IfccadPreservationDependencyCoverage,
     pub bindings: Vec<IfccadPreservationBinding>,
     pub conditions: Vec<IfccadPreservationCondition>,
-    pub payload: IfccadPreservationPayload,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub payload: Option<IfccadPreservationPayload>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub storage_backing: Option<IfccadPreservationRecordId>,
 }
