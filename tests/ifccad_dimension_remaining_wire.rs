@@ -62,7 +62,7 @@ fn every_new_kind_survives_json_and_cbor_with_independent_reference_heights() {
         assert_eq!(envelope.u64().unwrap(), 0);
         assert_eq!(envelope.str().unwrap(), "IFCCAD-CBOR");
         assert_eq!(envelope.u64().unwrap(), 1);
-        assert_eq!(envelope.u64().unwrap(), 8);
+        assert_eq!(envelope.u64().unwrap(), 9);
         for returned in [
             load_ifccad_bytes(json.bytes(), Default::default())
                 .unwrap()
