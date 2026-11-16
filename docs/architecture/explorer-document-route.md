@@ -347,3 +347,21 @@ Explorer selects official Document `a9fe25ea`, acadrust `d8ee0876` and Studio
 profile 0.10.0 / CBOR 10 contract. The frozen host patch carries forward IFCX
 opening, attribute editing, scale and leader picture fixes. The entity catalogue
 includes one compact parts-list table with a merged title and integer quantities.
+
+## Plot-style mode and loss diagnostics
+
+The integration candidate selects the official [Document PR #20 merge](https://github.com/HakanSeven12/opencaddocument/pull/20)
+`7ef98979` with acadrust `d8ee0876`. The [physical exchange regression](../../crates/viewer/tests/document_plot_styles.rs)
+checks AC1032 ASCII DXF and DWG with strict IFCX readback. Both modes, the
+layout's plot-style table name and its apply flag survive. The test covers
+ACI 7 as Foreground, ACI 251–255 and an independently authored True Color.
+A mismatched ACI/RGB pair exports as True Color and reports the lost index
+with the outgoing entity or layer handle. Named STB assignments are reported
+on CAD import with their source handles. They have no native assignment field.
+
+The two practice cases exercise drawing references. CTB retained its black
+plot strokes in the selected Paper layout, with one width change from 0.265
+to 0.250 mm. The Abbotsford STB excerpt retained named mode and layout
+references. The installed Studio could not load its original table.
+Portable plot-style assignments, table contents and output remain open under
+[#16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).

@@ -9,7 +9,7 @@ use std::{collections::BTreeMap, path::Path};
 const LIMITATIONS: &str = "Shared Studio mapping: numerical error bounds and rendered appearance are unassessed. Partial recovery, opaque spline preservation and drawing-wide Reject policy are unavailable. Spline export has its own loss policy.";
 
 pub fn document_capabilities() -> Value {
-    json!({"ifccad":{"backend":"opencaddocument","revision":"a9fe25eafd21da0bff5cc803dd004785fd3b12e1","revisionKind":"gitRevision","profileVersion":"0.10.0","cborMappingRevision":10,"partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"nativeSplines":true,"splineLossRejection":true,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
+    json!({"ifccad":{"backend":"opencaddocument","revision":"7ef9897955ad2daea2ef88ec9a5fe6b152a62b04","revisionKind":"gitRevision","profileVersion":"0.10.0","cborMappingRevision":10,"partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"nativeSplines":true,"splineLossRejection":true,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
 }
 
 fn parse_options(
