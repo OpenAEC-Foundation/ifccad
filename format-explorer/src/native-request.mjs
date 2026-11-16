@@ -7,5 +7,6 @@ export function nativeExportRequest(source,opening,operation){
  if(source.kind==='ifccad'&&operation.encoding)return {...source,export:operation};
  const bytes=decodeBase64(file.base64);
  if(bytes.byteLength!==file.byteLength)throw Error('Native snapshot length mismatch');
- return {kind:'ifccad',name:file.fileName,files:[{path:file.fileName,bytes:bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}],exportConversionOptions:source.exportConversionOptions??source.conversionOptions,export:operation};
+ const name=operation.format==='ifccad'&&/\.ifccad$/i.test(source.name)?source.name:file.fileName;
+ return {kind:'ifccad',name,files:[{path:name,bytes:bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}],exportConversionOptions:source.exportConversionOptions??source.conversionOptions,export:operation};
 }

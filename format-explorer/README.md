@@ -17,8 +17,10 @@ DXF/DWG export. Changing CAD output format/version does not repeat CAD import.
 Document structure, authored draw order, composed storage nodes, source
 contributions, stored values, relationships and full-width string identities
 remain available. The two curated examples are documented in
-[examples](../examples/README.md). Dutch/English, pane navigation, bounded lists,
-search, layer filters and settings remain local application state.
+[examples](../examples/README.md). Explorer serves them as `entities.ifccad`
+and `house.ifccad`, with the original IFCX JSON contents. Dutch/English,
+pane navigation, bounded lists, search, layer filters and settings remain local
+application state.
 
 **Relationship tree** is the default view and shares the document selection
 with **File tree**. The switch above both views groups drawing elements by type.

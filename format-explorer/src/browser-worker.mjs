@@ -46,16 +46,17 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
  opening.conversionCapabilities=typeof wasm.conversion_capabilities==='function'?parsePresentationJson(wasm.conversion_capabilities()):{ifccad:{adjustableTolerance:false}};
  if(!opening.failure&&opening.validation?.strictAvailable&&(request.kind!=='cad'||opening.export?.download?.base64)){
   const bytes=request.kind==='cad'?decodeBase64(opening.export.download.base64):binary?new TextEncoder().encode(opening.nativeSourceText):file.bytes;
-  const stem=file.path.split('/').at(-1).replace(/(?:\.ifccad)?\.cbor(?:\.zst)?$|\.zst$|\.(?:ifcx(?:\.json)?|json|dxf|dwg)$/i,'');
+  const stem=file.path.split('/').at(-1).replace(/(?:\.ifccad)?\.cbor(?:\.zst)?$|\.zst$|\.(?:ifccad|ifcx(?:\.json)?|json|dxf|dwg)$/i,'');
   opening.nativeFile={format:'ifccad',fileName:stem+'.ifcx',byteLength:bytes.length,base64:encodeBase64(bytes),representation:binary?'decoded':request.kind==='cad'?'generated':'original'};
  }
  if(!operation||opening.failure||!opening.validation?.strictAvailable)return opening;
+ const exportName=request.name?.replace(/\.ifccad$/i,'.ifcx');
  if(operation.format===drawingFormat){
   if(operation.encoding){
    if(typeof wasm.export_ifccad_binary!=='function')throw Error('Binary download is unavailable in this processor');
    onProgress('exporting');
    const drawing=request.kind==='cad'?decodeBase64(opening.export.download.base64):file.bytes;
-   const exported=parsePresentationJson(wasm.export_ifccad_binary(request.name,drawing,operation.encoding));
+   const exported=parsePresentationJson(wasm.export_ifccad_binary(exportName,drawing,operation.encoding));
    return {...opening,export:exported.export,failure:exported.failure};
   }
   if(!binary){
@@ -65,7 +66,7 @@ export function processBrowserRequest(request,wasm,onProgress=()=>{}){
  }
  const drawing=request.kind==='cad'?decodeBase64(opening.export.download.base64):file.bytes;
  onProgress('exporting');
- const result=parsePresentationJson(invoke('export_ifccad',[request.name,drawing,operation.format,operation.version??defaultCadVersion],exportOptions));
+ const result=parsePresentationJson(invoke('export_ifccad',[exportName,drawing,operation.format,operation.version??defaultCadVersion],exportOptions));
  result.nativeSourceText=opening.nativeSourceText;
  result.conversionCapabilities=opening.conversionCapabilities;
  if(!result.presentation)result.presentation=opening.presentation;

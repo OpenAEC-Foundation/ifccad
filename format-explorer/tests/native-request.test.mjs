@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {nativeExportRequest} from '../src/native-request.mjs';
 import {processBrowserRequest} from '../src/browser-worker.mjs';
+import {ifccadEncoding} from '../src/ifccad-encoding.mjs';
 
 test('all exports use the already inspected CAD generation, including exact JSON bytes',()=>{
  let imports=0,received;
@@ -25,4 +26,28 @@ test('binary preview is labelled as a projection and binary downloads retain the
 
 test('invalid snapshots cannot be exported as current native data',()=>{
  assert.throws(()=>nativeExportRequest({}, {validation:{strictAvailable:false}}, {format:'ifccad'}),/validated/);
+});
+
+test('an IFCCAD example keeps its filename and bytes when downloaded as JSON',()=>{
+ const name='entities.ifccad';
+ const source={kind:'ifccad',name,files:[{path:name,bytes:new TextEncoder().encode(' {}\n').buffer}]};
+ const wasm={
+  open_ifccad:()=>JSON.stringify({validation:{strictAvailable:true}}),
+  export_ifccad_binary(exportName,data,encoding){
+   assert.equal(exportName,'entities.ifcx');
+   assert.equal(new TextDecoder().decode(data),' {}\n');
+   assert.equal(encoding,'cbor');
+   return JSON.stringify({export:{download:{fileName:'entities.ifccad.cbor'}}});
+  },
+ };
+ assert.equal(ifccadEncoding(name),'ifcx');
+ const opened=processBrowserRequest(source,wasm);
+ assert.equal(opened.nativeFile.fileName,'entities.ifcx');
+ const request=nativeExportRequest(source,opened,{format:'ifccad'});
+ const saved=processBrowserRequest(request,wasm).export.download;
+ assert.equal(saved.fileName,name);
+ assert.equal(saved.base64,'IHt9Cg==');
+ assert.equal(nativeExportRequest(source,opened,{format:'dxf'}).name,'entities.ifcx');
+ const binary=nativeExportRequest(source,opened,{format:'ifccad',encoding:'cbor'});
+ assert.equal(processBrowserRequest(binary,wasm).export.download.fileName,'entities.ifccad.cbor');
 });

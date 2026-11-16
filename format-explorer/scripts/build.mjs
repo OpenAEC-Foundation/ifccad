@@ -39,7 +39,7 @@ export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',i
   for(const example of examples.filter(example=>example.format.toLowerCase()===format)){
    const target=path.resolve(destination,example.path),folder=path.join(exampleTarget,format);
    if(path.dirname(target)!==folder)throw Error('Example output escapes its format directory');
-   files[path.basename(target)]=await readFile(new URL('../../'+example.path,import.meta.url));
+   files[path.basename(target)]=await readFile(new URL('../../'+example.sourcePath,import.meta.url));
   }
   await bundle(null,path.join(exampleTarget,format),files);
  }
