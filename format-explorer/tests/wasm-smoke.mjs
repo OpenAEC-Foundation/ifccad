@@ -74,8 +74,14 @@ const regressionDrawings=[
  {name:'Native splines',path:'format-explorer/tests/fixtures/splines.ifcx'},
 ];
 for(const example of [...examples,...regressionDrawings]){
- const name=example.path.split('/').at(-1),bytes=await readFile(new URL('../../'+example.path,import.meta.url)),source=request(name,bytes);
+ const name=example.path.split('/').at(-1);
+ const bytes=await readFile(new URL('../../'+(example.sourcePath??example.path),import.meta.url)),source=request(name,bytes);
  const opened=checked(source);
+ if(example.sourcePath){
+  const saved=checked(nativeExportRequest(source,opened,{format:'ifccad'})).export.download;
+  assert.equal(saved.fileName,name);
+  assert.deepEqual(Buffer.from(bytesOf(saved)),bytes);
+ }
  if(example.name==='Entity catalogue'){catalogueAutomaticText(opened);catalogueLeaders(opened);catalogueSymbolPattern(opened);catalogueTable(opened);}
  assert.deepEqual(Buffer.from(opened.nativeFile.base64,'base64'),bytes,'preview retains actual source bytes');
  assert.ok(opened.nativeFile.fileName.endsWith('.ifcx'));
