@@ -8,6 +8,34 @@ mod drawing;
 mod house;
 
 #[test]
+fn catalogue_table_has_explicit_text_heights_in_millimetres() {
+    use ifccad::{load_ifccad_bytes, IfccadEntityKind};
+    let bytes = include_bytes!("../examples/ifccad/entities.ifcx");
+    let loaded = load_ifccad_bytes(bytes, Default::default()).unwrap();
+    let table = loaded
+        .document()
+        .model
+        .entities
+        .iter()
+        .filter_map(ifccad::IfccadEntity::as_native)
+        .find_map(|entity| match &entity.kind {
+            IfccadEntityKind::Table(table) if table.grid.name.as_deref() == Some("Parts list") => {
+                Some(table)
+            }
+            _ => None,
+        })
+        .expect("catalogue parts list");
+
+    let heights: Vec<_> = table
+        .grid
+        .rows
+        .iter()
+        .map(|row| row.format.as_ref().and_then(|format| format.text_height))
+        .collect();
+    assert_eq!(heights, [Some(4.5), Some(3.5), Some(3.0), Some(3.0)]);
+}
+
+#[test]
 fn automatic_catalogue_dimensions_do_not_invent_saved_text_positions() {
     use ifccad::*;
     let bytes = catalogue::build().unwrap();

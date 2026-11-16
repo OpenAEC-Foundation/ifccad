@@ -293,10 +293,10 @@ pub const SAMPLES: &[Sample] = &[
                         "name": "Parts list",
                         "columns": [{"width": 44.}, {"width": 26.}],
                         "rows": [
-                            {"height": 10., "cells": [cell("text", json!("Parts list")), {"contents": []}]},
-                            {"height": 8., "cells": [cell("text", json!("Part")), cell("text", json!("Qty"))]},
-                            {"height": 8., "cells": [cell("text", json!("Bracket")), cell("integer", json!(4))]},
-                            {"height": 8., "cells": [cell("text", json!("Fastener")), cell("integer", json!(12))]}
+                            {"height": 10., "format": {"textHeight": 4.5}, "cells": [cell("text", json!("Parts list")), {"contents": []}]},
+                            {"height": 8., "format": {"textHeight": 3.5}, "cells": [cell("text", json!("Part")), cell("text", json!("Qty"))]},
+                            {"height": 8., "format": {"textHeight": 3.0}, "cells": [cell("text", json!("Bracket")), cell("integer", json!(4))]},
+                            {"height": 8., "format": {"textHeight": 3.0}, "cells": [cell("text", json!("Fastener")), cell("integer", json!(12))]}
                         ],
                         "mergedRanges": [{"topRow": 0, "leftColumn": 0, "bottomRow": 0, "rightColumn": 1}]
                     }

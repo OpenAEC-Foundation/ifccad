@@ -6729,6 +6729,9 @@
                   "contents": []
                 }
               ],
+              "format": {
+                "textHeight": 4.5
+              },
               "height": 10.0
             },
             {
@@ -6756,6 +6759,9 @@
                   ]
                 }
               ],
+              "format": {
+                "textHeight": 3.5
+              },
               "height": 8.0
             },
             {
@@ -6783,6 +6789,9 @@
                   ]
                 }
               ],
+              "format": {
+                "textHeight": 3.0
+              },
               "height": 8.0
             },
             {
@@ -6810,6 +6819,9 @@
                   ]
                 }
               ],
+              "format": {
+                "textHeight": 3.0
+              },
               "height": 8.0
             }
           ]
