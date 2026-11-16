@@ -13,6 +13,30 @@ test('preview opens the inspected native bytes without CAD serialization and ign
  await controller.select({format:'dxf',version:'AC1024'});assert.equal(calls.length,2);
 });
 
+test('Studio opens original IFCCAD examples with their public filenames',async()=>{
+ const opened=[];
+ const controller=createCadPreviewController({openSession:async()=>({
+  replaceGenerated:async(bytes,name)=>opened.push({bytes,name}),
+  close(){},
+ })});
+ for(const stem of ['entities','house']){
+  const name=stem+'.ifccad';
+  controller.setSource({kind:'ifccad',name},true,{
+   ...opening,nativeFile:{...file,fileName:stem+'.ifcx',representation:'original'},
+  });
+  await controller.show();
+ }
+ controller.setSource({kind:'ifccad',name:'entities.ifccad.cbor'},true,{
+  ...opening,nativeFile:{...file,fileName:'entities.ifcx',representation:'decoded'},
+ });
+ await controller.show();
+ assert.deepEqual(opened,[
+  {bytes:'e30=',name:'entities.ifccad'},
+  {bytes:'e30=',name:'house.ifccad'},
+  {bytes:'e30=',name:'entities.ifcx'},
+ ]);
+});
+
 test('native selection uses import mappings independently of CAD output',async()=>{
  const selected=[],revealed=[];let observe;
  const controller=createCadPreviewController({onCadSelection:key=>revealed.push(key),openSession:async()=>({replaceGenerated:async()=>{},selectGenerated:async(...args)=>selected.push(args),subscribeSelection(fn){observe=fn;},close(){}})});

@@ -18,7 +18,8 @@ Document structure, authored draw order, composed storage nodes, source
 contributions, stored values, relationships and full-width string identities
 remain available. The two curated examples are documented in
 [examples](../examples/README.md). Explorer serves them as `entities.ifccad`
-and `house.ifccad`, with the original IFCX JSON contents. Dutch/English,
+and `house.ifccad` with the original IFCX JSON contents. The Studio tab uses
+the same example filename. Dutch/English,
 pane navigation, bounded lists, search, layer filters and settings remain local
 application state.
 

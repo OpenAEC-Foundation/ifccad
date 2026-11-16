@@ -84,7 +84,12 @@ export function createCadPreviewController({openSession,onUpdate=()=>{},onCadSel
    try{active=await ensureSession(current);}catch(error){if(current===generation){state.viewerError=error.message;resetSession();notify();}}
    await prepared;if(current!==generation)return;
    if(!state.valid){state.error=`Conversie naar ${drawingLabel(state.source)} is niet beschikbaar. Alleen het oorspronkelijke CAD-bestand kan worden bekeken.`;return;}
-   if(active&&state.download&&displayedKey!==preparedKey){try{await active.replaceGenerated(state.download.base64,state.download.fileName);if(current===generation)displayedKey=preparedKey;}catch(error){if(current===generation)state.viewerError=error.message;}}
+   if(active&&state.download&&displayedKey!==preparedKey){
+    const file=state.download;
+    const name=file.representation==='original'&&/\.ifccad$/i.test(state.source.name)?state.source.name:file.fileName;
+    try{await active.replaceGenerated(file.base64,name);if(current===generation)displayedKey=preparedKey;}
+    catch(error){if(current===generation)state.viewerError=error.message;}
+   }
    if(current===generation&&!state.viewerError)await syncSelection(current,active);
   })().finally(()=>{if(current===generation){viewPromise=null;state.viewerBusy=false;notify();}});
   return viewPromise;
