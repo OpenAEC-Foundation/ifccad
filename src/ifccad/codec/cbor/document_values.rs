@@ -29,7 +29,65 @@ record!(IfccadDocument;
 25 => table_styles: Vec<IfccadTableStyle> = Some(Vec::new()),
 26 => table_data_links: Vec<IfccadTableDataLink> = Some(Vec::new()),
 27 => data_tables: Vec<IfccadDataTable> = Some(Vec::new()),
+28 => plot_styles: IfccadPlotStyles = Some(Default::default()),
 );
+record!(IfccadPlotStyles;
+0 => next_source_id: u64 = Some(1_u64),
+1 => sources: std::collections::BTreeMap<u64, IfccadPlotStyleSource> = Some(Default::default()),
+2 => layout_sources: std::collections::BTreeMap<u64, u64> = Some(Default::default()),
+3 => layer_assignments: std::collections::BTreeMap<u64, IfccadPlotStyle> = Some(Default::default()),
+4 => entity_assignments: std::collections::BTreeMap<u64, IfccadPlotStyle> = Some(Default::default()),
+);
+record!(IfccadPlotStyleSource;
+0 => kind: IfccadPlotStyleTableKind = None,
+1 => file_name: String = None,
+2 => sha256: Option<String> = Some(None),
+);
+unit_enum!(IfccadPlotStyleTableKind;
+0 => Ctb,
+1 => Stb,
+);
+impl CborValue for IfccadPlotStyle {
+    #[cfg(test)]
+    fn registered_codes() -> &'static [(u64, &'static str)] {
+        &[(0, "kind"), (1, "name")]
+    }
+
+    fn encode(&self, writer: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
+        let (kind, name) = match self {
+            Self::Normal => (0_u64, None),
+            Self::ByLayer => (1, None),
+            Self::ByBlock => (2, None),
+            Self::Named { name } => (3, Some(name)),
+        };
+        writer.map(if name.is_some() { 2 } else { 1 })?;
+        writer.u64(0)?;
+        kind.encode(writer)?;
+        if let Some(name) = name {
+            writer.u64(1)?;
+            name.encode(writer)?;
+        }
+        Ok(())
+    }
+
+    fn decode(reader: &mut CborReader<'_>) -> Result<Self, IfccadCborReadError> {
+        let mut fields = RecordFields::new(reader, &[(0, "kind"), (1, "name")])?;
+        let kind = fields.take::<u64>(0, None)?;
+        let name = fields.take::<Option<String>>(1, Some(None))?;
+        fields.finish()?;
+        match (kind, name) {
+            (0, None) => Ok(Self::Normal),
+            (1, None) => Ok(Self::ByLayer),
+            (2, None) => Ok(Self::ByBlock),
+            (3, Some(name)) => Ok(Self::Named { name }),
+            _ => Err(reader.error("invalid plot-style assignment")),
+        }
+    }
+
+    fn exact(&self, other: &Self) -> bool {
+        self == other
+    }
+}
 record!(IfccadLayout;
 0 => bounds_quality: Option<IfccadBoundsQuality> = Some(None),
 1 => settings: LayoutOutputSettings = None,

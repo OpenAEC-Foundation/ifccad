@@ -1,10 +1,28 @@
-# IFCCAD supplemental profile rules 0.10.0
+# IFCCAD supplemental profile rules 0.11.0
 
-This is a normative companion to the [experimental contract](experimental-contract-0.10.0.md),
-the ordinary [IFCX declarations](ifccad-profile-0.10.0.ifcx), and the
-[local-value supplement](supplemental-values-0.10.0.schema.json). All apply after
+## External plot styles
+
+`IFCCAD-PLOT-STYLE-001` applies to plot-style sources, layout references
+and assignments. Each source is a child of its drawing and has a canonical
+`/cad/dN/plotStyleSource/I` path. Its numeric ID precedes the drawing's
+`nextPlotStyleSourceId` (default 1). The source stores a basename with the
+`.ctb` or `.stb` extension matching its kind, plus an optional SHA-256 over the
+external bytes as 64 lowercase hex digits. A layout's `plotStyleSource` must
+resolve in that drawing and match its color-dependent or named plot mode.
+This reference is independent of the layout's `applyPlotStyles` flag.
+
+In named mode layer assignments allow `Normal` and `Named`. Object assignments
+also allow `ByLayer` and `ByBlock`. A `Named` assignment has a nonempty name
+distinct from the three reserved choices, compared case-insensitively. Other
+assignments have no name. The layer default is `Normal` and the object default
+is `ByLayer`. The external file's availability and contents are checked when
+the host resolves the resource for plotting.
+
+This is a normative companion to the [experimental contract](experimental-contract-0.11.0.md),
+the ordinary [IFCX declarations](ifccad-profile-0.11.0.ifcx), and the
+[local-value supplement](supplemental-values-0.11.0.schema.json). All apply after
 fragment composition. It is not an IFCX schema extension or an independent drawing format.
-The existing `urn:example:ifccad:0.10.0` import remains the only drawing import needed
+The existing `urn:example:ifccad:0.11.0` import remains the only drawing import needed
 by the bundled offline reader. Full IFCCAD validation includes local values,
 graph relationships and domain algorithms, not just ordinary IFCX attribute shapes.
 
@@ -117,7 +135,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 
 | ID | Requirement and algorithm | Phase / gap | Positive and negative evidence |
 |---|---|---|---|
-| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.10.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
+| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.11.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
 | IFCCAD-WIRE-002 | Duplicate keys within one JSON object MUST fail. Same-path fragments merge children/inherits/attributes by key in file order; repeated values replace whole values, not nested arrays/overrides. Null inheritance removes its key; child/attribute null remains a marker. RejectConflicts MUST reject differing repeated values, including foreign nodes. | C; G3 | [composer](../../src/ifccad/source/composition.rs), [text wire](../../tests/ifccad_text_wire.rs) |
 | IFCCAD-WIRE-003 | CAD validation MUST run on the composed graph, retaining exact immutable original bytes and foreign context. Foreign children confer no CAD ownership. No supplement may validate all foreign objects or interpret provider bytes as CAD fields. | C/V/G; G3/G8 | [profile rules tests](../../tests/ifccad_profile_rules.rs), [native](../../tests/ifccad_native.rs) |
 | IFCCAD-WIRE-004 | Closed native value objects MUST reject unknown members and forbidden nulls as specified in the contract and local variant definitions. Unsupported CAD namespaces/payloads MUST fail at their existing role boundaries. No legacy unknown-field or null acceptance exception is provided. | V/G; G7 | [geometry](../../tests/ifccad_geometry.rs), [text codec](../../tests/ifccad_text_codec.rs), [workspace](../../tests/ifccad_workspace_state.rs) |

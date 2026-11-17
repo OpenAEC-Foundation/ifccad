@@ -1,4 +1,11 @@
-# Experimental IFCCAD CBOR mapping, revision 10 (development)
+# Experimental IFCCAD CBOR mapping, revision 11 (development)
+
+Drawing key 28 is the external plot-style record. Its keys 0–4 hold the
+next source ID, sources by ID, layout-to-source IDs, layer assignments and
+entity assignments. The source record holds kind (0 CTB, 1 STB), basename
+and optional SHA-256. Each assignment is a record with kind (0 Normal,
+1 ByLayer, 2 ByBlock, 3 Named) and a name required only for Named.
+The former plot output key 2 for a table name is retired in revision 11.
 
 Revision 9 adds native tables at entity kind code 21. The table body stores
 placement, grid and optional saved graphics at keys 0–2. Cell content maps
@@ -18,7 +25,7 @@ serialization. It retains the complete supported CAD projection, including
 opaque CAD preservation, but no original IFCX fragments, imports or foreign
 nodes. JSON/IFCX remains a separate mapping through the same typed document.
 
-The normative field/type inventory is [cbor-mapping-10.json](cbor-mapping-10.json).
+The normative field/type inventory is [cbor-mapping-11.json](cbor-mapping-11.json).
 It enumerates concrete records and generic instantiations reachable from the
 document. Names in that registry are explanatory, not transmitted type names.
 Record field codes are local to their record type. Codes and enum variants are
@@ -212,7 +219,7 @@ Descriptor fields are 0 mode (0 Disabled, 1 Enabled, 2 ByDefinition), 1 optional
 reference key, 2 required context list. Each context has 0 key and 1 optional
 presentation; each key has 0 scale ID. Optional values omit their field; a
 present null is malformed. Family records and exact enum codes are declared in
-[cbor-mapping-10.json](cbor-mapping-10.json). Shared profile rules govern semantic
+[cbor-mapping-11.json](cbor-mapping-11.json). Shared profile rules govern semantic
 validity in both encodings. Floating-point payloads retain their exact bits;
 no record field calculates a scale quotient or normalizes a direction.
 

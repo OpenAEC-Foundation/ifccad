@@ -45,7 +45,6 @@ fn plot(unit: PlotUnit) -> PlotSettings {
                 },
             },
             apply_plot_styles: false,
-            plot_style_table_name: None,
         },
         options: PlotOptions {
             plot_viewport_borders: false,

@@ -105,10 +105,6 @@ fn plot_settings(value: &Value) -> Option<PlotSettings> {
                 },
             },
             apply_plot_styles: output.get("applyPlotStyles")?.as_bool()?,
-            plot_style_table_name: output
-                .get("plotStyleTableName")
-                .and_then(Value::as_str)
-                .map(str::to_owned),
         },
         options: PlotOptions {
             plot_viewport_borders: options.get("plotViewportBorders")?.as_bool()?,
@@ -175,10 +171,7 @@ fn encode_plot_settings(plot: &PlotSettings) -> Option<Value> {
             json!({"mode":"Offset","reference":match reference {PlotOffsetReference::Media=>"Media",PlotOffsetReference::PrintableArea=>"PrintableArea"},"x":x,"y":y})
         }
     };
-    let mut output = json!({"shadedPlot":encode_shading(plot.output.shaded_plot),"applyPlotStyles":plot.output.apply_plot_styles});
-    if let Some(name) = &plot.output.plot_style_table_name {
-        output["plotStyleTableName"] = json!(name);
-    }
+    let output = json!({"shadedPlot":encode_shading(plot.output.shaded_plot),"applyPlotStyles":plot.output.apply_plot_styles});
     let o = plot.options;
     Some(
         json!({"plotUnit":unit,"page":page,"area":area,"mapping":{"scale":scale,"placement":placement},"output":output,
@@ -200,7 +193,7 @@ fn keys(v: &Value, allowed: &[&str]) -> bool {
 }
 fn plot_keys(v: &Value) -> bool {
     if [&v["page"], &v["output"]].into_iter().any(|o| {
-        ["deviceName", "mediaName", "plotStyleTableName"]
+        ["deviceName", "mediaName"]
             .into_iter()
             .any(|key| o.get(key).is_some_and(|name| name.as_str().is_none()))
     }) {
@@ -240,10 +233,7 @@ fn plot_keys(v: &Value) -> bool {
             &["mode", "outputLength", "scopeLength"],
         )
         && keys(&v["mapping"]["placement"], &["mode", "reference", "x", "y"])
-        && keys(
-            &v["output"],
-            &["shadedPlot", "applyPlotStyles", "plotStyleTableName"],
-        )
+        && keys(&v["output"], &["shadedPlot", "applyPlotStyles"])
         && keys(&v["output"]["shadedPlot"], &["mode", "quality"])
         && keys(&v["output"]["shadedPlot"]["quality"], &["mode", "dpi"])
         && keys(

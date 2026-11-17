@@ -1,6 +1,6 @@
 {
   "header": {
-    "id": "urn:example:ifccad:0.10.0",
+    "id": "urn:example:ifccad:0.11.0",
     "ifcxVersion": "ifcx_alpha",
     "dataVersion": "0.10.0",
     "author": "OpenAEC",
@@ -180,6 +180,10 @@
               "minimum": 1
             },
             "nextMultiLeaderStyleId": {
+              "dataType": "Integer",
+              "optional": true
+            },
+            "nextPlotStyleSourceId": {
               "dataType": "Integer",
               "optional": true
             }
@@ -449,10 +453,6 @@
                         },
                         "applyPlotStyles": {
                           "dataType": "Boolean"
-                        },
-                        "plotStyleTableName": {
-                          "dataType": "String",
-                          "optional": true
                         }
                       }
                     }
@@ -580,6 +580,10 @@
                   }
                 }
               }
+            },
+            "plotStyleSource": {
+              "dataType": "String",
+              "optional": true
             }
           }
         }
@@ -678,6 +682,27 @@
             "description": {
               "dataType": "String",
               "optional": true
+            },
+            "plotStyle": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "kind": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "Normal",
+                        "Named"
+                      ]
+                    }
+                  },
+                  "name": {
+                    "dataType": "String",
+                    "optional": true
+                  }
+                }
+              }
             }
           }
         }
@@ -937,6 +962,29 @@
             "visible": {
               "dataType": "Boolean",
               "optional": true
+            },
+            "plotStyle": {
+              "dataType": "Object",
+              "optional": true,
+              "objectRestrictions": {
+                "values": {
+                  "kind": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "ByLayer",
+                        "ByBlock",
+                        "Normal",
+                        "Named"
+                      ]
+                    }
+                  },
+                  "name": {
+                    "dataType": "String",
+                    "optional": true
+                  }
+                }
+              }
             }
           }
         }
@@ -19410,6 +19458,31 @@
     "ifccad::multiLeaderBlockLabel": {
       "value": {
         "dataType": "Object"
+      }
+    },
+    "ifccad::plotStyleSource": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "kind": {
+              "dataType": "Enum",
+              "enumRestrictions": {
+                "options": [
+                  "ctb",
+                  "stb"
+                ]
+              }
+            },
+            "fileName": {
+              "dataType": "String"
+            },
+            "sha256": {
+              "dataType": "String",
+              "optional": true
+            }
+          }
+        }
       }
     }
   },

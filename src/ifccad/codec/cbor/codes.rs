@@ -1,6 +1,6 @@
 //! Contract checks for explicit revision-1 mapping declarations.
 #[cfg(test)]
-pub(super) const MAPPING: &str = include_str!("../../../../schemas/ifccad/cbor-mapping-10.json");
+pub(super) const MAPPING: &str = include_str!("../../../../schemas/ifccad/cbor-mapping-11.json");
 #[cfg(test)]
 mod tests {
     use super::super::*;
@@ -29,6 +29,10 @@ mod tests {
     fn explicit_code_declarations_match_contract() {
         let r: serde_json::Value = serde_json::from_str(super::MAPPING).unwrap();
         check::<IfccadDocument>(&r, "IfccadDocument");
+        check::<IfccadPlotStyles>(&r, "IfccadPlotStyles");
+        check::<IfccadPlotStyleSource>(&r, "IfccadPlotStyleSource");
+        check::<IfccadPlotStyleTableKind>(&r, "IfccadPlotStyleTableKind");
+        check::<IfccadPlotStyle>(&r, "IfccadPlotStyle");
         check::<IfccadLeaderGraphics>(&r, "IfccadLeaderGraphics");
         check::<IfccadLeaderGraphicFont>(&r, "IfccadLeaderGraphicFont");
         check::<IfccadLeaderGraphicText>(&r, "IfccadLeaderGraphicText");

@@ -52,6 +52,8 @@ mod table_resources;
 pub use table_resources::*;
 mod symbol_source;
 pub use symbol_source::*;
+mod plot_styles;
+pub use plot_styles::*;
 mod presentation;
 pub use presentation::{
     IfccadColor, IfccadColorMetadataError, IfccadPointDisplay, IfccadPointGlyph, IfccadPointSize,

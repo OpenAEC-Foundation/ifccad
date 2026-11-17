@@ -85,7 +85,6 @@ pub struct PlotMapping {
 pub struct PlotOutput {
     pub shaded_plot: ShadedPlot,
     pub apply_plot_styles: bool,
-    pub plot_style_table_name: Option<String>,
 }
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PlotOptions {

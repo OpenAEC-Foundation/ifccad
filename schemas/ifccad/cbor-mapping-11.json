@@ -1,6 +1,6 @@
 {
   "format": "IFCCAD-CBOR",
-  "mappingRevision": 10,
+  "mappingRevision": 11,
   "rootType": "IfccadDocument",
   "types": {
     "IfccadDocument": {
@@ -205,6 +205,14 @@
           "presence": "default",
           "default": [],
           "omit": "exact"
+        },
+        {
+          "code": 28,
+          "name": "plot_styles",
+          "type": "IfccadPlotStyles",
+          "presence": "default",
+          "default": {},
+          "omit": "exact"
         }
       ],
       "dependencies": [
@@ -235,7 +243,8 @@
         "Vec<IfccadMultiLeaderStyle>",
         "Vec<IfccadTableStyle>",
         "Vec<IfccadTableDataLink>",
-        "Vec<IfccadDataTable>"
+        "Vec<IfccadDataTable>",
+        "IfccadPlotStyles"
       ]
     },
     "IfccadHeader": {
@@ -3286,12 +3295,6 @@
           "name": "apply_plot_styles",
           "type": "bool",
           "presence": "required"
-        },
-        {
-          "code": 2,
-          "name": "plot_style_table_name",
-          "type": "Option<String>",
-          "presence": "optional"
         }
       ],
       "dependencies": [
@@ -20786,6 +20789,115 @@
       "dependencies": [
         "IfccadTableFieldGraph"
       ]
+    },
+    "IfccadPlotStyles": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "next_source_id",
+          "type": "u64",
+          "presence": "default",
+          "default": 1,
+          "omit": "exact"
+        },
+        {
+          "code": 1,
+          "name": "sources",
+          "type": "BTreeMap<u64,IfccadPlotStyleSource>",
+          "presence": "default",
+          "default": {},
+          "omit": "exact"
+        },
+        {
+          "code": 2,
+          "name": "layout_sources",
+          "type": "BTreeMap<u64,u64>",
+          "presence": "default",
+          "default": {},
+          "omit": "exact"
+        },
+        {
+          "code": 3,
+          "name": "layer_assignments",
+          "type": "BTreeMap<u64,IfccadPlotStyle>",
+          "presence": "default",
+          "default": {},
+          "omit": "exact"
+        },
+        {
+          "code": 4,
+          "name": "entity_assignments",
+          "type": "BTreeMap<u64,IfccadPlotStyle>",
+          "presence": "default",
+          "default": {},
+          "omit": "exact"
+        }
+      ],
+      "dependencies": [
+        "IfccadPlotStyleSource",
+        "IfccadPlotStyle"
+      ]
+    },
+    "IfccadPlotStyleSource": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "kind",
+          "type": "IfccadPlotStyleTableKind",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "file_name",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "sha256",
+          "type": "Option<String>",
+          "presence": "optional",
+          "omit": "absent"
+        }
+      ],
+      "dependencies": [
+        "IfccadPlotStyleTableKind"
+      ]
+    },
+    "IfccadPlotStyleTableKind": {
+      "kind": "enum",
+      "variants": [
+        {
+          "code": 0,
+          "name": "Ctb"
+        },
+        {
+          "code": 1,
+          "name": "Stb"
+        }
+      ],
+      "dependencies": []
+    },
+    "IfccadPlotStyle": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "kind",
+          "type": "u64",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "name",
+          "type": "Option<String>",
+          "presence": "optional",
+          "omit": "absent"
+        }
+      ],
+      "dependencies": []
     }
   }
 }

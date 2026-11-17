@@ -27,6 +27,7 @@ pub struct IfccadDocument {
     pub annotation_scales: Vec<super::IfccadAnnotationScale>,
     pub dimension_styles: Vec<super::IfccadDimensionStyle>,
     pub symbol_sources: Vec<super::IfccadSymbolSource>,
+    pub plot_styles: super::IfccadPlotStyles,
     pub point_display: Option<super::IfccadPointDisplay>,
     pub text_styles: Vec<super::IfccadTextStyle>,
     pub ucs_definitions: Vec<super::IfccadUcsDefinition>,

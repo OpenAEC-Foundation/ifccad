@@ -1101,6 +1101,11 @@
           "type": "integer",
           "minimum": 1
         },
+        "nextPlotStyleSourceId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
         "nextDimensionStyleId": {
           "type": "integer",
           "minimum": 1,
@@ -1160,6 +1165,9 @@
     "layerExtras": {
       "type": "object",
       "properties": {
+        "plotStyle": {
+          "type": "object"
+        },
         "name": {
           "minLength": 1
         },
@@ -1411,6 +1419,9 @@
         },
         "visible": {
           "type": "boolean"
+        },
+        "plotStyle": {
+          "type": "object"
         }
       },
       "additionalProperties": false,
@@ -1996,8 +2007,7 @@
               },
               "additionalProperties": false
             },
-            "applyPlotStyles": {},
-            "plotStyleTableName": {}
+            "applyPlotStyles": {}
           },
           "additionalProperties": false
         },
@@ -2019,6 +2029,9 @@
     "layoutExtras": {
       "type": "object",
       "properties": {
+        "plotStyleSource": {
+          "type": "string"
+        },
         "kind": {},
         "name": {},
         "tabIndex": {},

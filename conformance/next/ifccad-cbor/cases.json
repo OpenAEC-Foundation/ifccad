@@ -1,5 +1,5 @@
 {
-  "mappingRevision": 10,
+  "mappingRevision": 11,
   "cases": [
     {
       "file": "valid/empty.ifccad.cbor",
@@ -779,6 +779,11 @@
       "valid": false,
       "diagnostic": "invalid/preservation-stale-target-floor.ifccad.cbor.diag",
       "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "valid/plot-styles.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/plot-styles.ifccad.cbor.diag"
     }
   ]
 }

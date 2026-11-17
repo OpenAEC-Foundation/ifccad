@@ -200,7 +200,6 @@ record!(PlotMapping;
 record!(PlotOutput;
 0 => shaded_plot: ShadedPlot = None,
 1 => apply_plot_styles: bool = None,
-2 => plot_style_table_name: Option<String> = Some(None),
 );
 record!(PlotOptions;
 0 => plot_viewport_borders: bool = None,

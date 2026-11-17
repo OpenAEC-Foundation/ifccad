@@ -78,10 +78,6 @@ pub fn validate_layout_output(
         for (name, field) in [
             (&plot.page.device_name, "plotSettings.page.deviceName"),
             (&plot.page.media_name, "plotSettings.page.mediaName"),
-            (
-                &plot.output.plot_style_table_name,
-                "plotSettings.output.plotStyleTableName",
-            ),
         ] {
             check(
                 name.as_ref().is_none_or(|n| !n.is_empty()),

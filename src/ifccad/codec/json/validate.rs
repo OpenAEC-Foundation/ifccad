@@ -44,6 +44,8 @@ fn table_resource_nodes<T: serde::de::DeserializeOwned>(
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DrawingValue {
     #[serde(default = "initial_workspace_id")]
+    next_plot_style_source_id: u64,
+    #[serde(default = "initial_workspace_id")]
     next_table_data_link_id: u64,
     #[serde(default = "initial_workspace_id")]
     next_data_table_id: u64,
@@ -85,6 +87,12 @@ struct DrawingValue {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct LayoutValue {
+    #[serde(
+        default,
+        rename = "plotStyleSource",
+        deserialize_with = "crate::dimension::present_option"
+    )]
+    _plot_style_source: Option<String>,
     #[serde(default, deserialize_with = "crate::dimension::present_option")]
     annotation_state: Option<super::annotation_policy::State>,
     bounds_quality: Option<IfccadBoundsQuality>,
@@ -122,6 +130,12 @@ impl LayoutValue {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct LayerValue {
+    #[serde(
+        default,
+        rename = "plotStyle",
+        deserialize_with = "crate::dimension::present_option"
+    )]
+    _plot_style: Option<IfccadPlotStyle>,
     name: String,
     #[serde(default, deserialize_with = "super::presentation::present")]
     description: Option<String>,
@@ -159,6 +173,12 @@ struct DefinitionValue {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct EntityValue {
+    #[serde(
+        default,
+        rename = "plotStyle",
+        deserialize_with = "crate::dimension::present_option"
+    )]
+    _plot_style: Option<IfccadPlotStyle>,
     #[serde(default = "default_enabled")]
     visible: bool,
     #[serde(default = "crate::ifccad::logical::patterns::one")]
@@ -431,7 +451,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .and_then(Value::as_object)
         .ok_or_else(|| problem("IFCX schemas must be an object"))?;
     let profile_module: Value = serde_json::from_str(include_str!(
-        "../../../../schemas/ifccad/ifccad-profile-0.10.0.ifcx"
+        "../../../../schemas/ifccad/ifccad-profile-0.11.0.ifcx"
     ))
     .map_err(|e| problem(format!("invalid built-in CAD schema module: {e}")))?;
     let known = profile_module["schemas"]
@@ -488,7 +508,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let drawing_id = numbered(drawing_path, "/cad/d")?;
     let prefix = drawing_prefix(drawing_id);
     let drawing: DrawingValue = required(drawing_node, "ifccad::drawing")?;
-    if drawing.profile_version != "0.10.0" {
+    if drawing.profile_version != "0.11.0" {
         return Err(crate::ifccad::diagnostics::failure(
             "IFCCAD-WIRE-001",
             &format!("{drawing_path}/ifccad::drawing/profileVersion"),
@@ -498,8 +518,62 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let mut pattern_paths = BTreeMap::new();
     let mut style_paths = BTreeMap::new();
     let mut source_paths = BTreeMap::new();
+    let mut plot_source_paths = BTreeSet::new();
     let mut symbol_sources = Vec::new();
+    let mut plot_styles = IfccadPlotStyles {
+        next_source_id: drawing.next_plot_style_source_id,
+        ..Default::default()
+    };
     for (path, node) in &nodes {
+        if let Some(source) = attr(node, "ifccad::plotStyleSource") {
+            let id = numbered(path, &format!("{prefix}/plotStyleSource/"))?;
+            if node["attributes"].as_object().is_some_and(|attributes| {
+                attributes
+                    .keys()
+                    .any(|key| key.starts_with("ifccad::") && key != "ifccad::plotStyleSource")
+            }) {
+                return Err(problem(format!(
+                    "{path} has incompatible plot-style source role"
+                )));
+            }
+            let source = serde_json::from_value(source.clone())
+                .map_err(|err| problem(format!("{path}: {err}")))?;
+            plot_styles.sources.insert(id, source);
+            plot_source_paths.insert(path.clone());
+        }
+        if let Some(source) =
+            attr(node, "ifccad::layout").and_then(|layout| layout.get("plotStyleSource"))
+        {
+            let source = source
+                .as_str()
+                .ok_or_else(|| problem(format!("{path} requires a plot-style source path")))?;
+            plot_styles.layout_sources.insert(
+                numbered(path, &format!("{prefix}/layout/"))?,
+                numbered(source, &format!("{prefix}/plotStyleSource/"))?,
+            );
+        }
+        for (attribute, path_prefix, default, assignments) in [
+            (
+                "ifccad::layer",
+                format!("{prefix}/layer/"),
+                IfccadPlotStyle::Normal,
+                &mut plot_styles.layer_assignments,
+            ),
+            (
+                "ifccad::entity",
+                format!("{prefix}/e"),
+                IfccadPlotStyle::ByLayer,
+                &mut plot_styles.entity_assignments,
+            ),
+        ] {
+            if let Some(value) = attr(node, attribute).and_then(|owner| owner.get("plotStyle")) {
+                let style = serde_json::from_value(value.clone())
+                    .map_err(|err| problem(format!("{path}: {err}")))?;
+                if style != default {
+                    assignments.insert(numbered(path, &path_prefix)?, style);
+                }
+            }
+        }
         if let Some(value) = attr(node, "ifccad::symbolSource") {
             if node["attributes"].as_object().is_some_and(|attrs| {
                 attrs
@@ -743,6 +817,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .chain(multi_leader_paths.keys())
         .chain(table_resource_paths.iter())
         .chain(source_paths.keys())
+        .chain(plot_source_paths.iter())
         .chain(std::iter::once(&model_path))
         .chain(paper_paths.values().map(|(path, ..)| path))
     {
@@ -1031,6 +1106,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         annotation_scales: vec![],
         dimension_styles,
         symbol_sources,
+        plot_styles,
         point_display: drawing
             .point_display
             .as_ref()

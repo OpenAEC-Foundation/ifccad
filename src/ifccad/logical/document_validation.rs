@@ -78,6 +78,7 @@ fn validate_document_inner(
     )?;
     validate_ifccad_line_patterns(&document.line_patterns)?;
     super::symbol_source::validate_sources(document)?;
+    super::plot_styles::validate(document)?;
     super::text::validate_styles(document)?;
     super::dimension_validation::validate_dimensions(document)?;
     super::leader_validation::validate(document)?;

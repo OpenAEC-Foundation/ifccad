@@ -141,6 +141,12 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             json!(format!("{prefix}/symbolSource/{}", source.id.0)),
         );
     }
+    for id in document.plot_styles.sources.keys() {
+        drawing_children.insert(
+            format!("plotStyleSource{id}"),
+            json!(format!("{prefix}/plotStyleSource/{id}")),
+        );
+    }
     for block in &document.blocks {
         drawing_children.insert(
             format!("block{}", block.id),
@@ -199,7 +205,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         path: prefix.clone(),
         children: Some(drawing_children),
         attributes: attrs(json!({"ifccad::drawing":{
-            "profileVersion":"0.10.0","lengthUnit":document.length_unit,"attributeVisibility":document.attribute_visibility,
+            "profileVersion":"0.11.0","lengthUnit":document.length_unit,"attributeVisibility":document.attribute_visibility,
             "linePatternScale":document.line_pattern_scale,
 
             "nextEntityId":document.id_counters.next_entity_id,
@@ -221,6 +227,10 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
     if document.id_counters.next_annotation_view_id != 1 {
         data[0].attributes["ifccad::drawing"]["nextAnnotationViewId"] =
             json!(document.id_counters.next_annotation_view_id);
+    }
+    if document.plot_styles.next_source_id != 1 {
+        data[0].attributes["ifccad::drawing"]["nextPlotStyleSourceId"] =
+            json!(document.plot_styles.next_source_id);
     }
     for view in &document.annotation_views {
         data.push(NodeOut {
@@ -372,11 +382,18 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             json!({"ifccad::layout":with_bounds(super::layout::with_output(json!({"kind":"Model","tabIndex":document.model.tab_index}),&document.model.settings),document.model.bounds,document.model.bounds_quality)}),
         ),
     });
+    if let Some(source) = document.plot_styles.layout_sources.get(&document.model.id) {
+        data.last_mut().unwrap().attributes["ifccad::layout"]["plotStyleSource"] =
+            json!(format!("{prefix}/plotStyleSource/{source}"));
+    }
     for layout in &paper_layouts {
-        let value = super::layout::with_output(
+        let mut value = super::layout::with_output(
             json!({"kind":"Paper","name":layout.name,"tabIndex":layout.tab_index}),
             &layout.settings,
         );
+        if let Some(source) = document.plot_styles.layout_sources.get(&layout.id) {
+            value["plotStyleSource"] = json!(format!("{prefix}/plotStyleSource/{source}"));
+        }
         data.push(NodeOut {
             path: format!("{prefix}/layout/{}", layout.id),
             children: Some(numbered_children(&layout.entities, &prefix)),
@@ -406,11 +423,21 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
     for source in &document.symbol_sources {
         data.push(NodeOut {path:format!("{prefix}/symbolSource/{}",source.id.0),children:None,attributes:attrs(json!({"ifccad::symbolSource":super::line_pattern_values::encode_source(&source.source)}))});
     }
+    for (id, source) in &document.plot_styles.sources {
+        data.push(NodeOut {
+            path: format!("{prefix}/plotStyleSource/{id}"),
+            children: None,
+            attributes: attrs(json!({"ifccad::plotStyleSource":source})),
+        });
+    }
     for layer in &document.layers {
         let mut value =
             json!({"name":layer.name,"appearance":super::wire::layer(&layer.appearance,&prefix)});
         if let Some(description) = &layer.description {
             value["description"] = json!(description);
+        }
+        if let Some(style) = document.plot_styles.layer_assignments.get(&layer.id) {
+            value["plotStyle"] = json!(style);
         }
         for (field, actual, default) in [
             ("visible", layer.visible, true),
@@ -464,6 +491,9 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         .chain(document.blocks.iter().flat_map(|b| b.entities.iter()))
     {
         let mut node = entity_node(entity, &prefix);
+        if let Some(style) = document.plot_styles.entity_assignments.get(&entity.id()) {
+            node.attributes["ifccad::entity"]["plotStyle"] = json!(style);
+        }
         let mut leader_nodes = match entity.as_native().map(|entity| &entity.kind) {
             Some(IfccadEntityKind::Leader(value)) => {
                 super::leader_graph::write_leader(value, &node.path, &prefix)
