@@ -19,7 +19,7 @@ IFCCAD development now has two cooperating implementation boundaries:
 
 | Area | Implemented status | Remaining boundary |
 | --- | --- | --- |
-| Native source alpha | `2026.46.1`; profile `0.10.0`, CBOR mapping `10`, Zstd transport `1` | The native core includes tables and shared MLINE preservation; Explorer is deployed separately |
+| Native source alpha | `2026.47.0`; profile `0.11.0`, CBOR mapping `11`, Zstd transport `1` | The native core includes tables and shared MLINE preservation. Explorer is deployed separately. |
 | Drawing foundations | Primitive/path geometry, shared/nested blocks, Model/Paper layouts, presentation, Text/MText, line patterns, workspace and viewport data | Native storage does not establish complete CAD mapping or rendering |
 | Hatch | Solid, line-pattern and gradient fills; source/association state; classic editing and boundary-construction records | Fill evaluation, automatic updates and shared-route coverage remain separate |
 | SOLID/TRACE | Native kinds, planar corner state and extrusion thickness | Surface and display evidence remain distinct from stored coordinates |
@@ -167,18 +167,37 @@ regressions implemented together. No universal payload framework is required.
 
 ### 3. Qualify plotting and external drawing workflows
 
-Build on resources, annotations and rendering evidence before claiming faithful
-PDF or batch publishing. Resolve native color/palette and CTB/STB authority under
-[#16](https://github.com/OpenAEC-Foundation/ifccad/issues/16), including indices
-251–255. Stored page sizes, ratios and plot-style names do not prove scale-correct
-output. PDF generation and its UI belong to a selected host/integration.
+The external CTB/STB workflow from
+[#16](https://github.com/OpenAEC-Foundation/ifccad/issues/16) was delivered in
+[2026.47.0](docs/releases/2026.47.0.md) and the matching live Explorer. DXF and
+DWG roundtrips preserve the tested plot modes, layout table references and
+named STB assignments. The physical exchange regressions cover ACI 251–255.
+Table contents travel separately. CAD export reports the loss of a stored
+SHA-256 fingerprint. Open CAD Studio reproduced the expected PDF stroke colors
+and lineweights for the compact probes using the matching external tables.
 
-Xrefs additionally need document ownership, origin, cycles, reload/bind and
-archive rules. Dynamic-block retention requires a concrete dependency-preservation
-design and codec support. Neither follows automatically from the spline pilot.
+The next plotting check is scale-correct PDF output in Open CAD Studio.
+Use representative ISO sheets at 1:1, 1:50 and 1:100. Measure PDF page
+dimensions and known geometry lengths, and verify viewport scale, clipping,
+linetypes and lineweights. Include the annotations and font resources used by
+those sheets. Compare the source with output after DXF and DWG roundtrips.
+See the proposed requirements in
+[#17](https://github.com/OpenAEC-Foundation/ifccad/issues/17).
 
-**Exit criteria:** selected workflows have explicit ownership/resource rules and
-tests in named readers/hosts, including physical output where claimed.
+- **Printing and batch publishing.** Qualify printable margins and full-bleed
+  output with the selected driver or device after establishing the single-sheet
+  PDF results. Qualify batch publishing across multiple layouts in the host.
+- **External drawing references.** Qualify an IFCCAD Xref workflow with explicit
+  ownership, relative and absolute paths, origin and cycle handling. Verify
+  load, reload, bind and an archive that includes the required references.
+- **Dynamic-block retention.** Define which dependent records must survive in a
+  representative drawing and verify their retention through save and reopen
+  and CAD exchange. This depends on the preservation design and codec support.
+
+The selected host owns PDF generation, printer controls and publishing.
+The milestone closes when each selected workflow has explicit ownership and
+resource rules and passes tests in the named readers or hosts, including
+measured output where applicable.
 
 ## Parallel preservation track
 
