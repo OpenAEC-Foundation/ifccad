@@ -125,9 +125,11 @@ pins and applicable regressions. The remaining development sequence is:
    and are not selected ahead of resources without a concrete use case.
 3. **Qualify plotting and external drawing workflows.** External CTB/STB
    exchange and representative Studio PDF colors and lineweights are verified
-   in [2026.47.0](docs/releases/2026.47.0.md). Scale-correct PDF output is next.
-   Print margins, full bleed, batch publishing, Xrefs and dynamic-block
-   retention still need workflow tests.
+   in [2026.47.0](docs/releases/2026.47.0.md). Local qualification of scale-correct
+   PDF, batch PDF publishing and virtual printing is complete. Integration of
+   the Studio fixes is tracked in
+   [Studio #3245](https://github.com/HakanSeven12/OpenCADStudio/pull/3245).
+   Xrefs and dynamic-block retention still need workflow tests.
 
 Native contributions are qualified sequentially against the preceding verified
 baseline; compatible unpublished slices may be released together. In parallel, develop selective preservation in `opencaddocument`

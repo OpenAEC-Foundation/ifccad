@@ -176,17 +176,22 @@ Table contents travel separately. CAD export reports the loss of a stored
 SHA-256 fingerprint. Open CAD Studio reproduced the expected PDF stroke colors
 and lineweights for the compact probes using the matching external tables.
 
-The next plotting check is scale-correct PDF output in Open CAD Studio.
-Use representative ISO sheets at 1:1, 1:50 and 1:100. Measure PDF page
-dimensions and known geometry lengths, and verify viewport scale, clipping,
-linetypes and lineweights. Include the annotations and font resources used by
-those sheets. Compare the source with output after DXF and DWG roundtrips.
-See the proposed requirements in
-[#17](https://github.com/OpenAEC-Foundation/ifccad/issues/17).
+The IFCCAD plotting qualification from
+[#17](https://github.com/OpenAEC-Foundation/ifccad/issues/17) is complete for the
+tested workflows.
 
-- **Printing and batch publishing.** Qualify printable margins and full-bleed
-  output with the selected driver or device after establishing the single-sheet
-  PDF results. Qualify batch publishing across multiple layouts in the host.
+- **Single-sheet PDF.** Studio passed 15 A4/A3 PDF checks at 1:1, 1:50 and
+  1:100, covering page and geometry dimensions, viewport clipping, linetypes,
+  lineweights, and the annotations and fonts used in the test sheets. All 12
+  offset checks passed for `Media` and `PrintableArea`, including a negative
+  Y offset, across direct IFCX and AC1032 DXF and DWG. The Document fix is
+  merged. The Studio fix and measurement evidence are in the open Studio PR.
+  [Document #29](https://github.com/HakanSeven12/opencaddocument/pull/29),
+  [Studio #3245](https://github.com/HakanSeven12/OpenCADStudio/pull/3245).
+- **Batch publishing and virtual printing.** An earlier Studio build published
+  three layouts in the selected order to one measured PDF. The Windows print
+  route produced the expected A4 output with both full bleed and 5 mm margins
+  through Microsoft Print to PDF.
 - **External drawing references.** Qualify an IFCCAD Xref workflow with explicit
   ownership, relative and absolute paths, origin and cycle handling. Verify
   load, reload, bind and an archive that includes the required references.
@@ -194,7 +199,8 @@ See the proposed requirements in
   representative drawing and verify their retention through save and reopen
   and CAD exchange. This depends on the preservation design and codec support.
 
-The selected host owns PDF generation, printer controls and publishing.
+IFCCAD owns stored plot settings. Studio owns PDF generation, batch publishing,
+printer controls and qualification of physical printers and drivers.
 The milestone closes when each selected workflow has explicit ownership and
 resource rules and passes tests in the named readers or hosts, including
 measured output where applicable.
