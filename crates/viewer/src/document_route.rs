@@ -9,7 +9,7 @@ use std::{collections::BTreeMap, path::Path};
 const LIMITATIONS: &str = "Shared Studio mapping: numerical error bounds and rendered appearance are unassessed. Partial recovery, opaque spline preservation and drawing-wide Reject policy are unavailable. Spline export has its own loss policy.";
 
 pub fn document_capabilities() -> Value {
-    json!({"ifccad":{"backend":"opencaddocument","revision":"7ef9897955ad2daea2ef88ec9a5fe6b152a62b04","revisionKind":"gitRevision","profileVersion":"0.10.0","cborMappingRevision":10,"partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"nativeSplines":true,"splineLossRejection":true,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
+    json!({"ifccad":{"backend":"opencaddocument","revision":"88f780e5ca3eb7ab06231bba2b1a4559b53879c6","revisionKind":"gitRevision","profileVersion":"0.11.0","cborMappingRevision":11,"partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"nativeSplines":true,"splineLossRejection":true,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
 }
 
 fn parse_options(
@@ -298,6 +298,8 @@ pub fn document_export_ifccad(
             "AC1032" => DxfVersion::AC1032,
             _ => return Err("Unsupported CAD version".into()),
         };
+        Ifcx.validate_cad_plot_style_bindings(native.document())
+            .map_err(|e| e.to_string())?;
         let mut imported = Ifcx
             .import_ifccad(native.document())
             .map_err(|e| e.to_string())?;

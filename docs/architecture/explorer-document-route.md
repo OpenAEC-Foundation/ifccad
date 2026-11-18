@@ -365,3 +365,22 @@ to 0.250 mm. The Abbotsford STB excerpt retained named mode and layout
 references. The installed Studio could not load its original table.
 Portable plot-style assignments, table contents and output remain open under
 [#16](https://github.com/OpenAEC-Foundation/ifccad/issues/16).
+### External plot-style sources (profile 0.11.0 development)
+
+The drawing's plot mode remains its CAD mode. The active Document route maps
+Model and Paper layout table names to drawing-owned external CTB or STB
+sources, including layouts with plot styles disabled. IFCCAD stores the
+reference and any known SHA-256. DXF and DWG store the basename. The route
+reports a fingerprint loss on CAD export and reports invalid or incompatible
+table names on import at the affected layout.
+CAD export stops when layouts bind the same external file name to different
+known SHA-256 fingerprints. One file name in the CAD delivery must identify
+one table.
+
+Named assignments on ordinary entities and layers resolve through the CAD
+plot-style dictionary. The output reconstructs that dictionary and preserves
+ByLayer, ByBlock, explicit Normal and named selections according to their
+native defaults. CTB uses the stored ACI even when an IFCCAD RGB fallback
+differs. In that case the route reports the fallback change and writes the ACI.
+These mappings concern stored plot intent. Testing concrete colors and line
+weights also requires the exact external tables and the Studio PDF output.

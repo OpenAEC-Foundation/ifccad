@@ -96,11 +96,10 @@ Native core validation, composed source inspection and binary codecs remain acti
 
 ## Development and verification
 
-Explorer and its embedded Studio host use IFCCAD profile 0.10.0 and CBOR
-revision 10. Both use the official Document and acadrust revisions recorded in
+Explorer and its embedded Studio host use IFCCAD profile 0.11.0 and CBOR
+revision 11. Both use the official Document and acadrust revisions recorded in
 `ocs-source.json`. The entity catalogue includes a parts-list table with a
-merged title, text cells and integer quantities. Studio uses the frozen host
-patch recorded with those pins.
+merged title, text cells and integer quantities. Studio includes the merged host fixes at the recorded revision.
 
 The inspector lists authored family/CAD/Big Font/SHX names separately from
 application availability. Without a supplied outcome it shows Not checked; no

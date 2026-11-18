@@ -1,10 +1,7 @@
 # Embedded host inputs
 
 `ocs-source.json` selects the official Studio, Document, acadrust, IFCCAD and
-kernel revisions. `Cargo.lock` freezes the resolved graph. `native-tables.patch`
-retains the Explorer host's IFCX opening, MText editing, annotation scale and
-leader picture fixes. It pairs worker protocol 10 with the corresponding
-worker asset URLs.
+kernel revisions. `Cargo.lock` freezes the resolved graph. The pinned Studio merge includes the IFCX opening, MText editing, annotation scale, leader picture and external plot-style fixes. It supplies the matched host and parser-worker protocol.
 
 `block-attributes.patch` applies the bounded IFCX opening, active MText edit,
 Map3D enum compatibility and main/worker protocol6 changes. The preparation tool

@@ -9,8 +9,8 @@ use serde_json::Value;
 #[test]
 fn capabilities_identify_the_selected_native_contract() {
     let caps = viewer::document_capabilities();
-    assert_eq!(caps["ifccad"]["profileVersion"], "0.10.0");
-    assert_eq!(caps["ifccad"]["cborMappingRevision"], 10);
+    assert_eq!(caps["ifccad"]["profileVersion"], "0.11.0");
+    assert_eq!(caps["ifccad"]["cborMappingRevision"], 11);
     let pins: Value =
         serde_json::from_str(include_str!("../../../format-explorer/ocs-source.json")).unwrap();
     let revision = pins["explorerDocumentCommit"].as_str().unwrap();
