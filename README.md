@@ -126,8 +126,8 @@ pins and applicable regressions. The remaining development sequence is:
 3. **Qualify plotting and external drawing workflows.** External CTB/STB
    exchange and representative Studio PDF colors and lineweights are verified
    in [2026.47.0](docs/releases/2026.47.0.md). Local qualification of scale-correct
-   PDF, batch PDF publishing and virtual printing is complete. Integration of
-   the Studio fixes is tracked in
+   PDF, batch PDF publishing and virtual printing is complete. The Studio
+   fixes were merged upstream on 18 November 2026 in
    [Studio #3245](https://github.com/HakanSeven12/OpenCADStudio/pull/3245).
    Xrefs and dynamic-block retention still need workflow tests.
 

@@ -184,8 +184,10 @@ tested workflows.
   1:100, covering page and geometry dimensions, viewport clipping, linetypes,
   lineweights, and the annotations and fonts used in the test sheets. All 12
   offset checks passed for `Media` and `PrintableArea`, including a negative
-  Y offset, across direct IFCX and AC1032 DXF and DWG. The Document fix is
-  merged. The Studio fix and measurement evidence are in the open Studio PR.
+  Y offset, across direct IFCX and AC1032 DXF and DWG. The Document and Studio
+  fixes were merged upstream on 18 November 2026. Studio merged at
+  `6f769a93ec6e22ba1ad84f0678e075c2ce221e5a` with the official Document pin.
+  The Studio PR includes the measurement evidence.
   [Document #29](https://github.com/HakanSeven12/opencaddocument/pull/29),
   [Studio #3245](https://github.com/HakanSeven12/OpenCADStudio/pull/3245).
 - **Batch publishing and virtual printing.** An earlier Studio build published
