@@ -14,6 +14,7 @@ pub enum IfccadIdDomain {
     LinePattern,
     TextStyle,
     DimensionStyle,
+    ExternalSource,
     SymbolSource,
     PreservationRecord,
     Ucs,
@@ -51,6 +52,7 @@ pub struct IfccadIdCounters {
     pub next_annotation_view_id: u64,
     pub next_annotation_scale_id: u64,
     pub next_dimension_style_id: u64,
+    pub next_external_source_id: u64,
     pub next_symbol_source_id: u64,
     pub next_text_style_id: u64,
     pub next_preservation_record_id: u64,
@@ -73,6 +75,7 @@ impl Default for IfccadIdCounters {
             next_annotation_view_id: 1,
             next_annotation_scale_id: 1,
             next_dimension_style_id: 1,
+            next_external_source_id: 1,
             next_symbol_source_id: 1,
             next_text_style_id: 1,
             next_preservation_record_id: 1,
@@ -152,6 +155,15 @@ impl IfccadIdCounters {
             IfccadIdDomain::DimensionStyle,
         )
         .map(super::IfccadDimensionStyleId)
+    }
+    pub fn allocate_external_source_id(
+        &mut self,
+    ) -> Result<super::IfccadExternalSourceId, IfccadIdAllocationError> {
+        allocate(
+            &mut self.next_external_source_id,
+            IfccadIdDomain::ExternalSource,
+        )
+        .map(super::IfccadExternalSourceId)
     }
     pub fn allocate_symbol_source_id(
         &mut self,
@@ -383,6 +395,11 @@ pub(super) fn validate(document: &super::IfccadDocument) -> Result<(), super::If
                 .max(),
         ),
         (
+            "nextExternalSourceId",
+            ids.next_external_source_id,
+            document.external_sources.iter().map(|s| s.id.0).max(),
+        ),
+        (
             "nextSymbolSourceId",
             ids.next_symbol_source_id,
             document.symbol_sources.iter().map(|s| s.id.0).max(),
@@ -440,6 +457,7 @@ mod tests {
                 next_annotation_view_id: 1,
                 next_annotation_scale_id: 1,
                 next_dimension_style_id: 1,
+                next_external_source_id: 1,
                 next_symbol_source_id: 1,
                 next_text_style_id: 1,
                 next_preservation_record_id: 1,
@@ -458,6 +476,7 @@ mod tests {
     #[test]
     fn allocation_preserves_large_values() {
         let mut ids = IfccadIdCounters {
+            next_external_source_id: 1,
             next_symbol_source_id: 1,
             next_preservation_record_id: 1,
             next_entity_id: 9_007_199_254_740_993,
@@ -502,6 +521,7 @@ mod tests {
                 next_table_style_id: u64::MAX - 1,
                 next_table_data_link_id: u64::MAX - 1,
                 next_data_table_id: u64::MAX - 1,
+                next_external_source_id: u64::MAX - 1,
                 next_symbol_source_id: u64::MAX - 1,
                 next_text_style_id: u64::MAX - 1,
                 next_preservation_record_id: u64::MAX - 1,
@@ -535,6 +555,7 @@ mod tests {
                 IfccadIdDomain::TableStyle => ids.allocate_table_style_id().map(|id| id.0),
                 IfccadIdDomain::TableDataLink => ids.allocate_table_data_link_id().map(|id| id.0),
                 IfccadIdDomain::DataTable => ids.allocate_data_table_id().map(|id| id.0),
+                IfccadIdDomain::ExternalSource => ids.allocate_external_source_id().map(|id| id.0),
                 IfccadIdDomain::SymbolSource => ids.allocate_symbol_source_id().map(|id| id.0),
                 IfccadIdDomain::Ucs => ids.allocate_ucs_id().map(|id| id.0),
                 IfccadIdDomain::ModelWindow => ids.allocate_model_window_id().map(|id| id.0),

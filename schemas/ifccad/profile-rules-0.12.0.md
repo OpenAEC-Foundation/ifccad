@@ -1,4 +1,33 @@
-# IFCCAD supplemental profile rules 0.11.0
+# IFCCAD supplemental profile rules 0.12.0
+
+## External drawing sources and XREF
+
+`IFCCAD-EXTERNAL-001` requires a unique drawing-local external source ID,
+nonempty name, closed location variant and typed DWG content. Every source
+node is a drawing child at `/cad/dN/externalSource/I`. Its ID is less than
+`nextExternalSourceId` (default 1), checked as exact uint64 under `IFCCAD-ID-002`.
+There is no identity deduplication by location, name or GUID.
+
+`uriReference` contains exactly `kind` and a nonempty RFC 3986 `uri`.
+`searchFileName` contains exactly `kind` and a nonempty literal `fileName`
+without slash, backslash, colon or NUL, and distinct from `.` and `..`.
+Location spelling is preserved. Core validation performs no filesystem or
+network access. Unknown schemes are valid stored locations. The source URI
+is independent of IFCX imports.
+
+DWG content has `format: "dwg"`, finite XYZ `basePoint`, optional known
+`insertionUnit` and optional canonical lowercase UUID `fingerprintGuid`.
+Unknown fields and present nulls are invalid in every record/variant.
+
+`IFCCAD-XREF-001` requires exactly one XREF payload with a same-drawing
+`source` path resolving to an external source, positive finite `scale` and
+the ordinary orthonormal O/X/Y placement. X/Y describe rotation about Z,
+with positive Z cross-product. Effective scale includes any unit conversion
+once. The source base point is subtracted before scale and placement.
+`IFCCAD-XREF-002` restricts this slice to Model ownership; Paper and local
+block definitions cannot own XREF entities. External bytes are not required
+for validity. Full scope bounds remain unavailable under the ordinary bounds
+rules even alongside local geometry.
 
 ## External plot styles
 
@@ -18,11 +47,11 @@ assignments have no name. The layer default is `Normal` and the object default
 is `ByLayer`. The external file's availability and contents are checked when
 the host resolves the resource for plotting.
 
-This is a normative companion to the [experimental contract](experimental-contract-0.11.0.md),
-the ordinary [IFCX declarations](ifccad-profile-0.11.0.ifcx), and the
-[local-value supplement](supplemental-values-0.11.0.schema.json). All apply after
+This is a normative companion to the [experimental contract](experimental-contract-0.12.0.md),
+the ordinary [IFCX declarations](ifccad-profile-0.12.0.ifcx), and the
+[local-value supplement](supplemental-values-0.12.0.schema.json). All apply after
 fragment composition. It is not an IFCX schema extension or an independent drawing format.
-The existing `urn:example:ifccad:0.11.0` import remains the only drawing import needed
+The existing `urn:example:ifccad:0.12.0` import remains the only drawing import needed
 by the bundled offline reader. Full IFCCAD validation includes local values,
 graph relationships and domain algorithms, not just ordinary IFCX attribute shapes.
 
@@ -135,7 +164,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 
 | ID | Requirement and algorithm | Phase / gap | Positive and negative evidence |
 |---|---|---|---|
-| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.11.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
+| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.12.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
 | IFCCAD-WIRE-002 | Duplicate keys within one JSON object MUST fail. Same-path fragments merge children/inherits/attributes by key in file order; repeated values replace whole values, not nested arrays/overrides. Null inheritance removes its key; child/attribute null remains a marker. RejectConflicts MUST reject differing repeated values, including foreign nodes. | C; G3 | [composer](../../src/ifccad/source/composition.rs), [text wire](../../tests/ifccad_text_wire.rs) |
 | IFCCAD-WIRE-003 | CAD validation MUST run on the composed graph, retaining exact immutable original bytes and foreign context. Foreign children confer no CAD ownership. No supplement may validate all foreign objects or interpret provider bytes as CAD fields. | C/V/G; G3/G8 | [profile rules tests](../../tests/ifccad_profile_rules.rs), [native](../../tests/ifccad_native.rs) |
 | IFCCAD-WIRE-004 | Closed native value objects MUST reject unknown members and forbidden nulls as specified in the contract and local variant definitions. Unsupported CAD namespaces/payloads MUST fail at their existing role boundaries. No legacy unknown-field or null acceptance exception is provided. | V/G; G7 | [geometry](../../tests/ifccad_geometry.rs), [text codec](../../tests/ifccad_text_codec.rs), [workspace](../../tests/ifccad_workspace_state.rs) |

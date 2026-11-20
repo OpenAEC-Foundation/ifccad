@@ -194,9 +194,14 @@ tested workflows.
   three layouts in the selected order to one measured PDF. The Windows print
   route produced the expected A4 output with both full bleed and 5 mm margins
   through Microsoft Print to PDF.
-- **External drawing references.** Qualify an IFCCAD Xref workflow with explicit
-  ownership, relative and absolute paths, origin and cycle handling. Verify
-  load, reload, bind and an archive that includes the required references.
+- **External drawing references.** The first bounded slice is locally qualified
+  on the explicit XREF development pair: native DWG sources, URI-reference/search-
+  filename locations, Model attachment, source identity and O/X/Y placement.
+  Native/Document physical readback, desktop source editing/grips/undo/offline save,
+  and hidden Explorer source choice/reload/export passed. Native staging and
+  downstream review/integration remain separate repository actions.
+  See [external sources](docs/external-sources.md). Following slices cover other
+  source formats, nested cycles, bind and complete reference archives.
 - **Dynamic-block retention.** Define which dependent records must survive in a
   representative drawing and verify their retention through save and reopen
   and CAD exchange. This depends on the preservation design and codec support.

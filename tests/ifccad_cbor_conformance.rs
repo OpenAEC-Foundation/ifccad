@@ -7,7 +7,7 @@ fn candidate_binary_contract_uses_production_reader() {
         &std::fs::read(root.join("cases.json")).expect("binary conformance manifest exists"),
     )
     .unwrap();
-    assert_eq!(manifest["mappingRevision"], 11);
+    assert_eq!(manifest["mappingRevision"], 12);
     for case in manifest["cases"].as_array().unwrap() {
         let name = case["file"].as_str().unwrap();
         let bytes = std::fs::read(root.join(name)).unwrap();

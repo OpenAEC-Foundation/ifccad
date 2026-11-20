@@ -30,6 +30,7 @@ record!(IfccadDocument;
 26 => table_data_links: Vec<IfccadTableDataLink> = Some(Vec::new()),
 27 => data_tables: Vec<IfccadDataTable> = Some(Vec::new()),
 28 => plot_styles: IfccadPlotStyles = Some(Default::default()),
+29 => external_sources: Vec<IfccadExternalSource> = Some(Vec::new()),
 );
 record!(IfccadPlotStyles;
 0 => next_source_id: u64 = Some(1_u64),

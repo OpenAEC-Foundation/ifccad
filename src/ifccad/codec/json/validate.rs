@@ -68,6 +68,8 @@ struct DrawingValue {
     next_layout_id: u64,
     next_block_id: u64,
     next_line_pattern_id: u64,
+    #[serde(default = "initial_workspace_id")]
+    next_external_source_id: u64,
     next_symbol_source_id: u64,
     next_text_style_id: Option<u64>,
     #[serde(default, deserialize_with = "crate::dimension::present_option")]
@@ -198,7 +200,7 @@ struct InstanceValue {
     transform: super::wire::BlockTransformValue,
 }
 
-fn problem(message: impl Into<String>) -> IfccadReport {
+pub(super) fn problem(message: impl Into<String>) -> IfccadReport {
     crate::ifccad::diagnostics::failure("IFCCAD-WIRE-004", "/", message)
 }
 fn default_enabled() -> bool {
@@ -451,7 +453,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .and_then(Value::as_object)
         .ok_or_else(|| problem("IFCX schemas must be an object"))?;
     let profile_module: Value = serde_json::from_str(include_str!(
-        "../../../../schemas/ifccad/ifccad-profile-0.11.0.ifcx"
+        "../../../../schemas/ifccad/ifccad-profile-0.12.0.ifcx"
     ))
     .map_err(|e| problem(format!("invalid built-in CAD schema module: {e}")))?;
     let known = profile_module["schemas"]
@@ -508,7 +510,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let drawing_id = numbered(drawing_path, "/cad/d")?;
     let prefix = drawing_prefix(drawing_id);
     let drawing: DrawingValue = required(drawing_node, "ifccad::drawing")?;
-    if drawing.profile_version != "0.11.0" {
+    if drawing.profile_version != "0.12.0" {
         return Err(crate::ifccad::diagnostics::failure(
             "IFCCAD-WIRE-001",
             &format!("{drawing_path}/ifccad::drawing/profileVersion"),
@@ -519,6 +521,21 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
     let mut style_paths = BTreeMap::new();
     let mut source_paths = BTreeMap::new();
     let mut plot_source_paths = BTreeSet::new();
+    let mut external_source_paths = BTreeSet::new();
+    let external_sources = table_resource_nodes::<super::external_sources::SourceValue>(
+        &nodes,
+        &prefix,
+        "externalSource",
+        &mut external_source_paths,
+    )?
+    .into_iter()
+    .map(|(id, v)| IfccadExternalSource {
+        id: IfccadExternalSourceId(id),
+        name: v.name,
+        location: v.location,
+        source: v.source,
+    })
+    .collect();
     let mut symbol_sources = Vec::new();
     let mut plot_styles = IfccadPlotStyles {
         next_source_id: drawing.next_plot_style_source_id,
@@ -816,6 +833,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         .chain(dimension_paths.keys())
         .chain(multi_leader_paths.keys())
         .chain(table_resource_paths.iter())
+        .chain(external_source_paths.iter())
         .chain(source_paths.keys())
         .chain(plot_source_paths.iter())
         .chain(std::iter::once(&model_path))
@@ -1105,6 +1123,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
         annotation_views: vec![],
         annotation_scales: vec![],
         dimension_styles,
+        external_sources,
         symbol_sources,
         plot_styles,
         point_display: drawing
@@ -1128,6 +1147,7 @@ fn project_inner(raw: &Value) -> Result<IfccadDocument, IfccadReport> {
             next_annotation_view_id: drawing.next_annotation_view_id,
             next_annotation_scale_id: drawing.next_annotation_scale_id,
             next_dimension_style_id,
+            next_external_source_id: drawing.next_external_source_id,
             next_symbol_source_id: drawing.next_symbol_source_id,
             next_text_style_id,
             next_preservation_record_id,
@@ -1182,6 +1202,7 @@ pub(super) fn decode_payload(
         "ifccad::leader",
         "ifccad::multiLeader",
         "ifccad::tolerance",
+        "ifccad::xref",
         "ifccad::table",
     ]);
     let present: Vec<_> = payloads
@@ -1201,6 +1222,7 @@ pub(super) fn decode_payload(
         return Err(problem(format!("{path} unsupported CAD geometry")));
     }
     let mut kind = match *present[0] {
+        "ifccad::xref" => super::external_sources::decode_xref(attrs, prefix, path)?,
         "ifccad::table" => {
             let placement = super::geometry::decode(
                 attrs

@@ -182,6 +182,8 @@ fn adding_catalogue_samples_grows_the_grid_and_saved_views() {
 fn catalogue_family(kind: &ifccad::IfccadEntityKind) -> Option<&'static str> {
     use ifccad::IfccadEntityKind::*;
     Some(match kind {
+        // External sources have a separate grouped gallery and DWG asset.
+        Xref(_) => return None,
         Leader(_) => "leader",
         MultiLeader(_) => "multiLeader",
         Tolerance(_) => "tolerance",
@@ -205,6 +207,24 @@ fn catalogue_family(kind: &ifccad::IfccadEntityKind) -> Option<&'static str> {
         BlockInstance { .. } => "blockInstance",
         AttributeDefinition(_) => "attributeDefinition",
     })
+}
+
+#[test]
+fn xref_gallery_has_authored_views_and_four_offline_source_locations() {
+    let loaded = ifccad::load_ifccad_bytes(
+        include_bytes!("../examples/ifccad/xrefs.ifcx"),
+        Default::default(),
+    )
+    .unwrap();
+    let drawing = loaded.document();
+    assert_eq!(drawing.external_sources.len(), 4);
+    assert_eq!(drawing.model.entities.len(), 4);
+    assert!(drawing.model.entities.iter().all(|e| matches!(
+        e.as_native().map(|n| &n.kind),
+        Some(ifccad::IfccadEntityKind::Xref(_))
+    )));
+    assert!(drawing.model_view_state.is_some());
+    assert!(drawing.model.bounds.is_none());
 }
 
 #[test]
@@ -657,6 +677,14 @@ fn every_ifccad_example_uses_compact_ids_and_writer_node_order() {
             (
                 d.blocks.iter().map(|b| b.id).collect(),
                 d.id_counters.next_block_id,
+                false,
+            ),
+            (
+                d.external_sources
+                    .iter()
+                    .map(|source| source.id.0)
+                    .collect(),
+                d.id_counters.next_external_source_id,
                 false,
             ),
         ] {

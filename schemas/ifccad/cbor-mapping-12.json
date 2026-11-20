@@ -1,6 +1,6 @@
 {
   "format": "IFCCAD-CBOR",
-  "mappingRevision": 11,
+  "mappingRevision": 12,
   "rootType": "IfccadDocument",
   "types": {
     "IfccadDocument": {
@@ -213,6 +213,14 @@
           "presence": "default",
           "default": {},
           "omit": "exact"
+        },
+        {
+          "code": 29,
+          "name": "external_sources",
+          "type": "Vec<IfccadExternalSource>",
+          "presence": "default",
+          "default": [],
+          "omit": "exact"
         }
       ],
       "dependencies": [
@@ -244,7 +252,8 @@
         "Vec<IfccadTableStyle>",
         "Vec<IfccadTableDataLink>",
         "Vec<IfccadDataTable>",
-        "IfccadPlotStyles"
+        "IfccadPlotStyles",
+        "Vec<IfccadExternalSource>"
       ]
     },
     "IfccadHeader": {
@@ -397,6 +406,14 @@
         {
           "code": 16,
           "name": "next_data_table_id",
+          "type": "u64",
+          "presence": "default",
+          "default": 1,
+          "omit": "exact"
+        },
+        {
+          "code": 17,
+          "name": "next_external_source_id",
           "type": "u64",
           "presence": "default",
           "default": 1,
@@ -3834,6 +3851,19 @@
               "presence": "required"
             }
           ]
+        },
+        {
+          "name": "Xref",
+          "code": 22,
+          "shape": "(",
+          "fields": [
+            {
+              "code": 0,
+              "name": "value_0",
+              "type": "IfccadXref",
+              "presence": "required"
+            }
+          ]
         }
       ],
       "dependencies": [
@@ -3862,7 +3892,8 @@
         "Box<IfccadMultiLeader>",
         "Box<IfccadTolerance>",
         "Box<IfccadSpline>",
-        "Box<IfccadTable>"
+        "Box<IfccadTable>",
+        "IfccadXref"
       ]
     },
     "IfccadEntityAppearance": {
@@ -20898,6 +20929,161 @@
         }
       ],
       "dependencies": []
+    },
+    "Vec<IfccadExternalSource>": {
+      "kind": "list",
+      "items": [
+        "IfccadExternalSource"
+      ],
+      "dependencies": [
+        "IfccadExternalSource"
+      ]
+    },
+    "IfccadExternalSourceId": {
+      "kind": "transparent",
+      "items": [
+        "u64"
+      ],
+      "dependencies": [
+        "u64"
+      ]
+    },
+    "IfccadExternalSource": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "id",
+          "type": "IfccadExternalSourceId",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "name",
+          "type": "String",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "location",
+          "type": "IfccadExternalSourceLocation",
+          "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "source",
+          "type": "IfccadExternalSourceContent",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadExternalSourceId",
+        "String",
+        "IfccadExternalSourceLocation",
+        "IfccadExternalSourceContent"
+      ]
+    },
+    "IfccadXref": {
+      "kind": "record",
+      "fields": [
+        {
+          "code": 0,
+          "name": "source_id",
+          "type": "IfccadExternalSourceId",
+          "presence": "required"
+        },
+        {
+          "code": 1,
+          "name": "placement",
+          "type": "IfccadPlacement",
+          "presence": "required"
+        },
+        {
+          "code": 2,
+          "name": "scale",
+          "type": "f64",
+          "presence": "required"
+        }
+      ],
+      "dependencies": [
+        "IfccadExternalSourceId",
+        "IfccadPlacement",
+        "f64"
+      ]
+    },
+    "IfccadExternalSourceLocation": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "UriReference",
+          "code": 0,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "uri",
+              "type": "String",
+              "presence": "required"
+            }
+          ]
+        },
+        {
+          "name": "SearchFileName",
+          "code": 1,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "file_name",
+              "type": "String",
+              "presence": "required"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "String"
+      ]
+    },
+    "IfccadExternalSourceContent": {
+      "kind": "enum",
+      "representation": "taggedMap",
+      "variants": [
+        {
+          "name": "Dwg",
+          "code": 0,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "base_point",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "insertion_unit",
+              "type": "Option<String>",
+              "presence": "default",
+              "default": null,
+              "omit": "exact"
+            },
+            {
+              "code": 2,
+              "name": "fingerprint_guid",
+              "type": "Option<String>",
+              "presence": "default",
+              "default": null,
+              "omit": "exact"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        "[f64;3]",
+        "Option<String>"
+      ]
     }
   }
 }

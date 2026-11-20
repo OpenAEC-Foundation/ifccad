@@ -121,7 +121,7 @@ fn replaced_invalid_fragment_is_not_validated_before_composition() {
 
 fn supplement(entry: &str) -> jsonschema::Validator {
     let mut s: Value = serde_json::from_str(include_str!(
-        "../schemas/ifccad/supplemental-values-0.11.0.schema.json"
+        "../schemas/ifccad/supplemental-values-0.12.0.schema.json"
     ))
     .unwrap();
     assert!(
@@ -229,9 +229,9 @@ fn text_root_fields_and_types_match_ifcx_declarations() {
         }
     }
     let profile: Value =
-        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.11.0.ifcx")).unwrap();
+        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.12.0.ifcx")).unwrap();
     let supplemental: Value = serde_json::from_str(include_str!(
-        "../schemas/ifccad/supplemental-values-0.11.0.schema.json"
+        "../schemas/ifccad/supplemental-values-0.12.0.schema.json"
     ))
     .unwrap();
     for name in ["textStyle", "text", "mText"] {
@@ -367,9 +367,9 @@ fn workspace_view_nulls_are_rejected_like_authored_viewport_nulls() {
 #[test]
 fn closed_non_text_overlay_fields_agree_with_ordinary_ifcx_shapes() {
     let profile: Value =
-        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.11.0.ifcx")).unwrap();
+        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.12.0.ifcx")).unwrap();
     let supplement: Value = serde_json::from_str(include_str!(
-        "../schemas/ifccad/supplemental-values-0.11.0.schema.json"
+        "../schemas/ifccad/supplemental-values-0.12.0.schema.json"
     ))
     .unwrap();
     for (attribute, entry) in [

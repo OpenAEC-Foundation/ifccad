@@ -11,7 +11,7 @@ readme = "README.md"
 keywords = ["cad", "drawing", "ifccad", "exchange", "conformance"]
 categories = ["parser-implementations", "encoding"]
 
-include = ["/src/**", "/schemas/**", "/tests/**", "/conformance/next/**", "/examples/*.rs", "/examples/support/**", "/examples/ifccad/**", "/README.md", "/LICENSE", "/Cargo.toml", "/rust-toolchain.toml", "/release/manifest.json", "/docs/alpha-compatibility.md", "/docs/releases.md", "/docs/releases/**", "/docs/geometry/fixtures/solid-trace-profile/cases.json"]
+include = ["/src/**", "/schemas/**", "/tests/**", "/conformance/next/**", "/examples/*.rs", "/examples/support/**", "/examples/ifccad/**", "/README.md", "/LICENSE", "/Cargo.toml", "/rust-toolchain.toml", "/release/manifest.json", "/docs/alpha-compatibility.md", "/docs/external-sources.md", "/docs/releases.md", "/docs/releases/**", "/docs/geometry/fixtures/solid-trace-profile/cases.json"]
 
 [workspace.package]
 version = "2026.47.0"
@@ -31,6 +31,7 @@ default = []
 ifccad-cbor-zstd = ["dep:zstd"]
 
 [dependencies]
+uriparse = "=0.6.4"
 minicbor = { version = "=2.3.0", features = ["std"] }
 zstd = { version = "=0.13.3", default-features = false, optional = true }
 base64 = "0.22"

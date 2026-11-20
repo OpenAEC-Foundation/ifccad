@@ -1150,6 +1150,12 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 18446744073709551615
+        },
+        "nextExternalSourceId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615,
+          "default": 1
         }
       },
       "additionalProperties": false,
@@ -13728,6 +13734,109 @@
         "outerHeight",
         "flags"
       ]
+    },
+    "externalSourceLocation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "uriReference"
+            },
+            "uri": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "kind",
+            "uri"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "searchFileName"
+            },
+            "fileName": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "kind",
+            "fileName"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "externalSource": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "location": {
+          "$ref": "#/$defs/externalSourceLocation"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "format": {
+              "const": "dwg"
+            },
+            "basePoint": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "insertionUnit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "fingerprintGuid": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          "required": [
+            "format",
+            "basePoint"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "name",
+        "location",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "xref": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "source",
+        "scale"
+      ],
+      "additionalProperties": false
     }
   },
   "$comment": "Mandatory IFCCAD local supplements. Ordinary IFCX shapes, typed decoding and profile-rules graph/domain algorithms also apply. This is not a whole drawing schema or IFCX core syntax."

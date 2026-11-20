@@ -1,4 +1,11 @@
-# Experimental IFCCAD CBOR mapping, revision 11 (development)
+# Experimental IFCCAD CBOR mapping, revision 12 (development)
+
+Revision 12 adds external drawing sources at document key 29 and their
+independent allocation watermark at key 17. Entity kind 22 is XREF with
+source ID, placement and positive effective scale. The closed location
+variants are URI-reference (0) and search filename (1); source content
+initially supports DWG (0). Unknown external geometry does not establish
+scope bounds. See the [external-source contract](../../docs/external-sources.md).
 
 Drawing key 28 is the external plot-style record. Its keys 0–4 hold the
 next source ID, sources by ID, layout-to-source IDs, layer assignments and
@@ -25,7 +32,7 @@ serialization. It retains the complete supported CAD projection, including
 opaque CAD preservation, but no original IFCX fragments, imports or foreign
 nodes. JSON/IFCX remains a separate mapping through the same typed document.
 
-The normative field/type inventory is [cbor-mapping-11.json](cbor-mapping-11.json).
+The normative field/type inventory is [cbor-mapping-12.json](cbor-mapping-12.json).
 It enumerates concrete records and generic instantiations reachable from the
 document. Names in that registry are explanatory, not transmitted type names.
 Record field codes are local to their record type. Codes and enum variants are
@@ -34,7 +41,7 @@ values and never inferred from field codes, vector indices or content.
 
 ## Envelope and revision
 
-Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 9, 2: Document}`.
+Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 12, 2: Document}`.
 All three fields are required. Other revisions are rejected; no migration,
 forward-compatible skipping, feature negotiation or historical decoder is
 provided. Revision 6 and profile 0.6.0 are the unpublished block-attribute development candidate.
@@ -219,7 +226,7 @@ Descriptor fields are 0 mode (0 Disabled, 1 Enabled, 2 ByDefinition), 1 optional
 reference key, 2 required context list. Each context has 0 key and 1 optional
 presentation; each key has 0 scale ID. Optional values omit their field; a
 present null is malformed. Family records and exact enum codes are declared in
-[cbor-mapping-11.json](cbor-mapping-11.json). Shared profile rules govern semantic
+[cbor-mapping-12.json](cbor-mapping-12.json). Shared profile rules govern semantic
 validity in both encodings. Floating-point payloads retain their exact bits;
 no record field calculates a scale quotient or normalizes a direction.
 

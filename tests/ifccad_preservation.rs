@@ -11,6 +11,7 @@ fn opaque_identity_and_allocation_are_independent() {
     assert_eq!(entity.id(), 9007199254740993);
     assert!(entity.as_native().is_none());
     let mut ids = IfccadIdCounters {
+        next_external_source_id: 1,
         next_symbol_source_id: 1,
         next_preservation_record_id: u64::MAX,
         ..Default::default()
@@ -332,7 +333,7 @@ fn old_incomplete_inline_profile_is_rejected_and_deleted_records_keep_counter() 
     let b = encode_ifccad_document(&d).unwrap();
     let mut v: serde_json::Value = serde_json::from_slice(b.bytes()).unwrap();
     let module: serde_json::Value =
-        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.11.0.ifcx")).unwrap();
+        serde_json::from_str(include_str!("../schemas/ifccad/ifccad-profile-0.12.0.ifcx")).unwrap();
     v["schemas"] = module["schemas"].clone();
     v["schemas"]["ifccad::drawing"]["value"]["objectRestrictions"]["values"]
         .as_object_mut()
@@ -356,6 +357,7 @@ fn old_incomplete_inline_profile_is_rejected_and_deleted_records_keep_counter() 
 #[test]
 fn record_zero_is_rejected_in_allocation_and_soft_target_domains() {
     let mut ids = IfccadIdCounters {
+        next_external_source_id: 1,
         next_symbol_source_id: 1,
         next_preservation_record_id: 0,
         ..Default::default()

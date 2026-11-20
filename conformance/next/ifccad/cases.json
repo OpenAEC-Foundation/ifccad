@@ -730,5 +730,41 @@
   {
     "file": "invalid-plot-style-source.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid-xref-relative.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid-xref-search.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid-xref-unsupported-scheme.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid-xref-mixed-location.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid-xref-percent-escape.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid-xref-guid.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid-xref-source-ref.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid-xref-scale.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid-xref-paper-owner.ifcx",
+    "valid": false
   }
 ]

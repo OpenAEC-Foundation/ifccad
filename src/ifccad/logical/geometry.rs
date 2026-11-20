@@ -135,7 +135,8 @@ impl IfccadEntityKind {
                 vertices,
                 closed: *closed,
             },
-            Self::BlockInstance { .. }
+            Self::Xref(_)
+            | Self::BlockInstance { .. }
             | Self::Viewport(_)
             | Self::Text(_)
             | Self::MText(_)

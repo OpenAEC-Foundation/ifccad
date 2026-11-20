@@ -1,11 +1,19 @@
 # IFCCAD examples
 
-The Explorer offers an entity catalogue and a floor plan:
+The Explorer offers an entity catalogue, a floor plan and an XREF gallery:
 
 | File | Purpose |
 | --- | --- |
 | `ifccad/entities.ifcx` | Selected examples of the native entity families, including Leader, MultiLeader, Tolerance, an open cubic spline and a compact parts-list table with a merged title. It includes three Hatch fills, all nine Dimension kinds, layers, text and SHX symbol line patterns, blocks with attributes and an A3 Paper viewport. |
 | `ifccad/house.ifcx` | A fictitious 10000 x 12000 mm ground floor with wall hatching, actual openings, repeated door/window/furniture blocks, room labels, dimensions, north arrow and an A3 sheet at 1:100. |
+| `ifccad/xrefs.ifcx` | Four Model attachments show a relative URI, a search filename, an absolute file URI and an unresolved custom URI. Select `xref-source.dwg` explicitly for a source to load its line. The custom URI is retained natively and intentionally blocks whole-drawing DWG/DXF export. |
+
+The XREF source uses metres and INSBASE `(10,20,0)`. Each native attachment uses
+millimetres, a 90-degree Z rotation and effective scale 500; its two-metre source
+line therefore displays as 1000 mm. The source is a reproducible synthetic DWG,
+not an externally authored interoperability fixture. Regenerate the XREF project
+and gallery with Document's `xref_review` example (features `ifcx,mline-pilot`),
+passing a review directory and this `ifccad/` directory as its two arguments.
 
 Both open with an authored Model view. Their Paper tabs contain locked orthographic
 viewports and explicit millimetre plot mappings. One wide Dimensions section

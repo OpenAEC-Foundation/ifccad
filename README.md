@@ -129,7 +129,10 @@ pins and applicable regressions. The remaining development sequence is:
    PDF, batch PDF publishing and virtual printing is complete. The Studio
    fixes were merged upstream on 18 November 2026 in
    [Studio #3245](https://github.com/HakanSeven12/OpenCADStudio/pull/3245).
-   Xrefs and dynamic-block retention still need workflow tests.
+   The first bounded [DWG XREF slice](docs/external-sources.md) is locally
+   qualified on its explicit development pair, including desktop editing and
+   Explorer source choice/reload/export. Native staging and downstream review
+   remain; dynamic-block retention still needs workflow qualification.
 
 Native contributions are qualified sequentially against the preceding verified
 baseline; compatible unpublished slices may be released together. In parallel, develop selective preservation in `opencaddocument`

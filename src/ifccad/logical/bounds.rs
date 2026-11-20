@@ -713,7 +713,8 @@ impl<'a> Evaluation<'a> {
                 }
                 result
             }
-            IfccadEntityKind::Leader(_)
+            IfccadEntityKind::Xref(_)
+            | IfccadEntityKind::Leader(_)
             | IfccadEntityKind::MultiLeader(_)
             | IfccadEntityKind::Tolerance(_)
             | IfccadEntityKind::Table(_) => Extents {

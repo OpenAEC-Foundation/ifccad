@@ -10,6 +10,7 @@ mod dimension_graphics;
 mod dimension_style;
 mod dimension_values;
 mod encode;
+mod external_sources;
 mod geometry;
 mod hatch;
 mod hatch_editing;

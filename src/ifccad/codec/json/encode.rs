@@ -105,6 +105,10 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         json!(format!("{prefix}/layout/{}", document.model.id)),
     );
     let mut data = Vec::new();
+    for source in &document.external_sources {
+        let path = format!("{prefix}/externalSource/{}", source.id.0);
+        drawing_children.insert(format!("externalSource{}", source.id.0), json!(path));
+    }
     for layout in &paper_layouts {
         drawing_children.insert(
             format!("paper{}", layout.id),
@@ -205,7 +209,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
         path: prefix.clone(),
         children: Some(drawing_children),
         attributes: attrs(json!({"ifccad::drawing":{
-            "profileVersion":"0.11.0","lengthUnit":document.length_unit,"attributeVisibility":document.attribute_visibility,
+            "profileVersion":"0.12.0","lengthUnit":document.length_unit,"attributeVisibility":document.attribute_visibility,
             "linePatternScale":document.line_pattern_scale,
 
             "nextEntityId":document.id_counters.next_entity_id,
@@ -213,6 +217,7 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             "nextLayoutId":document.id_counters.next_layout_id,
             "nextBlockId":document.id_counters.next_block_id,
             "nextLinePatternId":document.id_counters.next_line_pattern_id,
+            "nextExternalSourceId":document.id_counters.next_external_source_id,
             "nextSymbolSourceId":document.id_counters.next_symbol_source_id,
             "nextUcsId":document.id_counters.next_ucs_id,
             "nextModelWindowId":document.id_counters.next_model_window_id,
@@ -420,6 +425,16 @@ pub(crate) fn encode_bytes(document: &IfccadDocument) -> Result<Vec<u8>, serde_j
             attributes: attrs(json!({"ifccad::linePattern":value})),
         });
     }
+    for source in &document.external_sources {
+        let path = format!("{prefix}/externalSource/{}", source.id.0);
+        data.push(NodeOut {
+            path,
+            children: None,
+            attributes: attrs(
+                json!({"ifccad::externalSource":super::external_sources::encode_source(source)}),
+            ),
+        });
+    }
     for source in &document.symbol_sources {
         data.push(NodeOut {path:format!("{prefix}/symbolSource/{}",source.id.0),children:None,attributes:attrs(json!({"ifccad::symbolSource":super::line_pattern_values::encode_source(&source.source)}))});
     }
@@ -591,6 +606,10 @@ pub(super) fn encode_payload(
     attrs: &mut Map<String, Value>,
 ) {
     match kind {
+        IfccadEntityKind::Xref(x) => {
+            attrs.insert("ifccad::geom::placement".into(), json!(x.placement));
+            attrs.insert("ifccad::xref".into(),json!({"source":format!("{prefix}/externalSource/{}",x.source_id.0),"scale":x.scale}));
+        }
         IfccadEntityKind::Table(table) => {
             attrs.insert("ifccad::geom::placement".into(), json!(table.placement));
             attrs.insert("ifccad::table".into(), json!(table.grid));

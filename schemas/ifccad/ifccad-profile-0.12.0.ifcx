@@ -1,6 +1,6 @@
 {
   "header": {
-    "id": "urn:example:ifccad:0.11.0",
+    "id": "urn:example:ifccad:0.12.0",
     "ifcxVersion": "ifcx_alpha",
     "dataVersion": "0.10.0",
     "author": "OpenAEC",
@@ -184,6 +184,10 @@
               "optional": true
             },
             "nextPlotStyleSourceId": {
+              "dataType": "Integer",
+              "optional": true
+            },
+            "nextExternalSourceId": {
               "dataType": "Integer",
               "optional": true
             }
@@ -19480,6 +19484,90 @@
             "sha256": {
               "dataType": "String",
               "optional": true
+            }
+          }
+        }
+      }
+    },
+    "ifccad::externalSource": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "name": {
+              "dataType": "String"
+            },
+            "location": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "kind": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "uriReference",
+                        "searchFileName"
+                      ]
+                    }
+                  },
+                  "uri": {
+                    "dataType": "String",
+                    "optional": true
+                  },
+                  "fileName": {
+                    "dataType": "String",
+                    "optional": true
+                  }
+                }
+              }
+            },
+            "source": {
+              "dataType": "Object",
+              "objectRestrictions": {
+                "values": {
+                  "format": {
+                    "dataType": "Enum",
+                    "enumRestrictions": {
+                      "options": [
+                        "dwg"
+                      ]
+                    }
+                  },
+                  "basePoint": {
+                    "dataType": "Array",
+                    "arrayRestrictions": {
+                      "min": 3,
+                      "max": 3,
+                      "value": {
+                        "dataType": "Real"
+                      }
+                    }
+                  },
+                  "insertionUnit": {
+                    "dataType": "String",
+                    "optional": true
+                  },
+                  "fingerprintGuid": {
+                    "dataType": "String",
+                    "optional": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ifccad::xref": {
+      "value": {
+        "dataType": "Object",
+        "objectRestrictions": {
+          "values": {
+            "source": {
+              "dataType": "Reference"
+            },
+            "scale": {
+              "dataType": "Real"
             }
           }
         }

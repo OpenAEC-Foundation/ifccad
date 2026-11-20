@@ -77,6 +77,8 @@ fn validate_document_inner(
         &format!("{prefix}/ifccad::drawing/linePatternScale"),
     )?;
     validate_ifccad_line_patterns(&document.line_patterns)?;
+    super::external_sources::validate(document)?;
+    super::xref::validate_owners(document)?;
     super::symbol_source::validate_sources(document)?;
     super::plot_styles::validate(document)?;
     super::text::validate_styles(document)?;
@@ -222,6 +224,7 @@ fn validate_document_inner(
             })?;
         }
         match &entity.kind {
+            IfccadEntityKind::Xref(value) => value.validate_at(document, &path)?,
             IfccadEntityKind::Spline(value) => value.validate_at(&path)?,
             IfccadEntityKind::Table(value) => value.validate_at(document, &path)?,
             IfccadEntityKind::AttributeDefinition(_) => {}
@@ -391,7 +394,7 @@ fn placement(value: &IfccadPlacement, context: &str) -> Result<CoordinateFrame3,
         )
     })
 }
-fn unit(token: &str) -> bool {
+pub(super) fn unit(token: &str) -> bool {
     crate::geometry_kernel::CoordinateLengthUnit::from_token(token).is_some()
 }
 pub(super) fn color(value: &IfccadColor) -> bool {

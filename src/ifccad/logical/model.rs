@@ -26,6 +26,7 @@ pub struct IfccadDocument {
     pub annotation_views: Vec<super::IfccadAnnotationStoredView>,
     pub annotation_scales: Vec<super::IfccadAnnotationScale>,
     pub dimension_styles: Vec<super::IfccadDimensionStyle>,
+    pub external_sources: Vec<super::IfccadExternalSource>,
     pub symbol_sources: Vec<super::IfccadSymbolSource>,
     pub plot_styles: super::IfccadPlotStyles,
     pub point_display: Option<super::IfccadPointDisplay>,
@@ -232,6 +233,7 @@ fn unit_block_scale() -> [f64; 3] {
 // unmeasured side effect of extending the logical contract.
 #[allow(clippy::large_enum_variant)]
 pub enum IfccadEntityKind {
+    Xref(super::IfccadXref),
     Leader(Box<super::IfccadLeader>),
     MultiLeader(Box<super::IfccadMultiLeader>),
     Tolerance(Box<super::IfccadTolerance>),

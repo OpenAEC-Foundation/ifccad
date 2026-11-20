@@ -107,6 +107,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         attribute_visibility: Default::default(),
         annotation_settings: None,
         dimension_styles: Vec::new(),
+        external_sources: vec![],
         symbol_sources: vec![],
         plot_styles: Default::default(),
         point_display: None,
