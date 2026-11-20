@@ -3,7 +3,7 @@
 ## External drawing sources and XREF
 
 `IFCCAD-EXTERNAL-001` requires a unique drawing-local external source ID,
-nonempty name, closed location variant and typed DWG content. Every source
+nonempty name, closed location variant and typed DWG, DXF or IFCCAD content. Every source
 node is a drawing child at `/cad/dN/externalSource/I`. Its ID is less than
 `nextExternalSourceId` (default 1), checked as exact uint64 under `IFCCAD-ID-002`.
 There is no identity deduplication by location, name or GUID.
@@ -15,8 +15,13 @@ Location spelling is preserved. Core validation performs no filesystem or
 network access. Unknown schemes are valid stored locations. The source URI
 is independent of IFCX imports.
 
-DWG content has `format: "dwg"`, finite XYZ `basePoint`, optional known
+DWG/DXF content has `format: "dwg"` or `"dxf"`, finite XYZ `basePoint`, optional known
 `insertionUnit` and optional canonical lowercase UUID `fingerprintGuid`.
+Native content has `format: "ifccad"`, finite XYZ `basePoint` and optional known
+`insertionUnit`; it has no fingerprint field. Hosts derive native source metadata
+from origin `[0,0,0]` and the source drawing's length unit. The declared format is
+independent of the location's filename extension. These descriptors do not by
+themselves qualify resolution, recursive references or CAD export.
 Unknown fields and present nulls are invalid in every record/variant.
 
 `IFCCAD-XREF-001` requires exactly one XREF payload with a same-drawing

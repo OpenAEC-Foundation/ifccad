@@ -818,6 +818,28 @@
       "valid": false,
       "diagnostic": "invalid/xref-scale.ifccad.cbor.diag",
       "errorClass": "InvalidDocument"
+    },
+    {
+      "file": "valid/xref-dxf.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/xref-dxf.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/xref-ifccad.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/xref-ifccad.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/xref-ifccad-guid.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/xref-ifccad-guid.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/xref-unknown-format.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/xref-unknown-format.ifccad.cbor.diag",
+      "errorClass": "Malformed"
     }
   ]
 }

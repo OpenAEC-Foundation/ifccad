@@ -75,6 +75,78 @@ pub enum IfccadExternalSourceContent {
         )]
         fingerprint_guid: Option<String>,
     },
+    Dxf {
+        #[serde(rename = "basePoint")]
+        base_point: [f64; 3],
+        #[serde(
+            rename = "insertionUnit",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        insertion_unit: Option<String>,
+        #[serde(
+            rename = "fingerprintGuid",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        fingerprint_guid: Option<String>,
+    },
+    Ifccad {
+        #[serde(rename = "basePoint")]
+        base_point: [f64; 3],
+        #[serde(
+            rename = "insertionUnit",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        insertion_unit: Option<String>,
+    },
+}
+
+/// Declared source format, independent of the locator's filename extension.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum IfccadExternalSourceFormat {
+    Dwg,
+    Dxf,
+    Ifccad,
+}
+
+impl IfccadExternalSourceContent {
+    pub fn format(&self) -> IfccadExternalSourceFormat {
+        match self {
+            Self::Dwg { .. } => IfccadExternalSourceFormat::Dwg,
+            Self::Dxf { .. } => IfccadExternalSourceFormat::Dxf,
+            Self::Ifccad { .. } => IfccadExternalSourceFormat::Ifccad,
+        }
+    }
+
+    pub fn base_point(&self) -> [f64; 3] {
+        match self {
+            Self::Dwg { base_point, .. }
+            | Self::Dxf { base_point, .. }
+            | Self::Ifccad { base_point, .. } => *base_point,
+        }
+    }
+
+    pub fn insertion_unit(&self) -> Option<&str> {
+        match self {
+            Self::Dwg { insertion_unit, .. }
+            | Self::Dxf { insertion_unit, .. }
+            | Self::Ifccad { insertion_unit, .. } => insertion_unit.as_deref(),
+        }
+    }
+
+    pub fn fingerprint_guid(&self) -> Option<&str> {
+        match self {
+            Self::Dwg {
+                fingerprint_guid, ..
+            }
+            | Self::Dxf {
+                fingerprint_guid, ..
+            } => fingerprint_guid.as_deref(),
+            Self::Ifccad { .. } => None,
+        }
+    }
 }
 
 fn canonical_guid(s: &str) -> bool {
@@ -103,19 +175,16 @@ impl IfccadExternalSource {
     /// Check one source intrinsically without resolving external bytes.
     pub fn validate(&self) -> Result<(), IfccadReport> {
         self.location.validate()?;
-        let IfccadExternalSourceContent::Dwg {
-            base_point,
-            insertion_unit,
-            fingerprint_guid,
-        } = &self.source;
         if self.name.is_empty()
             || self.name.contains('\0')
-            || !base_point.iter().all(|v| v.is_finite())
-            || insertion_unit
-                .as_deref()
+            || !self.source.base_point().iter().all(|v| v.is_finite())
+            || self
+                .source
+                .insertion_unit()
                 .is_some_and(|v| !super::document_validation::unit(v))
-            || fingerprint_guid
-                .as_deref()
+            || self
+                .source
+                .fingerprint_guid()
                 .is_some_and(|v| !canonical_guid(v))
         {
             return Err(crate::ifccad::diagnostics::failure(

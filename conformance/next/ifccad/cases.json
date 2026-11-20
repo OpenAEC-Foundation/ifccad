@@ -766,5 +766,21 @@
   {
     "file": "invalid-xref-paper-owner.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid-xref-dxf.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid-xref-ifccad.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid-xref-ifccad-guid.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid-xref-unknown-format.ifcx",
+    "valid": false
   }
 ]

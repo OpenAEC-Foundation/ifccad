@@ -19529,7 +19529,9 @@
                     "dataType": "Enum",
                     "enumRestrictions": {
                       "options": [
-                        "dwg"
+                        "dwg",
+                        "dxf",
+                        "ifccad"
                       ]
                     }
                   },

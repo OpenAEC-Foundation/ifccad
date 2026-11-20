@@ -44,6 +44,19 @@ def xref(v): return next(n['attributes']['ifccad::xref'] for n in v['data'] if '
 emit_json('relative',True)
 emit_json('search',True,lambda v:src(v).update(location={'kind':'searchFileName','fileName':'grondplan.dwg'}))
 emit_json('unsupported-scheme',True,lambda v:src(v)['location'].update(uri='custom:grondplan'))
+def json_format(v, name):
+    src(v)['source']['format']=name
+    src(v)['location']['uri']=f'../Referenties/grondplan.{name}'
+    if name=='ifccad':
+        src(v)['source'].pop('fingerprintGuid',None)
+        src(v)['source']['basePoint']=[0.,0.,0.]
+emit_json('dxf',True,lambda v:json_format(v,'dxf'))
+emit_json('ifccad',True,lambda v:json_format(v,'ifccad'))
+def native_guid(v):
+    json_format(v,'ifccad')
+    src(v)['source']['fingerprintGuid']=GUID
+emit_json('ifccad-guid',False,native_guid)
+emit_json('unknown-format',False,lambda v:json_format(v,'unknown'))
 emit_json('mixed-location',False,lambda v:src(v)['location'].update(fileName='grondplan.dwg'))
 emit_json('percent-escape',False,lambda v:src(v)['location'].update(uri='bad%GG'))
 emit_json('guid',False,lambda v:src(v)['source'].update(fingerprintGuid='not-a-guid'))
@@ -72,12 +85,25 @@ def emit_cbor(name,valid,change=None):
     diagnostic=file+'.diag'
     (root/diagnostic).write_text(repr(value).replace('False','false').replace('True','true').replace("'",'"')+'\n',encoding='utf-8')
     case={'file':file,'valid':valid,'diagnostic':diagnostic}
-    if not valid: case['errorClass']='Malformed' if name=='mixed-location' else 'InvalidDocument'
+    if not valid: case['errorClass']='Malformed' if name in ('mixed-location','ifccad-guid','unknown-format') else 'InvalidDocument'
     old=next((c for c in manifest['cases'] if c['file']==file),None)
     if old is not None: old.update(case)
     else: manifest['cases'].append(case)
 emit_cbor('relative',True)
 emit_cbor('search',True,lambda d:d[29][0].update({2:{0:1,1:{0:'grondplan.dwg'}}}))
+def cbor_format(d, name, code):
+    d[29][0][2][1][0]=f'../Referenties/grondplan.{name}'
+    d[29][0][3][0]=code
+    if code==2:
+        d[29][0][3][1].pop(2,None)
+        d[29][0][3][1][0]=[0.,0.,0.]
+emit_cbor('dxf',True,lambda d:cbor_format(d,'dxf',1))
+emit_cbor('ifccad',True,lambda d:cbor_format(d,'ifccad',2))
+def cbor_native_guid(d):
+    cbor_format(d,'ifccad',2)
+    d[29][0][3][1][2]=GUID
+emit_cbor('ifccad-guid',False,cbor_native_guid)
+emit_cbor('unknown-format',False,lambda d:cbor_format(d,'unknown',3))
 emit_cbor('mixed-location',False,lambda d:d[29][0][2][1].update({1:'bad'}))
 emit_cbor('guid',False,lambda d:d[29][0][3][1].update({2:'bad'}))
 emit_cbor('source-ref',False,lambda d:d[5][5][0][1][3][0].update({0:2}))

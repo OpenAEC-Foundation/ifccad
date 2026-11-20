@@ -13784,33 +13784,91 @@
           "$ref": "#/$defs/externalSourceLocation"
         },
         "source": {
-          "type": "object",
-          "properties": {
-            "format": {
-              "const": "dwg"
-            },
-            "basePoint": {
-              "type": "array",
-              "items": {
-                "type": "number"
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "format": {
+                  "const": "dwg"
+                },
+                "basePoint": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "insertionUnit": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "fingerprintGuid": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                }
               },
-              "minItems": 3,
-              "maxItems": 3
+              "required": [
+                "format",
+                "basePoint"
+              ],
+              "additionalProperties": false
             },
-            "insertionUnit": {
-              "type": "string",
-              "minLength": 1
+            {
+              "type": "object",
+              "properties": {
+                "format": {
+                  "const": "dxf"
+                },
+                "basePoint": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "insertionUnit": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "fingerprintGuid": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                }
+              },
+              "required": [
+                "format",
+                "basePoint"
+              ],
+              "additionalProperties": false
             },
-            "fingerprintGuid": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            {
+              "type": "object",
+              "properties": {
+                "format": {
+                  "const": "ifccad"
+                },
+                "basePoint": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "insertionUnit": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "format",
+                "basePoint"
+              ],
+              "additionalProperties": false
             }
-          },
-          "required": [
-            "format",
-            "basePoint"
-          ],
-          "additionalProperties": false
+          ]
         }
       },
       "required": [

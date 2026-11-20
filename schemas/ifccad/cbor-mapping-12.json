@@ -21078,6 +21078,56 @@
               "omit": "exact"
             }
           ]
+        },
+        {
+          "name": "Dxf",
+          "code": 1,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "base_point",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "insertion_unit",
+              "type": "Option<String>",
+              "presence": "default",
+              "default": null,
+              "omit": "exact"
+            },
+            {
+              "code": 2,
+              "name": "fingerprint_guid",
+              "type": "Option<String>",
+              "presence": "default",
+              "default": null,
+              "omit": "exact"
+            }
+          ]
+        },
+        {
+          "name": "Ifccad",
+          "code": 2,
+          "shape": "{",
+          "fields": [
+            {
+              "code": 0,
+              "name": "base_point",
+              "type": "[f64;3]",
+              "presence": "required"
+            },
+            {
+              "code": 1,
+              "name": "insertion_unit",
+              "type": "Option<String>",
+              "presence": "default",
+              "default": null,
+              "omit": "exact"
+            }
+          ]
         }
       ],
       "dependencies": [

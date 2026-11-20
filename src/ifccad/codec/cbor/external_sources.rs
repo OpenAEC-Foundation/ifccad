@@ -63,17 +63,28 @@ impl CborValue for IfccadExternalSourceLocation {
 impl CborValue for IfccadExternalSourceContent {
     #[cfg(test)]
     fn registered_codes() -> &'static [(u64, &'static str)] {
-        &[(0, "Dwg")]
+        &[(0, "Dwg"), (1, "Dxf"), (2, "Ifccad")]
     }
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
-        let Self::Dwg {
-            base_point,
-            insertion_unit,
-            fingerprint_guid,
-        } = self;
+        let (code, base_point, insertion_unit, fingerprint_guid) = match self {
+            Self::Dwg {
+                base_point,
+                insertion_unit,
+                fingerprint_guid,
+            } => (0, base_point, insertion_unit, fingerprint_guid.as_ref()),
+            Self::Dxf {
+                base_point,
+                insertion_unit,
+                fingerprint_guid,
+            } => (1, base_point, insertion_unit, fingerprint_guid.as_ref()),
+            Self::Ifccad {
+                base_point,
+                insertion_unit,
+            } => (2, base_point, insertion_unit, None),
+        };
         w.map(2)?;
         w.u64(0)?;
-        w.u64(0)?;
+        w.u64(code)?;
         w.u64(1)?;
         w.map(1 + u64::from(insertion_unit.is_some()) + u64::from(fingerprint_guid.is_some()))?;
         w.u64(0)?;
@@ -91,38 +102,48 @@ impl CborValue for IfccadExternalSourceContent {
     fn decode(r: &mut CborReader<'_>) -> Result<Self, IfccadCborReadError> {
         let mut f = RecordFields::new(r, &[(0, "kind"), (1, "body")])?;
         let code: u64 = f.take(0, None)?;
-        if code != 0 {
+        if code > 2 {
             return Err(r.error("unknown external source format"));
         }
         let body = f.span(1)?;
         f.finish()?;
-        let mut b = RecordFields::new(
-            &body,
-            &[
-                (0, "base_point"),
-                (1, "insertion_unit"),
-                (2, "fingerprint_guid"),
-            ],
-        )?;
-        let value = Self::Dwg {
-            base_point: b.take(0, None)?,
-            insertion_unit: b.take(1, Some(None))?,
-            fingerprint_guid: b.take(2, Some(None))?,
+        let dwg_fields = &[
+            (0, "base_point"),
+            (1, "insertion_unit"),
+            (2, "fingerprint_guid"),
+        ];
+        let fields = if code == 2 {
+            &dwg_fields[..2]
+        } else {
+            &dwg_fields[..]
+        };
+        let mut b = RecordFields::new(&body, fields)?;
+        let base_point = b.take(0, None)?;
+        let insertion_unit = b.take(1, Some(None))?;
+        let value = match code {
+            0 => Self::Dwg {
+                base_point,
+                insertion_unit,
+                fingerprint_guid: b.take(2, Some(None))?,
+            },
+            1 => Self::Dxf {
+                base_point,
+                insertion_unit,
+                fingerprint_guid: b.take(2, Some(None))?,
+            },
+            2 => Self::Ifccad {
+                base_point,
+                insertion_unit,
+            },
+            _ => unreachable!(),
         };
         b.finish()?;
         Ok(value)
     }
     fn exact(&self, o: &Self) -> bool {
-        let Self::Dwg {
-            base_point: a,
-            insertion_unit: b,
-            fingerprint_guid: c,
-        } = self;
-        let Self::Dwg {
-            base_point: d,
-            insertion_unit: e,
-            fingerprint_guid: f,
-        } = o;
-        a.exact(d) && b.exact(e) && c.exact(f)
+        self.format() == o.format()
+            && self.base_point().exact(&o.base_point())
+            && self.insertion_unit() == o.insertion_unit()
+            && self.fingerprint_guid() == o.fingerprint_guid()
     }
 }

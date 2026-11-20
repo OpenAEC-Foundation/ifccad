@@ -4,7 +4,10 @@ Revision 12 adds external drawing sources at document key 29 and their
 independent allocation watermark at key 17. Entity kind 22 is XREF with
 source ID, placement and positive effective scale. The closed location
 variants are URI-reference (0) and search filename (1); source content
-initially supports DWG (0). Unknown external geometry does not establish
+supports DWG (0), DXF (1) and IFCCAD (2). DWG/DXF bodies use base point (0),
+optional insertion unit (1) and optional fingerprint GUID (2). IFCCAD bodies
+use only base point (0) and optional insertion unit (1); key 2 is invalid.
+Unknown external geometry does not establish
 scope bounds. See the [external-source contract](../../docs/external-sources.md).
 
 Drawing key 28 is the external plot-style record. Its keys 0–4 hold the

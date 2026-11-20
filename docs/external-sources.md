@@ -9,8 +9,9 @@ or GUIDs do not merge identities.
 
 Each `/cad/dN/externalSource/I` node is a drawing child with one
 `ifccad::externalSource` attribute. Its closed value contains `name`,
-`location` and typed `source` content. Initially `source.format` is `dwg`;
-`basePoint` is required, `insertionUnit` and `fingerprintGuid` are optional.
+`location` and typed `source` content. `source.format` is `dwg`, `dxf` or `ifccad`. `basePoint` is required and
+`insertionUnit` is optional. DWG and DXF may carry `fingerprintGuid`; the
+IFCCAD variant has no fingerprint field.
 A supplied unit uses the existing coordinate-unit tokens. A supplied GUID is
 a canonical lowercase UUID string. This source identity is independent of the
 main document's identity. XREF sources have no content hash.
@@ -51,17 +52,16 @@ CBOR mapping 12 uses document key 29, allocation key 17 and entity-kind code
 [machine-readable mapping](../schemas/ifccad/cbor-mapping-12.json).
 Native JSON and CBOR share the same intrinsic and ownership validation.
 
-DXF and IFCCAD source formats, nested graphs, overlays, binding, packaging and
-remote downloads are deferred. SHX and CTB/STB keep their existing records
+Nested graphs, overlays, binding, packaging and remote downloads are deferred. SHX and CTB/STB keep their existing records
 until the shared source model has demonstrated stable XREF behavior.
 
 ## Host and CAD exchange
 
-The development pair uses Document `353bdef5` and codec `13f16ebc`, with explicit
-local XREF patches. It is recorded in `format-explorer/ocs-source.json`; these
+The source-format development pair layers local changes on Document `997362f8`
+and Studio `62aa0357c`, with codec `a608c0ac` and native base `96895aea`. It is recorded in `format-explorer/ocs-source.json`; these
 base revisions alone do not supply the extension. Studio uses its per-tab
 native roundtrip context to retain IDs, original URI spelling and expected GUID.
-Browser source selection binds chosen DWG bytes to that tab, source ID and stored
+Browser source selection binds chosen drawing bytes to that tab, source ID and stored
 locator. A same-named file in another document cannot supply those bytes.
 Closing the tab releases its registrations when its snapshots are released.
 
@@ -74,7 +74,7 @@ retain the authored locator; permanent relinking remains a separate edit.
 The expected FingerprintGUID comes from the DWG dependency record, independently
 of the main header GUID. A mismatch warns and continues loading for both native
 and DWG hosts. Session observations do not overwrite the native expected GUID.
-A changed source base point or known insertion unit refuses replacement before
+A changed source format, base point or known insertion unit refuses replacement before
 the existing displayed body is removed; placement and scale require reassessment.
 The source base is subtracted once when preparing display geometry. Newly
 attached sources receive their unit factor once in the effective INSERT scale.
@@ -85,6 +85,28 @@ Other physical dependency metadata has no native source field and is diagnosed
 on CAD-to-native conversion. URI schemes without a whole-file CAD path mapping
 block DWG/DXF export instead of silently changing the location.
 
+
+## Additional source formats
+
+DXF sources use the production DXF reader and its INSBASE, INSUNITS and optional
+header FingerprintGUID. Native sources use the strict IFCCAD JSON or CBOR reader,
+origin `(0,0,0)` and the native length unit; no source UUID is invented. Zstd
+source decoding is unavailable in the current host build. This source reader
+does not change the main drawing's open/save encoding policy.
+
+An IFCCAD source with its own external-source registry is rejected before CAD
+projection, including unused entries. A direct reference to the host file is
+reported as a self-reference. Failed replacement retains the previous body and
+association. Source bytes are session inputs and are not embedded on native save.
+
+New DXF/IFCCAD attachments require an opened IFCCAD host with native source
+context. An ordinary CAD tab refuses them before creating the reference, because
+it cannot retain the typed source association.
+
+Native context-aware import/save retains all three formats. Stateless CAD
+conversion and context-aware DWG/DXF save refuse typed DXF and IFCCAD sources,
+independently of filename suffix. Convert those external drawings to DWG first;
+there is no automatic source conversion, flattening or packaging.
 
 ## First-slice qualification
 
@@ -107,3 +129,16 @@ parser qualify the retained project. An AutoCAD-authored known-GUID fixture
 remains an explicitly open external qualification item. Native staging,
 downstream review and publication remain separate actions under the release
 policy; local paths and development patches are not official upstream pins.
+
+## Source-format follow-up qualification
+
+The explicit source-format pair passes the final native workspace gate, six
+Document configurations and both Document WASM checks. Studio passes 171 XREF
+regressions and 24 save/reader tests. Both new formats pass real desktop source
+editing, selected-byte replacement, reference grip/undo/redo, automatic source-save
+refresh and fresh-process offline save. The hidden browser opens the three-format
+gallery, loads each source through its picker, isolates two tab bindings and
+refuses unsupported CAD delivery. The matching worker retains protocol 7 and
+physical DWG source identity. Frontend and packaged real CAD readback checks pass.
+These are bounded local development results; upstream review and publication are
+separate. The main drawing's open/save/backup encoding policy is unchanged.
