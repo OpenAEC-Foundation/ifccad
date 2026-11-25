@@ -92,10 +92,17 @@ fn xref_reference_types_json_cbor_strict_readback() {
             .document(),
         &d
     );
-    let mut misplaced=graph.clone();
-    let source=misplaced["data"].as_array_mut().unwrap().iter_mut().find(|n|n["attributes"]["ifccad::externalSource"].is_object()).unwrap();
-    source["attributes"]["ifccad::externalSource"]["referenceType"]=serde_json::json!("overlay");
-    assert!(load_ifccad_bytes(&serde_json::to_vec(&misplaced).unwrap(),Default::default()).is_err());
+    let mut misplaced = graph.clone();
+    let source = misplaced["data"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|n| n["attributes"]["ifccad::externalSource"].is_object())
+        .unwrap();
+    source["attributes"]["ifccad::externalSource"]["referenceType"] = serde_json::json!("overlay");
+    assert!(
+        load_ifccad_bytes(&serde_json::to_vec(&misplaced).unwrap(), Default::default()).is_err()
+    );
     for bad in [serde_json::Value::Null, serde_json::json!("other")] {
         let mut invalid = graph.clone();
         let node = invalid["data"]
