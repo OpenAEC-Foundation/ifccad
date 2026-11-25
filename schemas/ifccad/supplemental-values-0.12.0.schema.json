@@ -13888,6 +13888,14 @@
         "scale": {
           "type": "number",
           "exclusiveMinimum": 0
+        },
+        "referenceType": {
+          "type": "string",
+          "enum": [
+            "attach",
+            "overlay"
+          ],
+          "default": "attach"
         }
       },
       "required": [

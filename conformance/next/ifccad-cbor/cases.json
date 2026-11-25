@@ -840,6 +840,28 @@
       "valid": false,
       "diagnostic": "invalid/xref-unknown-format.ifccad.cbor.diag",
       "errorClass": "Malformed"
+    },
+    {
+      "file": "valid/xref-overlay.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/xref-overlay.ifccad.cbor.diag"
+    },
+    {
+      "file": "valid/xref-attach-explicit.ifccad.cbor",
+      "valid": true,
+      "diagnostic": "valid/xref-attach-explicit.ifccad.cbor.diag"
+    },
+    {
+      "file": "invalid/xref-reference-type.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/xref-reference-type.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/xref-reference-type-null.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/xref-reference-type-null.ifccad.cbor.diag",
+      "errorClass": "Malformed"
     }
   ]
 }

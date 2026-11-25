@@ -782,5 +782,21 @@
   {
     "file": "invalid-xref-unknown-format.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid-xref-overlay.ifcx",
+    "valid": true
+  },
+  {
+    "file": "valid-xref-attach-explicit.ifcx",
+    "valid": true
+  },
+  {
+    "file": "invalid-xref-reference-type.ifcx",
+    "valid": false
+  },
+  {
+    "file": "invalid-xref-reference-type-null.ifcx",
+    "valid": false
   }
 ]

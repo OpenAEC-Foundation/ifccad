@@ -21003,12 +21003,21 @@
           "name": "scale",
           "type": "f64",
           "presence": "required"
+        },
+        {
+          "code": 3,
+          "name": "reference_type",
+          "type": "IfccadXrefReferenceType",
+          "presence": "default",
+          "default": "Attach",
+          "omit": "exact"
         }
       ],
       "dependencies": [
         "IfccadExternalSourceId",
         "IfccadPlacement",
-        "f64"
+        "f64",
+        "IfccadXrefReferenceType"
       ]
     },
     "IfccadExternalSourceLocation": {
@@ -21134,6 +21143,25 @@
         "[f64;3]",
         "Option<String>"
       ]
+    },
+    "IfccadXrefReferenceType": {
+      "kind": "enum",
+      "representation": "integer",
+      "variants": [
+        {
+          "name": "Attach",
+          "code": 0,
+          "shape": "unit",
+          "fields": []
+        },
+        {
+          "name": "Overlay",
+          "code": 1,
+          "shape": "unit",
+          "fields": []
+        }
+      ],
+      "dependencies": []
     }
   }
 }

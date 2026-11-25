@@ -28,7 +28,13 @@ Unknown fields and present nulls are invalid in every record/variant.
 `source` path resolving to an external source, positive finite `scale` and
 the ordinary orthonormal O/X/Y placement. X/Y describe rotation about Z,
 with positive Z cross-product. Effective scale includes any unit conversion
-once. The source base point is subtracted before scale and placement.
+once. The optional `referenceType` is `attach` (default when omitted) or
+`overlay`; null and other values are invalid. This is an XREF relationship
+property, independent of the external-source descriptor. Direct overlays are
+visible in their owner; when that owner is itself referenced, its overlays
+are excluded while its attachments propagate. File graph traversal and
+session-only cycle interruption belong to the host, not core validation.
+The source base point is subtracted before scale and placement.
 `IFCCAD-XREF-002` restricts this slice to Model ownership; Paper and local
 block definitions cannot own XREF entities. External bytes are not required
 for validity. Full scope bounds remain unavailable under the ordinary bounds

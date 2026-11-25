@@ -10,6 +10,7 @@ record!(IfccadXref;
 0 => source_id: IfccadExternalSourceId = None,
 1 => placement: IfccadPlacement = None,
 2 => scale: f64 = None,
+3 => reference_type: IfccadXrefReferenceType = Some(IfccadXrefReferenceType::Attach),
 );
 impl CborValue for IfccadExternalSourceId {
     fn encode(&self, w: &mut CborWriter) -> Result<(), IfccadCborEncodeError> {
@@ -147,3 +148,5 @@ impl CborValue for IfccadExternalSourceContent {
             && self.fingerprint_guid() == o.fingerprint_guid()
     }
 }
+
+unit_enum!(IfccadXrefReferenceType; 0 => Attach, 1 => Overlay);

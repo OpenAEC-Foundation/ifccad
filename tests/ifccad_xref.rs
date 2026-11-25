@@ -33,6 +33,7 @@ fn xref_document() -> IfccadDocument {
             y_axis: [-1., 0., 0.],
         },
         scale: 500.,
+        reference_type: IfccadXrefReferenceType::Attach,
     });
     d.model.entities.push(IfccadEntity::Native(entity));
     d.model.bounds = None;

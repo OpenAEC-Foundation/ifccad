@@ -67,6 +67,10 @@ def paper_owner(v):
     n['/cad/d1/layout/1']['children']={}
     n['/cad/d1/layout/42']['children']['2']='/cad/d1/e1000'
 emit_json('paper-owner',False,paper_owner)
+emit_json('overlay',True,lambda v:xref(v).update(referenceType='overlay'))
+emit_json('attach-explicit',True,lambda v:xref(v).update(referenceType='attach'))
+emit_json('reference-type',False,lambda v:xref(v).update(referenceType='other'))
+emit_json('reference-type-null',False,lambda v:xref(v).update(referenceType=None))
 write(root/'cases.json',cases)
 
 root=ROOT/'ifccad-cbor'
@@ -85,7 +89,7 @@ def emit_cbor(name,valid,change=None):
     diagnostic=file+'.diag'
     (root/diagnostic).write_text(repr(value).replace('False','false').replace('True','true').replace("'",'"')+'\n',encoding='utf-8')
     case={'file':file,'valid':valid,'diagnostic':diagnostic}
-    if not valid: case['errorClass']='Malformed' if name in ('mixed-location','ifccad-guid','unknown-format') else 'InvalidDocument'
+    if not valid: case['errorClass']='Malformed' if name in ('mixed-location','ifccad-guid','unknown-format','reference-type','reference-type-null') else 'InvalidDocument'
     old=next((c for c in manifest['cases'] if c['file']==file),None)
     if old is not None: old.update(case)
     else: manifest['cases'].append(case)
@@ -108,4 +112,8 @@ emit_cbor('mixed-location',False,lambda d:d[29][0][2][1].update({1:'bad'}))
 emit_cbor('guid',False,lambda d:d[29][0][3][1].update({2:'bad'}))
 emit_cbor('source-ref',False,lambda d:d[5][5][0][1][3][0].update({0:2}))
 emit_cbor('scale',False,lambda d:d[5][5][0][1][3][0].update({2:-1.}))
+emit_cbor('overlay',True,lambda d:d[5][5][0][1][3][0].update({3:1}))
+emit_cbor('attach-explicit',True,lambda d:d[5][5][0][1][3][0].update({3:0}))
+emit_cbor('reference-type',False,lambda d:d[5][5][0][1][3][0].update({3:2}))
+emit_cbor('reference-type-null',False,lambda d:d[5][5][0][1][3][0].update({3:None}))
 write(root/'cases.json',manifest)

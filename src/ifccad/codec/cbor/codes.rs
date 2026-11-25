@@ -30,6 +30,7 @@ mod tests {
         let r: serde_json::Value = serde_json::from_str(super::MAPPING).unwrap();
         check::<IfccadExternalSource>(&r, "IfccadExternalSource");
         check::<IfccadXref>(&r, "IfccadXref");
+        check::<IfccadXrefReferenceType>(&r, "IfccadXrefReferenceType");
         check::<IfccadExternalSourceLocation>(&r, "IfccadExternalSourceLocation");
         check::<IfccadExternalSourceContent>(&r, "IfccadExternalSourceContent");
         check::<IfccadDocument>(&r, "IfccadDocument");

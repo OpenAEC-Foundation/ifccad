@@ -1,5 +1,5 @@
 use super::{IfccadDocument, IfccadEntity, IfccadEntityKind, PROFILE_URI};
-use crate::ifccad::IfccadPlotStyleMode;
+use crate::ifccad::{IfccadPlotStyleMode, IfccadXrefReferenceType};
 use serde::Serialize;
 use serde_json::{json, Map, Value};
 
@@ -609,6 +609,9 @@ pub(super) fn encode_payload(
         IfccadEntityKind::Xref(x) => {
             attrs.insert("ifccad::geom::placement".into(), json!(x.placement));
             attrs.insert("ifccad::xref".into(),json!({"source":format!("{prefix}/externalSource/{}",x.source_id.0),"scale":x.scale}));
+            if x.reference_type != IfccadXrefReferenceType::Attach {
+                attrs.get_mut("ifccad::xref").unwrap()["referenceType"] = json!(x.reference_type);
+            }
         }
         IfccadEntityKind::Table(table) => {
             attrs.insert("ifccad::geom::placement".into(), json!(table.placement));

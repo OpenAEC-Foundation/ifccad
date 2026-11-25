@@ -25,7 +25,7 @@ Generated validation diagnostics identify a rule and source/component location.
 
 ## File and identity
 
-Profile 0.12.0 adds external drawing sources and Model XREF attachments to
+Profile 0.12.0 adds external drawing sources and Model XREF Attach/Overlay relationships to
 profile 0.11.0. See the [external-source contract](../../docs/external-sources.md)
 and [source/XREF rules](profile-rules-0.12.0.md#external-drawing-sources-and-xref).
 Profile 0.11.0 introduced external plot-style references and named assignments.

@@ -1,11 +1,23 @@
 use super::*;
 
+/// Whether an external drawing propagates when its owner is referenced.
+#[derive(
+    Clone, Copy, Debug, Default, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize,
+)]
+#[serde(rename_all = "camelCase")]
+pub enum IfccadXrefReferenceType {
+    #[default]
+    Attach,
+    Overlay,
+}
+
 /// Placement maps source coordinates relative to its base point, scaled once.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IfccadXref {
     pub source_id: IfccadExternalSourceId,
     pub placement: IfccadPlacement,
     pub scale: f64,
+    pub reference_type: IfccadXrefReferenceType,
 }
 
 impl IfccadXref {

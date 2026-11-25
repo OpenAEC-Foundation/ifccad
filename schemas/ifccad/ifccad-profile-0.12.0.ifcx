@@ -19570,6 +19570,9 @@
             },
             "scale": {
               "dataType": "Real"
+            },
+            "referenceType": {
+              "dataType": "String"
             }
           }
         }

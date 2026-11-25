@@ -15,6 +15,8 @@ pub(super) struct SourceValue {
 struct XrefValue {
     source: String,
     scale: f64,
+    #[serde(default, rename = "referenceType")]
+    reference_type: IfccadXrefReferenceType,
 }
 
 pub(super) fn encode_source(source: &IfccadExternalSource) -> Value {
@@ -40,5 +42,6 @@ pub(super) fn decode_xref(
         source_id,
         placement,
         scale: value.scale,
+        reference_type: value.reference_type,
     }))
 }

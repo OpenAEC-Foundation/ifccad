@@ -35,7 +35,7 @@ of IFCX `imports[].uri` and schema URI fields.
 
 `ifccad::xref` contains a drawing-local `source` path and a positive finite
 `scale`. The existing `ifccad::geom::placement` supplies O/X/Y. The first slice
-allows Model attachments with rotation about Z and positive uniform scale.
+allows Model Attach/Overlay relationships with rotation about Z and positive uniform scale.
 The scale is effective: any source-to-main unit factor has already been
 applied once. A source point is transformed relative to the source's stored
 base point before scale and placement. Source geometry stays external.
@@ -52,7 +52,13 @@ CBOR mapping 12 uses document key 29, allocation key 17 and entity-kind code
 [machine-readable mapping](../schemas/ifccad/cbor-mapping-12.json).
 Native JSON and CBOR share the same intrinsic and ownership validation.
 
-Nested graphs, overlays, binding, packaging and remote downloads are deferred. SHX and CTB/STB keep their existing records
+The optional XREF `referenceType` is `attach` (omitted default) or `overlay`.
+An overlay is visible directly but does not propagate when its owner is referenced.
+Source descriptors can be shared by relationships of either type. Core validation
+does not traverse external files. Host nesting/cycle support is under development;
+this contract addition alone does not qualify recursive loading.
+
+Nested graph loading, binding, packaging and remote downloads remain unqualified. SHX and CTB/STB keep their existing records
 until the shared source model has demonstrated stable XREF behavior.
 
 ## Host and CAD exchange

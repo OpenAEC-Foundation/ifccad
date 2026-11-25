@@ -316,3 +316,7 @@ In preservation envelope 2, preservation record keys 10 (inline payload) and
 omitted. Null is invalid for either key. The backing is a positive integer
 in the record identity domain. Shared semantic validation checks its target
 and the watermarks for typed preservation dependencies.
+
+XREF record key 3 stores reference type: integer 0 Attach, 1 Overlay.
+Omitted means Attach; the canonical writer omits that default. Unknown codes
+and null reject. Relationship type is independent of source descriptor identity.
