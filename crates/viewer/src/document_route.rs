@@ -9,7 +9,7 @@ use std::{collections::BTreeMap, path::Path};
 const LIMITATIONS: &str = "Shared Studio mapping: numerical error bounds and rendered appearance are unassessed. Partial recovery, opaque spline preservation and drawing-wide Reject policy are unavailable. Spline export has its own loss policy.";
 
 pub fn document_capabilities() -> Value {
-    json!({"ifccad":{"backend":"opencaddocument","revision":"88f780e5ca3eb7ab06231bba2b1a4559b53879c6","revisionKind":"gitRevision","profileVersion":"0.11.0","cborMappingRevision":11,"partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"nativeSplines":true,"splineLossRejection":true,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
+    json!({"ifccad":{"backend":"opencaddocument","revision":"1db213a7babde93b64a4887fd6ba441f0177b00d","revisionKind":"gitRevision","profileVersion":"0.12.0","cborMappingRevision":12,"partialOpening":false,"adjustableTolerance":false,"coordinateToleranceDefault":false,"coordinateToleranceFallback":false,"nativeSplines":true,"splineLossRejection":true,"splinePreservation":false,"lossRejection":false,"numericalAssessment":"unassessed","directIfcxPreview":true,"limitations":LIMITATIONS}})
 }
 
 fn parse_options(
@@ -159,8 +159,8 @@ fn selection(drawing: &IfccadDocument, imported: &IfccadImportOutcome, leaders: 
 }
 
 fn preview(output: &mut Value, drawing: &IfccadDocument) {
-    match Ifcx.import_ifccad(drawing) {
-        Ok(imported) => {
+    match Ifcx.import_ifccad_preserving(drawing) {
+        Ok((imported, _context)) => {
             output["preview"] = json!({"backend":"opencaddocument","viewerSelection":selection(drawing,&imported,&output["presentation"]["leaders"]),"diagnostics":diagnostics(&imported.losses),"rendering":"unassessed"})
         }
         Err(error) => {

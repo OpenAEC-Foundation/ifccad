@@ -56,6 +56,8 @@ pub(crate) fn present_document(output: &mut Value, d: &IfccadDocument, graph: &V
         crate::inspection_extrusion::authored(graph, &json!(d.length_unit));
     output["presentation"]["blockAttributes"] = crate::inspection_attributes::authored(graph);
     output["presentation"]["dimensions"] = crate::inspection_ifccad_dimension::entities(d);
+    output["presentation"]["externalSources"] = crate::inspection_external_sources::sources(d);
+    output["presentation"]["xrefs"] = crate::inspection_external_sources::instances(d);
     output["presentation"]["dimensionStyles"] = crate::inspection_ifccad_dimension::styles(d);
     output["presentation"]["leaders"] = crate::inspection_leaders::authored(graph);
     output["presentation"]["multiLeaderStyles"] = json!(role("ifccad::multiLeaderStyle"));

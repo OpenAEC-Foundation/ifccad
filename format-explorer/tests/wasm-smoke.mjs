@@ -95,6 +95,7 @@ for(const example of [...examples,...regressionDrawings]){
   'Entity catalogue':['18','21.63','15','30','90','90','9','23.56','15'],
   'Block attributes':[],
   'Native splines':[],
+  'XREF source formats':[],
  }[example.name].sort();
  assert.deepEqual(opened.presentation.dimensions.map(d=>d.geometry.label.primary).sort(),labels);
  if(example.name==='Block attributes'){
@@ -139,6 +140,12 @@ for(const example of [...examples,...regressionDrawings]){
   checked(request(projected.fileName,bytesOf(projected)));
  }
  for(const format of ['dxf','dwg']){
+  if(example.name==='XREF source formats'){
+   const blocked=processBrowserRequest(nativeExportRequest(source,opened,{format,version:'AC1032'}),wasm);
+   assert.equal(Boolean(blocked.export?.download),false,'typed non-DWG source content must block CAD export');
+   assert.match(blocked.failure.message,/convert the external source to DWG/);
+   continue;
+  }
   const exported=checked(nativeExportRequest(source,opened,{format,version:'AC1032'}));
   assert.equal(exported.export.fileCheck.cadReadback,true);assert.equal(exported.export.fileCheck.versionMatched,true);
   assert.equal(exported.export.fileCheck.strictNativeReadback,true);

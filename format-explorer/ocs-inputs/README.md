@@ -1,36 +1,30 @@
-# Embedded host inputs
+# Official XREF integration inputs
 
-`ocs-source.json` selects the official Studio, Document, acadrust, IFCCAD and
-kernel revisions. `Cargo.lock` freezes the resolved graph. The pinned Studio merge includes the IFCX opening, MText editing, annotation scale, leader picture and external plot-style fixes. It supplies the matched host and parser-worker protocol.
+Explorer embeds official Studio merge `0ca42af051bfdf808f8824e15132c8504dbab331`
+(PR #3651), selecting official Document merge `1db213a7babde93b64a4887fd6ba441f0177b00d`
+(PR #32), canonical acadrust `b0b768cee674c28bac63c75cbd5638b894f33f23` and staged
+native contract `785590abb669c38afb700b339d36cc8cc0c18161`. Exact identities are
+recorded in ../ocs-source.json. No local host patch or development override is
+required. The frozen lock starts from the official Studio merge lock and applies
+the explicit web timer correction described below. The Explorer workspace uses
+its intentional local core patch to share one typed model with Document; its
+contract matches the host.
 
-`block-attributes.patch` applies the bounded IFCX opening, active MText edit,
-Map3D enum compatibility and main/worker protocol6 changes. The preparation tool
-accepts a clean application or an already applied patch and rejects source drift.
-It also aliases both kernel codec Git URLs to the one selected codec model.
+Run scripts/prepare_explorer_ocs.py against the exact official checkout before
+building. Record and verify the actual host/worker bundle; previous development
+bundles are historical evidence and are not relabeled as this candidate.
 
-`block_attributes_smoke.rs` and `block-attributes.ifcx` are regression-test sources
-for opening, editing, committed grips, undo/redo, save/reopen and existing ATTSYNC.
-The fixture preserves the accepted gallery's Paper setup and exact IDs used by
-the tests; it is intentionally independent of later public example edits.
-They are copied into the pinned host with the test module enabled only under
-`cfg(test)`. These are source fixtures, not packaged manual-review deliverables.
-The frozen local review files and their provenance remain outside Git.
+## Frozen web timer dependency
 
-Preparation and bundle provenance hash every file here. Local path overrides
-are not part of the released pins or lockfile. A source patch is distinct from an
-upstream Studio contribution; it must not be attributed to unmodified upstream.
+The official Studio source is built with the frozen `wasmtimer` 0.4.3 registry
+package and its `pin-utils` dependency. The upstream 0.4.5 lock selection stops
+both short intervals in a minimal browser-only continuity regression, without
+a drawing or renderer. The identical 0.4.3 probe continues. This integration
+therefore retains the previously working timer version explicitly in the frozen
+lockfile; no Cargo-cache edits, local source override or host source patch is used.
+The official Document, native contract and codec revisions are unchanged. The
+new host/worker assets must be rebuilt and qualified against this exact lock.
 
-The current untagged `leader-slice` candidate selects `leaders.patch`, which
-includes the earlier attribute patch, adds bounded leader-picture invalidation
-for changed properties/grips and uses worker protocol7 with matching cache URLs.
-Saving also materializes the host's selected annotation scale through its
-existing scale-list helper before writing CANNOSCALE; an empty native scale
-registry must not turn into a dangling reference after opening in the host.
-It uses the explicit relative local
-overrides in `ocs-source.json`. The preparation tool applies all codec URL
-aliases to that one selected model and verifies the resolved graph. Its recorded
-lock is specific to this development pair, not a portable upstream release pin.
-`leaders_smoke.rs` is copied only for this candidate and exercises opening from
-IFCX and DWG, shared Leader targets, a MLeader text edit and grip, undo/redo,
-stored-picture invalidation and strict native save/reopen. Its source describes
-the intended check; only a recorded successful execution qualifies that behavior.
+The bundle record includes `frozenLockSha256`. Assembly checks it against the
+selected frozen lock as well as the main pins and asset hashes, so an old bundle
+with unchanged Document/Studio pins cannot conceal a different timer dependency.

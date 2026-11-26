@@ -147,7 +147,8 @@ def main():
             text = module.read_text(encoding='utf-8')
             if 'mod leaders_smoke;' not in text:
                 module.write_text(text + '\n#[cfg(test)]\nmod leaders_smoke;\n', encoding='utf-8')
-    manifests = ["Cargo.toml", "crates/ocs_save/Cargo.toml", "crates/ocs_web_worker/Cargo.toml", "crates/ocs_plugin_api/Cargo.toml", "crates/ocs_acis/Cargo.toml"]
+    solid_manifest = "crates/ocs_solid/Cargo.toml" if (checkout / "crates/ocs_solid/Cargo.toml").is_file() else "crates/ocs_acis/Cargo.toml"
+    manifests = ["Cargo.toml", "crates/ocs_save/Cargo.toml", "crates/ocs_web_worker/Cargo.toml", "crates/ocs_plugin_api/Cargo.toml", solid_manifest]
     for name in manifests:
         path = checkout / name
         text = path.read_text()
@@ -182,7 +183,7 @@ def main():
         text = text.replace("set -eu", "set -eu\n\n" + target_query, 1)
         text = text.replace(old_worker_path, '  "${worker_target_dir}/wasm32-unknown-unknown/release/ocs_web_worker.wasm"')
         worker.write_text(text)
-    elif '"${worker_target_dir}/wasm32-unknown-unknown/release/ocs_web_worker.wasm"' not in text:
+    elif not any(value in text for value in ['"${worker_target_dir}/wasm32-unknown-unknown/release/ocs_web_worker.wasm"', '"${CARGO_TARGET_DIR:-target}/wasm32-unknown-unknown/release/ocs_web_worker.wasm"']):
         raise SystemExit("Unexpected parser-worker artifact path")
     if "kernelCommit" in pins:
         for name, expected in [("Cargo.toml", 2), ("crates/ocs_acis/Cargo.toml", 1)]:
@@ -210,7 +211,7 @@ def main():
             raise SystemExit("Missing parser worker WASM")
         if not any(p.parent == bundle and p.suffix == ".wasm" for p in files):
             raise SystemExit("Missing main WASM")
-        record = {"inputIdentity": identity(), "hostSourceIdentity": host_source_identity(checkout), "pins": pins, "files": {p.relative_to(bundle).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
+        record = {"inputIdentity": identity(), "hostSourceIdentity": host_source_identity(checkout), "frozenLockSha256": hashlib.sha256(lock.read_bytes()).hexdigest(), "pins": pins, "files": {p.relative_to(bundle).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
         if args.record_build:
             record["toolchain"] = subprocess.check_output(["rustc", "-Vv"], text=True).strip()
             record_path.write_text(json.dumps(record, indent=2) + "\n")

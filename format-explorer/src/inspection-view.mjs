@@ -5,6 +5,13 @@ import {translate} from './i18n.mjs';
 import {inspectionNavigation} from './inspection-navigation.mjs';
 import {ifcxNodeJson} from './presentation-json.mjs';
 export const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function renderExternalSourceChoices(source,language){
+ const e=escapeHtml,t=key=>translate(language,key),resources=source.resources||[{id:'1',name:t('externalSource.currentDrawing')}];
+ const attrs=(owner,id,locator)=>' data-owner-resource="'+e(owner)+'" data-source-id="'+e(id)+'"'+(locator!==undefined?' data-source-locator="'+e(locator)+'"':'');
+ const reuse=(owner,id,locator)=>'<label>'+e(t('externalSource.reuse'))+'<select data-reuse-source-id="'+e(source.id)+'"'+attrs(owner,id,locator)+'><option value="">'+e(t('externalSource.chooseExisting'))+'</option>'+resources.map(r=>'<option value="'+e(r.id)+'">'+e(r.id==='1'?t('externalSource.currentDrawing'):r.name)+'</option>').join('')+'</select></label>';
+ const seen=new Set(),nested=(source.nestedSources||[]).filter(row=>{if(row.rootSourceId&&row.rootSourceId!==source.id)return false;const key=JSON.stringify([row.ownerResource,row.sourceId,row.locator]);if(seen.has(key))return false;seen.add(key);return true;});
+ return reuse('1',source.id)+(nested.length?'<h4>'+e(t('externalSource.nested'))+'</h4>'+nested.map(row=>'<fieldset><legend>'+e(row.name)+'</legend><p>'+e(row.locator)+'</p><p>'+e(t('externalSource.status.'+row.status))+'</p>'+(row.diagnostic?'<p>'+e(row.diagnostic)+'</p>':'')+(row.ownerResource?'<label>'+e(t('externalSource.choose'))+'<input type="file" accept=".dwg,.dxf,.ifccad,.ifcx,.cbor" data-external-source-id="'+e(source.id)+'"'+attrs(row.ownerResource,row.sourceId,row.locator)+'></label>'+reuse(row.ownerResource,row.sourceId,row.locator):'')+'</fieldset>').join(''):'');
+}
 export function itemTitle(node,language){return node.type==='drawing'?translate(language,'drawing')+(node.key==='drawing'?'':' · '+node.title):node.type==='group'||node.type==='file'?translate(language,node.title):['node','layer','layers','layout','linePattern','linePatterns','symbolSource','symbolSources','blockDefinition','blockDefinitions','table','stream'].includes(node.type)?node.title:translate(language,node.type==='dimensionStyles'?'dimensionStyle':node.type)+' · '+node.title;}
 export function renderInspection(model,state){
  const chevron='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3 L10.5 8 L5.5 13"/></svg>';
@@ -101,6 +108,10 @@ export function renderInspection(model,state){
   details+='<p class="secondary">'+e(t('filled.displayUnassessed'))+'</p>';
  }
  const help=t('help.'+node.type);if(!help.startsWith('help.'))details+='<p class="secondary">'+e(help)+'</p>';
+ if(node.externalSource){
+  const source=node.externalSource;
+  details+='<section class="external-source"><h3>'+e(t('externalSource'))+'</h3><p>'+e(t('externalSource.status.'+source.status))+'</p>'+(source.fileName?'<p>'+e(source.fileName)+'</p>':'')+'<label>'+e(t('externalSource.choose'))+'<input type="file" accept=".dwg,.dxf,.ifccad,.ifcx,.cbor" data-external-source-id="'+e(source.id)+'" aria-label="'+e(t('externalSource.choose'))+'"></label><p class="secondary">'+e(t('externalSource.chooseHelp'))+'</p>'+(source.otherDrawing?'<p>'+e(t('externalSource.guidChanged'))+'</p>':'')+(source.diagnostics||[]).map(d=>'<p>'+e(d)+'</p>').join('')+renderExternalSourceChoices(source,language)+'</section>';
+ }
  const fontRequests=model.fontSymbolReport?.entries.filter(request=>request.requestPath.startsWith(node.key+'#'))||[];
  if(fontRequests.length){
   details+='<h3>'+e(t('fontSymbol.title'))+'</h3>';

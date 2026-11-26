@@ -1,6 +1,6 @@
 {
   "name": "format-explorer",
-  "version": "2026.47.0",
+  "version": "2026.48.0",
   "private": true,
   "type": "module",
   "description": "IFCCAD Explorer for drawing inspection and CAD conversion",

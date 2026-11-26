@@ -32,9 +32,17 @@ export function connectOcsFrame(host,{waitForApi=waitForOcs,sessionFactory=api=>
   if(!session||message.token!==token||disconnected)return;
   if(message.op==='observe'){observer.setEnabled(message.visible===true);return;}
   if(message.op==='disconnect'){disconnect();return;}
-  if(!['open','replace','select'].includes(message.op)||!['original','generated'].includes(message.role))return;
+  if(!['open','replace','select','source'].includes(message.op)||!['original','generated'].includes(message.role))return;
   observer.pause();
   try{
+   if(message.op==='source'){
+    if(message.role!=='generated')return;
+    const args=[message.sourceId,message.fileName,message.base64,message.documentId],options={};
+    for(const key of ['ownerResource','reuseResource','locator'])if(message[key]!==undefined)options[key]=message[key];
+    if(Object.keys(options).length)args.push(options);
+    const report=await session.registerExternalSource(...args);
+     reply({id:message.id,role:'generated',status:'source-loaded',documentId:message.documentId,sourceStatus:report.source_status==='loaded'?'Loaded':report.source_status,otherDrawing:report.other_drawing===true,diagnostics:report.diagnostics||[],nestedSources:report.nested_sources||[],resources:report.resources||[]});return;
+   }
    if(message.op==='select'){
     if(message.role!=='generated')return;
     const documentId=await session.selectGenerated(message.handles,message.layout,message.documentId);

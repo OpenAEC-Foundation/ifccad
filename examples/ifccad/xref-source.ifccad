@@ -1,0 +1,1159 @@
+{
+  "header": {
+    "id": "viewport-reference",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "0.1.0",
+    "author": "OpenAEC viewport reference",
+    "timestamp": "2026-11-20T11:43:46Z"
+  },
+  "imports": [
+    {
+      "uri": "urn:example:ifccad:0.12.0"
+    }
+  ],
+  "schemas": {},
+  "data": [
+    {
+      "path": "/cad/d1",
+      "children": {
+        "annotationScale1": "/cad/d1/annotationScale/1",
+        "annotationScale10": "/cad/d1/annotationScale/10",
+        "annotationScale11": "/cad/d1/annotationScale/11",
+        "annotationScale12": "/cad/d1/annotationScale/12",
+        "annotationScale13": "/cad/d1/annotationScale/13",
+        "annotationScale14": "/cad/d1/annotationScale/14",
+        "annotationScale2": "/cad/d1/annotationScale/2",
+        "annotationScale3": "/cad/d1/annotationScale/3",
+        "annotationScale4": "/cad/d1/annotationScale/4",
+        "annotationScale5": "/cad/d1/annotationScale/5",
+        "annotationScale6": "/cad/d1/annotationScale/6",
+        "annotationScale7": "/cad/d1/annotationScale/7",
+        "annotationScale8": "/cad/d1/annotationScale/8",
+        "annotationScale9": "/cad/d1/annotationScale/9",
+        "dimensionStyle1": "/cad/d1/dimensionStyle/1",
+        "layer0": "/cad/d1/layer/0",
+        "layer1": "/cad/d1/layer/1",
+        "linePattern0": "/cad/d1/linePattern/0",
+        "model": "/cad/d1/layout/1",
+        "modelWindow1": "/cad/d1/modelWindow/1",
+        "multiLeaderStyle1": "/cad/d1/multiLeaderStyle/1",
+        "paper2": "/cad/d1/layout/2",
+        "tableStyle1": "/cad/d1/tableStyle/1",
+        "textStyle1": "/cad/d1/textStyle/1",
+        "externalSource1": "/cad/d1/externalSource/1"
+      },
+      "attributes": {
+        "ifccad::drawing": {
+          "attributeVisibility": "Normal",
+          "lengthUnit": "m",
+          "modelWindows": [
+            "/cad/d1/modelWindow/1"
+          ],
+          "nextAnnotationScaleId": 15,
+          "nextBlockId": 1,
+          "nextDimensionStyleId": 2,
+          "nextEntityId": 4,
+          "nextExternalSourceId": 2,
+          "nextLayerId": 2,
+          "nextLayoutId": 3,
+          "nextLinePatternId": 1,
+          "nextModelWindowId": 2,
+          "nextMultiLeaderStyleId": 2,
+          "nextSymbolSourceId": 1,
+          "nextTableStyleId": 2,
+          "nextTextStyleId": 2,
+          "nextUcsId": 1,
+          "pointDisplay": {
+            "form": {
+              "circle": false,
+              "glyph": "dot",
+              "square": false
+            },
+            "size": {
+              "kind": "defaultFivePercent"
+            }
+          },
+          "profileVersion": "0.12.0"
+        },
+        "ifccad::drawingWorkspace": {
+          "activeLayout": "/cad/d1/layout/1",
+          "currentLayer": "/cad/d1/layer/0"
+        },
+        "ifccad::modelViewState": {
+          "activeModelWindow": "/cad/d1/modelWindow/1"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/1",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 1.0,
+          "name": "1:1000",
+          "paperUnits": 1.0,
+          "unitScale": true
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/2",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 0.5,
+          "name": "1:500",
+          "paperUnits": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/3",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 0.2,
+          "name": "1:200",
+          "paperUnits": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/4",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 0.1,
+          "name": "1:100",
+          "paperUnits": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/5",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 0.05,
+          "name": "1:50",
+          "paperUnits": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/6",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 0.025,
+          "name": "1:25",
+          "paperUnits": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/7",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 0.02,
+          "name": "1:20",
+          "paperUnits": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/8",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 0.01,
+          "name": "1:10",
+          "paperUnits": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/9",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 0.005,
+          "name": "1:5",
+          "paperUnits": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/10",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 0.002,
+          "name": "1:2",
+          "paperUnits": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/11",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 0.001,
+          "name": "1:1",
+          "paperUnits": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/12",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 1.0,
+          "name": "2:1",
+          "paperUnits": 2.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/13",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 1.0,
+          "name": "5:1",
+          "paperUnits": 5.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/annotationScale/14",
+      "attributes": {
+        "ifccad::annotationScale": {
+          "drawingUnits": 1.0,
+          "name": "10:1",
+          "paperUnits": 10.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/textStyle/1",
+      "attributes": {
+        "ifccad::textStyle": {
+          "font": {
+            "cadFontName": "txt"
+          },
+          "lastUsedHeight": 2.5,
+          "name": "Standard"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/dimensionStyle/1",
+      "attributes": {
+        "ifccad::dimensionStyle": {
+          "name": "Standard",
+          "settings": {
+            "arrows": {
+              "centerMark": {
+                "kind": "mark",
+                "size": 0.09
+              },
+              "first": {
+                "kind": "closedFilled"
+              },
+              "flipFirst": false,
+              "flipSecond": false,
+              "second": {
+                "kind": "closedFilled"
+              },
+              "size": 0.18,
+              "tickSize": 0.0
+            },
+            "dimensionLine": {
+              "appearance": {
+                "color": {
+                  "mode": "inheritEntity"
+                },
+                "linePattern": {
+                  "mode": "inheritEntity"
+                },
+                "lineWeight": {
+                  "mode": "inheritEntity"
+                },
+                "opacity": {
+                  "mode": "inheritEntity"
+                }
+              },
+              "extension": 0.0,
+              "suppressFirst": false,
+              "suppressSecond": false
+            },
+            "extensionLines": {
+              "first": {
+                "appearance": {
+                  "color": {
+                    "mode": "inheritEntity"
+                  },
+                  "linePattern": {
+                    "mode": "inheritEntity"
+                  },
+                  "lineWeight": {
+                    "mode": "inheritEntity"
+                  },
+                  "opacity": {
+                    "mode": "inheritEntity"
+                  }
+                },
+                "extension": 1.25,
+                "length": {
+                  "kind": "automatic"
+                },
+                "offset": 0.625,
+                "suppressed": false
+              },
+              "second": {
+                "appearance": {
+                  "color": {
+                    "mode": "inheritEntity"
+                  },
+                  "linePattern": {
+                    "mode": "inheritEntity"
+                  },
+                  "lineWeight": {
+                    "mode": "inheritEntity"
+                  },
+                  "opacity": {
+                    "mode": "inheritEntity"
+                  }
+                },
+                "extension": 1.25,
+                "length": {
+                  "kind": "automatic"
+                },
+                "offset": 0.625,
+                "suppressed": false
+              }
+            },
+            "fit": {
+              "forceTextInside": false,
+              "keepDimensionLineOutside": false,
+              "preferredPlacement": "bestFit"
+            },
+            "numbers": {
+              "primary": {
+                "angleFormat": "decimalDegrees",
+                "application": "allOwners",
+                "arcSymbol": "before",
+                "decimalSeparator": ".",
+                "format": "decimal",
+                "fractionLayout": "horizontal",
+                "fractionScale": 1.0,
+                "measurementFactor": 1.0,
+                "precision": 2,
+                "prefix": "",
+                "roundingIncrement": 0.0,
+                "suffix": "",
+                "zeroSuppression": {
+                  "leading": false,
+                  "trailing": true,
+                  "zeroFeet": true,
+                  "zeroInches": true
+                }
+              },
+              "tolerance": {
+                "kind": "none"
+              }
+            },
+            "presentationScale": {
+              "factor": 1.0,
+              "kind": "fixed"
+            },
+            "text": {
+              "appearance": {
+                "color": {
+                  "mode": "inheritEntity"
+                },
+                "linePattern": {
+                  "mode": "inheritEntity"
+                },
+                "lineWeight": {
+                  "mode": "inheritEntity"
+                },
+                "opacity": {
+                  "mode": "inheritEntity"
+                }
+              },
+              "attachment": "bottomCenter",
+              "background": {
+                "kind": "none"
+              },
+              "gap": 0.625,
+              "height": 0.18,
+              "insideOrientation": "aligned",
+              "lineSpacing": {
+                "factor": 1.0,
+                "kind": "atLeast"
+              },
+              "movement": "moveDimensionLine",
+              "outsideOrientation": "aligned",
+              "style": "/cad/d1/textStyle/1"
+            }
+          },
+          "typeOverrides": {}
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/multiLeaderStyle/1",
+      "attributes": {
+        "ifccad::multiLeaderStyle": {
+          "alignSpace": 0.0,
+          "annotative": false,
+          "blockRotationEnabled": false,
+          "blockScaleEnabled": false,
+          "breakGapSize": 0.125,
+          "common": {
+            "block": {
+              "color": {
+                "mode": "ByBlock"
+              },
+              "connection": "extents",
+              "rotation": 0.0,
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "contentKind": "mText",
+            "doglegEnabled": true,
+            "doglegLength": 0.36,
+            "landingEnabled": true,
+            "line": {
+              "arrow": {
+                "kind": "defaultClosedFilled"
+              },
+              "arrowSize": 0.18,
+              "color": {
+                "mode": "ByBlock"
+              },
+              "linePattern": {
+                "mode": "Explicit",
+                "value": "/cad/d1/linePattern/0"
+              },
+              "lineWeight": {
+                "kind": "byBlock"
+              },
+              "pathKind": "straightSegments"
+            },
+            "scaleFactor": 1.0,
+            "text": {
+              "alignment": "left",
+              "angle": "horizontal",
+              "attachmentDirection": "horizontal",
+              "attachments": {
+                "bottom": "bottomOfBottomLine",
+                "left": "middleOfTopLine",
+                "right": "middleOfTopLine",
+                "top": "topOfTopLine"
+              },
+              "color": {
+                "mode": "ByBlock"
+              },
+              "frame": false,
+              "height": 0.18,
+              "style": "/cad/d1/textStyle/1"
+            }
+          },
+          "contentDrawOrder": "contentFirst",
+          "defaultMText": {
+            "characterFormat": {},
+            "content": [
+              {
+                "characterFormat": {},
+                "inlines": [],
+                "paragraphFormat": {}
+              }
+            ],
+            "paragraphFormat": {}
+          },
+          "description": "",
+          "firstSegmentAngle": 0.0,
+          "landingGap": 0.09,
+          "leaderDrawOrder": "headFirst",
+          "maxLeaderPoints": 2,
+          "name": "Standard",
+          "secondSegmentAngle": 0.0,
+          "textAlwaysLeft": false
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/tableStyle/1",
+      "attributes": {
+        "ifccad::tableStyle": {
+          "cellStyles": [
+            {
+              "format": {
+                "alignment": "middleCenter",
+                "blockScale": 1.0,
+                "bottomBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "contentColor": {
+                  "mode": "ByBlock"
+                },
+                "contentLayout": "flow",
+                "fillEnabled": false,
+                "horizontalInnerBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "leftBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "margins": {
+                  "bottom": 0.06,
+                  "horizontalSpacing": 0.18,
+                  "left": 0.06,
+                  "right": 0.06,
+                  "top": 0.06,
+                  "verticalSpacing": 0.18
+                },
+                "mergeOnInsert": true,
+                "rightBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "rotation": 0.0,
+                "textHeight": 0.25,
+                "textStyleId": 1,
+                "topBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "valueFormat": "",
+                "valueType": "general",
+                "valueUnit": "unitless",
+                "verticalInnerBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                }
+              },
+              "id": 1,
+              "name": "_TITLE",
+              "role": "title"
+            },
+            {
+              "format": {
+                "alignment": "middleCenter",
+                "blockScale": 1.0,
+                "bottomBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "contentColor": {
+                  "mode": "ByBlock"
+                },
+                "contentLayout": "flow",
+                "fillEnabled": false,
+                "horizontalInnerBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "leftBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "margins": {
+                  "bottom": 0.06,
+                  "horizontalSpacing": 0.18,
+                  "left": 0.06,
+                  "right": 0.06,
+                  "top": 0.06,
+                  "verticalSpacing": 0.18
+                },
+                "mergeOnInsert": false,
+                "rightBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "rotation": 0.0,
+                "textHeight": 0.25,
+                "textStyleId": 1,
+                "topBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "valueFormat": "",
+                "valueType": "general",
+                "valueUnit": "unitless",
+                "verticalInnerBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                }
+              },
+              "id": 2,
+              "name": "_HEADER",
+              "role": "header"
+            },
+            {
+              "format": {
+                "alignment": "topCenter",
+                "blockScale": 1.0,
+                "bottomBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "contentColor": {
+                  "mode": "ByBlock"
+                },
+                "contentLayout": "flow",
+                "fillEnabled": false,
+                "horizontalInnerBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "leftBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "margins": {
+                  "bottom": 0.06,
+                  "horizontalSpacing": 0.18,
+                  "left": 0.06,
+                  "right": 0.06,
+                  "top": 0.06,
+                  "verticalSpacing": 0.18
+                },
+                "mergeOnInsert": false,
+                "rightBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "rotation": 0.0,
+                "textHeight": 0.18,
+                "textStyleId": 1,
+                "topBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                },
+                "valueFormat": "",
+                "valueType": "general",
+                "valueUnit": "unitless",
+                "verticalInnerBorder": {
+                  "color": {
+                    "mode": "ByBlock"
+                  },
+                  "doubleSpacing": 0.0,
+                  "lineKind": "single",
+                  "linePattern": {
+                    "mode": "ByLayer"
+                  },
+                  "lineWeight": {
+                    "mode": "ByBlock"
+                  },
+                  "visible": true
+                }
+              },
+              "id": 3,
+              "name": "_DATA",
+              "role": "data"
+            }
+          ],
+          "flowDirection": "topToBottom",
+          "headerSuppressed": false,
+          "margins": {
+            "bottom": 0.06,
+            "left": 0.06,
+            "right": 0.06,
+            "top": 0.06
+          },
+          "name": "Standard",
+          "titleSuppressed": false
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/modelWindow/1",
+      "attributes": {
+        "ifccad::modelWindow": {
+          "aspectRatio": 1.5,
+          "grid": {
+            "adaptive": true,
+            "beyondLimits": false,
+            "enabled": false,
+            "followsWorkplane": true,
+            "majorLineFrequency": 5,
+            "spacing": [
+              10.0,
+              10.0
+            ],
+            "style": "Lines",
+            "subdivision": false
+          },
+          "rectangle": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "renderMode": "TwoDimensional",
+          "snap": {
+            "angle": 1.5707963267948966,
+            "base": [
+              0.0,
+              0.0
+            ],
+            "enabled": false,
+            "isometricPlane": "Left",
+            "spacing": [
+              0.0,
+              0.0
+            ],
+            "style": "Isometric"
+          },
+          "storedUcs": {
+            "kind": "World"
+          },
+          "useStoredUcs": false,
+          "view": {
+            "backClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "center": [
+              0.0,
+              0.0
+            ],
+            "direction": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "frontClip": {
+              "distance": 10.0,
+              "mode": "Disabled"
+            },
+            "height": 5.0,
+            "lensLengthMm": 50.0,
+            "projection": "Orthographic",
+            "target": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "twist": -0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/1",
+      "children": {
+        "0": "/cad/d1/e1",
+        "1": "/cad/d1/e2",
+        "2": "/cad/d1/e3"
+      },
+      "attributes": {
+        "ifccad::layout": {
+          "annotationState": {
+            "currentScale": "/cad/d1/annotationScale/1"
+          },
+          "kind": "Model",
+          "tabIndex": 0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layout/2",
+      "children": {},
+      "attributes": {
+        "ifccad::layout": {
+          "kind": "Paper",
+          "name": "Layout1",
+          "paperSpaceLinetypeScaling": false,
+          "tabIndex": 1
+        },
+        "ifccad::paperCanvas": {
+          "frame": {
+            "center": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "height": 210.0,
+            "width": 297.0
+          },
+          "grid": {
+            "adaptive": false,
+            "beyondLimits": false,
+            "enabled": false,
+            "followsWorkplane": false,
+            "majorLineFrequency": 5,
+            "spacing": [
+              10.0,
+              10.0
+            ],
+            "style": "Lines",
+            "subdivision": false
+          },
+          "snap": {
+            "angle": 0.0,
+            "base": [
+              0.0,
+              0.0
+            ],
+            "enabled": false,
+            "isometricPlane": "Left",
+            "spacing": [
+              10.0,
+              10.0
+            ],
+            "style": "Rectangular"
+          },
+          "storedUcs": {
+            "kind": "World"
+          },
+          "useStoredUcs": false,
+          "view": {
+            "backClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "center": [
+              0.0,
+              0.0
+            ],
+            "direction": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "frontClip": {
+              "distance": 0.0,
+              "mode": "Disabled"
+            },
+            "height": 210.0,
+            "lensLengthMm": 50.0,
+            "projection": "Orthographic",
+            "target": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "twist": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/linePattern/0",
+      "attributes": {
+        "ifccad::linePattern": {
+          "description": "Solid line",
+          "name": "Continuous",
+          "pattern": []
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/0",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "rgb": [
+                255,
+                255,
+                255
+              ]
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25
+          },
+          "name": "0"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/layer/1",
+      "attributes": {
+        "ifccad::layer": {
+          "appearance": {
+            "color": {
+              "rgb": [
+                255,
+                255,
+                255
+              ]
+            },
+            "linePattern": "/cad/d1/linePattern/0",
+            "lineWeight": 0.25
+          },
+          "name": "Notes"
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e1",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::lineSegment": {
+          "end": [
+            2.0,
+            0.0
+          ],
+          "start": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/externalSource/1",
+      "attributes": {
+        "ifccad::externalSource": {
+          "name": "Nested detail",
+          "location": {
+            "kind": "uriReference",
+            "uri": "xref-detail.ifccad"
+          },
+          "source": {
+            "format": "ifccad",
+            "basePoint": [
+              0,
+              0,
+              0
+            ],
+            "insertionUnit": "m"
+          }
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e2",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            0.5,
+            0.5,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "ifccad::xref": {
+          "source": "/cad/d1/externalSource/1",
+          "scale": 1.0
+        }
+      }
+    },
+    {
+      "path": "/cad/d1/e3",
+      "attributes": {
+        "ifccad::entity": {
+          "layer": "/cad/d1/layer/0"
+        },
+        "ifccad::geom::placement": {
+          "origin": [
+            1.2,
+            0.5,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "ifccad::xref": {
+          "source": "/cad/d1/externalSource/1",
+          "scale": 1.0,
+          "referenceType": "overlay"
+        }
+      }
+    }
+  ]
+}

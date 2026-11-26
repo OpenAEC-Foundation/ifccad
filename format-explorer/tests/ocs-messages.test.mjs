@@ -92,8 +92,14 @@ test('parent session ignores stale replies and serializes document requests',asy
  listeners.get('message')({origin,source:frame.contentWindow,data:{channel:'ocdraw-ocs',token,id:open.id,status:'opened'}});
  await first;await new Promise(resolve=>setTimeout(resolve,0));
  const replace=posted.find(p=>p.message.op==='replace').message;assert.ok(replace);
- listeners.get('message')({origin,source:frame.contentWindow,data:{channel:'ocdraw-ocs',token,id:replace.id,status:'opened'}});
- await second;session.close();assert.equal(listeners.has('message'),false);
+ listeners.get('message')({origin,source:frame.contentWindow,data:{channel:'ocdraw-ocs',token,id:replace.id,role:'generated',documentId:7,status:'opened'}});
+ await second;
+ const selected=session.registerExternalSource('1','ground.dwg','Yw==');
+ await new Promise(resolve=>setTimeout(resolve,0));
+ const source=posted.find(p=>p.message.op==='source').message;
+ assert.equal(source.documentId,7);
+ listeners.get('message')({origin,source:frame.contentWindow,data:{channel:'ocdraw-ocs',token,id:source.id,status:'source-loaded',sourceStatus:'Loaded'}});
+ assert.equal((await selected).sourceStatus,'Loaded');session.close();assert.equal(listeners.has('message'),false);
 });
 
 test('viewer startup error rejects readiness promptly',async()=>{

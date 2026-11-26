@@ -13,7 +13,7 @@ During alpha, later releases may be unable to open earlier IFCCAD files;
 backward compatibility and migration are not guaranteed. See the
 [alpha compatibility policy](docs/alpha-compatibility.md) and
 [release/version policy](docs/releases.md). The current native source alpha is
-[2026.46.1](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.46.1).
+[2026.48.0](https://github.com/OpenAEC-Foundation/ifccad/releases/tag/v2026.48.0).
 Its attached artifacts contain only the native core. Explorer and CAD conversion
 are delivered separately from the native artifacts.
 See the [vision](docs/vision.md) for the long-term direction and the
@@ -47,6 +47,9 @@ The core owns construction, shared validation, encoding and file IO and has no C
 runtime dependency. JSON/IFCX and experimental base-CBOR use the same logical
 model. The first alpha publishes profile 0.1.0, CBOR mapping revision 1 and
 optional native Zstd transport revision 1. Those tagged contracts are fixed.
+Release 2026.48.0 adds drawing sources, XREF Attach/Overlay and the
+qualified nesting workflow in profile 0.12.0 and CBOR 12. See the
+[release notes](docs/releases/2026.48.0.md).
 Release 2026.46.1 adds native tables and shared MLINE preservation in profile
 0.10.0 and CBOR mapping 10. See the [release notes](docs/releases/2026.46.1.md).
 Release 2026.46.0 adds the [Leader family](docs/leaders.md) and native splines
@@ -129,10 +132,14 @@ pins and applicable regressions. The remaining development sequence is:
    PDF, batch PDF publishing and virtual printing is complete. The Studio
    fixes were merged upstream on 18 November 2026 in
    [Studio #3245](https://github.com/HakanSeven12/OpenCADStudio/pull/3245).
-   The first bounded [DWG XREF slice](docs/external-sources.md) is locally
-   qualified on its explicit development pair, including desktop editing and
-   Explorer source choice/reload/export. Native staging and downstream review
-   remain; dynamic-block retention still needs workflow qualification.
+   Drawing XREFs now support DWG, DXF and IFCCAD sources, native Attach/Overlay,
+   finite nesting and cycle interruption. Document #32 and Studio #3651 have
+   merged with the official pins. Source edits, placement/grips/undo and
+   root-only saves passed the paired checks; Explorer and release qualification
+   follow the exact official merges. See [external sources](docs/external-sources.md).
+   Extend placement/ownership next, then move SHX and CTB/STB to the shared source
+   model. Bind and complete reference archives remain separate workflows.
+   Dynamic-block retention still needs workflow qualification.
 
 Native contributions are qualified sequentially against the preceding verified
 baseline; compatible unpublished slices may be released together. In parallel, develop selective preservation in `opencaddocument`

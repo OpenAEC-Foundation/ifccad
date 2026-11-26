@@ -1,5 +1,75 @@
 # Explorer Document migration coverage
 
+## XREF development pair (profile 0.12.0 / CBOR 12)
+
+The nesting/overlay candidate layers local changes on native `cd79dfc8`,
+Document `f274f370`, canonical codec `14f7da10` and Studio `1c7627aa`.
+The exact pair is recorded in `format-explorer/ocs-source.json`, its frozen host
+patch and lockfile, with explicit development overrides. These base revisions
+alone do not contain nesting/overlay support. Local qualification is recorded
+separately from upstream review, publication and deployment.
+
+All three typed sources retain identity, location, unit/base and O/X/Y through
+native context-aware saving. New DXF/IFCCAD attachments require an opened native
+host. IFCCAD sources use strict JSON/CBOR reading, native origin/unit and no
+invented GUID. Placed nested Attach references expand through the common host
+traversal; nested Overlays are excluded. The active resource chain cuts only the
+closing cycle edge. Browser choices are scoped to their owner resource, with
+explicit reuse for shared resources and references to the current drawing.
+The existing preserving import also supplies Explorer's temporary preview.
+Stateless CAD conversion and host CAD saves reject typed non-DWG sources even
+with a DWG filename. There is no automatic source conversion or embedding.
+Source selection, per-tab byte registration and failed-reload retention use the
+shared XREF flow. The Document wire shape is unchanged: worker protocol 7 stays.
+
+Local qualification completed on 24 November 2026: the native full gate,
+Document's six native configurations and two WASM checks, Studio's workspace
+tests, production processor/host WASM builds, and frontend tests passed on the
+explicit development pair. Desktop smoke covered shared descendant editing,
+automatic refresh, reference grip/undo/redo, cycle introduction/repair, offline
+native saving and physical DWG root-only saving. Hidden browser smoke covered
+owner/tab isolation, shared CBOR source reuse, cycle cuts, reload, CAD-export
+refusal and the actual protocol-7 DWG worker.
+
+The local Studio workspace pass includes a separate test-only correction to
+its upstream undo-record guard: `UnsavedDialogSave` is treated like existing
+save actions when only view/scale metadata is prepared. This correction is
+kept separate from the frozen runtime contribution. Upstream Clippy still
+reports the unchanged `approx_constant` at `ocs_geom/src/geom2d/intersect.rs:603`.
+Headless Edge also reports a WebGL `NOPERSPECTIVE_QUALIFIER` shader diagnostic
+with a plain drawing containing no XREFs. The same diagnostic occurs in the
+XREF smoke; browser source semantics pass, but pristine browser rendering and
+production deployment are not claimed. Desktop dependent graphics were checked
+before and after editing. User visual review and repository/publication actions
+remain separate stages.
+
+
+### Historical first-slice qualification
+
+The local first-slice candidate pairs native base `02a415fa` with Document
+`353bdef5` and codec `13f16ebc`, each with the explicit XREF development patch.
+It maps drawing-local DWG source definitions and Model attachments in both
+directions. Relative URI, `file:` URI and search filename preserve their lookup
+meaning. Context-aware native saving retains source/entity IDs, URI spelling
+and optional expected FingerprintGUID. DWG FileDepList carries expected source
+identity; DXF follows the existing GUID-loss policy without a new warning.
+
+The local candidate passed the native full gate and Zstd checks, all six
+Document configurations and the codec's five native CI configurations. The
+compact synthetic review project has strict native and physical CAD readback.
+The actual desktop host passed source edit, grip, undo/redo and fresh-process
+offline save. The hidden Explorer passed explicit source choice, two-document
+isolation, GUID warning, targeted reload and physical CAD download readback;
+the module worker passed protocol 7 and source-GUID transfer. The source line
+was also visually inspected in the actual browser canvas.
+
+LibreDWG geometry/header checks are paired with an independent literal ODA
+FileDepList parser because of identified reader limitations. An AutoCAD-authored
+known-GUID fixture remains separate qualification; this is no AutoCAD
+certification. The currently published Explorer pins below are historical
+deployment evidence. See [external sources](../external-sources.md) for the
+native contract and the later source-format, graph and packaging slices.
+
 The active browser route is CAD → opencaddocument Document → logical
 IfccadDocument → production core IFCX writer/reader. Export reverses the typed
 mapping before optional CAD serialization/readback. The core never imports a CAD
@@ -384,3 +454,32 @@ native defaults. CTB uses the stored ACI even when an IFCCAD RGB fallback
 differs. In that case the route reports the fallback change and writes the ACI.
 These mappings concern stored plot intent. Testing concrete colors and line
 weights also requires the exact external tables and the Studio PDF output.
+
+## XREF integration using official nesting merges
+
+The active release candidate selects Studio `0ca42af0` (merged PR3651),
+Document `1db213a7` (merged PR32), canonical acadrust `b0b768ce` and staged native
+contract `785590ab`. The profile is 0.12.0 / CBOR 12. The checked-in descriptor/frozen
+lock and workflow select that pair without local source overrides or host
+patches. The intentional workspace-core patch unifies the Explorer's model.
+
+DWG/DXF/IFCCAD sources retain owner-local descriptors, typed source metadata,
+locations, Attach/Overlay and original native identities. Relative nested paths
+resolve from their immediate owner. The host's finite resource traversal supplies
+dependent graphics and diagnostics; diamonds/repeated placements remain complete,
+while only a cycle-closing edge is interrupted for the session. A direct self
+reference reports Circular on its authored row. Core validation does no external IO.
+
+Loaded external geometry remains session-only. Native and CAD root saves retain
+authored references. Typed non-DWG sources still refuse CAD delivery; no automatic
+source conversion or packaging is claimed. Browser bytes/reuse belong to the
+selected tab and owner resource. Optional source encodings and existing placement
+limits do not expand here.
+
+The official Document pair passed its six native and two WASM configurations;
+Studio's official-Document-pin candidate passed 8303 workspace tests (50 ignored),
+native executable, release-WASM host/worker checks and actual desktop edit/grip/
+undo/offline/cycle/palette/physical-save readback. These qualify that named
+candidate, not the later Studio merge's additional upstream changes or the
+release Explorer bundle. Fresh merge/processor/host/bundle checks are recorded
+with the release candidate; historical browser bundles are never relabeled.

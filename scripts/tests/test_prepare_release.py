@@ -59,6 +59,22 @@ class ReleaseTests(unittest.TestCase):
                 with self.subTest(name=name), self.assertRaises(ValueError):
                     release.write_archive(Path(directory) / 'bad.tar.gz', {name: b'x'})
 
+    def test_native_package_rejects_python_cache(self):
+        import io
+        import tarfile
+        with tempfile.TemporaryDirectory() as directory:
+            package = Path(directory) / 'native.crate'
+            files = {'Cargo.toml': b'[package]\nname="ifccad"\nversion="2026.44.0"\n',
+                     'Cargo.lock': b'version=4\n',
+                     'conformance/next/__pycache__/literal_cbor.cpython-314.pyc': b'cache'}
+            with tarfile.open(package, 'w:gz') as archive:
+                for name, data in files.items():
+                    info = tarfile.TarInfo('ifccad-2026.44.0/' + name)
+                    info.size = len(data)
+                    archive.addfile(info, io.BytesIO(data))
+            with self.assertRaisesRegex(ValueError, 'generated Python cache'):
+                release.core_package_files(package, '2026.44.0')
+
     def test_native_package_rejects_cad_dependencies(self):
         import io
         import tarfile

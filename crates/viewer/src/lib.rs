@@ -5,6 +5,7 @@ mod download;
 mod ifccad_input;
 mod inspection_attributes;
 mod inspection_dimension_label;
+mod inspection_external_sources;
 mod inspection_extrusion;
 mod inspection_font_symbols;
 mod inspection_ifccad_dimension;

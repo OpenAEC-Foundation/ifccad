@@ -94,7 +94,22 @@ export function createCadPreviewController({openSession,onUpdate=()=>{},onCadSel
   })().finally(()=>{if(current===generation){viewPromise=null;state.viewerBusy=false;notify();}});
   return viewPromise;
  }
- return {state,clear,prepare,selectElement:key=>selectRequest(key),selectLayout:layout=>selectRequest(null,layout),refresh:notify,cancel(){invalidate();preparedKey=null;state.result=null;state.download=null;state.phase='cancelled';notify();},updateSource(source,valid,opening){invalidate();sourceRevision++;preparedKey=null;displayedKey=null;state.opening=opening;if(drawingFormat(source)!==drawingFormat(state.source))Object.assign(state,{selectionKey:null,selectionLayout:null,selectionRequested:false,selectionStatus:"",selectionError:""});state.source=source;state.valid=valid;state.conversionOptions=source.exportConversionOptions??source.conversionOptions;state.result=null;state.download=null;state.phase='';notify();},setSource(source,valid,opening){clear();state.opening=opening;state.source=source;state.valid=valid;state.conversionOptions=source?.exportConversionOptions??source?.conversionOptions;state.format=/\.dwg$/i.test(source?.name)?'dwg':'dxf';state.version=defaultCadVersion;notify();},show(){state.visible=true;notify();return showDrawing();},hide(){state.visible=false;notify();},retryViewer(){invalidate();epoch++;resetSession();state.viewerError='';return showDrawing();},select(values){
+ async function loadExternalSource(sourceId,file,options={}){
+  const revision=sourceRevision;
+  if(!state.valid||!state.opening?.presentation?.externalSources?.some(s=>s.id===sourceId))throw Error('External source is not part of this drawing');
+  if(options.reuseResource===undefined&&(!file?.name||typeof file.arrayBuffer!=='function'))throw Error('Choose a source drawing file');
+  const bytes=file?new Uint8Array(await file.arrayBuffer()):null;
+  await prepare();if(revision!==sourceRevision)throw Error('Drawing changed');
+  const current=generation,active=await ensureSession(current);
+  if(revision!==sourceRevision||!active)throw Error('Drawing changed');
+  if(displayedKey!==preparedKey){const native=state.download;await active.replaceGenerated(native.base64,native.fileName);if(revision!==sourceRevision)throw Error('Drawing changed');displayedKey=preparedKey;}
+  const args=[options.sourceId??sourceId,file?.name,bytes?encodeBase64(bytes):undefined];
+  if(Object.keys(options).length)args.push(options);
+  const report=await active.registerExternalSource(...args);
+  if(revision!==sourceRevision)throw Error('Drawing changed');
+  return report;
+ }
+ return {state,clear,prepare,loadExternalSource,selectElement:key=>selectRequest(key),selectLayout:layout=>selectRequest(null,layout),refresh:notify,cancel(){invalidate();preparedKey=null;state.result=null;state.download=null;state.phase='cancelled';notify();},updateSource(source,valid,opening){invalidate();sourceRevision++;preparedKey=null;displayedKey=null;state.opening=opening;if(drawingFormat(source)!==drawingFormat(state.source))Object.assign(state,{selectionKey:null,selectionLayout:null,selectionRequested:false,selectionStatus:"",selectionError:""});state.source=source;state.valid=valid;state.conversionOptions=source.exportConversionOptions??source.conversionOptions;state.result=null;state.download=null;state.phase='';notify();},setSource(source,valid,opening){clear();state.opening=opening;state.source=source;state.valid=valid;state.conversionOptions=source?.exportConversionOptions??source?.conversionOptions;state.format=/\.dwg$/i.test(source?.name)?'dwg':'dxf';state.version=defaultCadVersion;notify();},show(){state.visible=true;notify();return showDrawing();},hide(){state.visible=false;notify();},retryViewer(){invalidate();epoch++;resetSession();state.viewerError='';return showDrawing();},select(values){
   if(values.format!==undefined){if(!['dxf','dwg'].includes(values.format))throw Error('Unknown CAD format');state.format=values.format;}
   if(values.version!==undefined){if(!supportsCadVersion(values.version))throw Error('Unknown CAD version');state.version=values.version;}
   if(values.conversionOptions!==undefined)state.conversionOptions=values.conversionOptions;

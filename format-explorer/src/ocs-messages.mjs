@@ -41,6 +41,7 @@ export function createOcsSession(iframe,token,{host=window,origin=location.origi
   openOriginal:(base64,name)=>send('open','original',{base64,name}),
   replaceOriginal:(base64,name)=>send('replace','original',{base64,name}),
   replaceGenerated:(base64,name)=>send('replace','generated',{base64,name}),
+  registerExternalSource:(sourceId,fileName,base64,options={})=>send('source','generated',{sourceId,fileName,base64,documentId:generatedDocumentId,...options}),
   selectGenerated:(handles,layout)=>send('select','generated',{handles,layout,documentId:generatedDocumentId}),
   subscribeSelection(listener){selectionListeners.add(listener);return()=>selectionListeners.delete(listener);},
   setVisible(value){const next=!!value;if(next===visible)return;visible=next;if(readyDone&&!closed)iframe.contentWindow.postMessage({channel:ocsChannel,token,op:'observe',visible},origin);},
@@ -80,7 +81,7 @@ export function createOcsControl(api,{delay=ms=>new Promise(resolve=>setTimeout(
 }
 export function isCurrentOcsMessage(event,iframe,token,origin){
  const message=event?.data;
- return event?.origin===origin&&event?.source===iframe?.contentWindow&&message?.channel===ocsChannel&&message?.token===token&&['ready','opened','selected','selection-changed','error'].includes(message.status);
+ return event?.origin===origin&&event?.source===iframe?.contentWindow&&message?.channel===ocsChannel&&message?.token===token&&['ready','opened','selected','source-loaded','selection-changed','error'].includes(message.status);
 }
 export function createDocumentSession(control){
  let originalId=null,generatedId=null,queue=Promise.resolve();
@@ -147,6 +148,22 @@ export function createDocumentSession(control){
    state=await control({op:'state'});if(!state.ok||state.document_id!==generatedId||layout!==undefined&&state.layout!==layout||JSON.stringify(state.selection)!==JSON.stringify(handles))throw Error('CAD selection was not confirmed');
    return generatedId;
   });},
+  registerExternalSource:(sourceId,fileName,base64,documentId,options={})=>schedule(async()=>{
+   if(generatedId===null||documentId!==generatedId)throw Error('Generated drawing changed');
+   if(typeof sourceId!=='string'||! /^(0|[1-9][0-9]*)$/.test(sourceId)||BigInt(sourceId)>18446744073709551615n)throw Error('Invalid external source identity');
+   if(options.reuseResource===undefined&&(!fileName||!base64))throw Error('Source bytes and name are required');
+   let state=await control({op:'state'});
+   if(!state.documents?.some(d=>d.id===generatedId))throw Error('Generated drawing is no longer open');
+   if(state.command||state.modal)throw Error('Finish the current CAD command or dialog before loading a source');
+   if(state.document_id!==generatedId){const activated=await control({op:'activate',document_id:generatedId});if(!activated.ok)throw Error(activated.error||'Cannot activate generated drawing');}
+   const payload={op:'xref_source_register',document_id:generatedId,source_id:sourceId};
+   if(options.reuseResource!==undefined)payload.reuse_resource=options.reuseResource;else Object.assign(payload,{file_name:fileName,data_base64:base64});
+   if(options.ownerResource!==undefined)payload.owner_resource=options.ownerResource;
+   if(options.locator!==undefined)payload.locator=options.locator;
+   const reply=await control(payload);
+   if(!reply.ok)throw Error(reply.error||reply.message||'Source could not be loaded');
+   return reply.result??reply;
+  }),
   ids:()=>({originalId,generatedId})
  };
 }

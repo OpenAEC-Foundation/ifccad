@@ -40,6 +40,11 @@ export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',i
    const target=path.resolve(destination,example.path),folder=path.join(exampleTarget,format);
    if(path.dirname(target)!==folder)throw Error('Example output escapes its format directory');
    files[path.basename(target)]=await readFile(new URL('../../'+example.sourcePath,import.meta.url));
+   for(const asset of example.assets||[]){
+    const file=path.resolve(destination,asset);
+    if(path.dirname(file)!==folder)throw Error('Example asset escapes its format directory');
+    files[path.basename(file)]=await readFile(new URL('../../'+asset,import.meta.url));
+   }
   }
   await bundle(null,path.join(exampleTarget,format),files);
  }
@@ -59,6 +64,8 @@ export async function build({outputRoot=output,ocsRoot=new URL('../ocs-build/',i
   {
    const provenance=JSON.parse(await readFile(path.join(source,'IFCCAD-BUILD.json'),'utf8'));
    if(JSON.stringify(provenance.pins)!==JSON.stringify(pins))throw Error('Studio bundle uses different pinned dependencies');
+   const frozenLockSha256=createHash('sha256').update(await readFile(new URL('../ocs-inputs/Cargo.lock',import.meta.url))).digest('hex');
+   if(provenance.frozenLockSha256!==frozenLockSha256)throw Error('Studio bundle uses a different frozen host lock');
    for(const [name,expected]of Object.entries(provenance.files)){
     const file=path.resolve(source,name);
     if(!file.startsWith(path.resolve(source)+path.sep))throw Error('Studio provenance path escapes bundle');

@@ -55,17 +55,24 @@ Native JSON and CBOR share the same intrinsic and ownership validation.
 The optional XREF `referenceType` is `attach` (omitted default) or `overlay`.
 An overlay is visible directly but does not propagate when its owner is referenced.
 Source descriptors can be shared by relationships of either type. Core validation
-does not traverse external files. Host nesting/cycle support is under development;
-this contract addition alone does not qualify recursive loading.
+does not traverse external files. OCS supplies finite host-owned loading and
+session-only cycle interruption; no cycle cut is stored in the drawing.
 
-Nested graph loading, binding, packaging and remote downloads remain unqualified. SHX and CTB/STB keep their existing records
-until the shared source model has demonstrated stable XREF behavior.
+Bind for the native workflow, complete project archives and remote downloads
+remain outside this qualified slice. SHX and CTB/STB retain their existing
+records. Their migration to the shared locator/source model follows the next
+placement extension as separate work.
 
 ## Host and CAD exchange
 
-The source-format development pair layers local changes on Document `997362f8`
-and Studio `62aa0357c`, with codec `a608c0ac` and native base `96895aea`. It is recorded in `format-explorer/ocs-source.json`; these
-base revisions alone do not supply the extension. Studio uses its per-tab
+The release integration selects official Studio merge
+`0ca42af051bfdf808f8824e15132c8504dbab331` ([#3651](https://github.com/HakanSeven12/OpenCADStudio/pull/3651)),
+official Document merge `1db213a7babde93b64a4887fd6ba441f0177b00d`
+([#32](https://github.com/HakanSeven12/opencaddocument/pull/32)), canonical codec
+`b0b768cee674c28bac63c75cbd5638b894f33f23` and native contract `785590abb669c38afb700b339d36cc8cc0c18161`.
+`format-explorer/ocs-source.json` records the exact shipped identities. No
+source patch or development dependency override is required.
+Studio uses its per-tab
 native roundtrip context to retain IDs, original URI spelling and expected GUID.
 Browser source selection binds chosen drawing bytes to that tab, source ID and stored
 locator. A same-named file in another document cannot supply those bytes.
@@ -100,10 +107,23 @@ origin `(0,0,0)` and the native length unit; no source UUID is invented. Zstd
 source decoding is unavailable in the current host build. This source reader
 does not change the main drawing's open/save encoding policy.
 
-An IFCCAD source with its own external-source registry is rejected before CAD
-projection, including unused entries. A direct reference to the host file is
-reported as a self-reference. Failed replacement retains the previous body and
-association. Source bytes are session inputs and are not embedded on native save.
+The shared nesting implementation follows placed Attach relationships through
+DWG, DXF and strict native sources. A direct Overlay is visible in its own host;
+its relationship is excluded when that host is used as an external source.
+Unused definitions remain inspectable without reading their files. Relative
+locations resolve against their immediate owning drawing.
+
+The active resource chain detects cycles, including references back to the open
+drawing. Only the closing relationship is interrupted for the current session;
+its finite prefix and healthy siblings remain visible. Shared descendants and
+repeated placements are not cycles. No relationship is deleted on save.
+
+Failed corrupt or incompatible replacement retains the previous committed body
+and association. A missing descendant may retain compatible previous graphics
+and is marked stale; a newly missing branch stays empty. Source bytes are session
+inputs and are not embedded on native save. Browser bindings belong to the tab
+and the owning source resource. Reuse of an already supplied drawing is explicit;
+matching filenames, GUIDs or bytes do not establish resource identity.
 
 New DXF/IFCCAD attachments require an opened IFCCAD host with native source
 context. An ordinary CAD tab refuses them before creating the reference, because
@@ -148,3 +168,13 @@ refuses unsupported CAD delivery. The matching worker retains protocol 7 and
 physical DWG source identity. Frontend and packaged real CAD readback checks pass.
 These are bounded local development results; upstream review and publication are
 separate. The main drawing's open/save/backup encoding policy is unchanged.
+
+## Nesting review example
+
+The existing public three-format gallery retains its DWG/DXF/native roots.
+Its native source now owns one shared detail used by an Attach and an Overlay.
+Open `xref-source.ifccad` separately to see both; when referenced by the gallery,
+only its attached detail propagates. Explorer supplies `xref-detail.ifccad` as an
+explicit owner-scoped choice. The larger local review project additionally
+covers the chain, diamond, cycle, missing source and root self-reference cases.
+The public gallery is checked again with the actual release processor and embedded host; older development build records remain historical evidence.

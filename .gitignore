@@ -23,3 +23,6 @@ __pycache__/
 # Open CAD Studio transient drawing locks (not source inputs).
 *.ocs.lock
 *.ocs-autosave.sv$
+
+# Local Explorer verification evidence.
+/format-explorer/.superpowers/

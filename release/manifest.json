@@ -1,5 +1,5 @@
 {
-  "softwareVersion": "2026.47.0",
+  "softwareVersion": "2026.48.0",
   "channel": "alpha",
   "profileVersion": "0.12.0",
   "profileImport": "urn:example:ifccad:0.12.0",
@@ -20,7 +20,15 @@
     "docs/releases/2026.45.2.md",
     "docs/releases/2026.46.0.md",
     "docs/releases/2026.46.1.md",
-    "docs/releases/2026.47.0.md"
+    "docs/releases/2026.47.0.md",
+    "docs/releases/2026.48.0.md",
+    "crates/viewer/src/inspection_external_sources.rs",
+    "crates/viewer/tests/document_xrefs.rs",
+    "examples/ifccad/xref-detail.ifccad",
+    "examples/ifccad/xref-source.dxf",
+    "examples/ifccad/xref-source.ifccad",
+    "format-explorer/tests/external-sources.test.mjs",
+    "format-explorer/tests/xref-nesting.test.mjs"
   ],
   "scope": "native ifccad core only"
 }

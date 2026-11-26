@@ -19,7 +19,7 @@ IFCCAD development now has two cooperating implementation boundaries:
 
 | Area | Implemented status | Remaining boundary |
 | --- | --- | --- |
-| Native source alpha | `2026.47.0`; profile `0.11.0`, CBOR mapping `11`, Zstd transport `1` | The native core includes tables and shared MLINE preservation. Explorer is deployed separately. |
+| Native source alpha | `2026.48.0`; profile `0.12.0`, CBOR mapping `12`, Zstd transport `1` | The native core includes external drawing sources and XREF Attach/Overlay. Explorer is deployed separately. |
 | Drawing foundations | Primitive/path geometry, shared/nested blocks, Model/Paper layouts, presentation, Text/MText, line patterns, workspace and viewport data | Native storage does not establish complete CAD mapping or rendering |
 | Hatch | Solid, line-pattern and gradient fills; source/association state; classic editing and boundary-construction records | Fill evaluation, automatic updates and shared-route coverage remain separate |
 | SOLID/TRACE | Native kinds, planar corner state and extrusion thickness | Surface and display evidence remain distinct from stored coordinates |
@@ -194,14 +194,18 @@ tested workflows.
   three layouts in the selected order to one measured PDF. The Windows print
   route produced the expected A4 output with both full bleed and 5 mm margins
   through Microsoft Print to PDF.
-- **External drawing references.** The first bounded slice is locally qualified
-  on the explicit XREF development pair: native DWG sources, URI-reference/search-
-  filename locations, Model attachment, source identity and O/X/Y placement.
-  Native/Document physical readback, desktop source editing/grips/undo/offline save,
-  and hidden Explorer source choice/reload/export passed. Native staging and
-  downstream review/integration remain separate repository actions.
-  See [external sources](docs/external-sources.md). Following slices cover other
-  source formats, nested cycles, bind and complete reference archives.
+- **External drawing references.** DWG, DXF and IFCCAD sources, URI-reference/search-
+  filename locations, Model Attach/Overlay, owning-drawing identities and O/X/Y
+  placement are implemented. Finite nesting preserves shared descendants and
+  cuts only cycle-closing relationships for the session. Source editing,
+  grip/undo/redo, automatic refresh, root-only offline save and strict physical
+  CAD/native readback passed on the paired candidate. Document #32 and Studio
+  #3651 are merged with the official Document pin. Explorer/release integration
+  now follows those exact merges; deployment is separately authorized.
+  See [external sources](docs/external-sources.md).
+  Next extend placement/ownership, then migrate SHX and CTB/STB sources to the
+  shared model. Native Bind, automatic CAD source conversion and complete
+  reference archives remain later bounded workflows.
 - **Dynamic-block retention.** Define which dependent records must survive in a
   representative drawing and verify their retention through save and reopen
   and CAD exchange. This depends on the preservation design and codec support.

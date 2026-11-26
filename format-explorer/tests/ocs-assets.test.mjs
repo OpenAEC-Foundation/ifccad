@@ -77,3 +77,18 @@ test('a host bundle with a changed worker or a different reader pin is rejected'
   await assert.rejects(build({outputRoot:dist,ocsRoot:source}),/different pinned dependencies/);
  }finally{await rm(root,{recursive:true,force:true});}
 });
+
+
+test('a bundle with matching pins but a different frozen host lock is rejected',async()=>{
+ const root=await mkdtemp(path.join(tmpdir(),'explorer-ocs-lock-')),source=path.join(root,'source'),dist=path.join(root,'dist');
+ try{
+  await mkdir(path.join(source,'worker_pkg'),{recursive:true});
+  for(const [name,body]of [['index.html','<body></body>'],['app.wasm','main'],['worker_pkg/ocs_web_worker_bg.wasm','worker']])await writeFile(path.join(source,name),body);
+  await recordBundle(source);
+  const file=path.join(source,'IFCCAD-BUILD.json'),record=JSON.parse(await readFile(file,'utf8'));
+  for(const digest of [undefined,'0'.repeat(64)]){
+   record.frozenLockSha256=digest;await writeFile(file,JSON.stringify(record));
+   await assert.rejects(build({outputRoot:dist,ocsRoot:source}),/different frozen host lock/);
+  }
+ }finally{await rm(root,{recursive:true,force:true});}
+});

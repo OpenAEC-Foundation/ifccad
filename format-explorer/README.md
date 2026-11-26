@@ -16,9 +16,9 @@ DXF/DWG export. Changing CAD output format/version does not repeat CAD import.
 
 Document structure, authored draw order, composed storage nodes, source
 contributions, stored values, relationships and full-width string identities
-remain available. The two curated examples are documented in
-[examples](../examples/README.md). Explorer serves them as `entities.ifccad`
-and `house.ifccad` with the original IFCX JSON contents. The Studio tab uses
+remain available. The three curated examples are documented in
+[examples](../examples/README.md). Explorer serves them as `entities.ifccad`,
+`house.ifccad` and `xrefs.ifccad` with the original IFCX JSON contents. The Studio tab uses
 the same example filename. Dutch/English,
 pane navigation, bounded lists, search, layer filters and settings remain local
 application state.
@@ -54,6 +54,14 @@ and exact layout; shared block contents and unconverted entities are unmapped.
 Dirty Studio original/generated tabs survive source/preview replacement. Camera
 and session survive pane navigation. Restarting the viewer is an explicit action.
 Cancellation and source changes invalidate late results and selection observations.
+
+External drawing sources appear as a separate inspector collection. The XREF
+example has DWG, DXF and IFCCAD roots, plus a native nested Attach/Overlay detail.
+Choose source files explicitly; nested choices carry their owning resource and
+source ID. A supplied resource can be reused explicitly, including the current
+drawing. Equal filenames do not bind unrelated sources. Cycle diagnostics and
+loaded geometry belong to the viewer session; authored locations stay unchanged.
+Typed non-DWG sources refuse CAD delivery until converted externally to DWG.
 
 ## Downloads and conversion boundary
 
@@ -96,8 +104,8 @@ Native core validation, composed source inspection and binary codecs remain acti
 
 ## Development and verification
 
-Explorer and its embedded Studio host use IFCCAD profile 0.11.0 and CBOR
-revision 11. Both use the official Document and acadrust revisions recorded in
+Explorer and its embedded Studio host use IFCCAD profile 0.12.0 and CBOR
+revision 12. Both use the official Document and acadrust revisions recorded in
 `ocs-source.json`. The entity catalogue includes a parts-list table with a
 merged title, text cells and integer quantities. Studio includes the merged host fixes at the recorded revision.
 
@@ -192,3 +200,18 @@ CAD export/readback, and catalogue text edit/grip with undo/redo. Saved context
 MText requests are included in the inspector inventory. Native validation and
 source preservation do not certify complete host glyph or annotation editing
 fidelity. The2026.45.1 Explorer update is delivered through the checked production workflow.
+
+## Frozen web timer dependency
+
+The official Studio source is built with the frozen `wasmtimer` 0.4.3 registry
+package and its `pin-utils` dependency. The upstream 0.4.5 lock selection stops
+both short intervals in a minimal browser-only continuity regression, without
+a drawing or renderer. The identical 0.4.3 probe continues. This integration
+therefore retains the previously working timer version explicitly in the frozen
+lockfile; no Cargo-cache edits, local source override or host source patch is used.
+The official Document, native contract and codec revisions are unchanged. The
+new host/worker assets must be rebuilt and qualified against this exact lock.
+
+The bundle record includes `frozenLockSha256`. Assembly checks it against the
+selected frozen lock as well as the main pins and asset hashes, so an old bundle
+with unchanged Document/Studio pins cannot conceal a different timer dependency.

@@ -210,15 +210,27 @@ fn catalogue_family(kind: &ifccad::IfccadEntityKind) -> Option<&'static str> {
 }
 
 #[test]
-fn xref_gallery_has_authored_views_and_four_offline_source_locations() {
+fn xref_gallery_has_authored_views_and_three_external_source_formats() {
     let loaded = ifccad::load_ifccad_bytes(
         include_bytes!("../examples/ifccad/xrefs.ifcx"),
         Default::default(),
     )
     .unwrap();
     let drawing = loaded.document();
-    assert_eq!(drawing.external_sources.len(), 4);
-    assert_eq!(drawing.model.entities.len(), 4);
+    assert_eq!(drawing.external_sources.len(), 3);
+    assert_eq!(drawing.model.entities.len(), 3);
+    assert_eq!(
+        drawing
+            .external_sources
+            .iter()
+            .map(|source| source.source.format())
+            .collect::<Vec<_>>(),
+        vec![
+            ifccad::IfccadExternalSourceFormat::Dwg,
+            ifccad::IfccadExternalSourceFormat::Dxf,
+            ifccad::IfccadExternalSourceFormat::Ifccad
+        ]
+    );
     assert!(drawing.model.entities.iter().all(|e| matches!(
         e.as_native().map(|n| &n.kind),
         Some(ifccad::IfccadEntityKind::Xref(_))

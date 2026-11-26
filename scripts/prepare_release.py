@@ -152,6 +152,8 @@ def core_package_files(package, version, allow_unused_patch=False):
                     or isinstance(spec, dict) and ('path' in spec or 'git' in spec)):
                 raise ValueError(f'non-registry dependency in native core: {name}')
     for name in files:
+        if '__pycache__' in PurePosixPath(name).parts or name.endswith(('.pyc', '.pyo')):
+            raise ValueError(f'generated Python cache in native core package: {name}')
         if name.startswith(('crates/', 'format-explorer/', 'legacy/', '.superpowers/', '.cargo/')):
             raise ValueError(f'non-core source in native core package: {name}')
     if 'Cargo.lock' not in files:
