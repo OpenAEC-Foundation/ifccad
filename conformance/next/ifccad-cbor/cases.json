@@ -1,5 +1,5 @@
 {
-  "mappingRevision": 12,
+  "mappingRevision": 13,
   "cases": [
     {
       "file": "valid/empty.ifccad.cbor",
@@ -861,6 +861,12 @@
       "file": "invalid/xref-reference-type-null.ifccad.cbor",
       "valid": false,
       "diagnostic": "invalid/xref-reference-type-null.ifccad.cbor.diag",
+      "errorClass": "Malformed"
+    },
+    {
+      "file": "invalid/xref-legacy-scale.ifccad.cbor",
+      "valid": false,
+      "diagnostic": "invalid/xref-legacy-scale.ifccad.cbor.diag",
       "errorClass": "Malformed"
     }
   ]

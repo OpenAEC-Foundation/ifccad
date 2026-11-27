@@ -6,11 +6,11 @@ import path from 'node:path';
 import {examples} from '../src/examples.mjs';
 import {build} from '../scripts/build.mjs';
 
-test('the curated set includes the entity catalogue, house and XREF source formats',async()=>{
+test('the curated set includes the entity catalogue, house and XREF placement and sources',async()=>{
  assert.equal(examples.length,3);
  for(const format of ['IFCCAD']){
   const selected=examples.filter(example=>example.format===format);
-  assert.deepEqual(selected.map(example=>example.name),['Entity catalogue','House floor plan','XREF source formats']);
+  assert.deepEqual(selected.map(example=>example.name),['Entity catalogue','House floor plan','XREF placement and sources']);
   const files=(await readdir(new URL('../../examples/'+format.toLowerCase()+'/',import.meta.url))).filter(file=>/\.(ifcx|json)$/.test(file)).sort();
   for(const example of selected){
    assert.match(example.path,/\.ifccad$/);

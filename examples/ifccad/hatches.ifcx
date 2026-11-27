@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.12.0"
+      "uri": "urn:example:ifccad:0.13.0"
     }
   ],
   "schemas": {},
@@ -26,16 +26,16 @@
         "ifccad::drawing": {
           "lengthUnit": "cm",
           "linePatternScale": 1.0,
+          "nextAnnotationScaleId": 1,
           "nextBlockId": 1,
           "nextEntityId": 5,
           "nextLayerId": 3,
           "nextLayoutId": 2,
           "nextLinePatternId": 1,
           "nextModelWindowId": 1,
-          "nextUcsId": 1,
-          "profileVersion": "0.12.0",
           "nextSymbolSourceId": 1,
-          "nextAnnotationScaleId": 1
+          "nextUcsId": 1,
+          "profileVersion": "0.13.0"
         }
       }
     },
@@ -172,10 +172,11 @@
         },
         "ifccad::hatch": {
           "areaRule": "normal",
+          "associationEnabled": true,
           "fill": {
             "kind": "solid"
           },
-          "joinTolerance": 1e-09,
+          "joinTolerance": 1e-9,
           "loops": [
             {
               "boundary": {
@@ -219,8 +220,7 @@
                 "/cad/d1/e2"
               ]
             }
-          ],
-          "associationEnabled": true
+          ]
         }
       }
     },
@@ -307,6 +307,7 @@
         },
         "ifccad::hatch": {
           "areaRule": "normal",
+          "associationEnabled": true,
           "fill": {
             "description": "Continuous and dashed/dot with signed spacing",
             "families": [
@@ -356,7 +357,7 @@
             "rotation": 0.25,
             "scale": 2.0
           },
-          "joinTolerance": 1e-09,
+          "joinTolerance": 1e-9,
           "loops": [
             {
               "boundary": {
@@ -400,8 +401,7 @@
                 "/cad/d1/e4"
               ]
             }
-          ],
-          "associationEnabled": true
+          ]
         }
       }
     },

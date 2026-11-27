@@ -218,7 +218,7 @@ fn xref_gallery_has_authored_views_and_three_external_source_formats() {
     .unwrap();
     let drawing = loaded.document();
     assert_eq!(drawing.external_sources.len(), 3);
-    assert_eq!(drawing.model.entities.len(), 3);
+    assert_eq!(drawing.model.entities.len(), 5);
     assert_eq!(
         drawing
             .external_sources
@@ -231,10 +231,22 @@ fn xref_gallery_has_authored_views_and_three_external_source_formats() {
             ifccad::IfccadExternalSourceFormat::Ifccad
         ]
     );
-    assert!(drawing.model.entities.iter().all(|e| matches!(
-        e.as_native().map(|n| &n.kind),
-        Some(ifccad::IfccadEntityKind::Xref(_))
-    )));
+    assert_eq!(
+        drawing
+            .model
+            .entities
+            .iter()
+            .filter(|e| matches!(
+                e.as_native().map(|n| &n.kind),
+                Some(ifccad::IfccadEntityKind::Xref(_))
+            ))
+            .count(),
+        3
+    );
+    assert_eq!(drawing.paper_layouts.len(), 2);
+    for name in ["LOCAL", "UNUSED"] {
+        assert!(drawing.blocks.iter().any(|b| b.name == name));
+    }
     assert!(drawing.model_view_state.is_some());
     assert!(drawing.model.bounds.is_none());
 }

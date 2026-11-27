@@ -1,10 +1,10 @@
 {
   "softwareVersion": "2026.48.0",
   "channel": "alpha",
-  "profileVersion": "0.12.0",
-  "profileImport": "urn:example:ifccad:0.12.0",
+  "profileVersion": "0.13.0",
+  "profileImport": "urn:example:ifccad:0.13.0",
   "ifcxVersion": "ifcx_alpha",
-  "cborMappingRevision": 12,
+  "cborMappingRevision": 13,
   "zstdTransportRevision": 1,
   "candidateFiles": [
     "Cargo.lock",
@@ -28,7 +28,10 @@
     "examples/ifccad/xref-source.dxf",
     "examples/ifccad/xref-source.ifccad",
     "format-explorer/tests/external-sources.test.mjs",
-    "format-explorer/tests/xref-nesting.test.mjs"
+    "format-explorer/tests/xref-nesting.test.mjs",
+    "tests/ifccad_xref_placement.rs",
+    "tests/fixtures/ifccad/xref-source-formats.ifcx",
+    "examples/ifccad/xref-source.dwg"
   ],
   "scope": "native ifccad core only"
 }

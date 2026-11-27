@@ -53,7 +53,7 @@ pub(crate) fn encode_bytes(
     w.u64(0)?;
     w.str("IFCCAD-CBOR")?;
     w.u64(1)?;
-    w.u64(12)?;
+    w.u64(13)?;
     w.u64(2)?;
     document.encode(&mut w)?;
     w.finish()
@@ -73,10 +73,10 @@ pub(crate) fn decode_bytes(
         return Err(r.error("incorrect format identifier"));
     }
     let revision: u32 = fields.take(1, None)?;
-    if revision != 12 {
+    if revision != 13 {
         return Err(IfccadCborReadError::UnsupportedRevision {
             found: revision,
-            supported: 12,
+            supported: 13,
         });
     }
     let document = fields.take(2, None)?;
@@ -143,7 +143,7 @@ mod tests {
     #[test]
     fn registry_remains_explicit() {
         let registry: serde_json::Value = serde_json::from_str(codes::MAPPING).unwrap();
-        assert_eq!(registry["mappingRevision"], 12);
+        assert_eq!(registry["mappingRevision"], 13);
     }
     #[test]
     fn unregistered_dimension_definitions_are_rejected() {

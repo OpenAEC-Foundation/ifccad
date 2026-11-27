@@ -13885,10 +13885,6 @@
           "type": "string",
           "minLength": 1
         },
-        "scale": {
-          "type": "number",
-          "exclusiveMinimum": 0
-        },
         "referenceType": {
           "type": "string",
           "enum": [
@@ -13896,11 +13892,14 @@
             "overlay"
           ],
           "default": "attach"
+        },
+        "transform": {
+          "$ref": "#/$defs/IfccadBlockTransform"
         }
       },
       "required": [
         "source",
-        "scale"
+        "transform"
       ],
       "additionalProperties": false
     }

@@ -215,3 +215,7 @@ new host/worker assets must be rebuilt and qualified against this exact lock.
 The bundle record includes `frozenLockSha256`. Assembly checks it against the
 selected frozen lock as well as the main pins and asset hashes, so an old bundle
 with unchanged Document/Studio pins cannot conceal a different timer dependency.
+
+The local XREF-placement candidate is explicitly marked development13/13; it
+uses signed XYZ block transforms and Model/Paper/local-block XREF owners.
+Public Explorer remains12 pending the combined A+B release.

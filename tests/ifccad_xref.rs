@@ -27,12 +27,15 @@ fn xref_document() -> IfccadDocument {
     entity.id = d.id_counters.allocate_entity_id().unwrap();
     entity.kind = IfccadEntityKind::Xref(IfccadXref {
         source_id: d.external_sources[0].id,
-        placement: IfccadPlacement {
-            origin: [10000., 5000., 0.],
-            x_axis: [0., 1., 0.],
-            y_axis: [-1., 0., 0.],
+        transform: IfccadBlockTransform {
+            placement: IfccadPlacement {
+                origin: [10000., 5000., 0.],
+                x_axis: [0., 1., 0.],
+                y_axis: [-1., 0., 0.],
+            },
+            rotation: 0.,
+            scale: [500.; 3],
         },
-        scale: 500.,
         reference_type: IfccadXrefReferenceType::Attach,
     });
     d.model.entities.push(IfccadEntity::Native(entity));
@@ -51,14 +54,15 @@ fn xref_placement_is_explicit_and_source_optional_on_disk() {
     };
     let point = |p: [f64; 3]| -> [f64; 3] {
         std::array::from_fn(|i| {
-            x.placement.origin[i]
-                + x.scale
-                    * (x.placement.x_axis[i] * (p[0] - 10.) + x.placement.y_axis[i] * (p[1] - 20.))
+            x.transform.placement.origin[i]
+                + x.transform.scale[0]
+                    * (x.transform.placement.x_axis[i] * (p[0] - 10.)
+                        + x.transform.placement.y_axis[i] * (p[1] - 20.))
         })
     };
     assert_eq!(point([10., 20., 0.]), [10000., 5000., 0.]);
     assert_eq!(point([12., 20., 0.]), [10000., 6000., 0.]);
-    for scale in [0., -1., f64::INFINITY, f64::NAN] {
+    for scale in [0., f64::INFINITY, f64::NAN] {
         let mut bad = d.clone();
         let IfccadEntityKind::Xref(x) = &mut bad
             .model
@@ -71,7 +75,7 @@ fn xref_placement_is_explicit_and_source_optional_on_disk() {
         else {
             panic!()
         };
-        x.scale = scale;
+        x.transform.scale = [scale; 3];
         assert!(validate_ifccad_document(&bad).is_err());
     }
     let mut bad = d.clone();
@@ -126,7 +130,7 @@ fn source_and_xref_wire_closure_and_owner_are_strict() {
     let mut bad = d.clone();
     let x = bad.model.entities.pop().unwrap();
     bad.paper_layouts = document().paper_layouts;
-    // The fixture has no Paper; a block is another disallowed owner.
+    // Local block ownership is allowed; source identity remains drawing-wide.
     bad.blocks.push(IfccadBlockDefinition {
         annotation: Default::default(),
         description: String::new(),
@@ -141,10 +145,7 @@ fn source_and_xref_wire_closure_and_owner_are_strict() {
         bounds: None,
         entities: vec![x],
     });
-    assert!(validate_ifccad_document(&bad)
-        .unwrap_err()
-        .to_string()
-        .contains("IFCCAD-XREF-002"));
+    validate_ifccad_document(&bad).unwrap();
 }
 
 #[test]

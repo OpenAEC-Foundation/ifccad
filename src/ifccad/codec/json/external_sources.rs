@@ -14,7 +14,7 @@ pub(super) struct SourceValue {
 #[serde(deny_unknown_fields)]
 struct XrefValue {
     source: String,
-    scale: f64,
+    transform: IfccadBlockTransform,
     #[serde(default, rename = "referenceType")]
     reference_type: IfccadXrefReferenceType,
 }
@@ -34,14 +34,14 @@ pub(super) fn decode_xref(
         &value.source,
         &format!("{prefix}/externalSource/"),
     )?);
-    let placement = attrs
-        .get("ifccad::geom::placement")
-        .ok_or_else(|| super::validate::problem(format!("{path} requires XREF placement")))?;
-    let placement = super::geometry::decode(placement, path)?;
+    if attrs.contains_key("ifccad::geom::placement") {
+        return Err(super::validate::problem(format!(
+            "{path} XREF placement belongs exclusively in transform"
+        )));
+    }
     Ok(IfccadEntityKind::Xref(IfccadXref {
         source_id,
-        placement,
-        scale: value.scale,
+        transform: value.transform,
         reference_type: value.reference_type,
     }))
 }

@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.12.0"
+      "uri": "urn:example:ifccad:0.13.0"
     }
   ],
   "schemas": {},
@@ -24,10 +24,10 @@
         "layer1": "/cad/d1/layer/1",
         "linePattern0": "/cad/d1/linePattern/0",
         "model": "/cad/d1/layout/1",
+        "modelWindow1": "/cad/d1/modelWindow/1",
         "paper2": "/cad/d1/layout/2",
         "paper3": "/cad/d1/layout/3",
-        "textStyle1": "/cad/d1/textStyle/1",
-        "window1": "/cad/d1/modelWindow/1"
+        "textStyle1": "/cad/d1/textStyle/1"
       },
       "attributes": {
         "ifccad::drawing": {
@@ -57,7 +57,7 @@
               "kind": "defaultFivePercent"
             }
           },
-          "profileVersion": "0.12.0"
+          "profileVersion": "0.13.0"
         },
         "ifccad::drawingWorkspace": {
           "activeLayout": "/cad/d1/layout/1",
@@ -437,6 +437,7 @@
       "children": {
         "0": "/cad/d1/e25",
         "1": "/cad/d1/e34",
+        "10": "/cad/d1/e43",
         "2": "/cad/d1/e35",
         "3": "/cad/d1/e36",
         "4": "/cad/d1/e37",
@@ -444,8 +445,7 @@
         "6": "/cad/d1/e39",
         "7": "/cad/d1/e40",
         "8": "/cad/d1/e41",
-        "9": "/cad/d1/e42",
-        "10": "/cad/d1/e43"
+        "9": "/cad/d1/e42"
       },
       "attributes": {
         "ifccad::layout": {

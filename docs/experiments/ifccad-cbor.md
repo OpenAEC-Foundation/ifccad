@@ -5,23 +5,23 @@ the existing IFCX JSON CAD profile and this standalone CBOR candidate. The
 binary file is not a general IFCX serialization and is not automatically
 readable by IFCX JSON applications. OCDraw is parked as a frozen reference outside the active workspace.
 
-The [development revision-3 contract](../../schemas/ifccad/cbor-mapping-6.md) and
-[complete field register](../../schemas/ifccad/cbor-mapping-6.json) define the
-language-neutral physical mapping. Conformance is in
-`conformance/next/ifccad-cbor`; published alpha 2026.44.0 fixes the previous
-revision-1 snapshot; 2026.44.1 fixes revision 2 and profile 0.2.0. The active
-revision-3 candidate adds primitive extrusion thickness alongside profile 0.3.0.
-This remains experimental, with no stable-format or compatibility promise.
+The [development revision-13 contract](../../schemas/ifccad/cbor-mapping-13.md)
+and [complete field register](../../schemas/ifccad/cbor-mapping-13.json) define
+the language-neutral mapping. Conformance is in `conformance/next/ifccad-cbor`.
+Published alpha2026.48.0 fixes profile0.12.0 and mapping12. The unpublished13
+candidate expands XREF transforms and owners and shares its draft with the
+separate SHX/CTB/STB source migration. It is not a new software release.
+This remains experimental, without a stable-format or compatibility promise.
 
 ## Structure and evolution
 
 The complete file is one definite-length CBOR map:
-`{0: "IFCCAD-CBOR", 1: 3, 2: Document}`. File names conventionally use
+`{0: "IFCCAD-CBOR", 1: 13, 2: Document}`. File names conventionally use
 `.ifccad.cbor`. Each record has its own small unsigned field codes; entity
 kind codes and document identities have separate meanings. Source order in
 Rust does not assign codes. The registry explicitly fixes every field/variant.
 
-The candidate reader accepts only mapping revision 3. Unknown fields, variants or
+The candidate reader accepts only mapping revision 13. Unknown fields, variants or
 revisions are errors; there is no compatibility migration or silent skipping.
 Revision 1 is published with native source alpha 2026.44.0. Later normative
 changes advance the single active mapping and fixtures under the

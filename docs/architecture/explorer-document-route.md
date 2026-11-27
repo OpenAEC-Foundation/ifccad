@@ -1,5 +1,33 @@
 # Explorer Document migration coverage
 
+## Unpublished XREF placement candidate (profile 0.13.0 / CBOR 13)
+
+Slice A uses native base `413c29e6`, Document base `b5925f27` and Studio
+`5eb21f03`, with explicit local native/Document patches in the descriptor.
+Canonical codec is `e65e7d8b`. These are development bases, not claims of
+unmodified upstream support. Qualification is recorded separately; public
+Explorer and the released2026.48.0 contract remain12.
+
+The new native transform reuses BlockInstance semantics, with signed finite
+nonzero XYZ scale, owner frame and rotation in radians. It maps to CAD INSERT
+OCS through the ordinary block placement helpers. XREFs in Model, Paper layouts
+and local blocks share drawing-local sources. Native preserving saves retain
+IDs; CAD Attach/Overlay aliases are separate definitions without native context.
+FileDepList emits one identity record per native source, counting all owners.
+Loaded dependent definitions remain session-only. Source Paper does not travel.
+Inspector enumeration includes unused local definitions and both Paper owners.
+Document's existing numerical assessment remains unassessed; this does not add
+a general world-error proof for externally loaded geometry or affine edits.
+
+Codec public-model changes since the released pair include SurfaceRoundTrip,
+OLE envelope corners and Civil extensions. INSERT's model is unchanged; physical
+XREF tests target the selected codec. This contribution does not qualify those
+unrelated new model families or silently extend their conversion coverage.
+
+Slice B (shared SHX/CTB/STB sources) is separate work in the same unpublished
+contract. No standalone slice-A release or public Explorer deployment is planned.
+
+
 ## XREF development pair (profile 0.12.0 / CBOR 12)
 
 The nesting/overlay candidate layers local changes on native `cd79dfc8`,

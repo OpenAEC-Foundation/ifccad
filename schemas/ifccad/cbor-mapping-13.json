@@ -1,6 +1,6 @@
 {
   "format": "IFCCAD-CBOR",
-  "mappingRevision": 12,
+  "mappingRevision": 13,
   "rootType": "IfccadDocument",
   "types": {
     "IfccadDocument": {
@@ -20994,14 +20994,8 @@
         },
         {
           "code": 1,
-          "name": "placement",
-          "type": "IfccadPlacement",
-          "presence": "required"
-        },
-        {
-          "code": 2,
-          "name": "scale",
-          "type": "f64",
+          "name": "transform",
+          "type": "IfccadBlockTransform",
           "presence": "required"
         },
         {
@@ -21014,9 +21008,8 @@
         }
       ],
       "dependencies": [
+        "IfccadBlockTransform",
         "IfccadExternalSourceId",
-        "IfccadPlacement",
-        "f64",
         "IfccadXrefReferenceType"
       ]
     },

@@ -20,6 +20,7 @@ export function createInspection(result,sourceText=''){
    nodeRoots.push(n.key);
   }
   for(const [i,fragment] of (source?.data||[]).entries())nodes.get(fragment.path)?.fragments.push({index:i,value:fragment});
+  for(const placement of p.xrefs||[]){const n=nodes.get(placement.entityPath);if(n)n.derived=placement;}
   for(const dimension of p.dimensions||[]){const n=nodes.get(dimension.path);if(n)n.derived=dimension.geometry||dimension;}
   for(const leader of p.leaders||[]){const n=nodes.get(leader.path);if(n)n.derived=leader;}
   for(const assessment of p.boundsCompleteness||[]){const n=nodes.get(assessment.scopePath);if(n)n.values={...n.values,boundsAssessment:assessment};}

@@ -200,11 +200,12 @@ tested workflows.
   cuts only cycle-closing relationships for the session. Source editing,
   grip/undo/redo, automatic refresh, root-only offline save and strict physical
   CAD/native readback passed on the paired candidate. Document #32 and Studio
-  #3651 are merged with the official Document pin. Explorer/release integration
-  now follows those exact merges; deployment is separately authorized.
+  #3651 are merged with the official Document pin. Release2026.48.0 and the publicExplorer integrate those official merges;
+  the placement candidate below is a separate unpublished draft.
   See [external sources](docs/external-sources.md).
-  Next extend placement/ownership, then migrate SHX and CTB/STB sources to the
-  shared model. Native Bind, automatic CAD source conversion and complete
+  The active slice A extends placement/ownership in the unpublished13/13 draft.
+  Slice B will migrate SHX and CTB/STB sources separately in that same draft,
+  with one combined release after both qualify. Native Bind, automatic CAD source conversion and complete
   reference archives remain later bounded workflows.
 - **Dynamic-block retention.** Define which dependent records must survive in a
   representative drawing and verify their retention through save and reopen

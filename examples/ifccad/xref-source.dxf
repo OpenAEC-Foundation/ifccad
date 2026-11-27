@@ -17,7 +17,7 @@ ANSI_1252
   9
 $HANDSEED
   5
-4C
+36
   9
 $INSBASE
  10
@@ -29,19 +29,19 @@ $INSBASE
   9
 $EXTMIN
  10
-10.0
+1.0000000000000000e20
  20
-20.0
+1.0000000000000000e20
  30
-0.0
+1.0000000000000000e20
   9
 $EXTMAX
  10
-12.0
+-1.0000000000000000e20
  20
-20.0
+-1.0000000000000000e20
  30
-0.0
+-1.0000000000000000e20
   9
 $LIMMIN
  10
@@ -61,7 +61,7 @@ $ORTHOMODE
   9
 $OSMODE
  70
-    63
+     0
   9
 $REGENMODE
  70
@@ -661,19 +661,19 @@ $PSTYLEMODE
   9
 $TDCREATE
  40
-2461365.030300926
+0.0
   9
 $TDUCREATE
  40
-2461364.9886342594
+0.0
   9
 $TDUPDATE
  40
-2461365.030300926
+0.0
   9
 $TDUUPDATE
  40
-2461364.9886342594
+0.0
   9
 $TDINDWG
  40
@@ -743,7 +743,7 @@ ObjectDBX Classes
  90
      0
  91
-     6
+     0
 280
 0
 281
@@ -807,7 +807,7 @@ ObjectDBX Classes
  90
      0
  91
-    14
+     0
 280
 0
 281
@@ -825,7 +825,7 @@ AcDbSubDMesh|Description: ACAD subD mesh
  91
      0
 280
-1
+0
 281
 1
   0
@@ -841,7 +841,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -857,7 +857,7 @@ WipeOut|ACAD Express Tool|www.autodesk.com
  91
      0
 280
-1
+0
 281
 1
   0
@@ -873,7 +873,7 @@ ISM
  91
      0
 280
-1
+0
 281
 1
   0
@@ -889,7 +889,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -905,7 +905,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -921,7 +921,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -937,7 +937,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -953,7 +953,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -969,7 +969,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -985,7 +985,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1001,7 +1001,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1017,7 +1017,7 @@ ACDB_MLEADER_CLASS
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1033,7 +1033,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1049,7 +1049,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1065,7 +1065,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1081,7 +1081,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1097,7 +1097,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1113,7 +1113,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1129,7 +1129,7 @@ ACAD Express Tools
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1145,7 +1145,7 @@ ACAD Express Tools
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1161,7 +1161,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1177,7 +1177,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1193,7 +1193,7 @@ AcDbPointCloudObj
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1209,7 +1209,7 @@ AcDbPointCloudObj
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1225,7 +1225,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1241,7 +1241,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1257,7 +1257,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1273,7 +1273,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1289,7 +1289,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1305,7 +1305,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1321,7 +1321,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1337,7 +1337,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1353,7 +1353,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1369,7 +1369,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1385,7 +1385,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1401,7 +1401,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1417,7 +1417,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1433,7 +1433,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1449,7 +1449,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1465,7 +1465,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1481,7 +1481,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -1497,7 +1497,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1545,7 +1545,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1609,7 +1609,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1625,7 +1625,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1641,7 +1641,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1657,7 +1657,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1673,7 +1673,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1689,7 +1689,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1705,7 +1705,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1721,7 +1721,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1729,7 +1729,7 @@ CLASS
   1
 ACDBASSOCASMBODYACTIONPARAM
   2
-AcDbAssocAsmbodyActionParam
+AcDbAssocAsmBodyActionParam
   3
 ObjectDBX Classes
  90
@@ -1737,7 +1737,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1753,7 +1753,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1769,7 +1769,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1785,7 +1785,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1801,7 +1801,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1817,7 +1817,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1833,7 +1833,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1849,7 +1849,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1865,7 +1865,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1881,7 +1881,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1897,7 +1897,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1913,7 +1913,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1929,7 +1929,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1945,7 +1945,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1961,7 +1961,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1977,7 +1977,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -1993,7 +1993,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2009,7 +2009,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2025,7 +2025,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2041,7 +2041,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2057,7 +2057,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2073,7 +2073,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2089,7 +2089,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2105,7 +2105,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2121,7 +2121,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2137,7 +2137,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2153,7 +2153,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2169,7 +2169,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2185,7 +2185,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2201,7 +2201,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2217,7 +2217,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2233,7 +2233,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2249,7 +2249,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2265,7 +2265,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2281,7 +2281,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2297,7 +2297,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2313,7 +2313,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2329,7 +2329,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2345,7 +2345,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2361,7 +2361,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2377,7 +2377,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2393,7 +2393,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2409,7 +2409,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2425,7 +2425,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2441,7 +2441,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2457,7 +2457,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2473,7 +2473,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2489,7 +2489,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2505,7 +2505,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2521,7 +2521,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2537,7 +2537,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2553,7 +2553,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2569,7 +2569,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2585,7 +2585,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2601,7 +2601,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2617,7 +2617,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2633,7 +2633,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2649,7 +2649,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2665,7 +2665,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2681,7 +2681,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2697,7 +2697,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2713,7 +2713,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2729,7 +2729,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2745,7 +2745,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2761,7 +2761,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2777,7 +2777,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2793,7 +2793,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2809,7 +2809,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2825,7 +2825,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2841,7 +2841,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2857,7 +2857,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2873,7 +2873,7 @@ AcMeServices
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2889,7 +2889,7 @@ AcMeServices
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2905,7 +2905,7 @@ AcMeServices
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2921,7 +2921,7 @@ CDocDataContainer
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2937,7 +2937,7 @@ CIrdDscDict
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2953,7 +2953,7 @@ CIrdDscRecord
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2969,7 +2969,7 @@ CIrdObjRecord
  91
      0
 280
-1
+0
 281
 0
   0
@@ -2985,7 +2985,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3001,7 +3001,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3017,7 +3017,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3033,7 +3033,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3049,7 +3049,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3065,7 +3065,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3081,7 +3081,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3097,7 +3097,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3113,7 +3113,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3129,7 +3129,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3145,7 +3145,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3161,7 +3161,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3177,7 +3177,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3193,7 +3193,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3209,7 +3209,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3225,7 +3225,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3241,7 +3241,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3257,7 +3257,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3273,7 +3273,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3289,7 +3289,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3305,7 +3305,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3321,7 +3321,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3337,7 +3337,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3353,7 +3353,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3369,7 +3369,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3385,7 +3385,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3401,7 +3401,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3417,7 +3417,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3433,7 +3433,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3449,7 +3449,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3465,7 +3465,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3481,7 +3481,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3497,7 +3497,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3513,7 +3513,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3529,7 +3529,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3545,7 +3545,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3561,7 +3561,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3577,7 +3577,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3593,7 +3593,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3609,7 +3609,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3625,7 +3625,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3641,7 +3641,7 @@ SCENEOE
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3657,7 +3657,7 @@ AcDbPointCloudObj
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3673,7 +3673,7 @@ AcDbPointCloudObj
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3689,7 +3689,7 @@ AcDbPointCloudObj
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3705,7 +3705,7 @@ AcDbPointCloudObj
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3721,7 +3721,7 @@ AcDbPointCloudObj
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3737,7 +3737,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3753,7 +3753,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3769,7 +3769,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3785,7 +3785,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3801,7 +3801,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3817,7 +3817,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3833,7 +3833,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3849,7 +3849,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3865,7 +3865,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -3881,7 +3881,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3897,7 +3897,7 @@ AecArchBase
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3913,7 +3913,7 @@ EXAC_ESW
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3929,7 +3929,7 @@ EXAC_ESW
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3945,7 +3945,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3961,7 +3961,7 @@ DgnLS
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3977,7 +3977,7 @@ DgnLS
  91
      0
 280
-1
+0
 281
 0
   0
@@ -3993,7 +3993,7 @@ DgnLS
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4009,7 +4009,7 @@ DgnLS
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4025,7 +4025,7 @@ DgnLS
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4041,7 +4041,7 @@ DgnLS
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4057,7 +4057,7 @@ NanoSPDS
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4073,7 +4073,7 @@ NanoSPDS
  91
      0
 280
-1
+0
 281
 1
   0
@@ -4089,7 +4089,7 @@ NanoSPDS
  91
      0
 280
-1
+0
 281
 1
   0
@@ -4105,7 +4105,7 @@ NanoSPDS
  91
      0
 280
-1
+0
 281
 1
   0
@@ -4121,7 +4121,7 @@ NanoSPDS
  91
      0
 280
-1
+0
 281
 1
   0
@@ -4137,7 +4137,7 @@ NanoSPDS
  91
      0
 280
-1
+0
 281
 1
   0
@@ -4153,7 +4153,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -4169,7 +4169,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 1
   0
@@ -4185,7 +4185,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4201,7 +4201,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4217,7 +4217,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4233,7 +4233,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4249,7 +4249,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4265,7 +4265,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4281,7 +4281,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4297,7 +4297,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4313,7 +4313,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4329,7 +4329,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4345,7 +4345,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4361,7 +4361,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4377,7 +4377,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4393,7 +4393,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4409,7 +4409,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4425,7 +4425,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4457,7 +4457,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4473,7 +4473,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4503,9 +4503,9 @@ ObjectDBX Classes
  90
   1025
  91
-     1
+     0
 280
-1
+0
 281
 0
   0
@@ -4521,7 +4521,7 @@ AcDsData
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4537,7 +4537,7 @@ AcDsData
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4551,9 +4551,9 @@ ObjectDBX Classes
  90
      0
  91
-     1
+     0
 280
-1
+0
 281
 0
   0
@@ -4569,7 +4569,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4585,7 +4585,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4601,7 +4601,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4617,7 +4617,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4633,7 +4633,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4649,7 +4649,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4665,7 +4665,7 @@ OdDbPartialViewing|https://www.opendesign.com Teigha(R) Core Db
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4681,7 +4681,7 @@ WipeOut|ACAD Express Tool|www.autodesk.com
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4697,7 +4697,7 @@ AcDbDimAssoc|Product Desc:     AcDim ARX App For Dimension|Company:          Aut
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4713,7 +4713,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4729,7 +4729,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4745,7 +4745,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4761,7 +4761,7 @@ NanoSPDS
  91
      0
 280
-1
+0
 281
 1
   0
@@ -4777,7 +4777,7 @@ ISM
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4793,7 +4793,7 @@ ISM
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4809,7 +4809,7 @@ ISM
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4825,7 +4825,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4841,7 +4841,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4857,7 +4857,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4873,7 +4873,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4889,7 +4889,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4905,7 +4905,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4921,7 +4921,7 @@ ObjectDBX Classes
  91
      0
 280
-1
+0
 281
 0
   0
@@ -4937,7 +4937,7 @@ ObjectDBX Classes
  91
      1
 280
-1
+0
 281
 0
   0
@@ -5021,7 +5021,7 @@ AcDbViewportTableRecord
  50
 0.0
  51
--0.0
+0.0
  71
      0
  72
@@ -5655,6 +5655,56 @@ AcDbLine
  31
 0.0
   0
+CIRCLE
+  5
+33
+330
+15
+100
+AcDbEntity
+  8
+0
+100
+AcDbCircle
+ 10
+11.0
+ 20
+21.0
+ 30
+0.0
+ 40
+0.5
+  0
+TEXT
+  5
+34
+330
+15
+100
+AcDbEntity
+  8
+0
+100
+AcDbText
+ 10
+10.0
+ 20
+22.0
+ 30
+0.0
+ 40
+0.5
+  1
+XREF
+  7
+Standard
+ 72
+     0
+100
+AcDbText
+ 73
+     0
+  0
 ENDSEC
   0
 SECTION
@@ -5716,14 +5766,6 @@ ACAD_TABLESTYLE
 AcDbVariableDictionary
 350
 31
-  3
-ACAD_SCALELIST
-350
-33
-  3
-ACDB_RECOMPOSE_DATA
-350
-4A
   0
 DICTIONARY
   5
@@ -5897,13 +5939,13 @@ Standard
  62
    256
   6
-ByLayer
+BYLAYER
  49
 -0.5
  62
    256
   6
-ByLayer
+BYLAYER
   0
 MLEADERSTYLE
   5
@@ -6008,12 +6050,6 @@ TABLESTYLE
 {ACAD_REACTORS
 330
 2A
-102
-}
-102
-{ACAD_XDICTIONARY
-360
-48
 102
 }
 330
@@ -6202,6 +6238,12 @@ Standard
 LAYOUT
   5
 2E
+102
+{ACAD_REACTORS
+330
+23
+102
+}
 330
 23
 100
@@ -6328,6 +6370,12 @@ Model
 LAYOUT
   5
 2F
+102
+{ACAD_REACTORS
+330
+23
+102
+}
 330
 23
 100
@@ -6474,1140 +6522,6 @@ AcDbDictionary
 0
 281
 1
-  3
-CANNOSCALE
-350
-42
-  3
-CTABLESTYLE
-350
-43
-  3
-CMLEADERSTYLE
-350
-44
-  3
-SKPOLY
-350
-45
-  3
-SKETCHINC
-350
-46
-  3
-SKTOLERANCE
-350
-47
-  0
-DICTIONARY
-  5
-33
-330
-C
-100
-AcDbDictionary
-280
-0
-281
-1
-  3
-1:1000
-350
-34
-  3
-1:500
-350
-35
-  3
-1:200
-350
-36
-  3
-1:100
-350
-37
-  3
-1:50
-350
-38
-  3
-1:25
-350
-39
-  3
-1:20
-350
-3A
-  3
-1:10
-350
-3B
-  3
-1:5
-350
-3C
-  3
-1:2
-350
-3D
-  3
-1:1
-350
-3E
-  3
-2:1
-350
-3F
-  3
-5:1
-350
-40
-  3
-10:1
-350
-41
-  0
-SCALE
-  5
-34
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-1:1000
-140
-1.0
-141
-1.0
-290
-     1
-  0
-SCALE
-  5
-35
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-1:500
-140
-1.0
-141
-0.5
-290
-     0
-  0
-SCALE
-  5
-36
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-1:200
-140
-1.0
-141
-0.2
-290
-     0
-  0
-SCALE
-  5
-37
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-1:100
-140
-1.0
-141
-0.1
-290
-     0
-  0
-SCALE
-  5
-38
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-1:50
-140
-1.0
-141
-0.05
-290
-     0
-  0
-SCALE
-  5
-39
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-1:25
-140
-1.0
-141
-0.025
-290
-     0
-  0
-SCALE
-  5
-3A
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-1:20
-140
-1.0
-141
-0.02
-290
-     0
-  0
-SCALE
-  5
-3B
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-1:10
-140
-1.0
-141
-0.01
-290
-     0
-  0
-SCALE
-  5
-3C
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-1:5
-140
-1.0
-141
-0.005
-290
-     0
-  0
-SCALE
-  5
-3D
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-1:2
-140
-1.0
-141
-0.002
-290
-     0
-  0
-SCALE
-  5
-3E
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-1:1
-140
-1.0
-141
-0.001
-290
-     0
-  0
-SCALE
-  5
-3F
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-2:1
-140
-2.0
-141
-1.0
-290
-     0
-  0
-SCALE
-  5
-40
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-5:1
-140
-5.0
-141
-1.0
-290
-     0
-  0
-SCALE
-  5
-41
-330
-33
-100
-AcDbScale
- 70
-     0
-300
-10:1
-140
-10.0
-141
-1.0
-290
-     0
-  0
-DICTIONARYVAR
-  5
-42
-102
-{ACAD_REACTORS
-330
-31
-102
-}
-330
-31
-100
-DictionaryVariables
-280
-0
-  1
-1:1000
-  0
-DICTIONARYVAR
-  5
-43
-102
-{ACAD_REACTORS
-330
-31
-102
-}
-330
-31
-100
-DictionaryVariables
-280
-0
-  1
-Standard
-  0
-DICTIONARYVAR
-  5
-44
-102
-{ACAD_REACTORS
-330
-31
-102
-}
-330
-31
-100
-DictionaryVariables
-280
-0
-  1
-Standard
-  0
-DICTIONARYVAR
-  5
-45
-102
-{ACAD_REACTORS
-330
-31
-102
-}
-330
-31
-100
-DictionaryVariables
-280
-0
-  1
-0
-  0
-DICTIONARYVAR
-  5
-46
-102
-{ACAD_REACTORS
-330
-31
-102
-}
-330
-31
-100
-DictionaryVariables
-280
-0
-  1
-0.1
-  0
-DICTIONARYVAR
-  5
-47
-102
-{ACAD_REACTORS
-330
-31
-102
-}
-330
-31
-100
-DictionaryVariables
-280
-0
-  1
-0.5
-  0
-DICTIONARY
-  5
-48
-330
-2D
-100
-AcDbDictionary
-280
-1
-281
-1
-  3
-ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP
-360
-49
-  0
-CELLSTYLEMAP
-  5
-49
-102
-{ACAD_REACTORS
-330
-48
-102
-}
-330
-48
-100
-AcDbCellStyleMap
- 90
-     3
-300
-CELLSTYLE
-  1
-TABLEFORMAT_BEGIN
- 90
-     5
-170
-     1
- 91
-     0
- 92
- 32768
- 62
-   257
- 93
-     1
-300
-CONTENTFORMAT
-  1
-CONTENTFORMAT_BEGIN
- 90
-     0
- 91
-     0
- 92
-   512
- 93
-     0
-300
-
- 40
-0.0
-140
-1.0
- 94
-     5
- 62
-     0
-340
-14
-144
-0.25
-309
-CONTENTFORMAT_END
-171
-     1
-301
-MARGIN
-  1
-CELLMARGIN_BEGIN
- 40
-0.06
- 40
-0.06
- 40
-0.06
- 40
-0.06
- 40
-0.18
- 40
-0.18
-309
-CELLMARGIN_END
- 94
-     6
- 95
-     1
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-     2
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-     4
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-     8
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-    16
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-    32
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
-309
-TABLEFORMAT_END
-  1
-CELLSTYLE_BEGIN
- 90
-     1
- 91
-     1
-300
-_TITLE
-309
-CELLSTYLE_END
-300
-CELLSTYLE
-  1
-TABLEFORMAT_BEGIN
- 90
-     5
-170
-     1
- 91
-     0
- 92
-     0
- 62
-   257
- 93
-     1
-300
-CONTENTFORMAT
-  1
-CONTENTFORMAT_BEGIN
- 90
-     0
- 91
-     0
- 92
-   512
- 93
-     0
-300
-
- 40
-0.0
-140
-1.0
- 94
-     5
- 62
-     0
-340
-14
-144
-0.25
-309
-CONTENTFORMAT_END
-171
-     1
-301
-MARGIN
-  1
-CELLMARGIN_BEGIN
- 40
-0.06
- 40
-0.06
- 40
-0.06
- 40
-0.06
- 40
-0.18
- 40
-0.18
-309
-CELLMARGIN_END
- 94
-     6
- 95
-     1
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-     2
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-     4
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-     8
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-    16
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-    32
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
-309
-TABLEFORMAT_END
-  1
-CELLSTYLE_BEGIN
- 90
-     2
- 91
-     1
-300
-_HEADER
-309
-CELLSTYLE_END
-300
-CELLSTYLE
-  1
-TABLEFORMAT_BEGIN
- 90
-     5
-170
-     1
- 91
-     0
- 92
-     0
- 62
-   257
- 93
-     1
-300
-CONTENTFORMAT
-  1
-CONTENTFORMAT_BEGIN
- 90
-     0
- 91
-     0
- 92
-   512
- 93
-     0
-300
-
- 40
-0.0
-140
-1.0
- 94
-     2
- 62
-     0
-340
-14
-144
-0.18
-309
-CONTENTFORMAT_END
-171
-     1
-301
-MARGIN
-  1
-CELLMARGIN_BEGIN
- 40
-0.06
- 40
-0.06
- 40
-0.06
- 40
-0.06
- 40
-0.18
- 40
-0.18
-309
-CELLMARGIN_END
- 94
-     6
- 95
-     1
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-     2
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-     4
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-     8
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-    16
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
- 95
-    32
-302
-GRIDFORMAT
-  1
-GRIDFORMAT_BEGIN
- 90
-     0
- 91
-     1
- 62
-     0
- 92
-    -2
-340
-0
- 93
-     0
- 40
-0.0
-309
-GRIDFORMAT_END
-309
-TABLEFORMAT_END
-  1
-CELLSTYLE_BEGIN
- 90
-     3
- 91
-     2
-300
-_DATA
-309
-CELLSTYLE_END
-  0
-XRECORD
-  5
-4A
-102
-{ACAD_REACTORS
-330
-C
-102
-}
-330
-C
-100
-AcDbXrecord
-280
-1
- 90
-     1
-330
-2D
   0
 ENDSEC
   0

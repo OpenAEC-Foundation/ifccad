@@ -1,18 +1,11 @@
-# Official XREF integration inputs
+# Local XREF placement integration inputs
 
-Explorer embeds official Studio merge `0ca42af051bfdf808f8824e15132c8504dbab331`
-(PR #3651), selecting official Document merge `1db213a7babde93b64a4887fd6ba441f0177b00d`
-(PR #32), canonical acadrust `b0b768cee674c28bac63c75cbd5638b894f33f23` and staged
-native contract `785590abb669c38afb700b339d36cc8cc0c18161`. Exact identities are
-recorded in ../ocs-source.json. No local host patch or development override is
-required. The frozen lock starts from the official Studio merge lock and applies
-the explicit web timer correction described below. The Explorer workspace uses
-its intentional local core patch to share one typed model with Document; its
-contract matches the host.
-
-Run scripts/prepare_explorer_ocs.py against the exact official checkout before
-building. Record and verify the actual host/worker bundle; previous development
-bundles are historical evidence and are not relabeled as this candidate.
+This slice-A development pair uses Studio5eb21f03, Documentb5925f27 and
+native413c29e6 plus explicit local patches identified in ../ocs-source.json.
+Those base commits alone do not implement profile13. No public deployment or
+release is authorized; slice B will share the same unpublished13/13 draft.
+The frozen lock and bundle record must match this actual pair before local
+browser qualification. Native staging and official downstream pins follow review.
 
 ## Frozen web timer dependency
 

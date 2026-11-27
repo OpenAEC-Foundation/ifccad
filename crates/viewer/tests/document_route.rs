@@ -9,14 +9,14 @@ use serde_json::Value;
 #[test]
 fn capabilities_identify_the_selected_native_contract() {
     let caps = viewer::document_capabilities();
-    assert_eq!(caps["ifccad"]["profileVersion"], "0.12.0");
-    assert_eq!(caps["ifccad"]["cborMappingRevision"], 12);
+    assert_eq!(caps["ifccad"]["profileVersion"], "0.13.0");
+    assert_eq!(caps["ifccad"]["cborMappingRevision"], 13);
     let pins: Value =
         serde_json::from_str(include_str!("../../../format-explorer/ocs-source.json")).unwrap();
     let revision = pins["explorerDocumentCommit"].as_str().unwrap();
     assert_eq!(caps["ifccad"]["revision"], revision);
-    assert_eq!(caps["ifccad"]["revisionKind"], "gitRevision");
-    assert!(caps["ifccad"].get("developmentPatch").is_none());
+    assert_eq!(caps["ifccad"]["revisionKind"], "developmentPatch");
+    assert_eq!(caps["ifccad"]["developmentPatch"], pins["localDevelopment"]);
     assert!(include_str!("../Cargo.toml").contains(&format!("rev = \"{revision}\"")));
 }
 

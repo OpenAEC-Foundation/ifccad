@@ -6,17 +6,23 @@ The Explorer offers an entity catalogue, a floor plan and an XREF gallery:
 | --- | --- |
 | `ifccad/entities.ifcx` | Selected examples of the native entity families, including Leader, MultiLeader, Tolerance, an open cubic spline and a compact parts-list table with a merged title. It includes three Hatch fills, all nine Dimension kinds, layers, text and SHX symbol line patterns, blocks with attributes and an A3 Paper viewport. |
 | `ifccad/house.ifcx` | A fictitious 10000 x 12000 mm ground floor with wall hatching, actual openings, repeated door/window/furniture blocks, room labels, dimensions, north arrow and an A3 sheet at 1:100. |
-| `ifccad/xrefs.ifcx` | Three Model attachments use DWG, DXF and IFCCAD sources. Select the corresponding `xref-source.dwg`, `.dxf` or `.ifccad` for its source in Explorer. Desktop loads them beside the main drawing. Typed non-DWG sources explicitly block whole-drawing DWG/DXF export. |
+| `ifccad/xrefs.ifcx` | Model, Paper and local-block placements use DWG, DXF and IFCCAD sources. Select the corresponding `xref-source.dwg`, `.dxf` or `.ifccad` for its source in Explorer. Desktop loads them beside the main drawing. Typed non-DWG sources explicitly block whole-drawing DWG/DXF export. |
 
-The three synthetic sources use metres. DWG/DXF use INSBASE `(10,20,0)`;
-IFCCAD uses the native origin `(0,0,0)`. The millimetre host applies a
-90-degree Z rotation and effective scale 500 once. Left to right: DWG, DXF,
-IFCCAD, each displaying a 1000 mm line. These production-written sources are
-bounded development fixtures, not externally authored interoperability evidence.
-The gallery is stored with compact IDs and production writer node order;
-`normalize_ifccad_examples` reproduces that normalization. Document's older
-`xref_review` recipe reproduces the first-slice DWG seed and four-location
-project, not this three-format gallery; do not overwrite it with that recipe.
+The unpublished13 gallery combines three source formats with signed nonuniform
+XYZ scale, an oblique owner frame, two Paper attachments and a local block
+placed twice. `UNUSED` retains an unplaced XREF definition. DWG/DXF sources
+contain a line, circle and text at INSBASE `(10,20,0)`; the native source retains
+its nested detail and origin-based semantics. The isometric Model view shows
+the direct placements and repeated block occurrences. Paper layouts A3 and
+Letter each have one direct Overlay; source Paper never propagates.
+
+Source IDs are drawing-wide. Effective scale is already authored; no second
+metre-to-centimetre unit factor is applied. Select the matching source file in
+Explorer. Typed non-DWG sources still refuse whole-drawing CAD delivery. These
+production-written sources are bounded development fixtures, not external
+interoperability evidence. The separate slice-A review package also includes
+physicalDWG/DXF counterparts of the mixed-owner native drawing.
+
 Location variants and unsupported URIs retain their focused conformance cases.
 
 Both open with an authored Model view. Their Paper tabs contain locked orthographic

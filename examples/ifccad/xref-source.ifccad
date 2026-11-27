@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.12.0"
+      "uri": "urn:example:ifccad:0.13.0"
     }
   ],
   "schemas": {},
@@ -73,7 +73,7 @@
               "kind": "defaultFivePercent"
             }
           },
-          "profileVersion": "0.12.0"
+          "profileVersion": "0.13.0"
         },
         "ifccad::drawingWorkspace": {
           "activeLayout": "/cad/d1/layout/1",
@@ -1102,26 +1102,32 @@
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
         },
-        "ifccad::geom::placement": {
-          "origin": [
-            0.5,
-            0.5,
-            0
-          ],
-          "xAxis": [
-            1,
-            0,
-            0
-          ],
-          "yAxis": [
-            0,
-            1,
-            0
-          ]
-        },
         "ifccad::xref": {
           "source": "/cad/d1/externalSource/1",
-          "scale": 1.0
+          "transform": {
+            "placement": {
+              "origin": [
+                0.5,
+                0.5,
+                0
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ],
+              "yAxis": [
+                0,
+                1,
+                0
+              ]
+            },
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          }
         }
       }
     },
@@ -1131,27 +1137,33 @@
         "ifccad::entity": {
           "layer": "/cad/d1/layer/0"
         },
-        "ifccad::geom::placement": {
-          "origin": [
-            1.2,
-            0.5,
-            0
-          ],
-          "xAxis": [
-            1,
-            0,
-            0
-          ],
-          "yAxis": [
-            0,
-            1,
-            0
-          ]
-        },
         "ifccad::xref": {
           "source": "/cad/d1/externalSource/1",
-          "scale": 1.0,
-          "referenceType": "overlay"
+          "referenceType": "overlay",
+          "transform": {
+            "placement": {
+              "origin": [
+                1.2,
+                0.5,
+                0
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ],
+              "yAxis": [
+                0,
+                1,
+                0
+              ]
+            },
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          }
         }
       }
     }

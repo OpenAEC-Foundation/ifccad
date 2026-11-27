@@ -50,6 +50,11 @@ optional native Zstd transport revision 1. Those tagged contracts are fixed.
 Release 2026.48.0 adds drawing sources, XREF Attach/Overlay and the
 qualified nesting workflow in profile 0.12.0 and CBOR 12. See the
 [release notes](docs/releases/2026.48.0.md).
+The unpublished profile 0.13.0 / CBOR 13 draft expands XREF placement to
+signed nonuniform XYZ scales, oblique owner frames and Paper/local-block
+ownership. It shares one future release with the separately implemented
+SHX/CTB/STB source migration; public Explorer remains on the released contract.
+See the [external-source contract](docs/external-sources.md).
 Release 2026.46.1 adds native tables and shared MLINE preservation in profile
 0.10.0 and CBOR mapping 10. See the [release notes](docs/releases/2026.46.1.md).
 Release 2026.46.0 adds the [Leader family](docs/leaders.md) and native splines

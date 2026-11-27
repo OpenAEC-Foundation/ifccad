@@ -36,11 +36,12 @@ jobs:
           compatible = (
               core["profileVersion"] == explorer["profile"]
               and core["cborMappingRevision"] == explorer["cborRevision"]
+              and not explorer.get("localDevelopment")
           )
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:
               print("explorer=" + str(compatible).lower(), file=output)
           if not compatible:
-              print("::notice::Explorer build deferred until its pins match the native contract.")
+              print("::notice::Explorer build deferred until official pins match the native contract and the local draft is retired.")
           PY
 
   browser-wasm:

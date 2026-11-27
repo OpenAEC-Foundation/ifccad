@@ -1,4 +1,4 @@
-# IFCCAD supplemental profile rules 0.12.0
+# IFCCAD supplemental profile rules 0.13.0
 
 ## External drawing sources and XREF
 
@@ -24,21 +24,25 @@ independent of the location's filename extension. These descriptors do not by
 themselves qualify resolution, recursive references or CAD export.
 Unknown fields and present nulls are invalid in every record/variant.
 
-`IFCCAD-XREF-001` requires exactly one XREF payload with a same-drawing
-`source` path resolving to an external source, positive finite `scale` and
-the ordinary orthonormal O/X/Y placement. X/Y describe rotation about Z,
-with positive Z cross-product. Effective scale includes any unit conversion
-once. The optional `referenceType` is `attach` (default when omitted) or
-`overlay`; null and other values are invalid. This is an XREF relationship
-property, independent of the external-source descriptor. Direct overlays are
-visible in their owner; when that owner is itself referenced, its overlays
-are excluded while its attachments propagate. File graph traversal and
-session-only cycle interruption belong to the host, not core validation.
-The source base point is subtracted before scale and placement.
-`IFCCAD-XREF-002` restricts this slice to Model ownership; Paper and local
-block definitions cannot own XREF entities. External bytes are not required
-for validity. Full scope bounds remain unavailable under the ordinary bounds
-rules even alongside local geometry.
+`IFCCAD-XREF-001` requires a same-drawing `source` reference and a
+`transform` using the ordinary BlockInstance transform contract: orthonormal
+O/X/Y placement in owner coordinates, finite rotation in radians and three
+finite nonzero signed effective scale factors. The transform is applied to
+source coordinates relative to the stored source base point. No filesystem IO,
+implicit unit conversion or transform normalization occurs.
+
+Model, Paper layouts and local block definitions may own XREF entities. Source
+records stay drawing-owned; visible occurrences do not allocate new stored
+entities or sources. The old separate geom::placement and scalar scale are
+rejected. CBOR key2 in the XREF record is reserved and rejected.
+
+`referenceType` is optional attach (default) or overlay; explicit null is
+invalid. Overlay propagation is cut at an external drawing boundary, including
+relations reached through local blocks. A Paper host still references source
+Model, not source Paper. Cycle cuts and loaded bodies remain session-only.
+External bytes are not required for native validity. External extents remain
+unknown and propagate through reachable local block occurrences; unused block
+definitions do not contaminate unrelated Model bounds.
 
 ## External plot styles
 
@@ -58,11 +62,11 @@ assignments have no name. The layer default is `Normal` and the object default
 is `ByLayer`. The external file's availability and contents are checked when
 the host resolves the resource for plotting.
 
-This is a normative companion to the [experimental contract](experimental-contract-0.12.0.md),
-the ordinary [IFCX declarations](ifccad-profile-0.12.0.ifcx), and the
-[local-value supplement](supplemental-values-0.12.0.schema.json). All apply after
+This is a normative companion to the [experimental contract](experimental-contract-0.13.0.md),
+the ordinary [IFCX declarations](ifccad-profile-0.13.0.ifcx), and the
+[local-value supplement](supplemental-values-0.13.0.schema.json). All apply after
 fragment composition. It is not an IFCX schema extension or an independent drawing format.
-The existing `urn:example:ifccad:0.12.0` import remains the only drawing import needed
+The existing `urn:example:ifccad:0.13.0` import remains the only drawing import needed
 by the bundled offline reader. Full IFCCAD validation includes local values,
 graph relationships and domain algorithms, not just ordinary IFCX attribute shapes.
 
@@ -175,7 +179,7 @@ not suffix-only references. Foreign namespaces remain outside this catalog.
 
 | ID | Requirement and algorithm | Phase / gap | Positive and negative evidence |
 |---|---|---|---|
-| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.12.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
+| IFCCAD-WIRE-001 | Header/envelope MUST use `ifcx_alpha`, the experimental profile `0.13.0`, nonempty header identity/dataVersion/author/timestamp, one drawing, and the bundled import or exactly matching inline declarations. Changed or incomplete historical inline definitions MUST be rejected; only the current module is accepted. | C/G/D; G5 | [native](../../tests/ifccad_native.rs), [preservation](../../tests/ifccad_preservation.rs) |
 | IFCCAD-WIRE-002 | Duplicate keys within one JSON object MUST fail. Same-path fragments merge children/inherits/attributes by key in file order; repeated values replace whole values, not nested arrays/overrides. Null inheritance removes its key; child/attribute null remains a marker. RejectConflicts MUST reject differing repeated values, including foreign nodes. | C; G3 | [composer](../../src/ifccad/source/composition.rs), [text wire](../../tests/ifccad_text_wire.rs) |
 | IFCCAD-WIRE-003 | CAD validation MUST run on the composed graph, retaining exact immutable original bytes and foreign context. Foreign children confer no CAD ownership. No supplement may validate all foreign objects or interpret provider bytes as CAD fields. | C/V/G; G3/G8 | [profile rules tests](../../tests/ifccad_profile_rules.rs), [native](../../tests/ifccad_native.rs) |
 | IFCCAD-WIRE-004 | Closed native value objects MUST reject unknown members and forbidden nulls as specified in the contract and local variant definitions. Unsupported CAD namespaces/payloads MUST fail at their existing role boundaries. No legacy unknown-field or null acceptance exception is provided. | V/G; G7 | [geometry](../../tests/ifccad_geometry.rs), [text codec](../../tests/ifccad_text_codec.rs), [workspace](../../tests/ifccad_workspace_state.rs) |

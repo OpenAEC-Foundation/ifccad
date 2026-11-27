@@ -27,12 +27,15 @@ fn xref_document() -> IfccadDocument {
     entity.id = d.id_counters.allocate_entity_id().unwrap();
     entity.kind = IfccadEntityKind::Xref(IfccadXref {
         source_id: d.external_sources[0].id,
-        placement: IfccadPlacement {
-            origin: [10000., 5000., 0.],
-            x_axis: [0., 1., 0.],
-            y_axis: [-1., 0., 0.],
+        transform: IfccadBlockTransform {
+            placement: IfccadPlacement {
+                origin: [10000., 5000., 0.],
+                x_axis: [0., 1., 0.],
+                y_axis: [-1., 0., 0.],
+            },
+            rotation: 0.,
+            scale: [500.; 3],
         },
-        scale: 500.,
         reference_type: IfccadXrefReferenceType::Attach,
     });
     d.model.entities.push(IfccadEntity::Native(entity));
@@ -57,7 +60,7 @@ fn xref_reference_types_json_cbor_strict_readback() {
         panic!()
     };
     x.reference_type = IfccadXrefReferenceType::Overlay;
-    x.placement.origin[0] += 100.;
+    x.transform.placement.origin[0] += 100.;
     d.model.entities.push(IfccadEntity::Native(overlay));
     validate_ifccad_document(&d).unwrap();
     let json = encode_ifccad_document(&d).unwrap();

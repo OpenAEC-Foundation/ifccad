@@ -8,8 +8,7 @@ record!(IfccadExternalSource;
 );
 record!(IfccadXref;
 0 => source_id: IfccadExternalSourceId = None,
-1 => placement: IfccadPlacement = None,
-2 => scale: f64 = None,
+1 => transform: IfccadBlockTransform = None,
 3 => reference_type: IfccadXrefReferenceType = Some(IfccadXrefReferenceType::Attach),
 );
 impl CborValue for IfccadExternalSourceId {

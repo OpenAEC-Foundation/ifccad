@@ -1,6 +1,6 @@
 {
   "header": {
-    "id": "urn:example:ifccad:0.12.0",
+    "id": "urn:example:ifccad:0.13.0",
     "ifcxVersion": "ifcx_alpha",
     "dataVersion": "0.10.0",
     "author": "OpenAEC",
@@ -19568,11 +19568,11 @@
             "source": {
               "dataType": "Reference"
             },
-            "scale": {
-              "dataType": "Real"
-            },
             "referenceType": {
               "dataType": "String"
+            },
+            "transform": {
+              "dataType": "Object"
             }
           }
         }

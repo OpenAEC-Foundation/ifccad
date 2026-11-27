@@ -8,7 +8,7 @@
   },
   "imports": [
     {
-      "uri": "urn:example:ifccad:0.12.0"
+      "uri": "urn:example:ifccad:0.13.0"
     }
   ],
   "schemas": {},
@@ -27,17 +27,17 @@
         "ifccad::drawing": {
           "lengthUnit": "mm",
           "linePatternScale": 1.0,
+          "nextAnnotationScaleId": 1,
           "nextBlockId": 2,
           "nextEntityId": 8,
           "nextLayerId": 1,
           "nextLayoutId": 3,
           "nextLinePatternId": 1,
           "nextModelWindowId": 1,
+          "nextSymbolSourceId": 1,
           "nextTextStyleId": 2,
           "nextUcsId": 1,
-          "profileVersion": "0.12.0",
-          "nextSymbolSourceId": 1,
-          "nextAnnotationScaleId": 1
+          "profileVersion": "0.13.0"
         }
       }
     },

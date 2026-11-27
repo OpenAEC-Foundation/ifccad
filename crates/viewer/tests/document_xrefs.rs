@@ -15,7 +15,10 @@ fn native_inspection_exposes_authored_sources_without_resolving_files() {
         result["presentation"]["externalSources"][0]["status"],
         "notChecked"
     );
-    assert_eq!(result["presentation"]["xrefs"][0]["scale"], 500.);
+    assert_eq!(
+        result["presentation"]["xrefs"][0]["transform"]["scale"],
+        serde_json::json!([500., 500., 500.])
+    );
     assert_eq!(result["presentation"]["xrefs"][0]["sourceId"], "1");
     let d = load_ifccad_bytes(DRAWING, Default::default()).unwrap();
     let cbor = encode_ifccad_cbor_document(d.document()).unwrap();
@@ -84,4 +87,26 @@ fn source_formats_open_natively_but_refuse_cad_delivery() {
             assert!(exported["export"]["download"].is_null(), "{exported}");
         }
     }
+}
+
+#[test]
+fn mixed_owner_inspection_keeps_unused_definitions_and_source_identity() {
+    let result = viewer::inspect_ifccad_bytes(
+        "Gallery.ifccad",
+        include_bytes!("../../../examples/ifccad/xrefs.ifcx"),
+    );
+    assert!(result["failure"].is_null(), "{result}");
+    let refs = result["presentation"]["xrefs"].as_array().unwrap();
+    assert_eq!(refs.len(), 7);
+    for kind in ["model", "paper", "block"] {
+        assert!(refs.iter().any(|x| x["ownerKind"] == kind), "{result}");
+    }
+    assert_eq!(refs.iter().filter(|x| x["sourceId"] == "1").count(), 5);
+    assert_eq!(
+        result["presentation"]["externalSources"]
+            .as_array()
+            .unwrap()
+            .len(),
+        3
+    );
 }

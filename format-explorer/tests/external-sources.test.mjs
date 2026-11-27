@@ -6,7 +6,7 @@ import {createCadPreviewController} from '../src/cad-preview.mjs';
 
 test('XREF source navigation keeps full-width identities and authored URI separate',()=>{
  const id='9007199254740993',source='/cad/d1/externalSource/'+id,entity='/cad/d1/e4';
- const graph={data:[{path:source,attributes:{'ifccad::externalSource':{name:'Ground',location:{kind:'uriReference',uri:'../Refs/ground.dwg'},source:{format:'dwg',basePoint:[10,20,0]}}}},{path:entity,attributes:{'ifccad::entity':{},'ifccad::xref':{source,scale:500}}}]};
+ const graph={data:[{path:source,attributes:{'ifccad::externalSource':{name:'Ground',location:{kind:'uriReference',uri:'../Refs/ground.dwg'},source:{format:'dwg',basePoint:[10,20,0]}}}},{path:entity,attributes:{'ifccad::entity':{},'ifccad::xref':{source,transform:{placement:{origin:[0,0,0],xAxis:[1,0,0],yAxis:[0,1,0]},scale:[500,500,500]}} }}]};
  const model=createInspection({presentation:{graph,externalSources:[{sourcePath:source,id,status:'notChecked'}]}});
  assert.equal(model.nodes.get(entity).type,'xref');
  assert.equal(model.nodes.get(entity).outgoing.some(e=>e.target===source&&e.kind==='externalSource'),true);
@@ -59,4 +59,15 @@ test('source bytes bind to the selected generated document and stale requests ar
  await session.replaceGenerated('e30=','other.ifcx');
  await assert.rejects(()=>session.registerExternalSource('9007199254740993','ground.dwg','e30=',documentId),/changed/i);
  assert.equal(loads.length,1);
+});
+
+
+test('XREF inspection exposes all owner scopes without inventing visible occurrences',()=>{
+ const source='/cad/d1/externalSource/1',transform={placement:{origin:[10,20,30],xAxis:[-1,0,0],yAxis:[0,0,1]},rotation:.5,scale:[-2,3,4]};
+ const xrefs=['model','paper','block'].map((ownerKind,i)=>({entityPath:'/cad/d1/e'+(i+1),ownerPath:ownerKind==='block'?'/cad/d1/block/1':'/cad/d1/layout/'+i,ownerKind,sourceId:'1',sourcePath:source,transform,referenceType:'attach'}));
+ const graph={data:[{path:source,attributes:{'ifccad::externalSource':{name:'Shared',location:{kind:'uriReference',uri:'detail.dwg'},source:{format:'dwg',basePoint:[1,2,3]}}}},...xrefs.map(x=>({path:x.entityPath,attributes:{'ifccad::entity':{},'ifccad::xref':{source,transform}}}))]};
+ const model=createInspection({presentation:{graph,xrefs,externalSources:[{id:'1',sourcePath:source,status:'notChecked'}]}});
+ for(const x of xrefs){const n=model.nodes.get(x.entityPath);assert.equal(n.derived.ownerKind,x.ownerKind);assert.deepEqual(n.derived.transform,transform);assert.ok(n.outgoing.some(e=>e.target===source));}
+ assert.equal(model.nodes.get(source).externalSource.status,'notChecked');
+ assert.equal(model.nodes.get(source).incoming.length,3);
 });

@@ -1,7 +1,8 @@
 # External drawing sources
 
-Profile 0.12.0 introduces drawing-local external sources and Model XREF
-attachments. A native entity has its ordinary entity ID and refers to an
+Profile 0.12.0 introduced drawing-local external sources and Model XREF
+attachments. The unpublished 0.13.0 draft extends placement and ownership as
+described below; published 0.12.0 files retain their original contract. A native entity has its ordinary entity ID and refers to an
 independent `IfccadExternalSourceId`. Allocation uses
 `nextExternalSourceId` (omitted means 1); deletion never resets it. Multiple
 sources and placements are allowed, including unused sources. Equal locations
@@ -33,12 +34,17 @@ Search names contain literal text without separators, a drive prefix, NUL,
 resolve it. This `uri` belongs to the custom source record and is independent
 of IFCX `imports[].uri` and schema URI fields.
 
-`ifccad::xref` contains a drawing-local `source` path and a positive finite
-`scale`. The existing `ifccad::geom::placement` supplies O/X/Y. The first slice
-allows Model Attach/Overlay relationships with rotation about Z and positive uniform scale.
-The scale is effective: any source-to-main unit factor has already been
-applied once. A source point is transformed relative to the source's stored
-base point before scale and placement. Source geometry stays external.
+`ifccad::xref` contains a drawing-local `source` path and `transform`, using
+`IfccadBlockTransform`: an orthonormal O/X/Y owner frame, rotation in radians
+(default zero) and signed finite nonzero XYZ scale (default one). It has no
+separate `ifccad::geom::placement`. Model, Paper layouts and local blocks may
+own XREFs. The effective scale already includes insertion-unit conversion.
+The source base point is subtracted once before scale, rotation and frame:
+`p_owner = O + F * Rz(rotation) * diag(scale) * (p_source - basePoint)`.
+Nested placements retain their graph; no affine decomposition is required.
+A local block boundary does not stop Overlay propagation; an external drawing
+boundary does. Only source Model geometry is loaded, including when the owner
+is a Paper layout. Source geometry stays external.
 
 A missing source is a valid native drawing. Core validation does no external
 IO, and a marker at the insertion point cannot establish complete bounds.
@@ -47,9 +53,9 @@ search order, relinking, reload and GUID mismatch messages are host concerns.
 An unsupported URI scheme stays stored and unresolved. A found session path
 does not replace the authored location implicitly.
 
-CBOR mapping 12 uses document key 29, allocation key 17 and entity-kind code
+CBOR mapping 13 uses document key 29, allocation key 17 and entity-kind code
 22. The detailed record codes and omission rules are in the
-[machine-readable mapping](../schemas/ifccad/cbor-mapping-12.json).
+[machine-readable mapping](../schemas/ifccad/cbor-mapping-13.json).
 Native JSON and CBOR share the same intrinsic and ownership validation.
 
 The optional XREF `referenceType` is `attach` (omitted default) or `overlay`.
@@ -60,8 +66,9 @@ session-only cycle interruption; no cycle cut is stored in the drawing.
 
 Bind for the native workflow, complete project archives and remote downloads
 remain outside this qualified slice. SHX and CTB/STB retain their existing
-records. Their migration to the shared locator/source model follows the next
-placement extension as separate work.
+records. Their migration to the shared locator/source model is a separate execution
+slice, planned for the same unpublished 0.13.0 / CBOR 13 draft and future release.
+Placement alone does not authorize publication of that joint release.
 
 ## Host and CAD exchange
 

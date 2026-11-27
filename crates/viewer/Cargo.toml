@@ -11,7 +11,7 @@ default = []
 ifccad-cbor-zstd = ["ifccad/ifccad-cbor-zstd"]
 
 [dependencies]
-opencaddocument = { git = "https://github.com/HakanSeven12/opencaddocument.git", rev = "1db213a7babde93b64a4887fd6ba441f0177b00d", features = ["ifcx", "mline-pilot"] }
+opencaddocument = { git = "https://github.com/BjornFidder/opencaddocument.git", rev = "1d7c8f3dcddf9bda9fe637c1cd03e17f962d215d", features = ["ifcx", "mline-pilot"] }
 serde = { version = "1", features = ["derive"] }
 ifccad = { path = "../.." }
 serde_json = "1"

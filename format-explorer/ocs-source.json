@@ -5,12 +5,14 @@
   "documentCommit": "1db213a7babde93b64a4887fd6ba441f0177b00d",
   "codecCommit": "b0b768cee674c28bac63c75cbd5638b894f33f23",
   "nativeCoreCommit": "785590abb669c38afb700b339d36cc8cc0c18161",
-  "explorerCore": "local-workspace-2026.48.0",
-  "explorerDocumentCommit": "1db213a7babde93b64a4887fd6ba441f0177b00d",
-  "explorerCodecCommit": "b0b768cee674c28bac63c75cbd5638b894f33f23",
+  "explorerCore": "staged-workspace-xref-placement",
+  "explorerDocumentCommit": "1d7c8f3dcddf9bda9fe637c1cd03e17f962d215d",
+  "explorerCodecCommit": "f1f7a8b46c3162991a1bd95134716b0444f74ef7",
   "explorerCodecRepository": "https://github.com/hakanaktt/acadrust.git",
   "documentRepository": "https://github.com/HakanSeven12/opencaddocument.git",
   "profile": "0.12.0",
   "cborRevision": 12,
-  "codecRepository": "https://github.com/hakanaktt/acadrust.git"
+  "codecRepository": "https://github.com/hakanaktt/acadrust.git",
+  "localDevelopment": "xref-placement",
+  "stagingNote": "Native processor contract13 staged with a reachable review mapping. Shipped host pins remain profile12; public deployment and combined A+B integration are pending."
 }

@@ -1,8 +1,10 @@
-# Experimental IFCCAD CBOR mapping, revision 12 (development)
+# Experimental IFCCAD CBOR mapping, revision 13 (development)
 
-Revision 12 adds external drawing sources at document key 29 and their
+Revision 13 extends external drawing sources at document key 29 and their
 independent allocation watermark at key 17. Entity kind 22 is XREF with
-source ID, placement and positive effective scale. The closed location
+source ID, a block transform and relationship type. The transform stores an
+orthonormal owner frame, rotation and signed nonzero XYZ effective scale.
+XREFs may belong to Model, Paper layouts and local blocks. The closed location
 variants are URI-reference (0) and search filename (1); source content
 supports DWG (0), DXF (1) and IFCCAD (2). DWG/DXF bodies use base point (0),
 optional insertion unit (1) and optional fingerprint GUID (2). IFCCAD bodies
@@ -35,7 +37,7 @@ serialization. It retains the complete supported CAD projection, including
 opaque CAD preservation, but no original IFCX fragments, imports or foreign
 nodes. JSON/IFCX remains a separate mapping through the same typed document.
 
-The normative field/type inventory is [cbor-mapping-12.json](cbor-mapping-12.json).
+The normative field/type inventory is [cbor-mapping-13.json](cbor-mapping-13.json).
 It enumerates concrete records and generic instantiations reachable from the
 document. Names in that registry are explanatory, not transmitted type names.
 Record field codes are local to their record type. Codes and enum variants are
@@ -44,7 +46,7 @@ values and never inferred from field codes, vector indices or content.
 
 ## Envelope and revision
 
-Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 12, 2: Document}`.
+Exactly one CBOR map contains `{0: "IFCCAD-CBOR", 1: 13, 2: Document}`.
 All three fields are required. Other revisions are rejected; no migration,
 forward-compatible skipping, feature negotiation or historical decoder is
 provided. Revision 6 and profile 0.6.0 are the unpublished block-attribute development candidate.
@@ -229,7 +231,7 @@ Descriptor fields are 0 mode (0 Disabled, 1 Enabled, 2 ByDefinition), 1 optional
 reference key, 2 required context list. Each context has 0 key and 1 optional
 presentation; each key has 0 scale ID. Optional values omit their field; a
 present null is malformed. Family records and exact enum codes are declared in
-[cbor-mapping-12.json](cbor-mapping-12.json). Shared profile rules govern semantic
+[cbor-mapping-13.json](cbor-mapping-13.json). Shared profile rules govern semantic
 validity in both encodings. Floating-point payloads retain their exact bits;
 no record field calculates a scale quotient or normalizes a direction.
 

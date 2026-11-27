@@ -764,10 +764,6 @@
     "valid": false
   },
   {
-    "file": "invalid-xref-paper-owner.ifcx",
-    "valid": false
-  },
-  {
     "file": "valid-xref-dxf.ifcx",
     "valid": true
   },
@@ -798,5 +794,9 @@
   {
     "file": "invalid-xref-reference-type-null.ifcx",
     "valid": false
+  },
+  {
+    "file": "valid-xref-paper-owner.ifcx",
+    "valid": true
   }
 ]

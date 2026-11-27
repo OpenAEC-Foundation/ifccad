@@ -4,7 +4,7 @@ The [IFCCAD candidate](ifccad/README.md) exercises the provisional JSON/IFCX
 profile through strict production native reading. The [base-CBOR candidate](ifccad-cbor/README.md)
 qualifies its separate mapping revision and production reader. [Optional native
 Zstd transport](ifccad-cbor-zstd/README.md) retains the same inner CBOR contract.
-Profile 0.12.0 and CBOR revision 12 add external drawing sources and Model XREF.
+Profile 0.13.0 and CBOR revision 13 extend XREF transforms and allow Paper/local-block owners.
 They retain external plot-style sources and assignments from profile 0.11.0.
 Its IFCX and CBOR files are independently authored by `splines.py`.
 

@@ -304,7 +304,7 @@ pub(super) fn validate_value(
     static VALIDATORS: OnceLock<BTreeMap<&str, jsonschema::Validator>> = OnceLock::new();
     let validators = VALIDATORS.get_or_init(|| {
         let base: Value = serde_json::from_str(include_str!(
-            "../../../../schemas/ifccad/supplemental-values-0.12.0.schema.json"
+            "../../../../schemas/ifccad/supplemental-values-0.13.0.schema.json"
         ))
         .expect("bundled IFCCAD supplements");
         ENTRIES
